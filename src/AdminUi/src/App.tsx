@@ -1,15 +1,24 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, lazy, Suspense } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { DashboardPage } from './features/features/pages/DashboardPage';
-import { ProjectListPage } from './features/features/pages/ProjectListPage';
-import { ProjectDetailPage } from './features/projects/pages/ProjectDetailPage';
-import { FeatureListPage } from './features/features/pages/FeatureListPage';
-import { FeatureDetailPage } from './features/features/pages/FeatureDetailPage';
-import { DefectListPage } from './features/features/pages/DefectListPage';
-import { DefectDetailPage } from './features/defects/pages/DefectDetailPage';
-import { TaskListPage } from './features/features/pages/TaskListPage';
-import { SettingsPage } from './features/features/pages/SettingsPage';
+
+const DashboardPage = lazy(() => import('./features/features/pages/DashboardPage'));
+const ProjectListPage = lazy(() => import('./features/features/pages/ProjectListPage'));
+const ProjectDetailPage = lazy(() => import('./features/projects/pages/ProjectDetailPage'));
+const FeatureListPage = lazy(() => import('./features/features/pages/FeatureListPage'));
+const FeatureDetailPage = lazy(() => import('./features/features/pages/FeatureDetailPage'));
+const DefectListPage = lazy(() => import('./features/features/pages/DefectListPage'));
+const DefectDetailPage = lazy(() => import('./features/defects/pages/DefectDetailPage'));
+const TaskListPage = lazy(() => import('./features/features/pages/TaskListPage'));
+const SettingsPage = lazy(() => import('./features/features/pages/SettingsPage'));
+
+function LoadingFallback() {
+    return (
+        <div className="flex items-center justify-center p-8">
+            <div className="text-muted-foreground">Loading...</div>
+        </div>
+    );
+}
 
 function App() {
     return (
@@ -17,15 +26,51 @@ function App() {
             <ErrorBoundary>
                 <Routes>
                     <Route path="/" element={<AppShell />}>
-                        <Route index element={<DashboardPage />} />
-                        <Route path="projects" element={<ProjectListPage />} />
-                        <Route path="projects/:id" element={<ProjectDetailPage />} />
-                        <Route path="features" element={<FeatureListPage />} />
-                        <Route path="features/:id" element={<FeatureDetailPage />} />
-                        <Route path="defects" element={<DefectListPage />} />
-                        <Route path="defects/:id" element={<DefectDetailPage />} />
-                        <Route path="tasks" element={<TaskListPage />} />
-                        <Route path="settings" element={<SettingsPage />} />
+                        <Route index element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <DashboardPage />
+                            </Suspense>
+                        } />
+                        <Route path="projects" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <ProjectListPage />
+                            </Suspense>
+                        } />
+                        <Route path="projects/:id" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <ProjectDetailPage />
+                            </Suspense>
+                        } />
+                        <Route path="features" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <FeatureListPage />
+                            </Suspense>
+                        } />
+                        <Route path="features/:id" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <FeatureDetailPage />
+                            </Suspense>
+                        } />
+                        <Route path="defects" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <DefectListPage />
+                            </Suspense>
+                        } />
+                        <Route path="defects/:id" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <DefectDetailPage />
+                            </Suspense>
+                        } />
+                        <Route path="tasks" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <TaskListPage />
+                            </Suspense>
+                        } />
+                        <Route path="settings" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <SettingsPage />
+                            </Suspense>
+                        } />
                     </Route>
                 </Routes>
             </ErrorBoundary>
