@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Plus, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Plus, AlertTriangle, Clock } from 'lucide-react';
 import { useDashboardSummary } from '@/features/dashboard/hooks/useDashboardSummary';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
 import type { GetDashboardSummaryQuery } from '@/generated/graphql';
@@ -36,7 +36,7 @@ function StatCard({ title, value, variant, description }: StatCardProps) {
 
 export function DashboardPage() {
     const navigate = useNavigate();
-    const { dashboardSummary, loading, error, refetch } = useDashboardSummary();
+    const { dashboardSummary, loading, error, refetch, isBackgroundRefresh } = useDashboardSummary();
     const [showCreateProject, setShowCreateProject] = useState(false);
 
     const handleRefresh = async () => {
@@ -112,6 +112,12 @@ export function DashboardPage() {
                     <p className="text-muted-foreground">Welcome to your DevStack dashboard.</p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {isBackgroundRefresh && (
+                        <div className="flex items-center text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3 mr-1 animate-pulse" />
+                            Refreshing...
+                        </div>
+                    )}
                     <Button onClick={handleRefresh} disabled={loading}>
                         <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                         Refresh
