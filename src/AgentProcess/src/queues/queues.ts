@@ -16,7 +16,7 @@ const defaultJobOptions: JobsOptions = {
     count: 100,
   },
   removeOnFail: {
-    count: 500,
+    count: 0,
   },
 };
 
