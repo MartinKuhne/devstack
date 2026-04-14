@@ -2,7 +2,7 @@ type Query {
     dashboardSummary: DashboardSummary!
     projects(first: Int, after: String): ProjectConnection!
     projectById(id: ID!): Project
-    features(first: Int, after: String): FeatureConnection!
+    features(first: Int, after: String, projectId: ID, status: [FeatureStatus!]): FeatureConnection!
     featureById(id: ID!): Feature
     defects(first: Int, after: String): DefectConnection!
     defectById(id: ID!): Defect

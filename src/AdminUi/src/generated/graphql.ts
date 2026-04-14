@@ -304,6 +304,8 @@ export type QueryfeatureByIdArgs = {
 export type QueryfeaturesArgs = {
   after: InputMaybe<Scalars['String']['input']>;
   first: InputMaybe<Scalars['Int']['input']>;
+  projectId: InputMaybe<Scalars['ID']['input']>;
+  status: InputMaybe<Array<FeatureStatus>>;
 };
 
 
@@ -452,6 +454,14 @@ export type GetFeatureByIdQueryVariables = Exact<{
 
 
 export type GetFeatureByIdQuery = { __typename?: 'Query', featureById: { __typename?: 'Feature', id: string, title: string, status: FeatureStatus, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, createdAt: string, updatedAt: string, validStatusTransitions: Array<FeatureStatus>, tasks: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus }> } | null };
+
+export type GetFeaturesQueryVariables = Exact<{
+  projectId: InputMaybe<Scalars['ID']['input']>;
+  status: InputMaybe<Array<FeatureStatus> | FeatureStatus>;
+}>;
+
+
+export type GetFeaturesQuery = { __typename?: 'Query', features: { __typename?: 'FeatureConnection', edges: Array<{ __typename?: 'FeatureEdge', node: { __typename?: 'Feature', id: string, title: string, status: FeatureStatus, updatedAt: string, tasks: Array<{ __typename?: 'Task', id: string }> } }> } };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['ID']['input'];
