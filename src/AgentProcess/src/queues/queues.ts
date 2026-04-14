@@ -1,4 +1,4 @@
-import { Queue } from 'bullmq';
+import { Queue, JobsOptions } from 'bullmq';
 import { Redis } from 'ioredis';
 import { loadConfig } from '../config.js';
 
@@ -6,10 +6,10 @@ const config = loadConfig();
 
 const redisConnection = new Redis(config.REDIS_URL);
 
-const defaultJobOptions = {
+const defaultJobOptions: JobsOptions = {
   attempts: config.MAX_RETRIES,
   backoff: {
-    type: 'exponential' as const,
+    type: 'exponential',
     delay: 5000,
   },
   removeOnComplete: {
@@ -52,6 +52,22 @@ export const queues = {
   tester: testerQueue,
   architect: architectQueue,
 };
+
+export interface WorkflowJobData {
+  workflowName: string;
+  input: unknown;
+}
+
+export async function enqueueWorkflowJob(
+  queue: Queue,
+  workflowName: string,
+  input: unknown
+): Promise<void> {
+  await queue.add(workflowName, {
+    workflowName,
+    input,
+  } as WorkflowJobData);
+}
 
 export async function closeQueals(): Promise<void> {
   await redisConnection.quit();

@@ -1,6 +1,8 @@
 import { Worker, Job } from 'bullmq';
 import { Redis } from 'ioredis';
 import { loadConfig } from '../config.js';
+import { executeWorkflow } from '../workflows/executor.js';
+import { logger } from '../observability/logger.js';
 
 const config = loadConfig();
 
@@ -11,9 +13,8 @@ export interface WorkerOptions {
   concurrency?: number;
 }
 
-export function createWorker<T = unknown>(
+export function createWorker<T extends { workflowName: string; input: unknown }>(
   queueName: string,
-  processor: JobProcessor<T>,
   options: WorkerOptions = { name: queueName, concurrency: config.WORKER_CONCURRENCY }
 ): Worker<T> {
   const redisConnection = new Redis(config.REDIS_URL);
@@ -21,13 +22,22 @@ export function createWorker<T = unknown>(
   const worker = new Worker<T>(
     queueName,
     async (job: Job<T>) => {
-      console.log(`[${options.name}] Processing job ${job.id ?? 'unknown'}`);
+      const jobData = job.data;
+      const workflowName = jobData.workflowName;
+      
+      logger.info({ workflowName, jobId: job.id }, 'Processing workflow job');
+      
       try {
-        const result = await processor(job);
-        console.log(`[${options.name}] Job ${job.id ?? 'unknown'} completed`);
+        const result = await executeWorkflow(
+          workflowName,
+          job.id ?? 'unknown',
+          jobData.input
+        );
+        
+        logger.info({ workflowName, jobId: job.id }, 'Workflow job completed successfully');
         return result;
       } catch (error) {
-        console.error(`[${options.name}] Job ${job.id ?? 'unknown'} failed:`, error);
+        logger.error({ workflowName, jobId: job.id, error }, 'Workflow job failed');
         throw error;
       }
     },
@@ -38,15 +48,18 @@ export function createWorker<T = unknown>(
   );
 
   worker.on('completed', (job: Job) => {
-    console.log(`[${options.name}] Job ${job.id ?? 'unknown'} completed successfully`);
+    logger.info({ jobId: job.id, workflowName: job.data?.workflowName }, 'Job completed successfully');
   });
 
   worker.on('failed', (job: Job | undefined, error: Error) => {
-    console.error(`[${options.name}] Job ${job?.id ?? 'unknown'} failed:`, error);
+    logger.error(
+      { jobId: job?.id ?? 'unknown', workflowName: job?.data?.workflowName, error },
+      'Job failed'
+    );
   });
 
   worker.on('error', (error: Error) => {
-    console.error(`[${options.name}] Worker error:`, error);
+    logger.error({ error }, 'Worker error');
   });
 
   return worker;
