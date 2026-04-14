@@ -1,0 +1,273 @@
+type Query {
+  dashboardSummary: DashboardSummary!
+  projects(first: Int, after: String): ProjectConnection!
+  projectById(id: ID!): Project
+  features(first: Int, after: String): FeatureConnection!
+  featureById(id: ID!): Feature
+  defects(first: Int, after: String): DefectConnection!
+  defectById(id: ID!): Defect
+  tasks(first: Int, after: String): TaskConnection!
+  taskById(id: ID!): Task
+}
+
+type Mutation {
+  createProject(input: CreateProjectInput!): Project!
+  updateProject(id: ID!, input: UpdateProjectInput!): Project
+  createFeature(input: CreateFeatureInput!): Feature!
+  updateFeature(id: ID!, input: UpdateFeatureInput!): Feature
+  transitionFeatureStatus(id: ID!, targetStatus: FeatureStatus!, actor: String!): FeatureStatusTransition
+  createDefect(input: CreateDefectInput!): Defect!
+  updateDefect(id: ID!, input: UpdateDefectInput!): Defect
+  createTask(input: CreateTaskInput!): Task!
+  updateTask(id: ID!, input: UpdateTaskInput!): Task
+}
+
+type DashboardSummary {
+  projectCount: Int!
+  featureCount: Int!
+  defectCount: Int!
+  taskCount: Int!
+}
+
+type Project {
+  id: ID!
+  name: String!
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ProjectConnection {
+  edges: [ProjectEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ProjectEdge {
+  node: Project!
+  cursor: String!
+}
+
+type Feature {
+  id: ID!
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  result: String
+  errors: String
+  status: FeatureStatus!
+  project: Project
+  tasks: [Task!]!
+  validStatusTransitions: [FeatureStatus!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type FeatureConnection {
+  edges: [FeatureEdge!]!
+  pageInfo: PageInfo!
+}
+
+type FeatureEdge {
+  node: Feature!
+  cursor: String!
+}
+
+type FeatureStatusTransition {
+  feature: Feature!
+  errors: [String!]
+}
+
+type Defect {
+  id: ID!
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  result: String
+  errors: String
+  securityImpact: String
+  performanceImpact: String
+  status: DefectStatus!
+  severity: DefectSeverity!
+  parentFeature: Feature
+  project: Project
+  createdAt: String!
+  updatedAt: String!
+}
+
+type DefectConnection {
+  edges: [DefectEdge!]!
+  pageInfo: PageInfo!
+}
+
+type DefectEdge {
+  node: Defect!
+  cursor: String!
+}
+
+type Task {
+  id: ID!
+  title: String!
+  deliverable: String
+  acceptanceCriteria: String
+  risks: String
+  requiredFollowUps: String
+  complexity: TaskComplexity!
+  status: TaskStatus!
+  feature: Feature
+  createdAt: String!
+  updatedAt: String!
+}
+
+type TaskConnection {
+  edges: [TaskEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TaskEdge {
+  node: Task!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input CreateProjectInput {
+  name: String!
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+}
+
+input UpdateProjectInput {
+  name: String
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+  version: Int!
+}
+
+input CreateFeatureInput {
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  projectId: ID!
+}
+
+input UpdateFeatureInput {
+  title: String
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  version: Int!
+}
+
+input CreateDefectInput {
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  result: String
+  errors: String
+  securityImpact: String
+  performanceImpact: String
+  severity: DefectSeverity!
+  projectId: ID!
+  parentFeatureId: ID
+}
+
+input UpdateDefectInput {
+  title: String
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  result: String
+  errors: String
+  securityImpact: String
+  performanceImpact: String
+  severity: DefectSeverity
+  version: Int!
+}
+
+input CreateTaskInput {
+  title: String!
+  deliverable: String
+  acceptanceCriteria: String
+  risks: String
+  requiredFollowUps: String
+  complexity: TaskComplexity!
+  featureId: ID!
+}
+
+input UpdateTaskInput {
+  title: String
+  deliverable: String
+  acceptanceCriteria: String
+  risks: String
+  requiredFollowUps: String
+  complexity: TaskComplexity
+  status: TaskStatus
+  version: Int!
+}
+
+enum FeatureStatus {
+  Planned
+  InProgress
+  Review
+  Done
+}
+
+enum DefectStatus {
+  Reported
+  Triaged
+  InProgress
+  Resolved
+  Closed
+}
+
+enum DefectSeverity {
+  Critical
+  High
+  Medium
+  Low
+}
+
+enum TaskComplexity {
+  Simple
+  Moderate
+  Complex
+  Major
+}
+
+enum TaskStatus {
+  Todo
+  InProgress
+  Review
+  Done
+}
