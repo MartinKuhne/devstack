@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFeature } from '@/features/features/hooks/useFeature';
 import { EditFeatureDialog } from '@/features/features/components/EditFeatureDialog';
+import { TaskBoard } from '@/features/features/components/TaskBoard';
 import { toast } from 'react-toastify';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -17,7 +18,7 @@ const STATUS_COLORS: Record<string, string> = {
     Failed: 'bg-red-500',
 };
 
-interface Task {
+interface SimpleTask {
     id: string;
     title: string;
     status: string;
@@ -101,7 +102,7 @@ export function FeatureDetailPage() {
     }
 
     const feature = data.featureById;
-    const tasks = feature.tasks as Task[] | undefined;
+    const tasks = feature.tasks as SimpleTask[] | undefined;
 
    return (
         <div className="space-y-6">
@@ -144,28 +145,11 @@ export function FeatureDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="tasks">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Tasks</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {tasks && tasks.length > 0 ? (
-                                <div className="space-y-2">
-                                    {tasks.map((task) => (
-                                        <div
-                                            key={task.id}
-                                            className="flex items-center justify-between p-2 border rounded"
-                                        >
-                                            <span>{task.title}</span>
-                                            <Badge variant="outline">{task.status}</Badge>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-muted-foreground text-sm">No tasks yet.</p>
-                            )}
-                        </CardContent>
-                    </Card>
+                    <TaskBoard
+                        tasks={tasks as any[]}
+                        featureId={feature.id}
+                        onTasksChange={refetch}
+                    />
                 </TabsContent>
             </Tabs>
 
