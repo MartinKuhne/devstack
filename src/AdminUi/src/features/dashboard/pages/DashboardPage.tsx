@@ -1,8 +1,13 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, Plus, AlertTriangle } from 'lucide-react';
 import { useDashboardSummary } from '@/features/dashboard/hooks/useDashboardSummary';
+import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
 import type { GetDashboardSummaryQuery } from '@/generated/graphql';
 
 interface StatCardProps {
@@ -30,7 +35,13 @@ function StatCard({ title, value, variant, description }: StatCardProps) {
 }
 
 export function DashboardPage() {
-    const { dashboardSummary, loading, error } = useDashboardSummary();
+    const navigate = useNavigate();
+    const { dashboardSummary, loading, error, refetch } = useDashboardSummary();
+    const [showCreateProject, setShowCreateProject] = useState(false);
+
+    const handleRefresh = async () => {
+        await refetch();
+    };
 
     if (loading) {
         return (
@@ -68,9 +79,15 @@ export function DashboardPage() {
     if (error) {
         return (
             <div className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-                    <p className="text-muted-foreground">Welcome to your DevStack dashboard.</p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
+                        <p className="text-muted-foreground">Welcome to your DevStack dashboard.</p>
+                    </div>
+                    <Button onClick={handleRefresh} disabled={loading}>
+                        <RefreshCw className="h-4 w-4" />
+                        Refresh
+                    </Button>
                 </div>
                 <Card>
                     <CardHeader>
@@ -89,9 +106,21 @@ export function DashboardPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-                <p className="text-muted-foreground">Welcome to your DevStack dashboard.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
+                    <p className="text-muted-foreground">Welcome to your DevStack dashboard.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button onClick={handleRefresh} disabled={loading}>
+                        <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                        Refresh
+                    </Button>
+                    <Button onClick={() => setShowCreateProject(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Project
+                    </Button>
+                </div>
             </div>
             
             {hasData === false && (
@@ -100,6 +129,23 @@ export function DashboardPage() {
                         <p className="text-center text-muted-foreground">No data available yet. Create your first project to get started.</p>
                     </CardContent>
                 </Card>
+            )}
+
+            {hasData && (
+                <div className="flex gap-2">
+                    {(summary?.featuresFailed ?? 0) > 0 && (
+                        <Button variant="outline" onClick={() => navigate('/features?status=Failed')}>
+                            <AlertTriangle className="h-4 w-4 mr-2" />
+                            View Failed Features ({summary.featuresFailed})
+                        </Button>
+                    )}
+                    {(summary?.tasksFailed ?? 0) > 0 && (
+                        <Button variant="outline" onClick={() => navigate('/tasks?status=Failed')}>
+                            <AlertTriangle className="h-4 w-4 mr-2" />
+                            View Failed Tasks ({summary.tasksFailed})
+                        </Button>
+                    )}
+                </div>
             )}
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -166,6 +212,12 @@ export function DashboardPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <CreateProjectDialog
+                open={showCreateProject}
+                onOpenChange={setShowCreateProject}
+                onSuccess={() => refetch()}
+            />
         </div>
     );
 }
