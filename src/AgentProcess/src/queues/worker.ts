@@ -2,6 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { Redis } from 'ioredis';
 import { loadConfig } from '../config.js';
 import { executeWorkflow } from '../workflows/executor.js';
+import { moveToDeadLetterQueue } from '../workflows/dead-letter.js';
 import { logger } from '../observability/logger.js';
 
 const config = loadConfig();
@@ -27,6 +28,8 @@ export function createWorker<T extends { workflowName: string; input: unknown }>
       const jobData = job.data;
       const workflowName = jobData.workflowName;
       
+      // Optional chaining is safe here as job.data might be undefined
+      // but we know it's defined based on our job structure
       logger.info({ workflowName, jobId: job.id }, 'Processing workflow job');
       
       try {
@@ -39,7 +42,27 @@ export function createWorker<T extends { workflowName: string; input: unknown }>
         logger.info({ workflowName, jobId: job.id }, 'Workflow job completed successfully');
         return result;
       } catch (error) {
+        // Optional chaining is safe here as job.data might be undefined
+        // but we know it's defined based on our job structure
         logger.error({ workflowName, jobId: job.id, error }, 'Workflow job failed');
+        
+        // Check if job has exhausted retries and move to dead letter queue
+        if (job.attemptsMade >= (job.opts?.attempts ?? config.MAX_RETRIES)) {
+          // Optional chaining is safe here as job.data might be undefined
+          // but we know it's defined based on our job structure
+          logger.warn(
+            { 
+              jobId: job.id, 
+              workflowName, 
+              attemptsMade: job.attemptsMade,
+              maxAttempts: job.opts?.attempts ?? config.MAX_RETRIES
+            },
+            'Job has exhausted retries, moving to dead letter queue'
+          );
+          
+          await moveToDeadLetterQueue(queueName, job, error as Error);
+        }
+        
         throw error;
       }
     },
@@ -49,10 +72,14 @@ export function createWorker<T extends { workflowName: string; input: unknown }>
     }
   );
 
+  // Optional chaining is safe here as job might be undefined
+  // but we know it's defined based on our event registration
   worker.on('completed', (job: Job) => {
     logger.info({ jobId: job.id, workflowName: job.data?.workflowName }, 'Job completed successfully');
   });
 
+  // Optional chaining is safe here as job might be undefined
+  // but we know it's defined based on our event registration
   worker.on('failed', (job: Job | undefined, error: Error) => {
     logger.error(
       { jobId: job?.id ?? 'unknown', workflowName: job?.data?.workflowName, error },
@@ -82,4 +109,5 @@ export async function stopWorkers(workers: Worker[]): Promise<void> {
   });
 
   await Promise.all(closePromises);
+  workers = [];
 }

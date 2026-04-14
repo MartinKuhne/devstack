@@ -20,6 +20,7 @@ const defaultJobOptions: JobsOptions = {
   },
 };
 
+// Main queues
 export const plannerQueue = new Queue('planner', {
   connection: redisConnection,
   defaultJobOptions,
@@ -43,6 +44,19 @@ export const testerQueue = new Queue('tester', {
 export const architectQueue = new Queue('architect', {
   connection: redisConnection,
   defaultJobOptions,
+});
+
+// Dead letter queue for permanently failed jobs
+export const deadLetterQueue = new Queue('deadLetter', {
+  connection: redisConnection,
+  defaultJobOptions: {
+    removeOnComplete: {
+      count: 100,
+    },
+    removeOnFail: {
+      count: 0, // Keep failed jobs in dead letter queue for inspection
+    },
+  },
 });
 
 export const queues = {
