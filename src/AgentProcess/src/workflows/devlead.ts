@@ -5,6 +5,7 @@ import { createModel, type ModelConfig } from '../llm/model.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { createGraphQLClient } from '../api/graphql-client.js';
 import { logger } from '../observability/logger.js';
+import { isDryRunMode, getDryRunDevLeadResponse, logDryRunEvent } from './dry-run.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
@@ -327,12 +328,19 @@ export const devLeadWorkflow: WorkflowDefinition<DevLeadWorkflowInput, DevLeadWo
           timestamp: new Date().toISOString(),
         });
         
-        ctx.logger.info('Calling LLM for PR orchestration');
-        const response = await model.invoke(promptText);
+        let rawOutput: string;
         
-        const rawOutput = typeof response.content === 'string' 
-          ? response.content 
-          : JSON.stringify(response.content || '');
+        if (isDryRunMode()) {
+          logDryRunEvent('devlead');
+          rawOutput = getDryRunDevLeadResponse(featureInfo.branchName || 'feature-branch');
+        } else {
+          ctx.logger.info('Calling LLM for PR orchestration');
+          const response = await model.invoke(promptText);
+          
+          rawOutput = typeof response.content === 'string' 
+            ? response.content 
+            : JSON.stringify(response.content || '');
+        }
         
         const prOutput = JSON.parse(rawOutput) as {
           action: 'branch_created' | 'pr_created' | 'rework_requested' | 'feature_completed' | 'waiting_for_tasks';

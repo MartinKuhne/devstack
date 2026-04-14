@@ -13,6 +13,7 @@ const configSchema = z.object({
   ENABLE_WORKERS: z.string().default('true').transform((val) => val === 'true'),
   SCHEDULER_INTERVAL: z.string().default('30000').transform((val) => Number.parseInt(val, 10)),
   GRACEFUL_SHUTDOWN_TIMEOUT_MS: z.string().default('30000').transform((val) => Number.parseInt(val, 10)),
+  DRY_RUN: z.string().default('false').transform((val) => val === 'true'),
 });
 
 export type Config = z.infer<typeof configSchema>;
