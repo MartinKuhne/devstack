@@ -86,6 +86,12 @@ export function AppShell() {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 bg-primary text-primary-foreground px-4 py-2 rounded-md"
+            >
+                Skip to content
+            </a>
             <div className="flex min-h-screen w-full">
                 {/* Desktop Sidebar */}
                 <aside className="hidden w-64 border-r bg-background md:block">
@@ -101,11 +107,16 @@ export function AppShell() {
                         <div className="flex items-center gap-4">
                             <Sheet>
                                 <SheetTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="md:hidden">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="md:hidden"
+                                        aria-label="Open navigation menu"
+                                    >
                                         <Menu className="h-5 w-5" />
                                     </Button>
                                 </SheetTrigger>
-                                <SheetContent side="left" className="w-64 p-0">
+                                <SheetContent side="left" className="w-64 p-0" aria-label="Navigation menu">
                                     <div className="flex h-16 items-center border-b px-6">
                                         <h1 className="text-xl font-bold">DevStack</h1>
                                     </div>
@@ -118,6 +129,7 @@ export function AppShell() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setDarkMode(!darkMode)}
+                                aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                             >
                                 {darkMode ? (
                                     <Sun className="h-5 w-5" />
@@ -127,7 +139,7 @@ export function AppShell() {
                             </Button>
                         </div>
                     </header>
-                    <main className="flex-1 p-4 md:p-6">
+                    <main id="main-content" className="flex-1 p-4 md:p-6">
                         <Outlet />
                     </main>
                 </div>
