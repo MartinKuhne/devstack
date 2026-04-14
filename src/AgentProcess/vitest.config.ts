@@ -1,5 +1,8 @@
 import { defineConfig } from 'vitest/config';
 
+process.env.GRAPHQL_API_URL = 'http://localhost:5000/graphql';
+process.env.REDIS_URL = 'redis://localhost:6379';
+
 export default defineConfig({
   test: {
     include: ['src/**/*.test.ts'],
