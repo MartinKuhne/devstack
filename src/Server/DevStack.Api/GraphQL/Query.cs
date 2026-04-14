@@ -18,7 +18,14 @@ public class Query
         return dbContext.Projects;
     }
 
-    public IQueryable<Feature> GetFeatures([Service] DevStackDbContext dbContext, Guid? projectId = null, List<FeatureStatus>? status = null)
+    public FeatureConnection GetFeatures(
+        [Service] DevStackDbContext dbContext,
+        Guid? projectId = null,
+        List<FeatureStatus>? status = null,
+        DateTime? createdAfter = null,
+        DateTime? createdBefore = null,
+        int first = 50,
+        int? skip = null)
     {
         var query = dbContext.Features.AsQueryable();
         if (projectId.HasValue)
@@ -29,7 +36,34 @@ public class Query
         {
             query = query.Where(f => status.Contains(f.Status));
         }
-        return query;
+        if (createdAfter.HasValue)
+        {
+            query = query.Where(f => f.CreatedAt >= createdAfter.Value);
+        }
+        if (createdBefore.HasValue)
+        {
+            query = query.Where(f => f.CreatedAt <= createdBefore.Value);
+        }
+
+        var totalCount = query.Count();
+        query = query.OrderBy(f => f.CreatedAt);
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        var nodes = query.Take(first).ToList();
+
+        return new FeatureConnection
+        {
+            Nodes = nodes,
+            PageInfo = new FeaturePageInfo
+            {
+                HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
+                HasPreviousPage = skip > 0,
+                TotalCount = totalCount
+            },
+            TotalCount = totalCount
+        };
     }
 
     public Feature? GetFeatureById([Service] DevStackDbContext dbContext, Guid id)
@@ -52,7 +86,14 @@ public class Query
         return dbContext.Defects.Find(id);
     }
 
-    public IQueryable<global::DevStack.Domain.Entities.AgentTask> GetTasks([Service] DevStackDbContext dbContext, Guid? featureId = null, List<global::DevStack.Domain.Enums.TaskStatus>? status = null)
+    public TaskConnection GetTasks(
+        [Service] DevStackDbContext dbContext,
+        Guid? featureId = null,
+        List<global::DevStack.Domain.Enums.TaskStatus>? status = null,
+        DateTime? createdAfter = null,
+        DateTime? createdBefore = null,
+        int first = 50,
+        int? skip = null)
     {
         var query = dbContext.Tasks.AsQueryable();
         if (featureId.HasValue)
@@ -63,7 +104,34 @@ public class Query
         {
             query = query.Where(t => status.Contains(t.Status));
         }
-        return query;
+        if (createdAfter.HasValue)
+        {
+            query = query.Where(t => t.CreatedAt >= createdAfter.Value);
+        }
+        if (createdBefore.HasValue)
+        {
+            query = query.Where(t => t.CreatedAt <= createdBefore.Value);
+        }
+
+        var totalCount = query.Count();
+        query = query.OrderBy(t => t.CreatedAt);
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        var nodes = query.Take(first).ToList();
+
+        return new TaskConnection
+        {
+            Nodes = nodes,
+            PageInfo = new TaskPageInfo
+            {
+                HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
+                HasPreviousPage = skip > 0,
+                TotalCount = totalCount
+            },
+            TotalCount = totalCount
+        };
     }
 
     public global::DevStack.Domain.Entities.AgentTask? GetTaskById([Service] DevStackDbContext dbContext, Guid id)
