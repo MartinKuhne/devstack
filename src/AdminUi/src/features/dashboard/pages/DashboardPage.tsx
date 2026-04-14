@@ -1,6 +1,33 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDashboardSummary } from '@/features/dashboard/hooks/useDashboardSummary';
+import type { GetDashboardSummaryQuery } from '@/generated/graphql';
+
+interface StatCardProps {
+    title: string;
+    value: number;
+    variant: 'default' | 'warning' | 'danger';
+    description: string;
+}
+
+function StatCard({ title, value, variant, description }: StatCardProps) {
+    const badgeVariant = variant === 'danger' ? 'destructive' : variant === 'warning' ? 'secondary' : 'default';
+    
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                <Badge variant={badgeVariant}>{value}</Badge>
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{value}</div>
+                <p className="text-xs text-muted-foreground">{description}</p>
+            </CardContent>
+        </Card>
+    );
+}
 
 export function DashboardPage() {
     const { dashboardSummary, loading, error } = useDashboardSummary();
@@ -12,24 +39,28 @@ export function DashboardPage() {
                     <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
                     <p className="text-muted-foreground">Welcome to your DevStack dashboard.</p>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    {[1, 2, 3, 4].map((item) => (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                    {[1, 2, 3, 4, 5].map((item) => (
                         <Card key={item}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Total {item}</CardTitle>
-                                <div className="h-4 w-4 rounded-full bg-muted" />
+                                <CardTitle className="text-sm font-medium">Metric {item}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">
                                     <Skeleton className="h-8 w-16" />
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                    <Skeleton className="h-3 w-24" />
-                                </p>
                             </CardContent>
                         </Card>
                     ))}
                 </div>
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-48" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-32 w-full" />
+                    </CardContent>
+                </Card>
             </div>
         );
     }
@@ -53,60 +84,88 @@ export function DashboardPage() {
         );
     }
 
+    const summary = dashboardSummary as GetDashboardSummaryQuery['dashboardSummary'] | undefined;
+    const hasData = summary && (summary.projectsInFlight > 0 || summary.featuresInReview > 0 || summary.featuresFailed > 0 || summary.tasksInProgress > 0 || summary.tasksFailed > 0);
+
     return (
         <div className="space-y-6">
             <div>
                 <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
                 <p className="text-muted-foreground">Welcome to your DevStack dashboard.</p>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            
+            {hasData === false && (
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Projects</CardTitle>
-                        <div className="h-4 w-4 rounded-full bg-muted" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {dashboardSummary?.projectCount ?? 0}
-                        </div>
-                        <p className="text-xs text-muted-foreground">Total projects</p>
+                    <CardContent className="pt-6">
+                        <p className="text-center text-muted-foreground">No data available yet. Create your first project to get started.</p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Features</CardTitle>
-                        <div className="h-4 w-4 rounded-full bg-muted" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {dashboardSummary?.featureCount ?? 0}
-                        </div>
-                        <p className="text-xs text-muted-foreground">Total features</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Defects</CardTitle>
-                        <div className="h-4 w-4 rounded-full bg-muted" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {dashboardSummary?.defectCount ?? 0}
-                        </div>
-                        <p className="text-xs text-muted-foreground">Total defects</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Tasks</CardTitle>
-                        <div className="h-4 w-4 rounded-full bg-muted" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{dashboardSummary?.taskCount ?? 0}</div>
-                        <p className="text-xs text-muted-foreground">Total tasks</p>
-                    </CardContent>
-                </Card>
+            )}
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                <StatCard
+                    title="Projects In Flight"
+                    value={summary?.projectsInFlight ?? 0}
+                    variant="default"
+                    description="Active projects"
+                />
+                <StatCard
+                    title="Features In Review"
+                    value={summary?.featuresInReview ?? 0}
+                    variant="warning"
+                    description="Features awaiting review"
+                />
+                <StatCard
+                    title="Features Failed"
+                    value={summary?.featuresFailed ?? 0}
+                    variant="danger"
+                    description="Features that failed"
+                />
+                <StatCard
+                    title="Tasks In Progress"
+                    value={summary?.tasksInProgress ?? 0}
+                    variant="default"
+                    description="Tasks in progress"
+                />
+                <StatCard
+                    title="Tasks Failed"
+                    value={summary?.tasksFailed ?? 0}
+                    variant="danger"
+                    description="Tasks that failed"
+                />
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {summary?.recentAuditEvents && summary.recentAuditEvents.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Entity</TableHead>
+                                    <TableHead>Event</TableHead>
+                                    <TableHead>Actor</TableHead>
+                                    <TableHead>Time</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {summary.recentAuditEvents.map((event) => (
+                                    <TableRow key={event.id}>
+                                        <TableCell>{event.entityType}</TableCell>
+                                        <TableCell>{event.eventType}</TableCell>
+                                        <TableCell>{event.actor ?? '-'}</TableCell>
+                                        <TableCell>{new Date(event.occurredAt).toLocaleString()}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <p className="text-muted-foreground text-sm">No recent activity</p>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }

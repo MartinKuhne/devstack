@@ -1,8 +1,17 @@
 query GetDashboardSummary {
     dashboardSummary {
-        projectCount
-        featureCount
-        defectCount
-        taskCount
+        projectsInFlight
+        featuresInReview
+        featuresFailed
+        tasksInProgress
+        tasksFailed
+        recentAuditEvents {
+            id
+            entityType
+            entityId
+            eventType
+            actor
+            occurredAt
+        }
     }
 }

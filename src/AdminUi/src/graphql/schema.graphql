@@ -27,10 +27,21 @@ type Mutation {
 }
 
 type DashboardSummary {
-    projectCount: Int!
-    featureCount: Int!
-    defectCount: Int!
-    taskCount: Int!
+    projectsInFlight: Int!
+    featuresInReview: Int!
+    featuresFailed: Int!
+    tasksInProgress: Int!
+    tasksFailed: Int!
+    recentAuditEvents: [AuditEvent!]!
+}
+
+type AuditEvent {
+    id: ID!
+    entityType: String!
+    entityId: String!
+    eventType: String!
+    actor: String
+    occurredAt: String!
 }
 
 type Project {

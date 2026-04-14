@@ -1,34 +1,158 @@
+import { useNavigate } from 'react-router-dom';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useProjects } from '@/features/projects/hooks/useProjects';
+import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
+import type { GetProjectsQuery } from '@/generated/graphql';
 
 export function ProjectListPage() {
+    const navigate = useNavigate();
+    const { projects, loading, error, refetch } = useProjects();
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+    const handleRowClick = (id: string) => {
+        navigate(`/projects/${id}`);
+    };
+
+    const handleSuccess = useCallback(() => {
+        refetch();
+    }, [refetch]);
+
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+                        <p className="text-muted-foreground">Manage your development projects.</p>
+                    </div>
+                    <Button>New Project</Button>
+                </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Project List</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>GitHub URL</TableHead>
+                                    <TableHead>Last Updated</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {[1, 2, 3].map((item) => (
+                                    <TableRow key={item}>
+                                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+                        <p className="text-muted-foreground">Manage your development projects.</p>
+                    </div>
+                    <Button>New Project</Button>
+                </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-destructive">Error loading projects</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-destructive">{error.message}</p>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    const projectList = projects as GetProjectsQuery['projects'] | undefined;
+
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-                <p className="text-muted-foreground">Manage your development projects.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+                    <p className="text-muted-foreground">Manage your development projects.</p>
+                </div>
+                <Button onClick={() => setCreateDialogOpen(true)}>New Project</Button>
             </div>
             <Card>
                 <CardHeader>
                     <CardTitle>Project List</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-4">
-                        {[1, 2, 3].map((item) => (
-                            <div
-                                key={item}
-                                className="flex items-center justify-between py-2 border-b last:border-0"
-                            >
-                                <div className="space-y-1">
-                                    <Skeleton className="h-4 w-48" />
-                                    <Skeleton className="h-3 w-32" />
-                                </div>
-                                <Skeleton className="h-8 w-24" />
-                            </div>
-                        ))}
-                    </div>
+                    {projectList && projectList.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>GitHub URL</TableHead>
+                                    <TableHead>Last Updated</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {projectList.map((project) => (
+                                    <TableRow 
+                                        key={project.id} 
+                                        className="cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleRowClick(project.id)}
+                                    >
+                                        <TableCell className="font-medium">{project.name}</TableCell>
+                                        <TableCell className="max-w-xs truncate">
+                                            {project.description ?? '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                            {project.githubUrl ? (
+                                                <a 
+                                                    href={project.githubUrl} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {project.githubUrl}
+                                                </a>
+                                            ) : '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                            {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : '-'}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="py-8 text-center">
+                            <p className="text-muted-foreground">No projects yet. Create your first project to get started.</p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
+            <CreateProjectDialog
+                open={createDialogOpen}
+                onOpenChange={setCreateDialogOpen}
+                onSuccess={handleSuccess}
+            />
         </div>
     );
 }

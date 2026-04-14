@@ -14,6 +14,16 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type AuditEvent = {
+  __typename?: 'AuditEvent';
+  actor: Maybe<Scalars['String']['output']>;
+  entityId: Scalars['String']['output'];
+  entityType: Scalars['String']['output'];
+  eventType: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  occurredAt: Scalars['String']['output'];
+};
+
 export type CreateDefectInput = {
   acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
   description: InputMaybe<Scalars['String']['input']>;
@@ -61,10 +71,12 @@ export type CreateTaskInput = {
 
 export type DashboardSummary = {
   __typename?: 'DashboardSummary';
-  defectCount: Scalars['Int']['output'];
-  featureCount: Scalars['Int']['output'];
-  projectCount: Scalars['Int']['output'];
-  taskCount: Scalars['Int']['output'];
+  featuresFailed: Scalars['Int']['output'];
+  featuresInReview: Scalars['Int']['output'];
+  projectsInFlight: Scalars['Int']['output'];
+  recentAuditEvents: Array<AuditEvent>;
+  tasksFailed: Scalars['Int']['output'];
+  tasksInProgress: Scalars['Int']['output'];
 };
 
 export type Defect = {
@@ -405,6 +417,13 @@ export type UpdateTaskInput = {
   version: Scalars['Int']['input'];
 };
 
+export type CreateProjectMutationVariables = Exact<{
+  input: CreateProjectInput;
+}>;
+
+
+export type CreateProjectMutation = { __typename?: 'Mutation', createProject: { __typename?: 'Project', id: string, name: string, description: string | null, architecture: string | null, memory: string | null, githubUrl: string | null } };
+
 export type TransitionFeatureStatusMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   targetStatus: FeatureStatus;
@@ -417,7 +436,7 @@ export type TransitionFeatureStatusMutation = { __typename?: 'Mutation', transit
 export type GetDashboardSummaryQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetDashboardSummaryQuery = { __typename?: 'Query', dashboardSummary: { __typename?: 'DashboardSummary', projectCount: number, featureCount: number, defectCount: number, taskCount: number } };
+export type GetDashboardSummaryQuery = { __typename?: 'Query', dashboardSummary: { __typename?: 'DashboardSummary', projectsInFlight: number, featuresInReview: number, featuresFailed: number, tasksInProgress: number, tasksFailed: number, recentAuditEvents: Array<{ __typename?: 'AuditEvent', id: string, entityType: string, entityId: string, eventType: string, actor: string | null, occurredAt: string }> } };
 
 export type GetFeatureByIdQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -425,3 +444,8 @@ export type GetFeatureByIdQueryVariables = Exact<{
 
 
 export type GetFeatureByIdQuery = { __typename?: 'Query', featureById: { __typename?: 'Feature', id: string, title: string, status: FeatureStatus, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, createdAt: string, updatedAt: string, validStatusTransitions: Array<FeatureStatus>, tasks: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus }> } | null };
+
+export type GetProjectsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetProjectsQuery = { __typename?: 'Query', projects: { __typename?: 'ProjectConnection', edges: Array<{ __typename?: 'ProjectEdge', node: { __typename?: 'Project', id: string, name: string, description: string | null, githubUrl: string | null, updatedAt: string } }> } };
