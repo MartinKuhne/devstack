@@ -200,7 +200,7 @@ public class QueryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetFeatures_Returns_All_Features()
+    public void GetFeatures_Returns_All_Features_With_Pagination()
     {
         // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
@@ -209,10 +209,13 @@ public class QueryTests : IAsyncLifetime
         var result = query.GetFeatures(_dbContext!);
 
         // Assert
-        result.Should().HaveCount(3);
+        result.Nodes.Should().HaveCount(3);
+        result.TotalCount.Should().Be(3);
+        result.PageInfo.HasNextPage.Should().BeFalse();
+        result.PageInfo.HasPreviousPage.Should().BeFalse();
     }
 
-    [Fact]
+   [Fact]
     public void GetFeatures_With_ProjectId_Filter()
     {
         // Arrange
@@ -223,7 +226,8 @@ public class QueryTests : IAsyncLifetime
         var result = query.GetFeatures(_dbContext, projectId);
 
         // Assert
-        result.Should().HaveCount(3);
+        result.Nodes.Should().HaveCount(3);
+        result.TotalCount.Should().Be(3);
     }
 
     [Fact]
@@ -236,8 +240,8 @@ public class QueryTests : IAsyncLifetime
         var result = query.GetFeatures(_dbContext!, status: [FeatureStatus.InProgress]);
 
         // Assert
-        result.Should().HaveCount(1);
-        result.First().Title.Should().Be("Feature 2");
+        result.Nodes.Should().HaveCount(1);
+        result.Nodes.First().Title.Should().Be("Feature 2");
     }
 
     [Fact]
@@ -284,7 +288,7 @@ public class QueryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetTasks_Returns_All_Tasks()
+    public void GetTasks_Returns_All_Tasks_With_Pagination()
     {
         // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
@@ -293,7 +297,10 @@ public class QueryTests : IAsyncLifetime
         var result = query.GetTasks(_dbContext!);
 
         // Assert
-        result.Should().HaveCount(3);
+        result.Nodes.Should().HaveCount(3);
+        result.TotalCount.Should().Be(3);
+        result.PageInfo.HasNextPage.Should().BeFalse();
+        result.PageInfo.HasPreviousPage.Should().BeFalse();
     }
 
     [Fact]
@@ -307,7 +314,8 @@ public class QueryTests : IAsyncLifetime
         var result = query.GetTasks(_dbContext, featureId: feature.Id);
 
         // Assert
-        result.Should().HaveCount(2);
+        result.Nodes.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
     }
 
     [Fact]
@@ -320,8 +328,8 @@ public class QueryTests : IAsyncLifetime
         var result = query.GetTasks(_dbContext!, status: [DevStack.Domain.Enums.TaskStatus.Code]);
 
         // Assert
-        result.Should().HaveCount(1);
-        result.First().Title.Should().Be("Task 2");
+        result.Nodes.Should().HaveCount(1);
+        result.Nodes.First().Title.Should().Be("Task 2");
     }
 
     [Fact]
@@ -383,6 +391,100 @@ public class QueryTests : IAsyncLifetime
         result.TasksInProgress.Should().Be(1);
         result.TasksFailed.Should().Be(1);
         result.RecentAuditEvents.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void GetFeatures_With_Pagination_Skip_and_First()
+    {
+        // Arrange
+        var query = new DevStack.Api.GraphQL.Types.Query();
+
+        // Act - skip 1, take 2
+        var result = query.GetFeatures(_dbContext!, first: 2, skip: 1);
+
+        // Assert
+        result.Nodes.Should().HaveCount(2);
+        result.TotalCount.Should().Be(3);
+        result.PageInfo.HasNextPage.Should().BeFalse();
+        result.PageInfo.HasPreviousPage.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetFeatures_With_Pagination_HasNextPage()
+    {
+        // Arrange
+        var query = new DevStack.Api.GraphQL.Types.Query();
+
+        // Act - skip 0, take 2
+        var result = query.GetFeatures(_dbContext!, first: 2, skip: 0);
+
+        // Assert
+        result.Nodes.Should().HaveCount(2);
+        result.TotalCount.Should().Be(3);
+        result.PageInfo.HasNextPage.Should().BeTrue();
+        result.PageInfo.HasPreviousPage.Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetFeatures_With_CreatedAfter_Filter()
+    {
+        // Arrange
+        var query = new DevStack.Api.GraphQL.Types.Query();
+        var oneHourAgo = DateTime.UtcNow.AddHours(-1);
+
+        // Act
+        var result = query.GetFeatures(_dbContext!, createdAfter: oneHourAgo);
+
+        // Assert
+        result.Nodes.Should().HaveCount(3);
+        result.TotalCount.Should().Be(3);
+    }
+
+    [Fact]
+    public void GetTasks_With_Pagination_Skip_and_First()
+    {
+        // Arrange
+        var query = new DevStack.Api.GraphQL.Types.Query();
+
+        // Act - skip 1, take 2
+        var result = query.GetTasks(_dbContext!, first: 2, skip: 1);
+
+        // Assert
+        result.Nodes.Should().HaveCount(2);
+        result.TotalCount.Should().Be(3);
+        result.PageInfo.HasNextPage.Should().BeFalse();
+        result.PageInfo.HasPreviousPage.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetTasks_With_Pagination_HasNextPage()
+    {
+        // Arrange
+        var query = new DevStack.Api.GraphQL.Types.Query();
+
+        // Act - skip 0, take 2
+        var result = query.GetTasks(_dbContext!, first: 2, skip: 0);
+
+        // Assert
+        result.Nodes.Should().HaveCount(2);
+        result.TotalCount.Should().Be(3);
+        result.PageInfo.HasNextPage.Should().BeTrue();
+        result.PageInfo.HasPreviousPage.Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetTasks_With_CreatedBefore_Filter()
+    {
+        // Arrange
+        var query = new DevStack.Api.GraphQL.Types.Query();
+        var futureDate = DateTime.UtcNow.AddHours(1);
+
+        // Act
+        var result = query.GetTasks(_dbContext!, createdBefore: futureDate);
+
+        // Assert
+        result.Nodes.Should().HaveCount(3);
+        result.TotalCount.Should().Be(3);
     }
 }
 

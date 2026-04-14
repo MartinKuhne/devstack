@@ -95,10 +95,10 @@ public class SchemaSnapshotTests : IAsyncLifetime
         var features = query.GetFeatures(_dbContext!);
         var tasks = query.GetTasks(_dbContext!);
 
-        features.Should().HaveCount(1);
-        tasks.Should().HaveCount(1);
+        features.Nodes.Should().HaveCount(1);
+        tasks.Nodes.Should().HaveCount(1);
 
-        var input = new TransitionTaskInput(tasks.First().Id, DevStack.Domain.Enums.TaskStatus.Code, "test@example.com");
+        var input = new TransitionTaskInput(tasks.Nodes.First().Id, DevStack.Domain.Enums.TaskStatus.Code, "test@example.com");
         var handler = new DevStack.Infrastructure.Tasks.TransitionTaskStatusHandler(_dbContext!);
         var result = await mutation.TransitionTaskStatusAsync(input, handler, default);
         result.Task.Should().NotBeNull();
