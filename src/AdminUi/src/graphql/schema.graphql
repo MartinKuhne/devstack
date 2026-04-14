@@ -200,7 +200,6 @@ input UpdateFeatureInput {
     testPlan: String
     deploymentPlan: String
     openQuestions: String
-    version: Int!
 }
 
 input CreateDefectInput {
