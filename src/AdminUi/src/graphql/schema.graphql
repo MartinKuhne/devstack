@@ -8,6 +8,7 @@ type Query {
     defectById(id: ID!): Defect
     tasks(first: Int, after: String): TaskConnection!
     taskById(id: ID!): Task
+    modelConfigurations(projectId: ID!): [ModelConfiguration!]!
 }
 
 type Mutation {
@@ -24,6 +25,9 @@ type Mutation {
     updateDefect(id: ID!, input: UpdateDefectInput!): Defect
     createTask(input: CreateTaskInput!): Task!
     updateTask(id: ID!, input: UpdateTaskInput!): Task
+    createModelConfiguration(input: CreateModelConfigurationInput!): ModelConfiguration!
+    updateModelConfiguration(id: ID!, input: UpdateModelConfigurationInput!): ModelConfiguration
+    deleteModelConfiguration(id: ID!): ModelConfiguration
 }
 
 type DashboardSummary {
@@ -144,6 +148,18 @@ type Task {
     updatedAt: String!
 }
 
+type ModelConfiguration {
+    id: ID!
+    projectId: ID!
+    url: String!
+    model: String!
+    modelAlias: String
+    apiKey_Encrypted: String!
+    maxComplexity: Int!
+    createdAt: String!
+    updatedAt: String!
+}
+
 type TaskConnection {
     edges: [TaskEdge!]!
     pageInfo: PageInfo!
@@ -249,6 +265,23 @@ input UpdateTaskInput {
     complexity: TaskComplexity
     status: TaskStatus
     version: Int!
+}
+
+input CreateModelConfigurationInput {
+    projectId: ID!
+    url: String!
+    model: String!
+    modelAlias: String
+    apiKey: String!
+    maxComplexity: Int!
+}
+
+input UpdateModelConfigurationInput {
+    url: String
+    model: String
+    modelAlias: String
+    apiKey: String
+    maxComplexity: Int
 }
 
 enum FeatureStatus {
