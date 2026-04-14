@@ -522,3 +522,15 @@ export type GetProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetProjectsQuery = { __typename?: 'Query', projects: { __typename?: 'ProjectConnection', edges: Array<{ __typename?: 'ProjectEdge', node: { __typename?: 'Project', id: string, name: string, description: string | null, githubUrl: string | null, updatedAt: string } }> } };
+
+export type GetTaskByIdQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetTaskByIdQuery = { __typename?: 'Query', taskById: { __typename?: 'Task', id: string, title: string, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexity: TaskComplexity, status: TaskStatus, createdAt: string, updatedAt: string, feature: { __typename?: 'Feature', id: string, title: string } | null } | null };
+
+export type GetTasksQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetTasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', node: { __typename?: 'Task', id: string, title: string, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexity: TaskComplexity, status: TaskStatus, createdAt: string, updatedAt: string, feature: { __typename?: 'Feature', id: string, title: string } | null } }> } };

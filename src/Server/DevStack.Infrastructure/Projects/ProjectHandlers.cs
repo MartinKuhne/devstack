@@ -10,7 +10,8 @@ public record UpdateProjectCommand(
     string? Description,
     string? Architecture,
     string? Memory,
-    string? GithubUrl);
+    string? GithubUrl,
+    string? GithubToken_Encrypted);
 
 public record DeleteProjectCommand(Guid Id);
 
@@ -63,6 +64,11 @@ public class UpdateProjectHandler : IUpdateProjectHandler
         else
         {
             project.GithubUrl = null;
+        }
+
+        if (request.GithubToken_Encrypted is not null)
+        {
+            project.GithubToken_Encrypted = request.GithubToken_Encrypted;
         }
 
         project.UpdatedAt = DateTime.UtcNow;

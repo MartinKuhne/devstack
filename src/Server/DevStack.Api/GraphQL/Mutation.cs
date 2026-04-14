@@ -25,7 +25,8 @@ public record UpdateProjectInput(
     string? Description,
     string? Architecture,
     string? Memory,
-    string? GithubUrl);
+    string? GithubUrl,
+    string? GithubToken_Encrypted);
 
 public record DeleteProjectInput(Guid Id);
 
@@ -229,7 +230,8 @@ public class Mutation
                 input.Description,
                 input.Architecture,
                 input.Memory,
-                input.GithubUrl), cancellationToken);
+                input.GithubUrl,
+                input.GithubToken_Encrypted), cancellationToken);
             
             var project = new Project { Id = input.Id };
             return new ProjectPayload(project, new List<string>());
