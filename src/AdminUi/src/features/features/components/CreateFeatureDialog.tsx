@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { gql } from '@apollo/client/core';
 import { useMutation } from '@apollo/client/react';
 import { getApolloClient } from '@/hooks/useApolloClient';
-import { CreateFeatureDocument } from '@/graphql/mutations/createFeature.graphql';
 import type { CreateFeatureMutation, CreateFeatureMutationVariables } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+
+const CREATE_FEATURE = gql`
+    mutation CreateFeature($input: CreateFeatureInput!) {
+        createFeature(input: $input) {
+            id
+            title
+            description
+            acceptanceCriteria
+            openQuestions
+            status
+        }
+    }
+`;
 
 const featureSchema = z.object({
     title: z.string().min(1, 'Title is required'),
@@ -32,12 +45,9 @@ interface CreateFeatureDialogProps {
 
 export function CreateFeatureDialog({ open, onOpenChange, projectId, onSuccess }: CreateFeatureDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [createFeature, { loading }] = useMutation<CreateFeatureMutation, CreateFeatureMutationVariables>(
-        CreateFeatureDocument,
-        {
-            client: getApolloClient(),
-        }
-    );
+    const [createFeature, { loading }] = useMutation<CreateFeatureMutation, CreateFeatureMutationVariables>(CREATE_FEATURE, {
+        client: getApolloClient(),
+    });
 
     const {
         register,
@@ -59,10 +69,15 @@ export function CreateFeatureDialog({ open, onOpenChange, projectId, onSuccess }
                 variables: {
                     input: {
                         title: data.title,
-                        description: data.description,
-                        acceptanceCriteria: data.acceptanceCriteria,
-                        openQuestions: data.openQuestions,
+                        description: data.description ?? null,
+                        acceptanceCriteria: data.acceptanceCriteria ?? null,
+                        openQuestions: data.openQuestions ?? null,
                         projectId: data.projectId,
+                        deploymentPlan: null,
+                        performanceImpact: null,
+                        plan: null,
+                        securityImpact: null,
+                        testPlan: null,
                     },
                 },
             });

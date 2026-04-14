@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useProjects } from '@/features/projects/hooks/useProjects';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
-import type { GetProjectsQuery } from '@/generated/graphql';
 
 export function ProjectListPage() {
     const navigate = useNavigate();
@@ -84,8 +83,6 @@ export function ProjectListPage() {
         );
     }
 
-    const projectList = projects as GetProjectsQuery['projects'] | undefined;
-
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -100,7 +97,7 @@ export function ProjectListPage() {
                     <CardTitle>Project List</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {projectList && projectList.length > 0 ? (
+                    {projects && projects.length > 0 ? (
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -111,7 +108,7 @@ export function ProjectListPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {projectList.map((project) => (
+                                {projects.map((project: { id: string; name: string; description: string | null; githubUrl: string | null; updatedAt: string }) => (
                                     <TableRow 
                                         key={project.id} 
                                         className="cursor-pointer hover:bg-muted/50"

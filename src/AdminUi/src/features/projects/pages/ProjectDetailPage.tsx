@@ -1,12 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProject } from '@/features/projects/hooks/useProject';
 import { EditProjectDialog } from '@/features/projects/components/EditProjectDialog';
-import type { GetProjectQuery } from '@/generated/graphql';
 
 export function ProjectDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -61,21 +60,19 @@ export function ProjectDetailPage() {
         );
     }
 
-    const projectData = project as GetProjectQuery['projectById'];
-
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight">{projectData.name}</h2>
-                    {projectData.githubUrl && (
+                    <h2 className="text-2xl font-bold tracking-tight">{project.name}</h2>
+                    {project.githubUrl && (
                         <a
-                            href={projectData.githubUrl}
+                            href={project.githubUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm text-blue-600 hover:underline"
                         >
-                            {projectData.githubUrl}
+                            {project.githubUrl}
                         </a>
                     )}
                 </div>
@@ -103,36 +100,36 @@ export function ProjectDetailPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm whitespace-pre-wrap">
-                                {projectData.description ?? 'No description provided.'}
+                                {project.description ?? 'No description provided.'}
                             </p>
                         </CardContent>
                     </Card>
 
-                    {projectData.architecture && (
+                    {project.architecture && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Architecture</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{projectData.architecture}</p>
+                                <p className="text-sm whitespace-pre-wrap">{project.architecture}</p>
                             </CardContent>
                         </Card>
                     )}
 
-                    {projectData.memory && (
+                    {project.memory && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Memory</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{projectData.memory}</p>
+                                <p className="text-sm whitespace-pre-wrap">{project.memory}</p>
                             </CardContent>
                         </Card>
                     )}
 
                     <div className="text-sm text-muted-foreground">
-                        <p>Created: {projectData.createdAt ? new Date(projectData.createdAt).toLocaleString() : '-'}</p>
-                        <p>Updated: {projectData.updatedAt ? new Date(projectData.updatedAt).toLocaleString() : '-'}</p>
+                        <p>Created: {project.createdAt ? new Date(project.createdAt).toLocaleString() : '-'}</p>
+                        <p>Updated: {project.updatedAt ? new Date(project.updatedAt).toLocaleString() : '-'}</p>
                     </div>
                 </TabsContent>
 
@@ -183,7 +180,7 @@ export function ProjectDetailPage() {
             <EditProjectDialog
                 open={editDialogOpen}
                 onOpenChange={setEditDialogOpen}
-                project={projectData}
+                project={project}
                 onSuccess={() => refetch()}
                 onError={(error) => {
                     if (error.includes('deleted')) {
