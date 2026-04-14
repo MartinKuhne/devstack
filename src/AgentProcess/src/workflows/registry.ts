@@ -4,6 +4,7 @@ import { plannerWorkflow } from './planner.js';
 import { coderWorkflow } from './coder.js';
 import { devLeadWorkflow } from './devlead.js';
 import { testerWorkflow } from './tester.js';
+import { architectWorkflow } from './architect.js';
 
 export class WorkflowRegistry {
   private workflows: Map<string, WorkflowDefinition<unknown, unknown>> = new Map();
@@ -36,3 +37,4 @@ workflowRegistry.registerWorkflow(plannerWorkflow);
 workflowRegistry.registerWorkflow(coderWorkflow);
 workflowRegistry.registerWorkflow(devLeadWorkflow);
 workflowRegistry.registerWorkflow(testerWorkflow);
+workflowRegistry.registerWorkflow(architectWorkflow);
