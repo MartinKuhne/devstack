@@ -23,3 +23,11 @@
 - **Question:** Should audit events be queryable through GraphQL or only stored for diagnostics?
 - **Recommendation:** queryable via GraphQL with pagination.
 - Decision: queryable via GraphQL with pagination.
+
+## Phase 2 - Project Settings - Open Questions
+
+### Step 2.6 — GitHub URL and token fields
+- **Question:** Should the GitHub token field be exposed in the GraphQL schema?
+- **Answer:** Yes, for the update mutation only. Never expose it in queries.
+- **Status:** Backend is complete. Frontend schema file needs updating.
+- **Action:** Update `src/AdminUi/src/graphql/schema.graphql` to add `githubToken_Encrypted` field to `UpdateProjectInput`.

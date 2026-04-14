@@ -51,6 +51,15 @@ export type CreateFeatureInput = {
   title: Scalars['String']['input'];
 };
 
+export type CreateModelConfigurationInput = {
+  apiKey: Scalars['String']['input'];
+  maxComplexity: Scalars['Int']['input'];
+  model: Scalars['String']['input'];
+  modelAlias: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['ID']['input'];
+  url: Scalars['String']['input'];
+};
+
 export type CreateProjectInput = {
   architecture: InputMaybe<Scalars['String']['input']>;
   description: InputMaybe<Scalars['String']['input']>;
@@ -176,15 +185,31 @@ export type FeatureStatusTransition = {
   feature: Feature;
 };
 
+export type ModelConfiguration = {
+  __typename?: 'ModelConfiguration';
+  apiKey_Encrypted: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  maxComplexity: Scalars['Int']['output'];
+  model: Scalars['String']['output'];
+  modelAlias: Maybe<Scalars['String']['output']>;
+  projectId: Scalars['ID']['output'];
+  updatedAt: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   createDefect: Defect;
   createFeature: Feature;
+  createModelConfiguration: ModelConfiguration;
   createProject: Project;
   createTask: Task;
+  deleteModelConfiguration: Maybe<ModelConfiguration>;
   transitionFeatureStatus: Maybe<FeatureStatusTransition>;
   updateDefect: Maybe<Defect>;
   updateFeature: Maybe<Feature>;
+  updateModelConfiguration: Maybe<ModelConfiguration>;
   updateProject: Maybe<Project>;
   updateTask: Maybe<Task>;
 };
@@ -200,6 +225,11 @@ export type MutationcreateFeatureArgs = {
 };
 
 
+export type MutationcreateModelConfigurationArgs = {
+  input: CreateModelConfigurationInput;
+};
+
+
 export type MutationcreateProjectArgs = {
   input: CreateProjectInput;
 };
@@ -207,6 +237,11 @@ export type MutationcreateProjectArgs = {
 
 export type MutationcreateTaskArgs = {
   input: CreateTaskInput;
+};
+
+
+export type MutationdeleteModelConfigurationArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -226,6 +261,12 @@ export type MutationupdateDefectArgs = {
 export type MutationupdateFeatureArgs = {
   id: Scalars['ID']['input'];
   input: UpdateFeatureInput;
+};
+
+
+export type MutationupdateModelConfigurationArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateModelConfigurationInput;
 };
 
 
@@ -279,6 +320,7 @@ export type Query = {
   defects: DefectConnection;
   featureById: Maybe<Feature>;
   features: FeatureConnection;
+  modelConfigurations: Array<ModelConfiguration>;
   projectById: Maybe<Project>;
   projects: ProjectConnection;
   taskById: Maybe<Task>;
@@ -307,6 +349,11 @@ export type QueryfeaturesArgs = {
   first: InputMaybe<Scalars['Int']['input']>;
   projectId: InputMaybe<Scalars['ID']['input']>;
   status: InputMaybe<Array<FeatureStatus>>;
+};
+
+
+export type QuerymodelConfigurationsArgs = {
+  projectId: Scalars['ID']['input'];
 };
 
 
@@ -399,9 +446,18 @@ export type UpdateFeatureInput = {
   title: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateModelConfigurationInput = {
+  apiKey: InputMaybe<Scalars['String']['input']>;
+  maxComplexity: InputMaybe<Scalars['Int']['input']>;
+  model: InputMaybe<Scalars['String']['input']>;
+  modelAlias: InputMaybe<Scalars['String']['input']>;
+  url: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpdateProjectInput = {
   architecture: InputMaybe<Scalars['String']['input']>;
   description: InputMaybe<Scalars['String']['input']>;
+  githubToken_Encrypted: InputMaybe<Scalars['String']['input']>;
   githubUrl: InputMaybe<Scalars['String']['input']>;
   memory: InputMaybe<Scalars['String']['input']>;
   name: InputMaybe<Scalars['String']['input']>;
@@ -432,6 +488,13 @@ export type CreateFeatureMutationVariables = Exact<{
 
 
 export type CreateFeatureMutation = { __typename?: 'Mutation', createFeature: { __typename?: 'Feature', id: string, title: string, description: string | null, acceptanceCriteria: string | null, openQuestions: string | null, status: FeatureStatus } };
+
+export type CreateModelConfigurationMutationVariables = Exact<{
+  input: CreateModelConfigurationInput;
+}>;
+
+
+export type CreateModelConfigurationMutation = { __typename?: 'Mutation', createModelConfiguration: { __typename?: 'ModelConfiguration', id: string, projectId: string, url: string, model: string, modelAlias: string | null, maxComplexity: number, createdAt: string, updatedAt: string } };
 
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
@@ -519,6 +582,13 @@ export type GetFeaturesQueryVariables = Exact<{
 
 
 export type GetFeaturesQuery = { __typename?: 'Query', features: { __typename?: 'FeatureConnection', edges: Array<{ __typename?: 'FeatureEdge', node: { __typename?: 'Feature', id: string, title: string, status: FeatureStatus, updatedAt: string, tasks: Array<{ __typename?: 'Task', id: string }> } }> } };
+
+export type ModelConfigurationsQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type ModelConfigurationsQuery = { __typename?: 'Query', modelConfigurations: Array<{ __typename?: 'ModelConfiguration', id: string, projectId: string, url: string, model: string, modelAlias: string | null, maxComplexity: number, createdAt: string, updatedAt: string }> };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['ID']['input'];

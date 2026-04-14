@@ -95,6 +95,7 @@ export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onEr
                             architecture: data.architecture ?? null,
                             memory: data.memory ?? null,
                             githubUrl: data.githubUrl || null,
+                            githubToken_Encrypted: null,
                             version: 1,
                         },
                     },
