@@ -1,6 +1,7 @@
 import { Outlet, Link } from 'react-router-dom';
-import { Moon, Sun, LayoutDashboard, Folder, AlertCircle, Settings } from 'lucide-react';
+import { Menu, Moon, Sun, LayoutDashboard, Folder, AlertCircle, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
 
 function getInitialDarkMode() {
@@ -12,6 +13,43 @@ function getInitialDarkMode() {
         return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
+}
+
+function SidebarContent() {
+    return (
+        <nav className="p-4 space-y-2">
+            <Link to="/">
+                <Button variant="ghost" className="w-full justify-start">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    Dashboard
+                </Button>
+            </Link>
+            <Link to="/projects">
+                <Button variant="ghost" className="w-full justify-start">
+                    <Folder className="mr-2 h-4 w-4" />
+                    Projects
+                </Button>
+            </Link>
+            <Link to="/features">
+                <Button variant="ghost" className="w-full justify-start">
+                    <Folder className="mr-2 h-4 w-4" />
+                    Features
+                </Button>
+            </Link>
+            <Link to="/defects">
+                <Button variant="ghost" className="w-full justify-start">
+                    <AlertCircle className="mr-2 h-4 w-4" />
+                    Defects
+                </Button>
+            </Link>
+            <Link to="/settings">
+                <Button variant="ghost" className="w-full justify-start">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                </Button>
+            </Link>
+        </nav>
+    );
 }
 
 export function AppShell() {
@@ -49,49 +87,31 @@ export function AppShell() {
     return (
         <div className="min-h-screen bg-background text-foreground">
             <div className="flex min-h-screen w-full">
+                {/* Desktop Sidebar */}
                 <aside className="hidden w-64 border-r bg-background md:block">
                     <div className="flex h-16 items-center border-b px-6">
                         <h1 className="text-xl font-bold">DevStack</h1>
                     </div>
-                    <nav className="p-4 space-y-2">
-                        <Link to="/">
-                            <Button variant="ghost" className="w-full justify-start">
-                                <LayoutDashboard className="mr-2 h-4 w-4" />
-                                Dashboard
-                            </Button>
-                        </Link>
-                        <Link to="/projects">
-                            <Button variant="ghost" className="w-full justify-start">
-                                <Folder className="mr-2 h-4 w-4" />
-                                Projects
-                            </Button>
-                        </Link>
-                        <Link to="/features">
-                            <Button variant="ghost" className="w-full justify-start">
-                                <Folder className="mr-2 h-4 w-4" />
-                                Features
-                            </Button>
-                        </Link>
-                        <Link to="/defects">
-                            <Button variant="ghost" className="w-full justify-start">
-                                <AlertCircle className="mr-2 h-4 w-4" />
-                                Defects
-                            </Button>
-                        </Link>
-                        <Link to="/settings">
-                            <Button variant="ghost" className="w-full justify-start">
-                                <Settings className="mr-2 h-4 w-4" />
-                                Settings
-                            </Button>
-                        </Link>
-                    </nav>
+                    <SidebarContent />
                 </aside>
+
+                {/* Mobile Sidebar */}
                 <div className="flex-1 flex flex-col">
-                    <header className="flex h-16 items-center justify-between border-b px-6">
-                        <div className="flex items-center gap-4 md:hidden">
-                            <Button variant="ghost" size="icon">
-                                <LayoutDashboard className="h-5 w-5" />
-                            </Button>
+                    <header className="flex h-16 items-center justify-between border-b px-4 md:px-6">
+                        <div className="flex items-center gap-4">
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="md:hidden">
+                                        <Menu className="h-5 w-5" />
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="left" className="w-64 p-0">
+                                    <div className="flex h-16 items-center border-b px-6">
+                                        <h1 className="text-xl font-bold">DevStack</h1>
+                                    </div>
+                                    <SidebarContent />
+                                </SheetContent>
+                            </Sheet>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
@@ -107,7 +127,7 @@ export function AppShell() {
                             </Button>
                         </div>
                     </header>
-                    <main className="flex-1 p-6">
+                    <main className="flex-1 p-4 md:p-6">
                         <Outlet />
                     </main>
                 </div>
