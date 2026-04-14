@@ -8,6 +8,7 @@ import { useProject } from '@/features/projects/hooks/useProject';
 import { EditProjectDialog } from '@/features/projects/components/EditProjectDialog';
 import { ModelConfigurationList } from '@/features/modelConfigurations/components/ModelConfigurationList';
 import { ModelConfigurationDialog } from '@/features/modelConfigurations/components/ModelConfigurationDialog';
+import { GitHubConfigurationSection } from '@/features/projects/components/GitHubConfigurationSection';
 
 export function ProjectDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -166,14 +167,7 @@ export function ProjectDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="settings">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Settings</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground text-sm">Settings coming soon.</p>
-                        </CardContent>
-                    </Card>
+                    <GitHubConfigurationSection project={project} onProjectUpdated={refetch} />
                 </TabsContent>
             </Tabs>
             <EditProjectDialog

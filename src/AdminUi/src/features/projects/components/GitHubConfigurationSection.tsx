@@ -17,7 +17,7 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
     const [showToken, setShowToken] = useState(false);
     const [tokenValue, setTokenValue] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
-    const updateProjectMutation = useUpdateProject();
+    const [updateProject] = useUpdateProject();
 
     const handleSaveToken = async () => {
         if (!tokenValue.trim()) {
@@ -27,16 +27,18 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
 
         setIsUpdating(true);
         try {
-            await updateProjectMutation.mutateAsync({
-                id: project.id,
-                input: {
-                    name: project.name,
-                    description: project.description,
-                    architecture: project.architecture,
-                    memory: project.memory,
-                    githubUrl: project.githubUrl,
-                    version: 1,
-                    githubToken_Encrypted: tokenValue,
+            await updateProject({
+                variables: {
+                    id: project.id,
+                    input: {
+                        name: project.name,
+                        description: project.description,
+                        architecture: project.architecture,
+                        memory: project.memory,
+                        githubUrl: project.githubUrl,
+                        version: 1,
+                        githubToken_Encrypted: tokenValue,
+                    },
                 },
             });
             toast.success('GitHub token saved successfully');
@@ -52,16 +54,18 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
     const handleClearToken = async () => {
         setIsUpdating(true);
         try {
-            await updateProjectMutation.mutateAsync({
-                id: project.id,
-                input: {
-                    name: project.name,
-                    description: project.description,
-                    architecture: project.architecture,
-                    memory: project.memory,
-                    githubUrl: project.githubUrl,
-                    version: 1,
-                    githubToken_Encrypted: null,
+            await updateProject({
+                variables: {
+                    id: project.id,
+                    input: {
+                        name: project.name,
+                        description: project.description,
+                        architecture: project.architecture,
+                        memory: project.memory,
+                        githubUrl: project.githubUrl,
+                        version: 1,
+                        githubToken_Encrypted: null,
+                    },
                 },
             });
             toast.success('GitHub token cleared successfully');

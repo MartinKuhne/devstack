@@ -191,6 +191,7 @@ input UpdateProjectInput {
     architecture: String
     memory: String
     githubUrl: String
+    githubToken_Encrypted: String
     version: Int!
 }
 
