@@ -1,0 +1,25 @@
+query GetFeatureById($id: ID!) {
+  featureById(id: $id) {
+    id
+    title
+    status
+    description
+    acceptanceCriteria
+    plan
+    securityImpact
+    performanceImpact
+    testPlan
+    deploymentPlan
+    openQuestions
+    result
+    errors
+    createdAt
+    updatedAt
+    validStatusTransitions
+    tasks {
+      id
+      title
+      status
+    }
+  }
+}
