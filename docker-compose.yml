@@ -32,5 +32,17 @@ services:
       postgres:
         condition: service_healthy
 
+  admin-ui:
+    build:
+      context: ./src/AdminUi
+      dockerfile: Dockerfile
+    container_name: devstack-admin-ui
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/graphql}
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
 volumes:
   postgres_data:
