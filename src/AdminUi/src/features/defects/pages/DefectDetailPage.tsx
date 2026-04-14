@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,6 +10,7 @@ import { gql } from '@apollo/client/core';
 import { getApolloClient } from '@/hooks/useApolloClient';
 import type { GetDefectByIdQuery } from '@/generated/graphql';
 import { toast } from 'react-toastify';
+import { EditDefectDialog } from '../components/EditDefectDialog';
 
 const GET_DEFECT = gql`
     query GetDefectById($id: ID!) {
@@ -34,6 +36,7 @@ const GET_DEFECT = gql`
             }
             createdAt
             updatedAt
+            version
         }
     }
 `;
@@ -73,7 +76,8 @@ function MarkdownSection({ title, content }: { title: string; content?: string |
 export function DefectDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { data, loading, error } = useQuery<GetDefectByIdQuery>(GET_DEFECT, {
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const { data, loading, error, refetch } = useQuery<GetDefectByIdQuery>(GET_DEFECT, {
         client: getApolloClient(),
         variables: { id: id ?? '' },
         skip: !id,
@@ -138,9 +142,14 @@ export function DefectDetailPage() {
                         </Badge>
                     </div>
                 </div>
-                <Button variant="outline" onClick={() => navigate('/defects')}>
-                    Back
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => navigate('/defects')}>
+                        Back
+                    </Button>
+                    <Button onClick={() => setIsEditDialogOpen(true)}>
+                        Edit
+                    </Button>
+                </div>
             </div>
 
             <Tabs defaultValue="overview" className="w-full">
@@ -218,6 +227,26 @@ export function DefectDetailPage() {
                     </div>
                 </TabsContent>
             </Tabs>
+
+            <EditDefectDialog
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+                defect={defect ? {
+                    id: defect.id,
+                    title: defect.title,
+                    description: defect.description,
+                    acceptanceCriteria: defect.acceptanceCriteria,
+                    plan: defect.plan,
+                    securityImpact: defect.securityImpact,
+                    performanceImpact: defect.performanceImpact,
+                    severity: defect.severity,
+                    updatedAt: defect.updatedAt,
+                    version: defect.version ?? 1,
+                } : null}
+                onSuccess={() => {
+                    refetch();
+                }}
+            />
         </div>
     );
 }

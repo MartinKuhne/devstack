@@ -45,5 +45,6 @@ query GetDefectById($id: ID!) {
         }
         createdAt
         updatedAt
+        version
     }
 }
