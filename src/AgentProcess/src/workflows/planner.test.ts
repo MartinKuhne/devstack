@@ -28,6 +28,7 @@ vi.mock('../llm/model.js', () => ({
       }),
     }),
   }),
+  countTokens: vi.fn().mockResolvedValue(100),
 }));
 
 vi.mock('../api/graphql-client.js', () => ({
