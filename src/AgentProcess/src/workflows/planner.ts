@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { WorkflowDefinition, WorkflowContext, WorkflowResult, WorkflowFailureResult, WorkflowEvent } from './types.js';
 import { renderPrompt } from '../prompts/loader.js';
-import { createModel, type ModelConfig } from '../llm/model.js';
+import { createModel, type ModelConfig, countTokens } from '../llm/model.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { createGraphQLClient } from '../api/graphql-client.js';
 import { logger } from '../observability/logger.js';
@@ -22,6 +22,28 @@ const PlannerWorkflowOutputSchema = z.object({
 export type PlannerWorkflowInput = z.infer<typeof PlannerWorkflowInputSchema>;
 export type PlannerWorkflowOutput = z.infer<typeof PlannerWorkflowOutputSchema>;
 
+const COST_PER_1M_TOKENS: Record<string, { input: number; output: number }> = {
+  'gpt-4o': { input: 2.50, output: 10.00 },
+  'gpt-4o-mini': { input: 0.15, output: 0.60 },
+  'gpt-4-turbo': { input: 10.00, output: 30.00 },
+  'gpt-3.5-turbo': { input: 0.50, output: 1.50 },
+  'claude-3-5-sonnet': { input: 3.00, output: 15.00 },
+  'claude-3-opus': { input: 15.00, output: 75.00 },
+  'claude-3-haiku': { input: 0.25, output: 1.25 },
+  'llama-3': { input: 0.00, output: 0.00 },
+  'default': { input: 1.00, output: 3.00 },
+};
+
+function estimateCost(provider: string, inputTokens: number, outputTokens: number): number {
+  const modelName = process.env.DEFAULT_MODEL_NAME?.toLowerCase() || 'default';
+  const pricing = COST_PER_1M_TOKENS[modelName] || COST_PER_1M_TOKENS['default'];
+  
+  const inputCost = (inputTokens / 1_000_000) * pricing.input;
+  const outputCost = (outputTokens / 1_000_000) * pricing.output;
+  
+  return Math.round((inputCost + outputCost) * 10000) / 10000;
+}
+
 function createPlannerModel(): BaseChatModel {
   const modelConfig: ModelConfig = {
     modelId: process.env.DEFAULT_MODEL_ID || 'default',
@@ -32,7 +54,9 @@ function createPlannerModel(): BaseChatModel {
     maxTokens: process.env.DEFAULT_MODEL_MAX_TOKENS ? Number.parseInt(process.env.DEFAULT_MODEL_MAX_TOKENS, 10) : undefined,
     temperature: process.env.DEFAULT_MODEL_TEMPERATURE ? Number.parseFloat(process.env.DEFAULT_MODEL_TEMPERATURE) : 0,
   };
-  return createModel(modelConfig);
+  const model = createModel(modelConfig);
+  logger.info({ modelId: modelConfig.modelId, modelName: modelConfig.modelName, provider: modelConfig.provider }, 'Planner model created');
+  return model;
 }
 
 const CREATE_TASK_MUTATION = `
@@ -195,6 +219,9 @@ export const plannerWorkflow: WorkflowDefinition<PlannerWorkflowInput, PlannerWo
   async run(ctx): Promise<WorkflowResult<PlannerWorkflowOutput> | WorkflowFailureResult> {
     const events: WorkflowEvent[] = [];
     const model = createPlannerModel();
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let estimatedCost = 0;
     
     try {
       events.push({
@@ -272,13 +299,38 @@ export const plannerWorkflow: WorkflowDefinition<PlannerWorkflowInput, PlannerWo
       if (isDryRunMode()) {
         logDryRunEvent('planner');
         rawOutput = getDryRunPlannerResponse(featureInfo.title);
+        inputTokens = await countTokens(model, promptText);
+        outputTokens = 500;
+        estimatedCost = 0;
       } else {
-        ctx.logger.info('Calling LLM for planning');
+        ctx.logger.info({ promptLength: promptText.length }, 'Calling LLM for planning');
+        const inputTokenCount = await countTokens(model, promptText);
+        ctx.logger.info({ inputTokens: inputTokenCount }, 'Prompt token count');
+        
         const response = await model.invoke(promptText);
         
         rawOutput = typeof response.content === 'string' 
           ? response.content 
           : JSON.stringify(response.content || '');
+        
+        outputTokens = await countTokens(model, rawOutput);
+        inputTokens = inputTokenCount;
+        
+        const anyResponse = response as { usageMetadata?: { input_tokens?: number; output_tokens?: number } };
+        if (anyResponse.usageMetadata) {
+          inputTokens = anyResponse.usageMetadata.input_tokens || inputTokens;
+          outputTokens = anyResponse.usageMetadata.output_tokens || outputTokens;
+        }
+        
+        estimatedCost = estimateCost(process.env.DEFAULT_MODEL_PROVIDER || 'openai', inputTokens, outputTokens);
+        
+        ctx.logger.info({
+          inputTokens,
+          outputTokens,
+          totalTokens: inputTokens + outputTokens,
+          estimatedCost,
+          modelId: process.env.DEFAULT_MODEL_ID || 'default',
+        }, 'LLM usage and cost');
       }
       
       events.push({
@@ -339,7 +391,14 @@ export const plannerWorkflow: WorkflowDefinition<PlannerWorkflowInput, PlannerWo
       });
       
       ctx.logger.info(
-        { tasksCreated: createdTasks.length, openQuestions: planOutput.openQuestions.length },
+        { 
+          tasksCreated: createdTasks.length, 
+          openQuestions: planOutput.openQuestions.length,
+          inputTokens,
+          outputTokens,
+          totalTokens: inputTokens + outputTokens,
+          estimatedCost,
+        },
         'Planner workflow completed successfully'
       );
       
