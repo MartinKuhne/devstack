@@ -121,6 +121,7 @@ export function TaskBoard({ tasks, featureId, onTaskClick, onTasksChange }: Task
                     open={!!selectedTask}
                     onOpenChange={handleDrawerClose}
                     task={selectedTask}
+                    onTaskUpdate={onTasksChange}
                 />
             )}
         </div>
