@@ -96,6 +96,7 @@ export type Defect = {
   status: DefectStatus;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
+  version: Maybe<Scalars['Int']['output']>;
 };
 
 export type DefectConnection = {
@@ -455,6 +456,14 @@ export type TransitionFeatureStatusMutationVariables = Exact<{
 
 export type TransitionFeatureStatusMutation = { __typename?: 'Mutation', transitionFeatureStatus: { __typename?: 'FeatureStatusTransition', errors: Array<string> | null, feature: { __typename?: 'Feature', id: string, status: FeatureStatus } } | null };
 
+export type UpdateDefectMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateDefectInput;
+}>;
+
+
+export type UpdateDefectMutation = { __typename?: 'Mutation', updateDefect: { __typename?: 'Defect', id: string, title: string, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: DefectStatus, severity: DefectSeverity, updatedAt: string, parentFeature: { __typename?: 'Feature', id: string, title: string } | null, project: { __typename?: 'Project', id: string, name: string } | null } | null };
+
 export type UpdateFeatureMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   input: UpdateFeatureInput;
@@ -494,7 +503,7 @@ export type GetDefectByIdQueryVariables = Exact<{
 }>;
 
 
-export type GetDefectByIdQuery = { __typename?: 'Query', defectById: { __typename?: 'Defect', id: string, title: string, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: DefectStatus, severity: DefectSeverity, createdAt: string, updatedAt: string, parentFeature: { __typename?: 'Feature', id: string, title: string } | null, project: { __typename?: 'Project', id: string, name: string } | null } | null };
+export type GetDefectByIdQuery = { __typename?: 'Query', defectById: { __typename?: 'Defect', id: string, title: string, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: DefectStatus, severity: DefectSeverity, createdAt: string, updatedAt: string, version: number | null, parentFeature: { __typename?: 'Feature', id: string, title: string } | null, project: { __typename?: 'Project', id: string, name: string } | null } | null };
 
 export type GetFeatureByIdQueryVariables = Exact<{
   id: Scalars['ID']['input'];

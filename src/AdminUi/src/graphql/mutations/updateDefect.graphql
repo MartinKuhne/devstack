@@ -1,0 +1,24 @@
+mutation UpdateDefect($id: ID!, $input: UpdateDefectInput!) {
+    updateDefect(id: $id, input: $input) {
+        id
+        title
+        description
+        acceptanceCriteria
+        plan
+        result
+        errors
+        securityImpact
+        performanceImpact
+        status
+        severity
+        parentFeature {
+            id
+            title
+        }
+        project {
+            id
+            name
+        }
+        updatedAt
+    }
+}

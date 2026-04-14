@@ -117,6 +117,7 @@ type Defect {
     project: Project
     createdAt: String!
     updatedAt: String!
+    version: Int
 }
 
 type DefectConnection {

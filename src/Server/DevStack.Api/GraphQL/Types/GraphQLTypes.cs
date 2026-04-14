@@ -98,6 +98,7 @@ public class DefectType : ObjectType<Defect>
         descriptor.Field(d => d.Errors).Type<StringType>();
         descriptor.Field(d => d.CreatedAt).Type<DateTimeType>();
         descriptor.Field(d => d.UpdatedAt).Type<DateTimeType>();
+        descriptor.Field("version").Type<IntType>().Resolve(_ => 1);
     }
 }
 
