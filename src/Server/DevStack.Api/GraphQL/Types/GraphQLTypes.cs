@@ -16,6 +16,7 @@ public class ProjectType : ObjectType<Project>
         descriptor.Field(p => p.Architecture).Type<StringType>();
         descriptor.Field(p => p.Memory).Type<StringType>();
         descriptor.Field(p => p.GithubUrl).Type<StringType>();
+        descriptor.Field("githubToken_Encrypted").Resolve(ctx => ctx.Parent<Project>().GithubToken_Encrypted).Type<StringType>();
         descriptor.Field(p => p.CreatedAt).Type<DateTimeType>();
         descriptor.Field(p => p.UpdatedAt).Type<DateTimeType>();
         
