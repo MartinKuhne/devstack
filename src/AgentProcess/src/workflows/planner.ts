@@ -5,6 +5,7 @@ import { createModel, type ModelConfig } from '../llm/model.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { createGraphQLClient } from '../api/graphql-client.js';
 import { logger } from '../observability/logger.js';
+import { isDryRunMode, getDryRunPlannerResponse, logDryRunEvent } from './dry-run.js';
 
 const PlannerWorkflowInputSchema = z.object({
   featureId: z.string().min(1, 'Feature ID is required'),
@@ -266,12 +267,19 @@ export const plannerWorkflow: WorkflowDefinition<PlannerWorkflowInput, PlannerWo
         timestamp: new Date().toISOString(),
       });
       
-      ctx.logger.info('Calling LLM for planning');
-      const response = await model.invoke(promptText);
+      let rawOutput: string;
       
-      const rawOutput = typeof response.content === 'string' 
-        ? response.content 
-        : JSON.stringify(response.content || '');
+      if (isDryRunMode()) {
+        logDryRunEvent('planner');
+        rawOutput = getDryRunPlannerResponse(featureInfo.title);
+      } else {
+        ctx.logger.info('Calling LLM for planning');
+        const response = await model.invoke(promptText);
+        
+        rawOutput = typeof response.content === 'string' 
+          ? response.content 
+          : JSON.stringify(response.content || '');
+      }
       
       events.push({
         type: 'llm_response_received',

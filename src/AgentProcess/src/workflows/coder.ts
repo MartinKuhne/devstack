@@ -9,6 +9,7 @@ import { createGitTools } from '../skills/git/git-skill.js';
 import { createFilesystemTools } from '../skills/filesystem/fs-skill.js';
 import { createCommandTools } from '../skills/command/command-skill.js';
 import { createWorkItemTools } from '../skills/work-items/work-items-skill.js';
+import { isDryRunMode, getDryRunCoderResponse, logDryRunEvent } from './dry-run.js';
 import path from 'node:path';
 import os from 'node:os';
 import { execFile } from 'node:child_process';
@@ -263,12 +264,19 @@ export const coderWorkflow: WorkflowDefinition<CoderWorkflowInput, CoderWorkflow
         timestamp: new Date().toISOString(),
       });
       
-      ctx.logger.info('Calling LLM for code generation');
-      const response = await model.invoke(promptText);
+      let rawOutput: string;
       
-      const rawOutput = typeof response.content === 'string' 
-        ? response.content 
-        : JSON.stringify(response.content || '');
+      if (isDryRunMode()) {
+        logDryRunEvent('coder');
+        rawOutput = getDryRunCoderResponse(taskInfo.title);
+      } else {
+        ctx.logger.info('Calling LLM for code generation');
+        const response = await model.invoke(promptText);
+        
+        rawOutput = typeof response.content === 'string' 
+          ? response.content 
+          : JSON.stringify(response.content || '');
+      }
       
       events.push({
         type: 'llm_response_received',

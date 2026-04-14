@@ -5,6 +5,7 @@ import { createModel, type ModelConfig } from '../llm/model.js';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { createGraphQLClient } from '../api/graphql-client.js';
 import { logger } from '../observability/logger.js';
+import { isDryRunMode, getDryRunArchitectResponse, logDryRunEvent } from './dry-run.js';
 
 const ArchitectWorkflowInputSchema = z.object({
   projectId: z.string().min(1, 'Project ID is required'),
@@ -259,12 +260,19 @@ export const architectWorkflow: WorkflowDefinition<ArchitectWorkflowInput, Archi
         timestamp: new Date().toISOString(),
       });
       
-      ctx.logger.info('Calling LLM for architectural review');
-      const response = await model.invoke(promptText);
+      let rawOutput: string;
       
-      const rawOutput = typeof response.content === 'string' 
-        ? response.content 
-        : JSON.stringify(response.content || '');
+      if (isDryRunMode()) {
+        logDryRunEvent('architect');
+        rawOutput = getDryRunArchitectResponse(ctx.input.projectId);
+      } else {
+        ctx.logger.info('Calling LLM for architectural review');
+        const response = await model.invoke(promptText);
+        
+        rawOutput = typeof response.content === 'string' 
+          ? response.content 
+          : JSON.stringify(response.content || '');
+      }
       
       events.push({
         type: 'llm_response_received',
