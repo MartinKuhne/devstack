@@ -69,7 +69,7 @@ describe('PlannerWorkflow', () => {
     mockSpan = {
       setStatus: vi.fn(),
       end: vi.fn(),
-    };
+    } as any;
     
     process.env.GRAPHQL_API_URL = 'http://test.local';
     process.env.REDIS_URL = 'redis://localhost:6379';
@@ -82,14 +82,14 @@ describe('PlannerWorkflow', () => {
 
   const createMockContext = (input: PlannerWorkflowInput): WorkflowContext<PlannerWorkflowInput, unknown> => ({
     input,
-    api: { request: mockApiRequest } as unknown as ReturnType<typeof import('../api/graphql-client.js').createGraphQLClient>,
+    api: { request: mockApiRequest } as any,
     logger: {
       info: vi.fn(),
       error: vi.fn(),
       debug: vi.fn(),
       warn: vi.fn(),
-    } as unknown as ReturnType<typeof import('pino').logger>,
-    span: mockSpan as unknown as ReturnType<typeof import('@opentelemetry/api').Span>,
+    } as any,
+    span: mockSpan as any,
     attempt: 1,
     cancel: vi.fn(),
   });

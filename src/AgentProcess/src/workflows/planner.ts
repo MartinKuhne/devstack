@@ -232,17 +232,24 @@ export const plannerWorkflow: WorkflowDefinition<PlannerWorkflowInput, PlannerWo
       
       const featureInfo = feature.feature;
       
-      const defectSummaries = featureInfo.defects
+      const defectSummaries = (featureInfo.defects as Array<{ title: string; severity: string; status: string }>)
         ?.filter(d => d.status !== 'COMPLETED')
         .map(d => `${d.title} (Severity: ${d.severity})`)
         .join('\n');
       
+      const project = featureInfo.project as {
+        id: string;
+        memory: string;
+        architecture: string;
+        codingStandards: string;
+      };
+      
       const promptInput = {
-        projectId: featureInfo.project.id,
+        projectId: project.id,
         featureId: ctx.input.featureId,
-        projectMemory: featureInfo.project.memory || 'No project memory available',
-        architecture: featureInfo.project.architecture || 'No architecture documentation available',
-        codingStandards: featureInfo.project.codingStandards || 'No coding standards available',
+        projectMemory: project.memory || 'No project memory available',
+        architecture: project.architecture || 'No architecture documentation available',
+        codingStandards: project.codingStandards || 'No coding standards available',
         defectSummaries,
         modelMaxComplexity: 8,
         featureTitle: featureInfo.title,
@@ -260,18 +267,11 @@ export const plannerWorkflow: WorkflowDefinition<PlannerWorkflowInput, PlannerWo
       });
       
       ctx.logger.info('Calling LLM for planning');
-      const response = await model.invoke({
-        messages: [
-          {
-            role: 'user',
-            content: promptText,
-          },
-        ],
-      });
+      const response = await model.invoke(promptText);
       
       const rawOutput = typeof response.content === 'string' 
         ? response.content 
-        : JSON.stringify(response.content);
+        : JSON.stringify(response.content || '');
       
       events.push({
         type: 'llm_response_received',
