@@ -1,6 +1,7 @@
 import { WorkflowDefinition } from './types.js';
 import { logger } from '../observability/logger.js';
 import { plannerWorkflow } from './planner.js';
+import { coderWorkflow } from './coder.js';
 
 export class WorkflowRegistry {
   private workflows: Map<string, WorkflowDefinition<unknown, unknown>> = new Map();
@@ -30,3 +31,4 @@ export class WorkflowRegistry {
 export const workflowRegistry = new WorkflowRegistry();
 
 workflowRegistry.registerWorkflow(plannerWorkflow);
+workflowRegistry.registerWorkflow(coderWorkflow);
