@@ -3,6 +3,7 @@ import { logger } from '../observability/logger.js';
 import { plannerWorkflow } from './planner.js';
 import { coderWorkflow } from './coder.js';
 import { devLeadWorkflow } from './devlead.js';
+import { testerWorkflow } from './tester.js';
 
 export class WorkflowRegistry {
   private workflows: Map<string, WorkflowDefinition<unknown, unknown>> = new Map();
@@ -34,3 +35,4 @@ export const workflowRegistry = new WorkflowRegistry();
 workflowRegistry.registerWorkflow(plannerWorkflow);
 workflowRegistry.registerWorkflow(coderWorkflow);
 workflowRegistry.registerWorkflow(devLeadWorkflow);
+workflowRegistry.registerWorkflow(testerWorkflow);
