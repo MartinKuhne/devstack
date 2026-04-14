@@ -9,6 +9,8 @@ const configSchema = z.object({
   WORKER_CONCURRENCY: z.string().default('2').transform((val) => Number.parseInt(val, 10)),
   MAX_RETRIES: z.string().default('3').transform((val) => Number.parseInt(val, 10)),
   OTLP_ENDPOINT: z.string().url().optional(), // eslint-disable-line @typescript-eslint/no-deprecated
+  ENABLE_SCHEDULER: z.string().default('false').transform((val) => val === 'true'),
+  SCHEDULER_INTERVAL: z.string().default('30000').transform((val) => Number.parseInt(val, 10)),
 });
 
 export type Config = z.infer<typeof configSchema>;
