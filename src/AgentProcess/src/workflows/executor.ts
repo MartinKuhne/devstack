@@ -205,6 +205,14 @@ export async function executeWorkflow<TInput, TOutput>(
 
           logger.error({ workflowName: name, jobId, timeoutMs: workflow.timeout }, 'Workflow timed out');
 
+          if (workflowRunId) {
+            await updateWorkflowRun({
+              workflowRunId,
+              status: 'failed',
+              errorMessage: timeoutError.message,
+            });
+          }
+
           span.setStatus({ 
             code: 2, 
             message: timeoutError.message 
