@@ -445,6 +445,13 @@ export type GetFeatureByIdQueryVariables = Exact<{
 
 export type GetFeatureByIdQuery = { __typename?: 'Query', featureById: { __typename?: 'Feature', id: string, title: string, status: FeatureStatus, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, createdAt: string, updatedAt: string, validStatusTransitions: Array<FeatureStatus>, tasks: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus }> } | null };
 
+export type GetProjectQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetProjectQuery = { __typename?: 'Query', projectById: { __typename?: 'Project', id: string, name: string, description: string | null, architecture: string | null, memory: string | null, githubUrl: string | null, createdAt: string, updatedAt: string } | null };
+
 export type GetProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 

@@ -1,0 +1,12 @@
+query GetProject($id: ID!) {
+    projectById(id: $id) {
+        id
+        name
+        description
+        architecture
+        memory
+        githubUrl
+        createdAt
+        updatedAt
+    }
+}
