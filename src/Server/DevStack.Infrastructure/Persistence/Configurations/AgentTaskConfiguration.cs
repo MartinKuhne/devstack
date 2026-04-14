@@ -40,5 +40,7 @@ public class AgentTaskConfiguration : IEntityTypeConfiguration<DevStack.Domain.E
             .WithMany(f => f.Tasks)
             .HasForeignKey(t => t.FeatureId)
             .OnDelete(DeleteBehavior.Cascade);
+            
+        builder.HasIndex(t => new { t.FeatureId, t.Status });
     }
 }
