@@ -418,6 +418,13 @@ export type UpdateTaskInput = {
   version: Scalars['Int']['input'];
 };
 
+export type CreateDefectMutationVariables = Exact<{
+  input: CreateDefectInput;
+}>;
+
+
+export type CreateDefectMutation = { __typename?: 'Mutation', createDefect: { __typename?: 'Defect', id: string, title: string, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: DefectStatus, severity: DefectSeverity, parentFeature: { __typename?: 'Feature', id: string, title: string } | null, project: { __typename?: 'Project', id: string, name: string } | null } };
+
 export type CreateFeatureMutationVariables = Exact<{
   input: CreateFeatureInput;
 }>;
