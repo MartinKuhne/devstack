@@ -1,12 +1,12 @@
-import { gql } from '@apollo/client/react'
+import { gql } from '@apollo/client';
 
 export const GetDashboardSummaryDocument = gql`
-  query GetDashboardSummary {
-    dashboardSummary {
-      projectCount
-      featureCount
-      defectCount
-      taskCount
+    query GetDashboardSummary {
+        dashboardSummary {
+            projectCount
+            featureCount
+            defectCount
+            taskCount
+        }
     }
-  }
-`
+`;

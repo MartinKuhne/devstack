@@ -1,9 +1,9 @@
 mutation TransitionFeatureStatus($id: ID!, $targetStatus: FeatureStatus!, $actor: String!) {
-  transitionFeatureStatus(id: $id, targetStatus: $targetStatus, actor: $actor) {
-    feature {
-      id
-      status
+    transitionFeatureStatus(id: $id, targetStatus: $targetStatus, actor: $actor) {
+        feature {
+            id
+            status
+        }
+        errors
     }
-    errors
-  }
 }

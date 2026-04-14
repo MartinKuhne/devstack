@@ -1,8 +1,8 @@
 query GetDashboardSummary {
-  dashboardSummary {
-    projectCount
-    featureCount
-    defectCount
-    taskCount
-  }
+    dashboardSummary {
+        projectCount
+        featureCount
+        defectCount
+        taskCount
+    }
 }
