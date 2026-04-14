@@ -432,6 +432,13 @@ export type CreateProjectMutationVariables = Exact<{
 
 export type CreateProjectMutation = { __typename?: 'Mutation', createProject: { __typename?: 'Project', id: string, name: string, description: string | null, architecture: string | null, memory: string | null, githubUrl: string | null } };
 
+export type CreateTaskMutationVariables = Exact<{
+  input: CreateTaskInput;
+}>;
+
+
+export type CreateTaskMutation = { __typename?: 'Mutation', createTask: { __typename?: 'Task', id: string, title: string, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexity: TaskComplexity, status: TaskStatus } };
+
 export type TransitionFeatureStatusMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   targetStatus: FeatureStatus;
@@ -456,6 +463,14 @@ export type UpdateProjectMutationVariables = Exact<{
 
 
 export type UpdateProjectMutation = { __typename?: 'Mutation', updateProject: { __typename?: 'Project', id: string, name: string, description: string | null, architecture: string | null, memory: string | null, githubUrl: string | null } | null };
+
+export type UpdateTaskMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateTaskInput;
+}>;
+
+
+export type UpdateTaskMutation = { __typename?: 'Mutation', updateTask: { __typename?: 'Task', id: string, title: string, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexity: TaskComplexity, status: TaskStatus } | null };
 
 export type GetDashboardSummaryQueryVariables = Exact<{ [key: string]: never; }>;
 
