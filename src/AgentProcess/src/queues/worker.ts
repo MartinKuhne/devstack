@@ -13,6 +13,8 @@ export interface WorkerOptions {
   concurrency?: number;
 }
 
+export { Worker };
+
 export function createWorker<T extends { workflowName: string; input: unknown }>(
   queueName: string,
   options: WorkerOptions = { name: queueName, concurrency: config.WORKER_CONCURRENCY }
@@ -63,4 +65,21 @@ export function createWorker<T extends { workflowName: string; input: unknown }>
   });
 
   return worker;
+}
+
+export async function stopWorker(worker: Worker): Promise<void> {
+  await worker.close();
+}
+
+export async function stopWorkers(workers: Worker[]): Promise<void> {
+  const closePromises = workers.map(async (worker) => {
+    try {
+      await worker.close();
+      logger.info({ queueName: worker.name }, 'Worker closed');
+    } catch (error) {
+      logger.error({ queueName: worker.name, error }, 'Error closing worker');
+    }
+  });
+
+  await Promise.all(closePromises);
 }

@@ -10,7 +10,9 @@ const configSchema = z.object({
   MAX_RETRIES: z.string().default('3').transform((val) => Number.parseInt(val, 10)),
   OTLP_ENDPOINT: z.string().url().optional(), // eslint-disable-line @typescript-eslint/no-deprecated
   ENABLE_SCHEDULER: z.string().default('false').transform((val) => val === 'true'),
+  ENABLE_WORKERS: z.string().default('true').transform((val) => val === 'true'),
   SCHEDULER_INTERVAL: z.string().default('30000').transform((val) => Number.parseInt(val, 10)),
+  GRACEFUL_SHUTDOWN_TIMEOUT_MS: z.string().default('30000').transform((val) => Number.parseInt(val, 10)),
 });
 
 export type Config = z.infer<typeof configSchema>;
