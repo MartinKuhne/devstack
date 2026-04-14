@@ -1,0 +1,52 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build outputs
+dist
+build
+
+# Development files
+.env
+.env.local
+.env.*.local
+
+# Test files
+coverage
+.nyc_output
+*.test.ts
+*.spec.ts
+__tests__
+__mocks__
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Documentation
+*.md
+docs
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# ESLint
+.eslintrc.*
+eslint.config.*
+
+# Prettier
+.prettierrc*
+
+# TypeScript (keep tsconfig.json for build)
+vitest.config.ts

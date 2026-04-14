@@ -1,4 +1,15 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: devstack-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   postgres:
     image: postgres:17-alpine
     container_name: devstack-postgres
@@ -31,6 +42,23 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  agent-worker:
+    build:
+      context: ./src/AgentProcess
+      dockerfile: Dockerfile
+    container_name: devstack-agent-worker
+    environment:
+      NODE_ENV: Production
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      API_GRAPHQL_URL: ${API_GRAPHQL_URL:-http://api:8080/graphql}
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
 
   admin-ui:
     build:
