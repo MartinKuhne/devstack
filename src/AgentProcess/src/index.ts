@@ -6,11 +6,13 @@ import { initializeTelemetry, shutdownTelemetry } from './observability/telemetr
 import { initializeHealthEndpoints, shutdownHealthEndpoints } from './health/health.js';
 import { PollingScheduler } from './queues/polling-scheduler.js';
 import { createWorker, Worker } from './queues/worker.js';
+import { DeadLetterProcessor } from './workflows/dead-letter.js';
 
 let scheduler: PollingScheduler | null = null;
 let redisConnection: Redis | null = null;
 let apiClient: GraphQLClient | null = null;
 let workers: Worker[] = [];
+let deadLetterProcessor: DeadLetterProcessor | null = null;
 let isShuttingDown = false;
 
 const config = loadConfig();
@@ -30,6 +32,12 @@ async function startScheduler(config: ReturnType<typeof loadConfig>): Promise<vo
   scheduler = new PollingScheduler(redisConnection, apiClient, config.SCHEDULER_INTERVAL);
   await scheduler.start();
   logger.info({ intervalMs: config.SCHEDULER_INTERVAL }, 'Scheduler enabled');
+}
+
+async function startDeadLetterProcessor(): Promise<void> {
+  deadLetterProcessor = new DeadLetterProcessor();
+  await deadLetterProcessor.start();
+  logger.info('Dead letter processor started');
 }
 
 function startWorkers(): void {
@@ -57,6 +65,13 @@ async function shutdownScheduler(): Promise<void> {
   }
 
   apiClient = null;
+}
+
+async function shutdownDeadLetterProcessor(): Promise<void> {
+  if (deadLetterProcessor) {
+    await deadLetterProcessor.stop();
+    deadLetterProcessor = null;
+  }
 }
 
 async function shutdownWorkers(): Promise<void> {
@@ -107,6 +122,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
   const shutdownSteps: { name: string; action: () => Promise<void> }[] = [
     { name: 'Stop scheduler', action: async () => { await shutdownScheduler(); } },
+    { name: 'Stop dead letter processor', action: async () => { await shutdownDeadLetterProcessor(); } },
     { name: 'Wait for in-flight jobs', action: async () => { await waitForInFlightJobs(GRACEFUL_SHUTDOWN_TIMEOUT_MS); } },
     { name: 'Close workers', action: async () => { await shutdownWorkers(); } },
     { name: 'Close health endpoints', action: async () => { await shutdownHealthEndpoints(); } },
@@ -188,6 +204,7 @@ function main(): void {
   setupShutdownHandlers();
 
   void startScheduler(config);
+  void startDeadLetterProcessor();
 
   if (config.ENABLE_WORKERS) {
     startWorkers();
