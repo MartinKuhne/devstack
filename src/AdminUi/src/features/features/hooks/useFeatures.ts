@@ -1,23 +1,38 @@
+import { gql } from '@apollo/client/core';
 import { useQuery } from '@apollo/client/react';
 import { getApolloClient } from '@/hooks/useApolloClient';
-import { GetFeaturesDocument } from '@/graphql/queries/features.graphql';
-import type { GetFeaturesQuery, GetFeaturesQueryVariables } from '@/generated/graphql';
+import type { GetFeaturesQuery, GetFeaturesQueryVariables, FeatureStatus } from '@/generated/graphql';
 
-export function useFeatures(projectId?: string, status?: string[]) {
-    const { data, loading, error, refetch } = useQuery<GetFeaturesQuery, GetFeaturesQueryVariables>(
-        GetFeaturesDocument,
-        {
-            client: getApolloClient(),
-            variables: {
-                projectId: projectId ?? null,
-                status: status as any ?? null,
-            },
-            fetchPolicy: 'cache-and-network',
+const GET_FEATURES = gql`
+    query GetFeatures($projectId: ID, $status: [FeatureStatus!]) {
+        features(first: 100, projectId: $projectId, status: $status) {
+            edges {
+                node {
+                    id
+                    title
+                    status
+                    updatedAt
+                    tasks {
+                        id
+                    }
+                }
+            }
         }
-    );
+    }
+`;
+
+export function useFeatures(projectId?: string, status?: FeatureStatus[]) {
+    const { data, loading, error, refetch } = useQuery<GetFeaturesQuery, GetFeaturesQueryVariables>(GET_FEATURES, {
+        client: getApolloClient(),
+        variables: {
+            projectId: projectId ?? null,
+            status: status ?? null,
+        } as GetFeaturesQueryVariables,
+        fetchPolicy: 'cache-and-network',
+    });
 
     return {
-        features: data?.features.edges.map(edge => edge.node) ?? [],
+        features: data?.features?.edges?.map((edge) => edge.node) ?? [],
         loading,
         error,
         refetch,

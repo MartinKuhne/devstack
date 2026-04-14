@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { gql } from '@apollo/client/core';
 import { useMutation } from '@apollo/client/react';
 import { getApolloClient } from '@/hooks/useApolloClient';
-import { CreateProjectDocument } from '@/graphql/mutations/createProject.graphql';
 import type { CreateProjectMutation, CreateProjectMutationVariables } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+
+const CREATE_PROJECT = gql`
+    mutation CreateProject($input: CreateProjectInput!) {
+        createProject(input: $input) {
+            id
+            name
+            description
+            architecture
+            memory
+            githubUrl
+        }
+    }
+`;
 
 const projectSchema = z.object({
     name: z.string().min(1, 'Name is required').max(200, 'Name must be 200 characters or less'),
@@ -31,12 +44,9 @@ interface CreateProjectDialogProps {
 
 export function CreateProjectDialog({ open, onOpenChange, onSuccess }: CreateProjectDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [createProject, { loading }] = useMutation<CreateProjectMutation, CreateProjectMutationVariables>(
-        CreateProjectDocument,
-        {
-            client: getApolloClient(),
-        }
-    );
+    const [createProject, { loading }] = useMutation<CreateProjectMutation, CreateProjectMutationVariables>(CREATE_PROJECT, {
+        client: getApolloClient(),
+    });
 
     const {
         register,
@@ -50,18 +60,18 @@ export function CreateProjectDialog({ open, onOpenChange, onSuccess }: CreatePro
     const onSubmit = async (data: ProjectFormData) => {
         setServerError(null);
         
-        try {
-            await createProject({
-                variables: {
-                    input: {
-                        name: data.name,
-                        description: data.description,
-                        architecture: data.architecture,
-                        memory: data.memory,
-                        githubUrl: data.githubUrl || undefined,
+          try {
+                await createProject({
+                    variables: {
+                        input: {
+                            name: data.name,
+                            description: data.description ?? null,
+                            architecture: data.architecture ?? null,
+                            memory: data.memory ?? null,
+                            githubUrl: data.githubUrl || null,
+                        },
                     },
-                },
-            });
+                });
 
             reset();
             onSuccess?.();

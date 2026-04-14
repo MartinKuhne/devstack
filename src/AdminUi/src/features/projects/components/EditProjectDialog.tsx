@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { gql } from '@apollo/client/core';
 import { useMutation } from '@apollo/client/react';
 import { getApolloClient } from '@/hooks/useApolloClient';
-import { UpdateProjectDocument } from '@/graphql/mutations/updateProject.graphql';
 import type { UpdateProjectMutation, UpdateProjectMutationVariables } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+
+const UPDATE_PROJECT = gql`
+    mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {
+        updateProject(id: $id, input: $input) {
+            id
+            name
+            description
+            architecture
+            memory
+            githubUrl
+        }
+    }
+`;
 
 const projectSchema = z.object({
     name: z.string().min(1, 'Name is required').max(200, 'Name must be 200 characters or less'),
@@ -42,12 +55,9 @@ interface EditProjectDialogProps {
 
 export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onError }: EditProjectDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [updateProject, { loading }] = useMutation<UpdateProjectMutation, UpdateProjectMutationVariables>(
-        UpdateProjectDocument,
-        {
-            client: getApolloClient(),
-        }
-    );
+    const [updateProject, { loading }] = useMutation<UpdateProjectMutation, UpdateProjectMutationVariables>(UPDATE_PROJECT, {
+        client: getApolloClient(),
+    });
 
     const {
         register,
@@ -76,18 +86,19 @@ export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onEr
         setServerError(null);
         
         try {
-            await updateProject({
-                variables: {
-                    id: project.id,
-                    input: {
-                        name: data.name,
-                        description: data.description,
-                        architecture: data.architecture,
-                        memory: data.memory,
-                        githubUrl: data.githubUrl || undefined,
+                await updateProject({
+                    variables: {
+                        id: project.id,
+                        input: {
+                            name: data.name,
+                            description: data.description ?? null,
+                            architecture: data.architecture ?? null,
+                            memory: data.memory ?? null,
+                            githubUrl: data.githubUrl || null,
+                            version: 1,
+                        },
                     },
-                },
-            });
+                });
 
             reset();
             onSuccess?.();

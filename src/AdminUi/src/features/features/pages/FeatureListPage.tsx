@@ -10,7 +10,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeatures } from '@/features/features/hooks/useFeatures';
 import { CreateFeatureDialog } from '@/features/features/components/CreateFeatureDialog';
-import type { GetFeaturesQuery, FeatureStatus } from '@/generated/graphql';
 
 const STATUS_COLORS: Record<string, string> = {
     Planned: 'bg-blue-500',
@@ -27,7 +26,7 @@ export function FeatureListPage() {
     const statusFilter = searchParams.get('status') || undefined;
     const searchFilter = searchParams.get('search') || undefined;
     
-    const { features, loading, error, refetch } = useFeatures(undefined, statusFilter ? [statusFilter] : undefined);
+    const { features, loading, error, refetch } = useFeatures(undefined, statusFilter ? [statusFilter as any] : undefined);
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -51,7 +50,7 @@ export function FeatureListPage() {
         setLocalSearch(e.target.value);
     }, []);
 
-    const handleSearchSubmit = useCallback((e: React.FormEvent) => {
+    const handleSearchSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const newParams = new URLSearchParams(searchParams);
         if (localSearch) {
@@ -66,10 +65,10 @@ export function FeatureListPage() {
         navigate(`/features/${id}`);
     };
 
-    const filteredFeatures = features.filter((feature) => {
+    const filteredFeatures = features.filter((feature: { title: string }) => {
         if (!searchFilter) return true;
         return feature.title.toLowerCase().includes(searchFilter.toLowerCase());
-    }) as GetFeaturesQuery['features'];
+    });
 
     if (error) {
         return (
@@ -165,7 +164,7 @@ export function FeatureListPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredFeatures.map((feature) => (
+                                {filteredFeatures.map((feature: { id: string; title: string; status: string; tasks: { id: string }[] | undefined; updatedAt: string }) => (
                                     <TableRow 
                                         key={feature.id} 
                                         className="cursor-pointer hover:bg-muted/50"
