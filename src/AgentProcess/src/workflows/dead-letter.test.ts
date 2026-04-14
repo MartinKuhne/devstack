@@ -81,7 +81,7 @@ describe('DeadLetterProcessor', () => {
   });
 
   describe('createDefectIfSignificant', () => {
-    it('should log that it would create a defect for significant failures', async () => {
+    it('should log warning when PROJECT_ID is not configured', async () => {
       const jobData = {
         originalQueue: 'planner',
         originalJobId: 'job-123',
@@ -94,13 +94,11 @@ describe('DeadLetterProcessor', () => {
 
       await deadLetterProcessor['createDefectIfSignificant'](jobData);
       
-      expect(logger.info).toHaveBeenCalledWith(
+      expect(logger.warn).toHaveBeenCalledWith(
         {
           workflowName: 'PlannerWorkflow',
-          failureReason: 'Test failure',
-          originalJobId: 'job-123',
         },
-        'Would create defect for significant failure (feature not yet implemented)'
+        'PROJECT_ID not configured, skipping defect creation'
       );
     });
   });

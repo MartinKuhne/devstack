@@ -3,10 +3,17 @@ import { Redis } from 'ioredis';
 import { loadConfig } from '../config.js';
 import { logger } from '../observability/logger.js';
 import { createGraphQLClient } from '../api/graphql-client.js';
+import { createDefectTool } from '../skills/work-items/work-items-skill.js';
+import { ToolContext } from '../skills/tool.js';
 
 const config = loadConfig();
 const redisConnection = new Redis(config.REDIS_URL);
-const mockGraphQLClient = createGraphQLClient();
+const graphQLClient = createGraphQLClient();
+
+const toolContext: ToolContext = {
+  logger,
+  api: graphQLClient,
+};
 
 // Dead letter queue for permanently failed jobs
 export const deadLetterQueue = new Queue('deadLetter', {
@@ -90,25 +97,57 @@ export class DeadLetterProcessor {
    */
   private async createDefectIfSignificant(jobData: DeadLetterJobData): Promise<void> {
     try {
-      // In a real implementation, this would call the create_defect mutation
-      // For now, we'll log that we would create a defect
-      logger.info(
+      if (!config.PROJECT_ID) {
+        logger.warn(
+          { workflowName: jobData.workflowName },
+          'PROJECT_ID not configured, skipping defect creation'
+        );
+        return;
+      }
+
+      const defectTitle = `Permanent workflow failure: ${jobData.workflowName}`;
+      const defectDescription = `Workflow **${jobData.workflowName}** failed permanently after ${jobData.attemptsMade} attempts.\n\n**Failure Reason:** ${jobData.failureReason}\n\n**Original Job ID:** ${jobData.originalJobId}\n\n**Failed At:** ${jobData.failedAt}`;
+
+      const result = await createDefectTool(
         {
-          workflowName: jobData.workflowName,
-          failureReason: jobData.failureReason,
-          originalJobId: jobData.originalJobId,
+          projectId: config.PROJECT_ID,
+          title: defectTitle,
+          description: defectDescription,
+          severity: 'HIGH',
+          initialStatus: 'PLANNED',
         },
-        'Would create defect for significant failure (feature not yet implemented)'
+        toolContext
       );
-      
-      // TODO: Implement actual defect creation when create_defect mutation is available
-      // const defectId = await createDefect({
-      //   title: `Permanent workflow failure: ${jobData.workflowName}`,
-      //   description: `Workflow ${jobData.workflowName} failed permanently after ${jobData.attemptsMade} attempts. Last error: ${jobData.failureReason}`,
-      //   severity: 'high',
-      //   status: 'TODO',
-      //   // Additional fields as needed
-      // });
+
+      if (result.ok && result.output.ok && result.output.id) {
+        logger.info(
+          {
+            defectId: result.output.id,
+            workflowName: jobData.workflowName,
+            originalJobId: jobData.originalJobId,
+          },
+          'Created defect for significant failure'
+        );
+      } else if (result.ok === false) {
+        const errorResult = result as { ok: false; error: { message: string } };
+        logger.error(
+          {
+            error: errorResult.error.message,
+            workflowName: jobData.workflowName,
+            originalJobId: jobData.originalJobId,
+          },
+          'Failed to create defect for dead letter job'
+        );
+      } else if (result.ok === true && !result.output.ok) {
+        logger.error(
+          {
+            error: result.output.error,
+            workflowName: jobData.workflowName,
+            originalJobId: jobData.originalJobId,
+          },
+          'Failed to create defect for dead letter job'
+        );
+      }
     } catch (error) {
       logger.error(
         { error, jobData: jobData.originalJobId },
