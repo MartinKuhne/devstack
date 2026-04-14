@@ -17,7 +17,7 @@ interface StatCardProps {
     description: string;
 }
 
-function StatCard({ title, value, variant, description }: StatCardProps) {
+export function StatCard({ title, value, variant, description }: StatCardProps) {
     const badgeVariant = variant === 'danger' ? 'destructive' : variant === 'warning' ? 'secondary' : 'default';
     
     return (
