@@ -1,15 +1,18 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProject } from '@/features/projects/hooks/useProject';
+import { EditProjectDialog } from '@/features/projects/components/EditProjectDialog';
 import type { GetProjectQuery } from '@/generated/graphql';
 
 export function ProjectDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { project, loading, error } = useProject(id ?? '');
+    const { project, loading, error, refetch } = useProject(id ?? '');
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
 
     if (loading) {
         return (
@@ -78,6 +81,9 @@ export function ProjectDetailPage() {
                 </div>
                 <Button variant="outline" onClick={() => navigate('/projects')}>
                     Back to Projects
+                </Button>
+                <Button onClick={() => setEditDialogOpen(true)}>
+                    Edit
                 </Button>
             </div>
 
@@ -174,6 +180,17 @@ export function ProjectDetailPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
+            <EditProjectDialog
+                open={editDialogOpen}
+                onOpenChange={setEditDialogOpen}
+                project={projectData}
+                onSuccess={() => refetch()}
+                onError={(error) => {
+                    if (error.includes('deleted')) {
+                        navigate('/projects');
+                    }
+                }}
+            />
         </div>
     );
 }
