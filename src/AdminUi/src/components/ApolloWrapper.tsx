@@ -1,11 +1,11 @@
-import { type FC, type ReactNode } from 'react'
-import { getApolloClient } from '@/hooks/useApolloClient'
+import { type FC, type ReactNode } from 'react';
+import { getApolloClient } from '@/hooks/useApolloClient';
 
 interface ApolloProviderProps {
-  children: ReactNode
+    children: ReactNode;
 }
 
 export const ApolloWrapper: FC<ApolloProviderProps> = ({ children }) => {
-  getApolloClient()
-  return <div>{children}</div>
-}
+    getApolloClient();
+    return <div>{children}</div>;
+};
