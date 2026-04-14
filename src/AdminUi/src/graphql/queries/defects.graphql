@@ -1,0 +1,49 @@
+query GetDefects {
+    defects {
+        edges {
+            node {
+                id
+                title
+                description
+                status
+                severity
+                parentFeature {
+                    id
+                    title
+                }
+                project {
+                    id
+                    name
+                }
+                createdAt
+                updatedAt
+            }
+        }
+    }
+}
+
+query GetDefectById($id: ID!) {
+    defectById(id: $id) {
+        id
+        title
+        description
+        acceptanceCriteria
+        plan
+        result
+        errors
+        securityImpact
+        performanceImpact
+        status
+        severity
+        parentFeature {
+            id
+            title
+        }
+        project {
+            id
+            name
+        }
+        createdAt
+        updatedAt
+    }
+}

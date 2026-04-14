@@ -477,6 +477,18 @@ export type GetDashboardSummaryQueryVariables = Exact<{ [key: string]: never; }>
 
 export type GetDashboardSummaryQuery = { __typename?: 'Query', dashboardSummary: { __typename?: 'DashboardSummary', projectsInFlight: number, featuresInReview: number, featuresFailed: number, tasksInProgress: number, tasksFailed: number, recentAuditEvents: Array<{ __typename?: 'AuditEvent', id: string, entityType: string, entityId: string, eventType: string, actor: string | null, occurredAt: string }> } };
 
+export type GetDefectsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetDefectsQuery = { __typename?: 'Query', defects: { __typename?: 'DefectConnection', edges: Array<{ __typename?: 'DefectEdge', node: { __typename?: 'Defect', id: string, title: string, description: string | null, status: DefectStatus, severity: DefectSeverity, createdAt: string, updatedAt: string, parentFeature: { __typename?: 'Feature', id: string, title: string } | null, project: { __typename?: 'Project', id: string, name: string } | null } }> } };
+
+export type GetDefectByIdQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetDefectByIdQuery = { __typename?: 'Query', defectById: { __typename?: 'Defect', id: string, title: string, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: DefectStatus, severity: DefectSeverity, createdAt: string, updatedAt: string, parentFeature: { __typename?: 'Feature', id: string, title: string } | null, project: { __typename?: 'Project', id: string, name: string } | null } | null };
+
 export type GetFeatureByIdQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
