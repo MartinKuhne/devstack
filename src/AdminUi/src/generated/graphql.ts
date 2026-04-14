@@ -396,7 +396,6 @@ export type UpdateFeatureInput = {
   securityImpact: InputMaybe<Scalars['String']['input']>;
   testPlan: InputMaybe<Scalars['String']['input']>;
   title: InputMaybe<Scalars['String']['input']>;
-  version: Scalars['Int']['input'];
 };
 
 export type UpdateProjectInput = {
@@ -441,6 +440,14 @@ export type TransitionFeatureStatusMutationVariables = Exact<{
 
 
 export type TransitionFeatureStatusMutation = { __typename?: 'Mutation', transitionFeatureStatus: { __typename?: 'FeatureStatusTransition', errors: Array<string> | null, feature: { __typename?: 'Feature', id: string, status: FeatureStatus } } | null };
+
+export type UpdateFeatureMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateFeatureInput;
+}>;
+
+
+export type UpdateFeatureMutation = { __typename?: 'Mutation', updateFeature: { __typename?: 'Feature', id: string, title: string, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, status: FeatureStatus } | null };
 
 export type UpdateProjectMutationVariables = Exact<{
   id: Scalars['ID']['input'];
