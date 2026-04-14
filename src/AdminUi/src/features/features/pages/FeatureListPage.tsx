@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeatures } from '@/features/features/hooks/useFeatures';
+import { CreateFeatureDialog } from '@/features/features/components/CreateFeatureDialog';
 import type { GetFeaturesQuery, FeatureStatus } from '@/generated/graphql';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -28,6 +29,7 @@ export function FeatureListPage() {
     
     const { features, loading, error, refetch } = useFeatures(undefined, statusFilter ? [statusFilter] : undefined);
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
     useEffect(() => {
         if (searchFilter !== localSearch) {
@@ -90,9 +92,12 @@ export function FeatureListPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight">Features</h2>
-                <p className="text-muted-foreground">Manage feature development.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Features</h2>
+                    <p className="text-muted-foreground">Manage feature development.</p>
+                </div>
+                <Button onClick={() => setCreateDialogOpen(true)}>New Feature</Button>
             </div>
 
             <div className="flex gap-4 items-end">
@@ -187,6 +192,17 @@ export function FeatureListPage() {
                     )}
                 </CardContent>
             </Card>
+            <CreateFeatureDialog
+                open={createDialogOpen}
+                onOpenChange={setCreateDialogOpen}
+                projectId=""
+                onSuccess={(featureId) => {
+                    refetch();
+                    if (featureId) {
+                        navigate(`/features/${featureId}`);
+                    }
+                }}
+            />
         </div>
     );
 }

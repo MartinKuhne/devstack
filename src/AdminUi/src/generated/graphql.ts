@@ -419,6 +419,13 @@ export type UpdateTaskInput = {
   version: Scalars['Int']['input'];
 };
 
+export type CreateFeatureMutationVariables = Exact<{
+  input: CreateFeatureInput;
+}>;
+
+
+export type CreateFeatureMutation = { __typename?: 'Mutation', createFeature: { __typename?: 'Feature', id: string, title: string, description: string | null, acceptanceCriteria: string | null, openQuestions: string | null, status: FeatureStatus } };
+
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
 }>;
