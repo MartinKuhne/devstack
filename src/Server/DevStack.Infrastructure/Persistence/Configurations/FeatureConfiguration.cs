@@ -56,5 +56,7 @@ public class FeatureConfiguration : IEntityTypeConfiguration<Feature>
             .WithOne()
             .HasForeignKey(t => t.FeatureId)
             .OnDelete(DeleteBehavior.Cascade);
+            
+        builder.HasIndex(f => new { f.ProjectId, f.Status });
     }
 }

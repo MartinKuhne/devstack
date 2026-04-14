@@ -59,5 +59,7 @@ public class DefectConfiguration : IEntityTypeConfiguration<Defect>
             .WithMany()
             .HasForeignKey(d => d.ParentFeatureId)
             .OnDelete(DeleteBehavior.SetNull);
+            
+        builder.HasIndex(d => new { d.ProjectId, d.Status });
     }
 }
