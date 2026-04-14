@@ -285,8 +285,12 @@ describe('pull-request skill', () => {
       }, contextWithoutToken as unknown as ToolContext);
 
       expect(result.ok).toBe(true);
-      expect(result.output.ok).toBe(false);
-      expect(result.output.error).toContain('Git token not found');
+      // Result should be a success with output indicating failure
+      expect('output' in result).toBe(true);
+      if ('output' in result) {
+        expect(result.output.ok).toBe(false);
+        expect(result.output.error).toContain('Git token not found');
+      }
     });
   });
 });
