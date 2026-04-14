@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'react-toastify';
+import { SeverityBadge } from '@/features/defects/components/SeverityBadge';
 
 const GET_DEFECTS = gql`
     query GetDefects {
@@ -36,13 +37,6 @@ const GET_DEFECTS = gql`
         }
     }
 `;
-
-const SEVERITY_COLORS: Record<string, string> = {
-    Critical: 'bg-red-600',
-    High: 'bg-red-500',
-    Medium: 'bg-yellow-500',
-    Low: 'bg-green-500',
-};
 
 const STATUS_COLORS: Record<string, string> = {
     Reported: 'bg-gray-500',
@@ -159,11 +153,9 @@ export function DefectListPage() {
                                                 {defect.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>
-                                            <Badge className={SEVERITY_COLORS[defect.severity] || 'bg-gray-500'}>
-                                                {defect.severity}
-                                            </Badge>
-                                        </TableCell>
+<TableCell>
+<SeverityBadge severity={defect.severity} />
+</TableCell>
                                         <TableCell>
                                             {defect.parentFeature ? (
                                                 <span className="text-sm">
