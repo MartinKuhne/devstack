@@ -433,6 +433,14 @@ export type TransitionFeatureStatusMutationVariables = Exact<{
 
 export type TransitionFeatureStatusMutation = { __typename?: 'Mutation', transitionFeatureStatus: { __typename?: 'FeatureStatusTransition', errors: Array<string> | null, feature: { __typename?: 'Feature', id: string, status: FeatureStatus } } | null };
 
+export type UpdateProjectMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateProjectInput;
+}>;
+
+
+export type UpdateProjectMutation = { __typename?: 'Mutation', updateProject: { __typename?: 'Project', id: string, name: string, description: string | null, architecture: string | null, memory: string | null, githubUrl: string | null } | null };
+
 export type GetDashboardSummaryQueryVariables = Exact<{ [key: string]: never; }>;
 
 
