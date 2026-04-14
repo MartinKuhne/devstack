@@ -11,6 +11,7 @@ import { getApolloClient } from '@/hooks/useApolloClient';
 import type { GetDefectByIdQuery } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 import { EditDefectDialog } from '../components/EditDefectDialog';
+import { SeverityBadge } from '../components/SeverityBadge';
 
 const GET_DEFECT = gql`
     query GetDefectById($id: ID!) {
@@ -40,13 +41,6 @@ const GET_DEFECT = gql`
         }
     }
 `;
-
-const SEVERITY_COLORS: Record<string, string> = {
-    Critical: 'bg-red-600',
-    High: 'bg-red-500',
-    Medium: 'bg-yellow-500',
-    Low: 'bg-green-500',
-};
 
 const STATUS_COLORS: Record<string, string> = {
     Reported: 'bg-gray-500',
@@ -137,9 +131,7 @@ export function DefectDetailPage() {
                         <Badge className={STATUS_COLORS[defect.status] || 'bg-gray-500'}>
                             {defect.status}
                         </Badge>
-                        <Badge className={SEVERITY_COLORS[defect.severity] || 'bg-gray-500'}>
-                            {defect.severity}
-                        </Badge>
+                        <SeverityBadge severity={defect.severity} />
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -179,12 +171,10 @@ export function DefectDetailPage() {
                                             {defect.status}
                                         </Badge>
                                     </div>
-                                    <div>
-                                        <h4 className="text-xs font-medium text-muted-foreground mb-1">Severity</h4>
-                                        <Badge className={SEVERITY_COLORS[defect.severity] || 'bg-gray-500'}>
-                                            {defect.severity}
-                                        </Badge>
-                                    </div>
+<div>
+<h4 className="text-xs font-medium text-muted-foreground mb-1">Severity</h4>
+<SeverityBadge severity={defect.severity} />
+</div>
                                     {defect.parentFeature && (
                                         <div>
                                             <h4 className="text-xs font-medium text-muted-foreground mb-1">Parent Feature</h4>
