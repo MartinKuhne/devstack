@@ -6,12 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProject } from '@/features/projects/hooks/useProject';
 import { EditProjectDialog } from '@/features/projects/components/EditProjectDialog';
+import { ModelConfigurationList } from '@/features/modelConfigurations/components/ModelConfigurationList';
+import { ModelConfigurationDialog } from '@/features/modelConfigurations/components/ModelConfigurationDialog';
 
 export function ProjectDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { project, loading, error, refetch } = useProject(id ?? '');
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [addModelDialogOpen, setAddModelDialogOpen] = useState(false);
 
     if (loading) {
         return (
@@ -156,14 +159,10 @@ export function ProjectDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="models">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Models</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground text-sm">No models configured.</p>
-                        </CardContent>
-                    </Card>
+                    <ModelConfigurationList
+                        projectId={id ?? ''}
+                        onAddModel={() => setAddModelDialogOpen(true)}
+                    />
                 </TabsContent>
 
                 <TabsContent value="settings">
@@ -187,6 +186,12 @@ export function ProjectDetailPage() {
                         navigate('/projects');
                     }
                 }}
+            />
+            <ModelConfigurationDialog
+                open={addModelDialogOpen}
+                onOpenChange={setAddModelDialogOpen}
+                projectId={id ?? ''}
+                onSuccess={() => refetch()}
             />
         </div>
     );

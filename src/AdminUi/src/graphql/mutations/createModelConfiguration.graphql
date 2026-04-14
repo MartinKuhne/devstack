@@ -1,0 +1,12 @@
+mutation CreateModelConfiguration($input: CreateModelConfigurationInput!) {
+    createModelConfiguration(input: $input) {
+        id
+        projectId
+        url
+        model
+        modelAlias
+        maxComplexity
+        createdAt
+        updatedAt
+    }
+}
