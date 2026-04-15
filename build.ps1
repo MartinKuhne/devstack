@@ -1,25 +1,9 @@
 $ErrorActionPreference = 'Continue'
 
-$AgentsMdPath = Join-Path $PSScriptRoot "agents.md"
-$ToolsMdPath = Join-Path $PSScriptRoot "docs\TOOLS.md"
-
-$AgentsContent = if (Test-Path $AgentsMdPath) { Get-Content $AgentsMdPath -Raw } else { "" }
-$ToolsContent = if (Test-Path $ToolsMdPath) { Get-Content $ToolsMdPath -Raw } else { "" }
-
-$BasePrompt = "read ./agents.md then find and finish any in progress items using the saga tool. If there are no in progress items, execute the next unblocked task from the saga tool. when tests pass, mark as completed. commit the changes. Do not wait for approvals. Skip items that have open questions and create a markdown file with these questions. Focus on progress over perfection."
-
-$Prompt = @"
-$BasePrompt
-
---- AGENTS.MD ---
-$AgentsContent
-
---- TOOLS.MD ---
-$ToolsContent
-"@
+$BasePrompt = "Use he saga_task_list tool to find and finish any in progress items. If there are no in progres items, Use he saga_task_list tool to find the next task. When complete and quality gates pass, mark as completed. commit the changes. Do not wait for approvals. Do not execute more tasks. Skip tasks that are unclear or have open questions and create a docs/OPEN_QUESTIONS.md file with these questions."
 
 $Exe = "npx"
-$CommandArgs = @("opencode", "run", $Prompt)
+$CommandArgs = @("opencode", "run", $BasePrompt, "--file", "agents.md", "--file", "docs\TOOLS.md")
 
 $LogDir = Join-Path $PSScriptRoot "logs"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
