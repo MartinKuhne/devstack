@@ -2,12 +2,12 @@ name: Agent Process CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
     paths:
       - 'src/AgentProcess/**'
       - '.github/workflows/agent-process-ci.yml'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
     paths:
       - 'src/AgentProcess/**'
       - '.github/workflows/agent-process-ci.yml'
