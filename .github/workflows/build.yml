@@ -2,9 +2,9 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
 
 env:
   DOTNET_VERSION: '10.0.x'
