@@ -297,3 +297,7 @@ FakesAssemblies/
 
 # JetBrains Rider
 *.sln.iml
+
+# Node
+node_modules/
+package-lock.json

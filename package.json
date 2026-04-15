@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@queuedash/api": "^3.17.0",
+    "@queuedash/ui": "^3.17.0",
+    "express": "^5.2.1"
+  }
+}
