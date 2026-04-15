@@ -9,6 +9,7 @@ using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Services;
 using DevStack.Infrastructure.WorkflowRuns;
+using DevStack.Infrastructure.Epics;
 
 namespace DevStack.Api.GraphQL.Types;
 
@@ -166,6 +167,14 @@ public record UpdateWorkflowRunInput(
 public record CancelWorkflowRunInput(Guid Id);
 
 public record WorkflowRunPayload(WorkflowRun? WorkflowRun, List<string> Errors);
+
+public record CreateEpicInput(string Title, string? Description);
+
+public record UpdateEpicInput(Guid Id, string? Title, string? Description);
+
+public record DeleteEpicInput(Guid Id);
+
+public record EpicPayload(Epic? Epic, List<string> Errors);
 
 public class Mutation
 {
@@ -832,6 +841,92 @@ public class Mutation
         catch (Exception ex)
         {
             return new ModelConfigurationPayload(null, [ex.Message]);
+        }
+    }
+
+    public async Task<EpicPayload> CreateEpicAsync(
+        CreateEpicInput input,
+        [Service] ICreateEpicHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(input.Title))
+            errors.Add("Title is required");
+
+        if (!string.IsNullOrEmpty(input.Title) && input.Title.Length > 200)
+            errors.Add("Title must be 200 characters or less");
+
+        if (errors.Count > 0)
+            return new EpicPayload(null, errors);
+
+        try
+        {
+            var id = await handler.Handle(new CreateEpicCommand(
+                input.Title,
+                input.Description), cancellationToken);
+            
+            var epic = new Epic { Id = id };
+            return new EpicPayload(epic, new List<string>());
+        }
+        catch (Exception ex)
+        {
+            return new EpicPayload(null, [ex.Message]);
+        }
+    }
+
+    public async Task<EpicPayload> UpdateEpicAsync(
+        UpdateEpicInput input,
+        [Service] IUpdateEpicHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = new List<string>();
+
+        try
+        {
+            await handler.Handle(new UpdateEpicCommand(
+                input.Id,
+                input.Title,
+                input.Description), cancellationToken);
+
+            var epic = new Epic { Id = input.Id };
+            return new EpicPayload(epic, new List<string>());
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        {
+            return new EpicPayload(null, ["NOT_FOUND: Epic not found"]);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
+        {
+            return new EpicPayload(null, ["CONCURRENCY_CONFLICT: The epic has been modified by another process"]);
+        }
+        catch (Exception ex)
+        {
+            return new EpicPayload(null, [ex.Message]);
+        }
+    }
+
+    public async Task<EpicPayload> DeleteEpicAsync(
+        DeleteEpicInput input,
+        [Service] IDeleteEpicHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = new List<string>();
+
+        try
+        {
+            await handler.Handle(new DeleteEpicCommand(input.Id), cancellationToken);
+            
+            var epic = new Epic { Id = input.Id };
+            return new EpicPayload(epic, new List<string>());
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        {
+            return new EpicPayload(null, ["NOT_FOUND: Epic not found"]);
+        }
+        catch (Exception ex)
+        {
+            return new EpicPayload(null, [ex.Message]);
         }
     }
 }
