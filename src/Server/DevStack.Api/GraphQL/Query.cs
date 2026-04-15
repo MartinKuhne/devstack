@@ -43,6 +43,7 @@ public class Query
     public FeatureConnection GetFeatures(
         [Service] DevStackDbContext dbContext,
         Guid? projectId = null,
+        Guid? epicId = null,
         List<FeatureStatus>? status = null,
         DateTime? createdAfter = null,
         DateTime? createdBefore = null,
@@ -53,6 +54,10 @@ public class Query
         if (projectId.HasValue)
         {
             query = query.Where(f => f.ProjectId == projectId.Value);
+        }
+        if (epicId.HasValue)
+        {
+            query = query.Where(f => f.EpicId == epicId.Value);
         }
         if (status is not null && status.Count > 0)
         {
@@ -194,6 +199,44 @@ public class Query
             .Where(a => a.EntityId == entityId)
             .OrderByDescending(a => a.OccurredAt)
             .Take(take);
+    }
+
+    public EpicConnection GetEpics(
+        [Service] DevStackDbContext dbContext,
+        string? title = null,
+        int first = 50,
+        int? skip = null)
+    {
+        var query = dbContext.Epics.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            query = query.Where(e => e.Title.Contains(title));
+        }
+
+        var totalCount = query.Count();
+        query = query.OrderBy(e => e.CreatedAt);
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        var nodes = query.Take(first).ToList();
+
+        return new EpicConnection
+        {
+            Nodes = nodes,
+            PageInfo = new EpicPageInfo
+            {
+                HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
+                HasPreviousPage = skip > 0,
+                TotalCount = totalCount
+            },
+            TotalCount = totalCount
+        };
+    }
+
+    public Epic? GetEpicById([Service] DevStackDbContext dbContext, Guid id)
+    {
+        return dbContext.Epics.Find(id);
     }
 
     public List<FeatureStatus> GetValidStatusTransitions([Service] DevStackDbContext dbContext, Guid featureId)
