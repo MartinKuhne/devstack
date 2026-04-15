@@ -1,0 +1,21 @@
+query GetEpics($title: String) {
+    epics(title: $title) {
+        nodes {
+            id
+            title
+            description
+            createdAt
+            updatedAt
+        }
+    }
+}
+
+query GetEpicById($id: UUID!) {
+    epicById(id: $id) {
+        id
+        title
+        description
+        createdAt
+        updatedAt
+    }
+}

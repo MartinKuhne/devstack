@@ -6,21 +6,15 @@ query GetDefects {
             description
             status
             severity
-            parentFeature {
-                id
-                title
-            }
-            project {
-                id
-                name
-            }
+            projectId
+            parentFeatureId
             createdAt
             updatedAt
         }
     }
 }
 
-query GetDefectById($id: ID!) {
+query GetDefectById($id: UUID!) {
     defectById(id: $id) {
         id
         title
@@ -31,16 +25,13 @@ query GetDefectById($id: ID!) {
         errors
         securityImpact
         performanceImpact
+        testPlan
+        deploymentPlan
+        openQuestions
         status
         severity
-        parentFeature {
-            id
-            title
-        }
-        project {
-            id
-            name
-        }
+        projectId
+        parentFeatureId
         createdAt
         updatedAt
         version

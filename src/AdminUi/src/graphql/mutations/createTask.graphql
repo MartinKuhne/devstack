@@ -1,12 +1,19 @@
 mutation CreateTask($input: CreateTaskInput!) {
     createTask(input: $input) {
-        id
-        title
-        deliverable
-        acceptanceCriteria
-        risks
-        requiredFollowUps
-        complexity
-        status
+        task {
+            id
+            title
+            deliverable
+            acceptanceCriteria
+            risks
+            requiredFollowUps
+            complexityRating
+            result
+            status
+            featureId
+            createdAt
+            updatedAt
+        }
+        errors
     }
 }

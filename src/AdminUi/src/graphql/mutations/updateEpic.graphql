@@ -1,0 +1,11 @@
+mutation UpdateEpic($input: UpdateEpicInput!) {
+    updateEpic(input: $input) {
+        epic {
+            id
+            title
+            description
+            updatedAt
+        }
+        errors
+    }
+}

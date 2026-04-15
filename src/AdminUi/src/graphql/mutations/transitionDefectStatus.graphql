@@ -1,0 +1,9 @@
+mutation TransitionDefectStatus($input: TransitionDefectInput!) {
+    transitionDefectStatus(input: $input) {
+        defect {
+            id
+            status
+        }
+        errors
+    }
+}

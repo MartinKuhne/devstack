@@ -1,0 +1,8 @@
+mutation DeleteModelConfiguration($input: DeleteModelConfigurationInput!) {
+    deleteModelConfiguration(input: $input) {
+        modelConfiguration {
+            id
+        }
+        errors
+    }
+}

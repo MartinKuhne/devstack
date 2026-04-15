@@ -1,15 +1,19 @@
-mutation UpdateFeature($id: ID!, $input: UpdateFeatureInput!) {
-    updateFeature(id: $id, input: $input) {
-        id
-        title
-        description
-        acceptanceCriteria
-        plan
-        securityImpact
-        performanceImpact
-        testPlan
-        deploymentPlan
-        openQuestions
-        status
+mutation UpdateFeature($input: UpdateFeatureInput!) {
+    updateFeature(input: $input) {
+        feature {
+            id
+            title
+            description
+            acceptanceCriteria
+            plan
+            securityImpact
+            performanceImpact
+            testPlan
+            deploymentPlan
+            openQuestions
+            status
+            updatedAt
+        }
+        errors
     }
 }

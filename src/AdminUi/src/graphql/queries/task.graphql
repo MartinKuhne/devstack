@@ -1,4 +1,4 @@
-query GetTaskById($id: ID!) {
+query GetTaskById($id: UUID!) {
     taskById(id: $id) {
         id
         title
@@ -6,19 +6,17 @@ query GetTaskById($id: ID!) {
         acceptanceCriteria
         risks
         requiredFollowUps
-        complexity
+        complexityRating
+        result
         status
-        feature {
-            id
-            title
-        }
+        featureId
         createdAt
         updatedAt
     }
 }
 
-query GetTasks {
-    tasks {
+query GetTasks($featureId: UUID, $status: [TaskStatus!]) {
+    tasks(featureId: $featureId, status: $status) {
         nodes {
             id
             title
@@ -26,12 +24,10 @@ query GetTasks {
             acceptanceCriteria
             risks
             requiredFollowUps
-            complexity
+            complexityRating
+            result
             status
-            feature {
-                id
-                title
-            }
+            featureId
             createdAt
             updatedAt
         }

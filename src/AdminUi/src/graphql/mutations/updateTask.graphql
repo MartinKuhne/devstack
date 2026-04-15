@@ -1,12 +1,18 @@
-mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {
-    updateTask(id: $id, input: $input) {
-        id
-        title
-        deliverable
-        acceptanceCriteria
-        risks
-        requiredFollowUps
-        complexity
-        status
+mutation UpdateTask($input: UpdateTaskInput!) {
+    updateTask(input: $input) {
+        task {
+            id
+            title
+            deliverable
+            acceptanceCriteria
+            risks
+            requiredFollowUps
+            complexityRating
+            result
+            status
+            featureId
+            updatedAt
+        }
+        errors
     }
 }

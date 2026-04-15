@@ -1,4 +1,4 @@
-query GetFeatures($projectId: ID, $status: [FeatureStatus!]) {
+query GetFeatures($projectId: UUID, $status: [FeatureStatus!]) {
     features(projectId: $projectId, status: $status) {
         nodes {
             id

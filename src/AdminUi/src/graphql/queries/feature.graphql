@@ -1,4 +1,4 @@
-query GetFeatureById($id: ID!) {
+query GetFeatureById($id: UUID!) {
     featureById(id: $id) {
         id
         title
