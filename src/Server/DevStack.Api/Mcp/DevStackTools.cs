@@ -6,13 +6,17 @@ using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.WorkflowRuns;
 using DevStack.Infrastructure.Services;
+using DevStack.Infrastructure.Persistence;
+using DevStack.Domain.Services;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Api.Mcp;
 
 [McpServerToolType]
 public class DevStackTools(
+    DevStackDbContext dbContext,
     ICreateProjectHandler createProjectHandler,
     IUpdateProjectHandler updateProjectHandler,
     IDeleteProjectHandler deleteProjectHandler,
@@ -350,5 +354,169 @@ public class DevStackTools(
     {
         await cancelWorkflowRunHandler.Handle(new CancelWorkflowRunCommand(id), cancellationToken);
         return $"Workflow run {id} cancelled";
+    }
+
+    [McpServerTool, Description("Get a project by ID")]
+    public DevStack.Domain.Entities.Project? GetProjectById(Guid id)
+    {
+        return dbContext.Projects.Find(id);
+    }
+
+    [McpServerTool, Description("Get all projects")]
+    public List<DevStack.Domain.Entities.Project> GetProjects(int first = 50, int? skip = null)
+    {
+        var query = dbContext.Projects.AsQueryable();
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        return query.OrderBy(p => p.CreatedAt).Take(first).ToList();
+    }
+
+    [McpServerTool, Description("Get all features with optional filtering")]
+    public List<DevStack.Domain.Entities.Feature> GetFeatures(
+        Guid? projectId = null,
+        List<FeatureStatus>? status = null,
+        DateTime? createdAfter = null,
+        DateTime? createdBefore = null,
+        int first = 50,
+        int? skip = null)
+    {
+        var query = dbContext.Features.AsQueryable();
+        if (projectId.HasValue)
+        {
+            query = query.Where(f => f.ProjectId == projectId.Value);
+        }
+        if (status is not null && status.Count > 0)
+        {
+            query = query.Where(f => status.Contains(f.Status));
+        }
+        if (createdAfter.HasValue)
+        {
+            query = query.Where(f => f.CreatedAt >= createdAfter.Value);
+        }
+        if (createdBefore.HasValue)
+        {
+            query = query.Where(f => f.CreatedAt <= createdBefore.Value);
+        }
+
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        return query.OrderBy(f => f.CreatedAt).Take(first).ToList();
+    }
+
+    [McpServerTool, Description("Get a feature by ID")]
+    public DevStack.Domain.Entities.Feature? GetFeatureById(Guid id)
+    {
+        return dbContext.Features.Find(id);
+    }
+
+    [McpServerTool, Description("Get all defects with optional filtering")]
+    public List<DevStack.Domain.Entities.Defect> GetDefects(
+        Guid? projectId = null,
+        int first = 50,
+        int? skip = null)
+    {
+        var query = dbContext.Defects.AsQueryable();
+        if (projectId.HasValue)
+        {
+            query = query.Where(d => d.ProjectId == projectId.Value);
+        }
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        return query.OrderBy(d => d.CreatedAt).Take(first).ToList();
+    }
+
+    [McpServerTool, Description("Get a defect by ID")]
+    public DevStack.Domain.Entities.Defect? GetDefectById(Guid id)
+    {
+        return dbContext.Defects.Find(id);
+    }
+
+    [McpServerTool, Description("Get all tasks with optional filtering")]
+    public List<DevStack.Domain.Entities.AgentTask> GetTasks(
+        Guid? featureId = null,
+        List<DevStack.Domain.Enums.TaskStatus>? status = null,
+        DateTime? createdAfter = null,
+        DateTime? createdBefore = null,
+        int first = 50,
+        int? skip = null)
+    {
+        var query = dbContext.Tasks.AsQueryable();
+        if (featureId.HasValue)
+        {
+            query = query.Where(t => t.FeatureId == featureId.Value);
+        }
+        if (status is not null && status.Count > 0)
+        {
+            query = query.Where(t => status.Contains(t.Status));
+        }
+        if (createdAfter.HasValue)
+        {
+            query = query.Where(t => t.CreatedAt >= createdAfter.Value);
+        }
+        if (createdBefore.HasValue)
+        {
+            query = query.Where(t => t.CreatedAt <= createdBefore.Value);
+        }
+
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        return query.OrderBy(t => t.CreatedAt).Take(first).ToList();
+    }
+
+    [McpServerTool, Description("Get a task by ID")]
+    public DevStack.Domain.Entities.AgentTask? GetTaskById(Guid id)
+    {
+        return dbContext.Tasks.Find(id);
+    }
+
+    [McpServerTool, Description("Get valid status transitions for a feature")]
+    public List<FeatureStatus> GetValidStatusTransitions(Guid featureId)
+    {
+        var feature = dbContext.Features.Find(featureId);
+        if (feature == null)
+            return new List<FeatureStatus>();
+
+        var service = new FeatureStatusTransitionService();
+        var workItem = new DevStack.Domain.Entities.Feature
+        {
+            Id = feature.Id,
+            Status = feature.Status,
+            Result = feature.Result,
+            Errors = feature.Errors,
+            OpenQuestions = feature.OpenQuestions
+        };
+
+        var validTargets = new List<FeatureStatus>();
+        foreach (var targetStatus in Enum.GetValues<FeatureStatus>())
+        {
+            var result = service.Transition(workItem, targetStatus, "query-validation");
+            if (result.IsSuccess)
+            {
+                validTargets.Add(targetStatus);
+            }
+        }
+
+        return validTargets;
+    }
+
+    [McpServerTool, Description("Get dashboard summary statistics")]
+    public object GetDashboardSummary()
+    {
+        return new
+        {
+            ProjectsInFlight = dbContext.Projects.Count(),
+            FeaturesInReview = dbContext.Features.Count(f => f.Status == FeatureStatus.InReview),
+            FeaturesFailed = dbContext.Features.Count(f => f.Status == FeatureStatus.Failed),
+            TasksInProgress = dbContext.Tasks.Count(t => t.Status == DevStack.Domain.Enums.TaskStatus.Code),
+            TasksFailed = dbContext.Tasks.Count(t => t.Status == DevStack.Domain.Enums.TaskStatus.Failed)
+        };
     }
 }
