@@ -99,3 +99,49 @@ Both tasks are blocked by the same root cause: **frontend GraphQL schema is inco
 - Frontend schema: ❌ Missing Task type, missing Epic types
 - Frontend UI: ❌ Not implemented
 - Tests: ❌ Not updated
+
+---
+
+## Admin UI E2E Playwright Tests
+
+### Question 1: Generic Delete Entity Mutation for Test Cleanup
+**Status:** Blocked  
+**Related Tasks:** 
+- Task #129: Create end-to-end workflow tests
+- Task #131: Add test data cleanup mechanism
+- Task #134: Execute Playwright E2E tests and fix issues
+
+**Issue:** The `TestDataManager.ts` fixture references a `deleteEntity` mutation that doesn't exist in the GraphQL API.
+
+**Current State:**
+- Individual delete mutations exist for each entity type (`deleteProject`, `deleteFeature`, `deleteDefect`, `deleteTask`, `deleteModelConfiguration`, `deleteEpic`)
+- Test cleanup code expects a generic `deleteEntity(id: ID!, type: EntityType!)` mutation
+- No `EntityType` enum or generic delete mutation exists in `Mutation.cs`
+
+**Options:**
+1. **Add generic delete mutation** - Create a unified `deleteEntity` mutation with an `EntityType` enum that routes to the appropriate handler
+2. **Update test fixtures** - Modify `TestDataManager.ts` to use individual delete mutations for each entity type
+3. **Database cleanup strategy** - Use direct database deletion in tests instead of GraphQL mutations
+
+**Recommendation:** Option 2 (update test fixtures) is the fastest path forward. Option 1 provides a cleaner API but requires more implementation work.
+
+### Question 2: API Availability for E2E Tests
+**Status:** Unclear  
+**Related Tasks:** All E2E test tasks
+
+**Issue:** E2E tests require a running API instance with PostgreSQL. The test configuration and CI pipeline integration need clarification.
+
+**Open Items:**
+- Should tests run against `docker compose up` local environment?
+- Should tests spin up containers as part of the test run?
+- What is the CI pipeline strategy for E2E tests?
+
+### Question 3: Defect Status Transitions
+**Status:** Unclear  
+**Related Files:** `defect.spec.ts`
+
+**Issue:** Defect tests reference status transitions but the API uses `FeatureStatus` for both features and defects. Need to verify if defects have their own status lifecycle or share the feature lifecycle.
+
+**Open Items:**
+- Should defects have independent status values?
+- Are the same transition rules applied to defects as features?
