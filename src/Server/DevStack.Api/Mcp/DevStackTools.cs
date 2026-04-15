@@ -1,10 +1,8 @@
 using DevStack.Domain.Enums;
 using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Features;
-using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Tasks;
-using DevStack.Infrastructure.WorkflowRuns;
 using DevStack.Infrastructure.Services;
 using DevStack.Infrastructure.Persistence;
 using DevStack.Domain.Services;
@@ -19,26 +17,15 @@ public class DevStackTools(
     DevStackDbContext dbContext,
     ICreateProjectHandler createProjectHandler,
     IUpdateProjectHandler updateProjectHandler,
-    IDeleteProjectHandler deleteProjectHandler,
     ICreateFeatureHandler createFeatureHandler,
     IUpdateFeatureHandler updateFeatureHandler,
     ITransitionFeatureStatusHandler transitionFeatureStatusHandler,
-    IDeleteFeatureHandler deleteFeatureHandler,
     ICreateDefectHandler createDefectHandler,
     IUpdateDefectHandler updateDefectHandler,
     ITransitionDefectStatusHandler transitionDefectStatusHandler,
-    IDeleteDefectHandler deleteDefectHandler,
     ICreateTaskHandler createTaskHandler,
     IUpdateTaskHandler updateTaskHandler,
-    ITransitionTaskStatusHandler transitionTaskHandler,
-    IDeleteTaskHandler deleteTaskHandler,
-    ICreateModelConfigurationHandler createModelConfigurationHandler,
-    IUpdateModelConfigurationHandler updateModelConfigurationHandler,
-    IDeleteModelConfigurationHandler deleteModelConfigurationHandler,
-    ICreateWorkflowRunHandler createWorkflowRunHandler,
-    IUpdateWorkflowRunHandler updateWorkflowRunHandler,
-    ICancelWorkflowRunHandler cancelWorkflowRunHandler,
-    ISecretService secretService)
+    ITransitionTaskStatusHandler transitionTaskHandler)
 {
     [McpServerTool, Description("Create a new project")]
     public async Task<string> CreateProject(
@@ -72,13 +59,6 @@ public class DevStackTools(
             cancellationToken);
         
         return $"Project {id} updated successfully";
-    }
-
-    [McpServerTool, Description("Delete a project")]
-    public async Task<string> DeleteProject(Guid id, CancellationToken cancellationToken = default)
-    {
-        await deleteProjectHandler.Handle(new DeleteProjectCommand(id), cancellationToken);
-        return $"Project {id} deleted successfully";
     }
 
     [McpServerTool, Description("Create a new feature")]
@@ -136,13 +116,6 @@ public class DevStackTools(
             cancellationToken);
         
         return $"Feature {id} transitioned to {targetStatus}";
-    }
-
-    [McpServerTool, Description("Delete a feature")]
-    public async Task<string> DeleteFeature(Guid id, CancellationToken cancellationToken = default)
-    {
-        await deleteFeatureHandler.Handle(new DeleteFeatureCommand(id), cancellationToken);
-        return $"Feature {id} deleted successfully";
     }
 
     [McpServerTool, Description("Create a new defect")]
@@ -204,14 +177,7 @@ public class DevStackTools(
         return $"Defect {id} transitioned to {targetStatus}";
     }
 
-    [McpServerTool, Description("Delete a defect")]
-    public async Task<string> DeleteDefect(Guid id, CancellationToken cancellationToken = default)
-    {
-        await deleteDefectHandler.Handle(new DeleteDefectCommand(id), cancellationToken);
-        return $"Defect {id} deleted successfully";
-    }
-
-    [McpServerTool, Description("Create a new task")]
+   [McpServerTool, Description("Create a new task")]
     public async Task<string> CreateTask(
         Guid featureId,
         string title,
@@ -261,99 +227,6 @@ public class DevStackTools(
             cancellationToken);
         
         return $"Task {id} transitioned to {targetStatus}";
-    }
-
-    [McpServerTool, Description("Delete a task")]
-    public async Task<string> DeleteTask(Guid id, CancellationToken cancellationToken = default)
-    {
-        await deleteTaskHandler.Handle(new DeleteTaskCommand(id), cancellationToken);
-        return $"Task {id} deleted successfully";
-    }
-
-    [McpServerTool, Description("Create a new model configuration")]
-    public async Task<string> CreateModelConfiguration(
-        Guid projectId,
-        string url,
-        string model,
-        string apiKey,
-        int maxComplexity,
-        string? modelAlias = null,
-        CancellationToken cancellationToken = default)
-    {
-        var encryptedApiKey = secretService.Encrypt(apiKey);
-        
-        var id = await createModelConfigurationHandler.Handle(
-            new CreateModelConfigurationCommand(projectId, url, model, modelAlias, encryptedApiKey, maxComplexity),
-            cancellationToken);
-        
-        return $"Model configuration created with ID: {id}";
-    }
-
-    [McpServerTool, Description("Update an existing model configuration")]
-    public async Task<string> UpdateModelConfiguration(
-        Guid id,
-        string? url = null,
-        string? model = null,
-        string? modelAlias = null,
-        string? apiKey = null,
-        int? maxComplexity = null,
-        CancellationToken cancellationToken = default)
-    {
-        string? encryptedApiKey = null;
-        if (apiKey is not null)
-        {
-            encryptedApiKey = secretService.Encrypt(apiKey);
-        }
-
-        await updateModelConfigurationHandler.Handle(
-            new UpdateModelConfigurationCommand(id, url, model, modelAlias, encryptedApiKey, maxComplexity),
-            cancellationToken);
-        
-        return $"Model configuration {id} updated successfully";
-    }
-
-    [McpServerTool, Description("Delete a model configuration")]
-    public async Task<string> DeleteModelConfiguration(Guid id, CancellationToken cancellationToken = default)
-    {
-        await deleteModelConfigurationHandler.Handle(new DeleteModelConfigurationCommand(id), cancellationToken);
-        return $"Model configuration {id} deleted successfully";
-    }
-
-    [McpServerTool, Description("Create a new workflow run")]
-    public async Task<string> CreateWorkflowRun(
-        Guid projectId,
-        Guid? featureId,
-        Guid? taskId,
-        WorkflowType workflowType,
-        string inputPayload,
-        CancellationToken cancellationToken = default)
-    {
-        var id = await createWorkflowRunHandler.Handle(
-            new CreateWorkflowRunCommand(projectId, featureId, taskId, workflowType, inputPayload),
-            cancellationToken);
-        
-        return $"Workflow run created with ID: {id}";
-    }
-
-    [McpServerTool, Description("Update an existing workflow run")]
-    public async Task<string> UpdateWorkflowRun(
-        Guid id,
-        WorkflowRunStatus status,
-        string? outputPayload = null,
-        CancellationToken cancellationToken = default)
-    {
-        await updateWorkflowRunHandler.Handle(
-            new UpdateWorkflowRunCommand(id, status, outputPayload),
-            cancellationToken);
-        
-        return $"Workflow run {id} updated to status {status}";
-    }
-
-    [McpServerTool, Description("Cancel a workflow run")]
-    public async Task<string> CancelWorkflowRun(Guid id, CancellationToken cancellationToken = default)
-    {
-        await cancelWorkflowRunHandler.Handle(new CancelWorkflowRunCommand(id), cancellationToken);
-        return $"Workflow run {id} cancelled";
     }
 
     [McpServerTool, Description("Get a project by ID")]
