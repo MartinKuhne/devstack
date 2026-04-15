@@ -43,12 +43,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        if (builder.Environment.IsDevelopment())
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        }
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -141,11 +138,7 @@ using (var scope = app.Services.CreateScope())
 app.UseRouting();
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseCors("AllowAll");
-}
+app.UseCors("AllowAll");
 
 app.MapGet("/", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }))
     .WithName("Ping")

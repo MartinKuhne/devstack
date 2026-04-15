@@ -37,3 +37,17 @@ The core planning prompt is to split the work into tasks that can be performed b
 # Will it work?
 
 Maybe, maybe not. I think there is a lot of valuable experience to be had to move on from chat prompts, and to put some thoughts into really describing all the detail on how the work is to be done. 
+
+# V1
+
+Qwen3.5-122B-A10B declared it production ready after completing the initial 100 tasks that came out of ```SPEC.md```. There were a couple of initial isses
+- Agent code had a few typescript issues. That was avoidable
+- There was a runtime error with BullMQ related to the redis configuration. That's pretty understandable, only discoverable at runtime
+- CORS needed to be configured for graphql to be accessible from a browser
+- An environment variable was set to point the admin UI to the graphql endpoint, but browser code can't use environment variables. Fair.
+- There is another issue with BullMQ that I need to look into
+- There is an issue with GraphQL "Unable to infer or resolve the type of field Feature.validStatusTransitions.". Definitely should have asked for live integration tests.
+
+The implementation comes with a fair bit of complexity. There is a full work queue system for the coding agent, react lazy loading, a dead letter queue ... 
+
+A variety of "open questions" documents were created, as well as a top level package.json (?)
