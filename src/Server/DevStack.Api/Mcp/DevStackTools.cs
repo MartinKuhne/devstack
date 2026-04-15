@@ -6,6 +6,7 @@ using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.Services;
 using DevStack.Infrastructure.Persistence;
 using DevStack.Domain.Services;
+using DevStack.Infrastructure.Epics;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,9 @@ public class DevStackTools(
     ITransitionDefectStatusHandler transitionDefectStatusHandler,
     ICreateTaskHandler createTaskHandler,
     IUpdateTaskHandler updateTaskHandler,
-    ITransitionTaskStatusHandler transitionTaskHandler)
+    ITransitionTaskStatusHandler transitionTaskHandler,
+    ICreateEpicHandler createEpicHandler,
+    IUpdateEpicHandler updateEpicHandler)
 {
     [McpServerTool, Description("Create a new project")]
     public async Task<string> CreateProject(
@@ -391,5 +394,57 @@ public class DevStackTools(
             TasksInProgress = dbContext.Tasks.Count(t => t.Status == DevStack.Domain.Enums.TaskStatus.Code),
             TasksFailed = dbContext.Tasks.Count(t => t.Status == DevStack.Domain.Enums.TaskStatus.Failed)
         };
+    }
+
+    [McpServerTool, Description("Get an epic by ID")]
+    public DevStack.Domain.Entities.Epic? GetEpicById(Guid id)
+    {
+        return dbContext.Epics.Find(id);
+    }
+
+    [McpServerTool, Description("Get all epics with optional filtering")]
+    public List<DevStack.Domain.Entities.Epic> GetEpics(
+        string? title = null,
+        int first = 50,
+        int? skip = null)
+    {
+        var query = dbContext.Epics.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            query = query.Where(e => e.Title.Contains(title));
+        }
+
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        return query.OrderBy(e => e.CreatedAt).Take(first).ToList();
+    }
+
+    [McpServerTool, Description("Create a new epic")]
+    public async Task<string> CreateEpic(
+        string title,
+        string? description = null,
+        CancellationToken cancellationToken = default)
+    {
+        var id = await createEpicHandler.Handle(
+            new CreateEpicCommand(title, description),
+            cancellationToken);
+        
+        return $"Epic created with ID: {id}";
+    }
+
+    [McpServerTool, Description("Update an existing epic")]
+    public async Task<string> UpdateEpic(
+        Guid id,
+        string? title = null,
+        string? description = null,
+        CancellationToken cancellationToken = default)
+    {
+        await updateEpicHandler.Handle(
+            new UpdateEpicCommand(id, title, description),
+            cancellationToken);
+        
+        return $"Epic {id} updated successfully";
     }
 }
