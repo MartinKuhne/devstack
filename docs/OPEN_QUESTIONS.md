@@ -24,33 +24,78 @@
 
 ### Task 143: Implement Epic CRUD in Admin UI
 
-**Status:** Blocked - Requires frontend development expertise
+**Status:** Blocked - Requires frontend GraphQL schema updates
 
-**Questions:**
-1. What is the preferred UI framework/library for the Admin UI? (The project uses Next.js with shadcn/ui based on components.json)
-2. Should Epic pages follow the same patterns as existing Feature/Project pages?
-3. What specific fields should be editable in the Epic create/edit forms?
-4. Should there be a dedicated Epic list page or should Epics be shown alongside Features?
-5. How should Epic-Feature relationships be displayed and managed in the UI?
+**Issues:**
+1. Frontend GraphQL schema (`src/AdminUi/src/graphql/schema.graphql`) is missing Epic types and mutations
+2. Frontend schema is broken - missing `Task` type definition (lines 9, 10, 134-136 reference undefined type)
+3. Backend has complete Epic API:
+   - `EpicType.cs` - GraphQL type definition
+   - `EpicQueryTests.cs` - Query tests (GetEpics, GetEpicById, filtering, pagination)
+   - `EpicMutationTests.cs` - Mutation tests (CreateEpic, UpdateEpic, DeleteEpic)
+   - `Epic.cs` - Domain entity with Title, Description, Features collection
 
-**Dependencies:**
-- GraphQL API is ready (mutations implemented)
-- MCP tools available for Epic operations
+**Required Steps:**
+1. Fix frontend schema by adding missing `Task` type definition
+2. Add Epic types to frontend schema:
+   - `Epic` type with id, title, description, createdAt, updatedAt, features
+   - `EpicConnection` for pagination
+   - `CreateEpicInput`, `UpdateEpicInput`, `DeleteEpicInput`
+   - Epic mutations: `createEpic`, `updateEpic`, `deleteEpic`
+   - Epic queries: `epics`, `epicById`
+3. Regenerate GraphQL types with `npm run codegen`
+4. Create Epic pages:
+   - `EpicListPage.tsx`
+   - `EpicDetailPage.tsx`
+   - `EpicCreateForm.tsx`
+   - `EpicEditForm.tsx`
+5. Add Epic navigation to AppShell
+6. Update Feature pages to include Epic selection/assignment
+
+**Complexity:** 8/10 (requires schema changes, codegen, multiple new pages)
 
 ### Task 146: Update existing Feature and Task tests for Epic hierarchy
 
-**Status:** Blocked - Requires test review and updates
+**Status:** Blocked - Requires schema and API alignment
 
-**Questions:**
-1. Which specific Feature tests need updates to account for optional EpicId?
-2. Should new tests be added to verify the Task -> Feature -> Epic hierarchy?
-3. Are there any integration tests that need updates for the Epic relationship?
-4. Should the existing tests be refactored to include EpicId scenarios?
+**Issues:**
+1. `Feature` entity has `EpicId` field but GraphQL `Feature` type doesn't expose it
+2. `AgentTask` entity does NOT have `EpicId` - correct design (Task -> Feature -> Epic)
+3. GraphQL schema doesn't include `epicId` in `Feature` type or inputs
+4. Frontend schema is broken and needs fixing first
+
+**Required Steps:**
+1. Add `epicId` field to GraphQL `Feature` type
+2. Add `epicId` to `CreateFeatureInput` and `UpdateFeatureInput`
+3. Update backend GraphQL `FeatureType` to resolve `epicId` and `epic` navigation
+4. Regenerate frontend GraphQL types
+5. Update existing Feature mutation tests to include EpicId scenarios
+6. Add tests for Epic-Feature relationship
+7. Verify all tests pass
+
+**Complexity:** 6/10 (test updates + schema changes)
 
 **Current State:**
 - All existing tests pass (89 unit, 65 integration, 57 GraphQL integration)
 - Epic entity and relationships are properly configured
 - EpicId is nullable for backward compatibility
 
-**Recommendation:**
-Review test files in `src/Server/DevStack.Tests.Integration/GraphQL/` and `src/Server/DevStack.Tests.Unit/` to identify tests that create Features or Tasks and verify they work correctly with the optional EpicId field.
+---
+
+## Summary
+
+Both tasks are blocked by the same root cause: **frontend GraphQL schema is incomplete and broken**. 
+
+**Recommended Order:**
+1. Fix missing `Task` type in frontend schema
+2. Add Epic types and mutations to frontend schema
+3. Add `epicId` to Feature GraphQL type
+4. Regenerate GraphQL types
+5. Complete Task #146 (test updates)
+6. Complete Task #143 (Admin UI implementation)
+
+**Dependencies:**
+- Backend Epic API: ✅ Complete
+- Frontend schema: ❌ Missing Task type, missing Epic types
+- Frontend UI: ❌ Not implemented
+- Tests: ❌ Not updated
