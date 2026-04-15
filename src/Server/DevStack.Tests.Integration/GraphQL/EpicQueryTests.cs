@@ -1,0 +1,153 @@
+using DevStack.Api.GraphQL;
+using DevStack.Api.GraphQL.Types;
+using DevStack.Domain.Entities;
+using DevStack.Infrastructure.Persistence;
+using FluentAssertions;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
+
+namespace DevStack.Tests.Integration.GraphQL;
+
+public class EpicQueryTests : IAsyncLifetime
+{
+    private DevStackDbContext? _dbContext;
+    private readonly SqliteConnection _connection;
+    private readonly DbContextOptions<DevStackDbContext> _options;
+    private readonly Query _query;
+
+    public EpicQueryTests()
+    {
+        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection.Open();
+        _options = new DbContextOptionsBuilder<DevStackDbContext>()
+            .UseSqlite(_connection)
+            .Options;
+        _query = new Query();
+    }
+
+    public async System.Threading.Tasks.Task InitializeAsync()
+    {
+        _dbContext = new DevStackDbContext(_options);
+        await _dbContext.Database.EnsureDeletedAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
+        await SeedDataAsync();
+    }
+
+    private async System.Threading.Tasks.Task SeedDataAsync()
+    {
+        if (_dbContext is null) return;
+
+        var epic1 = new Epic
+        {
+            Id = Guid.NewGuid(),
+            Title = "Epic One",
+            Description = "First epic",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        var epic2 = new Epic
+        {
+            Id = Guid.NewGuid(),
+            Title = "Epic Two",
+            Description = "Second epic",
+            CreatedAt = DateTime.UtcNow.AddHours(1),
+            UpdatedAt = DateTime.UtcNow.AddHours(1)
+        };
+
+        var epic3 = new Epic
+        {
+            Id = Guid.NewGuid(),
+            Title = "Testing Epic",
+            Description = "Epic about testing",
+            CreatedAt = DateTime.UtcNow.AddHours(2),
+            UpdatedAt = DateTime.UtcNow.AddHours(2)
+        };
+
+        _dbContext.Epics.AddRange(epic1, epic2, epic3);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async System.Threading.Tasks.Task DisposeAsync()
+    {
+        if (_dbContext is not null)
+        {
+            await _dbContext.DisposeAsync();
+        }
+        _connection.Close();
+    }
+
+    [Fact]
+    public void GetEpicById_Returns_Epic_When_Exists()
+    {
+        var epic = _dbContext!.Epics.First();
+        var result = _query.GetEpicById(_dbContext, epic.Id);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(epic.Id);
+        result.Title.Should().Be(epic.Title);
+    }
+
+    [Fact]
+    public void GetEpicById_Returns_Null_When_Not_Exists()
+    {
+        var result = _query.GetEpicById(_dbContext!, Guid.NewGuid());
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetEpics_Returns_All_Epics_By_Default()
+    {
+        var result = _query.GetEpics(_dbContext!);
+
+        result.Nodes.Should().HaveCount(3);
+        result.TotalCount.Should().Be(3);
+    }
+
+    [Fact]
+    public void GetEpics_Filters_By_Title()
+    {
+        var result = _query.GetEpics(_dbContext!, title: "Testing");
+
+        result.Nodes.Should().HaveCount(1);
+        result.Nodes[0].Title.Should().Be("Testing Epic");
+    }
+
+    [Fact]
+    public void GetEpics_Supports_Pagination()
+    {
+        var result = _query.GetEpics(_dbContext!, first: 2, skip: 0);
+
+        result.Nodes.Should().HaveCount(2);
+        result.PageInfo.HasNextPage.Should().BeTrue();
+        result.PageInfo.HasPreviousPage.Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetEpics_Supports_Skip()
+    {
+        var result = _query.GetEpics(_dbContext!, first: 2, skip: 1);
+
+        result.Nodes.Should().HaveCount(2);
+        result.PageInfo.HasPreviousPage.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetEpics_Returns_Empty_When_No_Matches()
+    {
+        var result = _query.GetEpics(_dbContext!, title: "NonExistent");
+
+        result.Nodes.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void GetEpics_Returns_Epics_OrderedBy_CreatedAt()
+    {
+        var result = _query.GetEpics(_dbContext!);
+
+        result.Nodes.Should().BeInAscendingOrder(e => e.CreatedAt);
+    }
+}
