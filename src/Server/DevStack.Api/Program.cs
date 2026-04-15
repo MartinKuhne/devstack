@@ -137,7 +137,8 @@ builder.Services.AddGraphQLServer()
     .AddType<ModelConfigurationType>()
     .AddType<WorkflowRunType>()
     .AddType<AuditEventType>()
-    .AddType<DashboardSummary>();
+    .AddType<DashboardSummary>()
+    .DisableIntrospection(false);
 
 builder.Services.AddMcpServer()
     .WithHttpTransport(options =>
