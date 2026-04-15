@@ -10,12 +10,14 @@ using DevStack.Infrastructure.Persistence;
 using DevStack.Infrastructure.Services;
 using DevStack.Api.Logging;
 using DevStack.Api.Middlewares;
+using DevStack.Api.Mcp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 using Wolverine;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using ModelContextProtocol.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -137,6 +139,16 @@ builder.Services.AddGraphQLServer()
     .AddType<AuditEventType>()
     .AddType<DashboardSummary>();
 
+builder.Services.AddMcpServer()
+    .WithHttpTransport(options =>
+    {
+        options.Stateless = false;
+#pragma warning disable MCP9004
+        options.EnableLegacySse = true;
+#pragma warning restore MCP9004
+    })
+    .WithTools<DevStackTools>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -179,6 +191,8 @@ app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.
 }).WithTags("Health");
 
 app.MapGraphQL("/graphql");
+
+app.MapMcp();
 
 app.Run();
 
