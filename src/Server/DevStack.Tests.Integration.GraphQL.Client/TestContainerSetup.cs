@@ -61,32 +61,40 @@ public class TestContainerSetup : IAsyncLifetime, IDisposable
 
 public class TestContainerFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgreSqlContainer;
     private DevStackDbContext? _dbContext;
-
-    public TestContainerFixture()
+    private static readonly Lazy<Task> _containerStart = new Lazy<Task>(async () =>
     {
-        _postgreSqlContainer = new PostgreSqlBuilder()
+        var container = new PostgreSqlBuilder()
             .WithImage("postgres:16-alpine")
             .WithUsername("test")
             .WithPassword("test")
             .WithDatabase("devstack_test")
             .Build();
+        await container.StartAsync();
+        _sharedConnectionString = container.GetConnectionString();
+        _startedContainer = container;
+    });
+    private static string? _sharedConnectionString;
+    private static PostgreSqlContainer? _startedContainer;
+
+    public TestContainerFixture()
+    {
     }
 
-    public string ConnectionString => _postgreSqlContainer.GetConnectionString();
+    public string ConnectionString => _sharedConnectionString ?? throw new InvalidOperationException("Container not started");
 
     public DevStackDbContext DbContext => _dbContext ?? throw new InvalidOperationException("Database not initialized");
 
     public async Task InitializeAsync()
     {
-        await _postgreSqlContainer.StartAsync();
+        await _containerStart.Value;
 
         var options = new DbContextOptionsBuilder<DevStackDbContext>()
             .UseNpgsql(ConnectionString)
             .Options;
 
         _dbContext = new DevStackDbContext(options);
+        await _dbContext.Database.EnsureDeletedAsync();
         await _dbContext.Database.MigrateAsync();
     }
 
@@ -94,8 +102,10 @@ public class TestContainerFixture : IAsyncLifetime
     {
         if (_dbContext is not null)
         {
+            // Truncate all tables instead of dropping database
+            await _dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Projects\", \"Features\", \"Defects\", \"Tasks\", \"ModelConfigurations\", \"WorkflowRuns\", \"AuditEvents\" RESTART IDENTITY CASCADE");
             await _dbContext.DisposeAsync();
+            _dbContext = null;
         }
-        await _postgreSqlContainer.StopAsync();
     }
 }
