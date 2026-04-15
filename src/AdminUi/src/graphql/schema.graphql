@@ -1,12 +1,12 @@
 type Query {
     dashboardSummary: DashboardSummary!
-    projects(first: Int, after: String): ProjectConnection!
+    projects(first: Int, skip: Int): ProjectConnection!
     projectById(id: ID!): Project
-    features(first: Int, after: String, projectId: ID, status: [FeatureStatus!]): FeatureConnection!
+    features(first: Int, skip: Int, projectId: ID, status: [FeatureStatus!]): FeatureConnection!
     featureById(id: ID!): Feature
-    defects(first: Int, after: String): DefectConnection!
+    defects(first: Int, skip: Int): DefectConnection!
     defectById(id: ID!): Defect
-    tasks(first: Int, after: String): TaskConnection!
+    tasks(first: Int, skip: Int): TaskConnection!
     taskById(id: ID!): Task
     modelConfigurations(projectId: ID!): [ModelConfiguration!]!
 }
@@ -60,13 +60,9 @@ type Project {
 }
 
 type ProjectConnection {
-    edges: [ProjectEdge!]!
+    nodes: [Project!]!
     pageInfo: PageInfo!
-}
-
-type ProjectEdge {
-    node: Project!
-    cursor: String!
+    totalCount: Int!
 }
 
 type Feature {
@@ -91,18 +87,9 @@ type Feature {
 }
 
 type FeatureConnection {
-    edges: [FeatureEdge!]!
+    nodes: [Feature!]!
     pageInfo: PageInfo!
-}
-
-type FeatureEdge {
-    node: Feature!
-    cursor: String!
-}
-
-type FeatureStatusTransition {
-    feature: Feature!
-    errors: [String!]
+  totalCount: Int!
 }
 
 type Defect {
@@ -125,27 +112,9 @@ type Defect {
 }
 
 type DefectConnection {
-    edges: [DefectEdge!]!
+    nodes: [Defect!]!
     pageInfo: PageInfo!
-}
-
-type DefectEdge {
-    node: Defect!
-    cursor: String!
-}
-
-type Task {
-    id: ID!
-    title: String!
-    deliverable: String
-    acceptanceCriteria: String
-    risks: String
-    requiredFollowUps: String
-    complexity: TaskComplexity!
-    status: TaskStatus!
-    feature: Feature
-    createdAt: String!
-    updatedAt: String!
+totalCount: Int!
 }
 
 type ModelConfiguration {
@@ -161,8 +130,9 @@ type ModelConfiguration {
 }
 
 type TaskConnection {
-    edges: [TaskEdge!]!
+    nodes: [Task!]!
     pageInfo: PageInfo!
+    totalCount: Int!
 }
 
 type TaskEdge {
@@ -173,8 +143,7 @@ type TaskEdge {
 type PageInfo {
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
-    startCursor: String
-    endCursor: String
+    totalCount: Int!
 }
 
 input CreateProjectInput {

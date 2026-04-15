@@ -1,13 +1,11 @@
 query GetProjects {
     projects {
-        edges {
-            node {
-                id
-                name
-                description
-                githubUrl
-                updatedAt
-            }
+        nodes {
+            id
+            name
+            description
+            githubUrl
+            updatedAt
         }
     }
 }
