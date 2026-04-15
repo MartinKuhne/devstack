@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
-$ApiUrl = "http://localhost:5000"
+$ApiUrl = "http://localhost:8087"
 $GraphQLEndpoint = "$ApiUrl/graphql"
 
 function Invoke-GraphQLQuery {
@@ -120,23 +120,20 @@ mutation {
     $projectId = $result.data.createProject.project.id
     Write-Host "Project created with ID: $projectId"
     
-    $opencodeDir = Join-Path $PSScriptRoot ".opencode"
-    if (-not (Test-Path $opencodeDir)) {
-        New-Item -ItemType Directory -Force -Path $opencodeDir | Out-Null
-    }
-    
-    $configPath = Join-Path $opencodeDir "config.json"
-    $config = @{
-        mcpServers = @{
+    $configPath = Join-Path $PSScriptRoot "opencode.json"
+    $config = [ordered]@{
+        '$schema' = "https://opencode.ai/config.json"
+        mcp = @{
             devstack = @{
-                command = "npx"
-                args = @("-y", "@modelcontextprotocol/server-stdio", "http://localhost:5000/mcp")
+                type = "remote"
+                url = "http://localhost:8087/mcp"
+                enabled = "true"
             }
         }
     }
-    
+
     $config | ConvertTo-Json -Depth 10 | Set-Content $configPath
-    Write-Host "Created .opencode/config.json"
+    Write-Host "Created opencode.json"
     
     Write-Host "Initialization complete!"
 }
@@ -176,7 +173,7 @@ function Run-Tasks {
     foreach ($task in $todoTasks) {
         Write-Host "`nProcessing task: $($task.title) (ID: $($task.id))"
         
-        $taskQuery = @"
+        $taskQuery = @'
 query GetTaskById($id: ID!) {
     task(id: $id) {
         id
@@ -185,7 +182,7 @@ query GetTaskById($id: ID!) {
         status
     }
 }
-"@
+'@
         
         $taskResult = Invoke-GraphQLQuery -Query $taskQuery -Variables @{ id = $task.id }
         

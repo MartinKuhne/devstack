@@ -1,0 +1,17 @@
+**/bin/
+**/obj/
+**/.git/
+**/.vs/
+**/.idea/
+**/*.user
+**/*.suo
+**/.dockerignore
+**/Dockerfile*
+**/.env
+**/.env.*
+**/*.md
+!**/README.md
+**/node_modules/
+**/.gitignore
+**/.editorconfig
+**/.vscode

@@ -4,6 +4,7 @@ using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Features;
 using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Tasks;
+using DevStack.Infrastructure.Epics;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.WorkflowRuns;
 using DevStack.Infrastructure.Persistence;
@@ -83,6 +84,8 @@ builder.Services.AddTransient<IDeleteModelConfigurationHandler, DeleteModelConfi
 builder.Services.AddTransient<ICreateWorkflowRunHandler, CreateWorkflowRunHandler>();
 builder.Services.AddTransient<IUpdateWorkflowRunHandler, UpdateWorkflowRunHandler>();
 builder.Services.AddTransient<ICancelWorkflowRunHandler, CancelWorkflowRunHandler>();
+builder.Services.AddTransient<ICreateEpicHandler, CreateEpicHandler>();
+builder.Services.AddTransient<IUpdateEpicHandler, UpdateEpicHandler>();
 
 var secretKey = builder.Configuration["DEVSTACK_SECRET_KEY"] 
     ?? Environment.GetEnvironmentVariable("DEVSTACK_SECRET_KEY") 
@@ -143,12 +146,9 @@ builder.Services.AddGraphQLServer()
 builder.Services.AddMcpServer()
     .WithHttpTransport(options =>
     {
-        options.Stateless = false;
-#pragma warning disable MCP9004
-        options.EnableLegacySse = true;
-#pragma warning restore MCP9004
+        options.Stateless = true;
     })
-    .WithTools<DevStackTools>();
+    .WithToolsFromAssembly();
 
 var app = builder.Build();
 
