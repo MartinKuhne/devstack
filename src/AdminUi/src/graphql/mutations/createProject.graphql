@@ -1,10 +1,15 @@
 mutation CreateProject($input: CreateProjectInput!) {
     createProject(input: $input) {
-        id
-        name
-        description
-        architecture
-        memory
-        githubUrl
+        project {
+            id
+            name
+            description
+            architecture
+            memory
+            githubUrl
+            createdAt
+            updatedAt
+        }
+        errors
     }
 }

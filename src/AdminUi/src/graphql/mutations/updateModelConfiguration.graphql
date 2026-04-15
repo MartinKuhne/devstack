@@ -1,5 +1,5 @@
-mutation CreateModelConfiguration($input: CreateModelConfigurationInput!) {
-    createModelConfiguration(input: $input) {
+mutation UpdateModelConfiguration($input: UpdateModelConfigurationInput!) {
+    updateModelConfiguration(input: $input) {
         modelConfiguration {
             id
             projectId
@@ -7,7 +7,6 @@ mutation CreateModelConfiguration($input: CreateModelConfigurationInput!) {
             model
             modelAlias
             maxComplexity
-            createdAt
             updatedAt
         }
         errors

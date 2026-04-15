@@ -1,0 +1,15 @@
+mutation CreateWorkflowRun($input: CreateWorkflowRunInput!) {
+    createWorkflowRun(input: $input) {
+        workflowRun {
+            id
+            projectId
+            featureId
+            taskId
+            workflowType
+            status
+            startedAt
+            createdAt
+        }
+        errors
+    }
+}

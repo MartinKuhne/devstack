@@ -1,4 +1,4 @@
-query ModelConfigurations($projectId: ID!) {
+query ModelConfigurations($projectId: UUID!) {
     modelConfigurations(projectId: $projectId) {
         id
         projectId

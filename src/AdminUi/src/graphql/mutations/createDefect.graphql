@@ -1,23 +1,22 @@
 mutation CreateDefect($input: CreateDefectInput!) {
     createDefect(input: $input) {
-        id
-        title
-        description
-        acceptanceCriteria
-        plan
-        result
-        errors
-        securityImpact
-        performanceImpact
-        status
-        severity
-        parentFeature {
+        defect {
             id
             title
+            description
+            acceptanceCriteria
+            plan
+            result
+            errors
+            securityImpact
+            performanceImpact
+            status
+            severity
+            projectId
+            parentFeatureId
+            createdAt
+            updatedAt
         }
-        project {
-            id
-            name
-        }
+        errors
     }
 }
