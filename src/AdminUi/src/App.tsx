@@ -1,16 +1,17 @@
-import { BrowserRouter, Routes, Route, lazy, Suspense } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-const DashboardPage = lazy(() => import('./features/features/pages/DashboardPage'));
-const ProjectListPage = lazy(() => import('./features/features/pages/ProjectListPage'));
-const ProjectDetailPage = lazy(() => import('./features/projects/pages/ProjectDetailPage'));
-const FeatureListPage = lazy(() => import('./features/features/pages/FeatureListPage'));
-const FeatureDetailPage = lazy(() => import('./features/features/pages/FeatureDetailPage'));
-const DefectListPage = lazy(() => import('./features/features/pages/DefectListPage'));
-const DefectDetailPage = lazy(() => import('./features/defects/pages/DefectDetailPage'));
-const TaskListPage = lazy(() => import('./features/features/pages/TaskListPage'));
-const SettingsPage = lazy(() => import('./features/features/pages/SettingsPage'));
+const DashboardPage = lazy(() => import('./features/features/pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
+const ProjectListPage = lazy(() => import('./features/features/pages/ProjectListPage').then(module => ({ default: module.ProjectListPage })));
+const ProjectDetailPage = lazy(() => import('./features/projects/pages/ProjectDetailPage').then(module => ({ default: module.ProjectDetailPage })));
+const FeatureListPage = lazy(() => import('./features/features/pages/FeatureListPage').then(module => ({ default: module.FeatureListPage })));
+const FeatureDetailPage = lazy(() => import('./features/features/pages/FeatureDetailPage').then(module => ({ default: module.FeatureDetailPage })));
+const DefectListPage = lazy(() => import('./features/features/pages/DefectListPage').then(module => ({ default: module.DefectListPage })));
+const DefectDetailPage = lazy(() => import('./features/defects/pages/DefectDetailPage').then(module => ({ default: module.DefectDetailPage })));
+const TaskListPage = lazy(() => import('./features/features/pages/TaskListPage').then(module => ({ default: module.TaskListPage })));
+const SettingsPage = lazy(() => import('./features/features/pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
 
 function LoadingFallback() {
     return (

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 const configSchema = z.object({
+  NODE_ENV: z.string().default('development'),
   GRAPHQL_API_URL: z.string().url(), // eslint-disable-line @typescript-eslint/no-deprecated
   GRAPHQL_API_TOKEN: z.string().optional(),
   REDIS_URL: z.string().url(), // eslint-disable-line @typescript-eslint/no-deprecated
@@ -15,6 +16,7 @@ const configSchema = z.object({
   GRACEFUL_SHUTDOWN_TIMEOUT_MS: z.string().default('30000').transform((val) => Number.parseInt(val, 10)),
   DRY_RUN: z.string().default('false').transform((val) => val === 'true'),
   PROJECT_ID: z.string().optional(),
+  DASHBOARD_TOKEN: z.string().optional(),
 });
 
 export type Config = z.infer<typeof configSchema>;
