@@ -1,14 +1,12 @@
 query GetFeatures($projectId: ID, $status: [FeatureStatus!]) {
     features(projectId: $projectId, status: $status) {
-        edges {
-            node {
+        nodes {
+            id
+            title
+            status
+            updatedAt
+            tasks {
                 id
-                title
-                status
-                updatedAt
-                tasks {
-                    id
-                }
             }
         }
     }

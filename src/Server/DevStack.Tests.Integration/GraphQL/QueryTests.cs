@@ -196,7 +196,8 @@ public class QueryTests : IAsyncLifetime
         var result = query.GetProjects(_dbContext!);
 
         // Assert
-        result.Should().HaveCount(1);
+        result.Nodes.Should().HaveCount(1);
+        result.TotalCount.Should().Be(1);
     }
 
     [Fact]
@@ -269,7 +270,8 @@ public class QueryTests : IAsyncLifetime
         var result = query.GetDefects(_dbContext!);
 
         // Assert
-        result.Should().HaveCount(1);
+        result.Nodes.Should().HaveCount(1);
+        result.TotalCount.Should().Be(1);
     }
 
     [Fact]

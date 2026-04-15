@@ -13,9 +13,31 @@ public class Query
         return dbContext.Projects.Find(id);
     }
 
-    public IQueryable<Project> GetProjects([Service] DevStackDbContext dbContext)
+    public ProjectConnection GetProjects(
+        [Service] DevStackDbContext dbContext,
+        int first = 50,
+        int? skip = null)
     {
-        return dbContext.Projects;
+        var query = dbContext.Projects.AsQueryable();
+        var totalCount = query.Count();
+        query = query.OrderBy(p => p.CreatedAt);
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        var nodes = query.Take(first).ToList();
+
+        return new ProjectConnection
+        {
+            Nodes = nodes,
+            PageInfo = new ProjectPageInfo
+            {
+                HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
+                HasPreviousPage = skip > 0,
+                TotalCount = totalCount
+            },
+            TotalCount = totalCount
+        };
     }
 
     public FeatureConnection GetFeatures(
@@ -71,14 +93,36 @@ public class Query
         return dbContext.Features.Find(id);
     }
 
-    public IQueryable<Defect> GetDefects([Service] DevStackDbContext dbContext, Guid? projectId = null)
+    public DefectConnection GetDefects(
+        [Service] DevStackDbContext dbContext,
+        Guid? projectId = null,
+        int first = 50,
+        int? skip = null)
     {
         var query = dbContext.Defects.AsQueryable();
         if (projectId.HasValue)
         {
             query = query.Where(d => d.ProjectId == projectId.Value);
         }
-        return query;
+        var totalCount = query.Count();
+        query = query.OrderBy(d => d.CreatedAt);
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        var nodes = query.Take(first).ToList();
+
+        return new DefectConnection
+        {
+            Nodes = nodes,
+            PageInfo = new DefectPageInfo
+            {
+                HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
+                HasPreviousPage = skip > 0,
+                TotalCount = totalCount
+            },
+            TotalCount = totalCount
+        };
     }
 
     public Defect? GetDefectById([Service] DevStackDbContext dbContext, Guid id)

@@ -19,23 +19,21 @@ query GetTaskById($id: ID!) {
 
 query GetTasks {
     tasks {
-        edges {
-            node {
+        nodes {
+            id
+            title
+            deliverable
+            acceptanceCriteria
+            risks
+            requiredFollowUps
+            complexity
+            status
+            feature {
                 id
                 title
-                deliverable
-                acceptanceCriteria
-                risks
-                requiredFollowUps
-                complexity
-                status
-                feature {
-                    id
-                    title
-                }
-                createdAt
-                updatedAt
             }
+            createdAt
+            updatedAt
         }
     }
 }

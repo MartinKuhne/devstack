@@ -1,23 +1,21 @@
 query GetDefects {
     defects {
-        edges {
-            node {
+        nodes {
+            id
+            title
+            description
+            status
+            severity
+            parentFeature {
                 id
                 title
-                description
-                status
-                severity
-                parentFeature {
-                    id
-                    title
-                }
-                project {
-                    id
-                    name
-                }
-                createdAt
-                updatedAt
             }
+            project {
+                id
+                name
+            }
+            createdAt
+            updatedAt
         }
     }
 }
