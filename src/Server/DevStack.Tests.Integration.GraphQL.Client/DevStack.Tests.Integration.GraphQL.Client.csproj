@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DevStack.Api\DevStack.Api.csproj" />
+    <ProjectReference Include="..\DevStack.Infrastructure\DevStack.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
