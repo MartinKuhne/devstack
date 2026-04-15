@@ -1,5 +1,4 @@
-import { Worker, Job } from 'bullmq';
-import { Redis } from 'ioredis';
+import { Worker, Job, ConnectionOptions } from 'bullmq';
 import { loadConfig } from '../config.js';
 import { executeWorkflow } from '../workflows/executor.js';
 import { moveToDeadLetterQueue } from '../workflows/dead-letter.js';
@@ -20,10 +19,6 @@ export function createWorker<T extends { workflowName: string; input: unknown }>
   queueName: string,
   options: WorkerOptions = { name: queueName, concurrency: config.WORKER_CONCURRENCY }
 ): Worker<T> {
-  const redisConnection = new Redis(config.REDIS_URL, {
-    maxRetriesPerRequest: null,
-  });
-
   const worker = new Worker<T>(
     queueName,
     async (job: Job<T>) => {
@@ -69,8 +64,9 @@ export function createWorker<T extends { workflowName: string; input: unknown }>
       }
     },
     {
-      connection: redisConnection,
+      connection: { url: config.REDIS_URL } as ConnectionOptions,
       concurrency: options.concurrency,
+      maxStalledCount: 0,
     }
   );
 
