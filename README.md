@@ -51,3 +51,11 @@ Qwen3.5-122B-A10B declared it production ready after completing the initial 100 
 The implementation comes with a fair bit of complexity. There is a full work queue system for the coding agent, react lazy loading, a dead letter queue ... 
 
 A variety of "open questions" documents were created, as well as a top level package.json (?)
+
+# Pivot
+
+As it turns out, it wasn't really working. The Admin UI was built on a ```schema.graphql``` that it hand created, instead of the actual schema it should have retrieved from the server. React/Apollo has really tight coupling between the generated classes and the code, so most of it was just wrong.
+
+I also realized there was no need to invent another coding agent. That is not a unique value add. I experimented a little more with how I run opencode, and I will likely discontinue the coding agent. The design was pivoted for the graphql server to also be an _MCP Server_ to facilitate interaction with a coding agent.
+
+The saga MCP server continues to be very valuable. It does not have an UI or a feedback loop to restart tasks that have open questions.

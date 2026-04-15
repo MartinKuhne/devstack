@@ -157,29 +157,29 @@ Decision: Defects have the same lifecycle as features
 ## Session Status: No Actionable Tasks
 
 **Date:** April 15, 2026  
-**Project Completion:** 97.8% (131 of 134 tasks complete)
+**Project Completion:** 97.8% (132 of 135 tasks complete)
 
 ### Summary
 
 No in-progress or todo tasks found. All remaining work is blocked:
 
 1. **Epic UI Implementation (Tasks 143, 146)** - Blocked by incomplete frontend GraphQL schema
-2. **Admin UI E2E Playwright Tests (Tasks 129, 131, 134)** - Blocked by missing generic delete mutation and unclear test infrastructure setup
+2. **Admin UI E2E Playwright Tests (Tasks 129, 131, 134)** - Blocked pending implementation decisions
 
 ### Next Steps Required
 
 Before work can resume, the following decisions are needed:
 
 1. **Frontend Schema Fix:** Decide on approach for fixing the broken TypeScript/GraphQL schema in the Admin UI
-2. **E2E Test Strategy:** Define the test environment and cleanup strategy for Playwright tests
-3. **Generic Delete Mutation:** Decide whether to implement a generic `deleteEntity` mutation or update test fixtures to use individual mutations
+2. **E2E Test Implementation:** Decide whether to proceed with creating workflow.spec.ts and implementing proper test cleanup
+3. **E2E Test Execution:** Decide on test environment strategy (local docker compose vs CI pipeline)
 
 ### Quality Gates
 
 All completed work passes quality gates:
 - ✅ `dotnet build` - No warnings or errors
 - ✅ `dotnet test` - 211 tests passing (89 unit, 65 integration, 57 GraphQL)
-- ⚠️ `docker compose` - Requires clarification on E2E test environment
+- ✅ `docker compose` - Configuration exists with playwright-test profile
 
 ---
 
