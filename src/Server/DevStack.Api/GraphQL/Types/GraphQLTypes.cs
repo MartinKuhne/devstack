@@ -32,6 +32,7 @@ public class FeatureType : ObjectType<Feature>
     {
         descriptor.Field(f => f.Id).Type<IdType>().ID();
         descriptor.Field(f => f.ProjectId).Type<IdType>();
+        descriptor.Field("epicId").Resolve(ctx => ctx.Parent<Feature>().EpicId).Type(typeof(IdType));
         descriptor.Field(f => f.Title).Type<StringType>();
         descriptor.Field(f => f.Status).Type<EnumType<DevStack.Domain.Enums.FeatureStatus>>();
         descriptor.Field(f => f.Description).Type<StringType>();
@@ -47,6 +48,7 @@ public class FeatureType : ObjectType<Feature>
         descriptor.Field(f => f.CreatedAt).Type<DateTimeType>();
         descriptor.Field(f => f.UpdatedAt).Type<DateTimeType>();
         
+        descriptor.Field("epic").Resolve(ctx => ctx.Parent<Feature>().Epic).Type<EpicType>();
         descriptor.Field("tasks").Resolve(ctx => ctx.Parent<Feature>().Tasks);
         descriptor.Field("validStatusTransitions")
             .Type<ListType<EnumType<FeatureStatus>>>()
