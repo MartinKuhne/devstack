@@ -72,5 +72,22 @@ services:
     depends_on:
       - api
 
+  playwright-test:
+    build:
+      context: ./src/AdminUi/tests/e2e
+      dockerfile: Dockerfile
+    container_name: devstack-playwright-test
+    environment:
+      API_URL: http://admin-ui:80/graphql
+      CI: "true"
+    depends_on:
+      - admin-ui
+      - api
+    volumes:
+      - ./src/AdminUi/reports:/app/reports
+      - ./src/AdminUi/tests/e2e/test-results:/app/test-results
+    profiles:
+      - test
+
 volumes:
   postgres_data:
