@@ -76,7 +76,7 @@ export function ModelConfigurationList({ projectId, onAddModel }: ModelConfigura
                 {modelConfigurations.map((config) => (
                     <Card key={config.id}>
                         <CardHeader>
-                            <CardTitle className="text-base">{config.modelAlias ?? config.model}</CardTitle>
+                            <CardTitle className="text-base">{config.modelAlias ?? config.model ?? ''}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="space-y-1">
@@ -85,13 +85,13 @@ export function ModelConfigurationList({ projectId, onAddModel }: ModelConfigura
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">URL</p>
-                                <p className="text-sm truncate" title={config.url}>
+                                <p className="text-sm truncate" title={config.url ?? ''}>
                                     {config.url}
                                 </p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">Max Complexity</p>
-                                <Badge variant={getComplexityVariant(config.maxComplexity)}>
+                                <Badge variant={getComplexityVariant(config.maxComplexity ?? 0)}>
                                     {config.maxComplexity}
                                 </Badge>
                             </div>

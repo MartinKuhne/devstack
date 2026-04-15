@@ -2,10 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { gql } from '@apollo/client/core';
-import { useMutation } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { CreateTaskMutation, CreateTaskMutationVariables } from '@/generated/graphql';
+import { useCreateTaskMutation } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -14,20 +11,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const CREATE_TASK = gql`
-    mutation CreateTask($input: CreateTaskInput!) {
-        createTask(input: $input) {
-            id
-            title
-            deliverable
-            acceptanceCriteria
-            risks
-            requiredFollowUps
-            complexity
-            status
-        }
-    }
-`;
+const COMPLEXITY_VALUES: Record<string, number> = {
+    Simple: 3,
+    Moderate: 5,
+    Complex: 7,
+    Major: 9,
+};
 
 const taskSchema = z.object({
     title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
@@ -35,7 +24,7 @@ const taskSchema = z.object({
     acceptanceCriteria: z.string().optional(),
     risks: z.string().optional(),
     requiredFollowUps: z.string().optional(),
-    complexity: z.enum(['Simple', 'Moderate', 'Complex', 'Major']),
+    complexityLabel: z.enum(['Simple', 'Moderate', 'Complex', 'Major']),
     featureId: z.string().min(1, 'Feature is required'),
 });
 
@@ -50,25 +39,25 @@ interface CreateTaskDialogProps {
 
 export function CreateTaskDialog({ open, onOpenChange, featureId, onSuccess }: CreateTaskDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [createTask, { loading }] = useMutation<CreateTaskMutation, CreateTaskMutationVariables>(CREATE_TASK, {
-        client: getApolloClient(),
-    });
+    const [createTask, { loading }] = useCreateTaskMutation();
 
     const {
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors },
     } = useForm<TaskFormData>({
         resolver: zodResolver(taskSchema),
         defaultValues: {
-            complexity: 'Moderate' as const,
+            complexityLabel: 'Moderate',
+            featureId,
         },
     });
 
     const onSubmit = async (data: TaskFormData) => {
         setServerError(null);
-        
+
         try {
             const result = await createTask({
                 variables: {
@@ -79,13 +68,20 @@ export function CreateTaskDialog({ open, onOpenChange, featureId, onSuccess }: C
                         acceptanceCriteria: data.acceptanceCriteria ?? null,
                         risks: data.risks ?? null,
                         requiredFollowUps: data.requiredFollowUps ?? null,
-                        complexity: data.complexity,
+                        result: null,
+                        complexityRating: COMPLEXITY_VALUES[data.complexityLabel] ?? 5,
                     },
                 },
             });
 
+            const payload = result.data?.createTask;
+            if (payload?.errors?.length) {
+                setServerError(payload.errors.join(', '));
+                return;
+            }
+
             reset();
-            onSuccess?.(result.data?.createTask.id ?? '');
+            onSuccess?.(payload?.task?.id ?? '');
             onOpenChange(false);
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Failed to create task');
@@ -167,10 +163,8 @@ export function CreateTaskDialog({ open, onOpenChange, featureId, onSuccess }: C
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="complexity">Complexity *</Label>
-                            <Select defaultValue="Moderate" onValueChange={(value) => {
-                                register('complexity').onChange({ target: { value } });
-                            }}>
+                            <Label htmlFor="complexityLabel">Complexity *</Label>
+                            <Select defaultValue="Moderate" onValueChange={(value) => setValue('complexityLabel', value as TaskFormData['complexityLabel'])}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select complexity" />
                                 </SelectTrigger>
@@ -181,8 +175,8 @@ export function CreateTaskDialog({ open, onOpenChange, featureId, onSuccess }: C
                                     <SelectItem value="Major">Major (9-10)</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.complexity && (
-                                <p className="text-sm text-destructive">{errors.complexity.message}</p>
+                            {errors.complexityLabel && (
+                                <p className="text-sm text-destructive">{errors.complexityLabel.message}</p>
                             )}
                         </div>
 
@@ -204,5 +198,3 @@ export function CreateTaskDialog({ open, onOpenChange, featureId, onSuccess }: C
         </Dialog>
     );
 }
-
-

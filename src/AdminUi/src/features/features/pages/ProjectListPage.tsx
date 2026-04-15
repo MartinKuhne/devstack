@@ -108,11 +108,11 @@ export function ProjectListPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {projects.map((project: { id: string; name: string; description: string | null; githubUrl: string | null; updatedAt: string }) => (
-                                    <TableRow 
-                                        key={project.id} 
+                                {projects.map((project) => (
+                                    <TableRow
+                                        key={project.id ?? ''}
                                         className="cursor-pointer hover:bg-muted/50"
-                                        onClick={() => handleRowClick(project.id)}
+                                        onClick={() => handleRowClick(project.id ?? '')}
                                     >
                                         <TableCell className="font-medium">{project.name}</TableCell>
                                         <TableCell className="max-w-xs truncate">

@@ -173,7 +173,14 @@ export function ProjectDetailPage() {
             <EditProjectDialog
                 open={editDialogOpen}
                 onOpenChange={setEditDialogOpen}
-                project={project}
+                project={project ? {
+                    id: project.id ?? '',
+                    name: project.name ?? '',
+                    description: project.description,
+                    architecture: project.architecture,
+                    memory: project.memory,
+                    githubUrl: project.githubUrl,
+                } : null}
                 onSuccess={() => refetch()}
                 onError={(error) => {
                     if (error.includes('deleted')) {

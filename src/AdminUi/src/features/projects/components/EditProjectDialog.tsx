@@ -2,29 +2,13 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { gql } from '@apollo/client/core';
-import { useMutation } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { UpdateProjectMutation, UpdateProjectMutationVariables } from '@/generated/graphql';
+import { useUpdateProjectMutation } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
-const UPDATE_PROJECT = gql`
-    mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {
-        updateProject(id: $id, input: $input) {
-            id
-            name
-            description
-            architecture
-            memory
-            githubUrl
-        }
-    }
-`;
 
 const projectSchema = z.object({
     name: z.string().min(1, 'Name is required').max(200, 'Name must be 200 characters or less'),
@@ -55,9 +39,7 @@ interface EditProjectDialogProps {
 
 export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onError }: EditProjectDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [updateProject, { loading }] = useMutation<UpdateProjectMutation, UpdateProjectMutationVariables>(UPDATE_PROJECT, {
-        client: getApolloClient(),
-    });
+    const [updateProject, { loading }] = useUpdateProjectMutation();
 
     const {
         register,
@@ -82,39 +64,43 @@ export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onEr
 
     const onSubmit = async (data: ProjectFormData) => {
         if (!project) return;
-        
+
         setServerError(null);
-        
+
         try {
-                await updateProject({
-                    variables: {
+            const result = await updateProject({
+                variables: {
+                    input: {
                         id: project.id,
-                        input: {
-                            name: data.name,
-                            description: data.description ?? null,
-                            architecture: data.architecture ?? null,
-                            memory: data.memory ?? null,
-                            githubUrl: data.githubUrl || null,
-                            githubToken_Encrypted: null,
-                            version: 1,
-                        },
+                        name: data.name,
+                        description: data.description ?? null,
+                        architecture: data.architecture ?? null,
+                        memory: data.memory ?? null,
+                        githubUrl: data.githubUrl || null,
+                        githubToken_Encrypted: null,
                     },
-                });
+                },
+            });
+
+            const payload = result.data?.updateProject;
+            if (payload?.errors?.length) {
+                const errorMessage = payload.errors.join(', ');
+                if (errorMessage.includes('NOT_FOUND')) {
+                    onError?.('Project not found. It may have been deleted.');
+                    onOpenChange(false);
+                } else if (errorMessage.includes('CONCURRENCY_CONFLICT')) {
+                    setServerError('The project was modified by another process. Please refresh and try again.');
+                } else {
+                    setServerError(errorMessage);
+                }
+                return;
+            }
 
             reset();
             onSuccess?.();
             onOpenChange(false);
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to update project';
-            
-            if (errorMessage.includes('NOT_FOUND')) {
-                onError?.('Project not found. It may have been deleted.');
-                onOpenChange(false);
-            } else if (errorMessage.includes('CONCURRENCY_CONFLICT')) {
-                setServerError('The project was modified by another process. Please refresh and try again.');
-            } else {
-                setServerError(errorMessage);
-            }
+            setServerError(err instanceof Error ? err.message : 'Failed to update project');
         }
     };
 

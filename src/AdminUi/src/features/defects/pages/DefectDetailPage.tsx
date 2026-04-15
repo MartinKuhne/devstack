@@ -5,42 +5,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useQuery } from '@apollo/client/react';
-import { gql } from '@apollo/client/core';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { GetDefectByIdQuery } from '@/generated/graphql';
+import { useGetDefectByIdQuery } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 import { EditDefectDialog } from '../components/EditDefectDialog';
 import { SeverityBadge } from '../components/SeverityBadge';
-
-const GET_DEFECT = gql`
-    query GetDefectById($id: ID!) {
-        defectById(id: $id) {
-            id
-            title
-            description
-            acceptanceCriteria
-            plan
-            result
-            errors
-            securityImpact
-            performanceImpact
-            status
-            severity
-            parentFeature {
-                id
-                title
-            }
-            project {
-                id
-                name
-            }
-            createdAt
-            updatedAt
-            version
-        }
-    }
-`;
 
 const STATUS_COLORS: Record<string, string> = {
     Reported: 'bg-gray-500',
@@ -52,7 +20,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 function MarkdownSection({ title, content }: { title: string; content?: string | null }) {
     if (!content) return null;
-    
+
     return (
         <Card>
             <CardHeader>
@@ -71,8 +39,7 @@ export function DefectDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const { data, loading, error, refetch } = useQuery<GetDefectByIdQuery>(GET_DEFECT, {
-        client: getApolloClient(),
+    const { data, loading, error, refetch } = useGetDefectByIdQuery({
         variables: { id: id ?? '' },
         skip: !id,
         fetchPolicy: 'cache-and-network',
@@ -128,10 +95,10 @@ export function DefectDetailPage() {
                 <div>
                     <div className="flex items-center gap-3">
                         <h2 className="text-2xl font-bold tracking-tight">{defect.title}</h2>
-                        <Badge className={STATUS_COLORS[defect.status] || 'bg-gray-500'}>
+                        <Badge className={STATUS_COLORS[defect.status ?? ''] || 'bg-gray-500'}>
                             {defect.status}
                         </Badge>
-                        <SeverityBadge severity={defect.severity} />
+                        {defect.severity && <SeverityBadge severity={defect.severity} />}
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -167,30 +134,24 @@ export function DefectDetailPage() {
                                 <CardContent className="space-y-4">
                                     <div>
                                         <h4 className="text-xs font-medium text-muted-foreground mb-1">Status</h4>
-                                        <Badge className={STATUS_COLORS[defect.status] || 'bg-gray-500'}>
+                                        <Badge className={STATUS_COLORS[defect.status ?? ''] || 'bg-gray-500'}>
                                             {defect.status}
                                         </Badge>
                                     </div>
-<div>
-<h4 className="text-xs font-medium text-muted-foreground mb-1">Severity</h4>
-<SeverityBadge severity={defect.severity} />
-</div>
-                                    {defect.parentFeature && (
+                                    <div>
+                                        <h4 className="text-xs font-medium text-muted-foreground mb-1">Severity</h4>
+                                        {defect.severity && <SeverityBadge severity={defect.severity} />}
+                                    </div>
+                                    {defect.parentFeatureId && (
                                         <div>
                                             <h4 className="text-xs font-medium text-muted-foreground mb-1">Parent Feature</h4>
                                             <Button
                                                 variant="link"
                                                 className="p-0 h-auto font-normal"
-                                                onClick={() => navigate(`/features/${defect.parentFeature?.id}`)}
+                                                onClick={() => navigate(`/features/${defect.parentFeatureId}`)}
                                             >
-                                                {defect.parentFeature?.title}
+                                                View Feature
                                             </Button>
-                                        </div>
-                                    )}
-                                    {defect.project && (
-                                        <div>
-                                            <h4 className="text-xs font-medium text-muted-foreground mb-1">Project</h4>
-                                            <p className="text-sm">{defect.project.name}</p>
                                         </div>
                                     )}
                                     <div>
@@ -222,16 +183,15 @@ export function DefectDetailPage() {
                 open={isEditDialogOpen}
                 onOpenChange={setIsEditDialogOpen}
                 defect={defect ? {
-                    id: defect.id,
-                    title: defect.title,
+                    id: defect.id ?? '',
+                    title: defect.title ?? '',
                     description: defect.description,
                     acceptanceCriteria: defect.acceptanceCriteria,
                     plan: defect.plan,
                     securityImpact: defect.securityImpact,
                     performanceImpact: defect.performanceImpact,
-                    severity: defect.severity,
-                    updatedAt: defect.updatedAt,
-                    version: defect.version ?? 1,
+                    severity: defect.severity ?? 'MEDIUM',
+                    updatedAt: defect.updatedAt ?? '',
                 } : null}
                 onSuccess={() => {
                     refetch();

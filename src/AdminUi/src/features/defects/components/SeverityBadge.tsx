@@ -1,15 +1,15 @@
 import { Badge } from '@/components/ui/badge';
-import type { DefectSeverity } from '@/generated/graphql';
+import type { Severity } from '@/generated/graphql';
 
-export const SEVERITY_COLORS: Record<DefectSeverity, string> = {
-    Critical: 'bg-red-600',
-    High: 'bg-red-500',
-    Medium: 'bg-yellow-500',
-    Low: 'bg-green-500',
+export const SEVERITY_COLORS: Record<Severity, string> = {
+    CRITICAL: 'bg-red-600',
+    HIGH: 'bg-red-500',
+    MEDIUM: 'bg-yellow-500',
+    LOW: 'bg-green-500',
 };
 
 interface SeverityBadgeProps {
-    severity: DefectSeverity;
+    severity: Severity;
     className?: string;
 }
 

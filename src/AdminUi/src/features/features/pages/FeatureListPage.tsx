@@ -61,13 +61,13 @@ export function FeatureListPage() {
         setSearchParams(newParams);
     }, [localSearch, searchParams, setSearchParams]);
 
-    const handleRowClick = (id: string) => {
-        navigate(`/features/${id}`);
+    const handleRowClick = (id: string | null | undefined) => {
+        if (id) navigate(`/features/${id}`);
     };
 
-    const filteredFeatures = features.filter((feature: { title: string }) => {
+    const filteredFeatures = features.filter((feature) => {
         if (!searchFilter) return true;
-        return feature.title.toLowerCase().includes(searchFilter.toLowerCase());
+        return (feature.title ?? '').toLowerCase().includes(searchFilter.toLowerCase());
     });
 
     if (error) {
@@ -164,15 +164,15 @@ export function FeatureListPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredFeatures.map((feature: { id: string; title: string; status: string; tasks: { id: string }[] | undefined; updatedAt: string }) => (
-                                    <TableRow 
-                                        key={feature.id} 
+                                {filteredFeatures.map((feature) => (
+                                    <TableRow
+                                        key={feature.id ?? ''}
                                         className="cursor-pointer hover:bg-muted/50"
-                                        onClick={() => handleRowClick(feature.id)}
+                                        onClick={() => handleRowClick(feature.id ?? '')}
                                     >
                                         <TableCell className="font-medium">{feature.title}</TableCell>
                                         <TableCell>
-                                            <Badge className={STATUS_COLORS[feature.status] || 'bg-gray-500'}>
+                                            <Badge className={STATUS_COLORS[feature.status ?? ''] || 'bg-gray-500'}>
                                                 {feature.status}
                                             </Badge>
                                         </TableCell>
