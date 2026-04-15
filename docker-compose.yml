@@ -44,6 +44,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    # MCP Server endpoints:
+    # - GraphQL API: http://localhost:8087/graphql
+    # - MCP SSE: http://localhost:8087/mcp
 
   agent-worker:
     build:
