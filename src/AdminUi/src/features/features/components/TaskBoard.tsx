@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CreateTaskDialog } from '@/features/features/components/CreateTaskDialog';
 import { TaskDetailDrawer } from '@/features/features/components/TaskDetailDrawer';
-import type { Task } from '@/generated/graphql';
+import type { AgentTask } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 
-const STATUS_COLUMNS: { status: Task['status']; label: string }[] = [
-    { status: 'Todo', label: 'To Do' },
-    { status: 'InProgress', label: 'In Progress' },
-    { status: 'Review', label: 'Review' },
-    { status: 'Done', label: 'Done' },
+const STATUS_COLUMNS: { status: string; label: string }[] = [
+    { status: 'READY', label: 'To Do' },
+    { status: 'CODE', label: 'In Progress' },
+    { status: 'REVIEW', label: 'Review' },
+    { status: 'DONE', label: 'Done' },
 ];
 
 const COMPLEXITY_COLORS: Record<string, string> = {
@@ -22,23 +22,30 @@ const COMPLEXITY_COLORS: Record<string, string> = {
     Major: 'bg-red-500',
 };
 
+function complexityRatingToLabel(rating: number): string {
+    if (rating <= 3) return 'Simple';
+    if (rating <= 5) return 'Moderate';
+    if (rating <= 7) return 'Complex';
+    return 'Major';
+}
+
 interface TaskBoardProps {
-    tasks: Task[];
+    tasks: AgentTask[];
     featureId: string;
-    onTaskClick?: (task: Task) => void;
+    onTaskClick?: (task: AgentTask) => void;
     onTasksChange?: () => void;
 }
 
 export function TaskBoard({ tasks, featureId, onTaskClick, onTasksChange }: TaskBoardProps) {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [selectedTask, setSelectedTask] = useState<AgentTask | null>(null);
 
     const handleCreateSuccess = useCallback(() => {
         toast.success('Task created successfully');
         onTasksChange?.();
     }, [onTasksChange]);
 
-    const handleCardClick = useCallback((task: Task) => {
+    const handleCardClick = useCallback((task: AgentTask) => {
         setSelectedTask(task);
         onTaskClick?.(task);
     }, [onTaskClick]);
@@ -73,30 +80,31 @@ export function TaskBoard({ tasks, featureId, onTaskClick, onTasksChange }: Task
                             </div>
                             <ScrollArea className="h-[400px]">
                                 <div className="space-y-2">
-                                    {column.tasks.map(task => (
-                                        <div
-                                            key={task.id}
-                                            className="p-3 border rounded-lg bg-background hover:bg-accent cursor-pointer transition-colors"
-                                            onClick={() => handleCardClick(task)}
-                                        >
-                                            <div className="flex items-start justify-between gap-2">
-                                                <h5 className="font-medium text-sm flex-1">{task.title}</h5>
-                                                {task.complexity && (
-                                                    <Badge 
-                                                        className={COMPLEXITY_COLORS[task.complexity] || 'bg-gray-500'}
+                                    {column.tasks.map(task => {
+                                        const complexityLabel = complexityRatingToLabel(task.complexityRating ?? 5);
+                                        return (
+                                            <div
+                                                key={task.id}
+                                                className="p-3 border rounded-lg bg-background hover:bg-accent cursor-pointer transition-colors"
+                                                onClick={() => handleCardClick(task)}
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <h5 className="font-medium text-sm flex-1">{task.title}</h5>
+                                                    <Badge
+                                                        className={COMPLEXITY_COLORS[complexityLabel] || 'bg-gray-500'}
                                                         variant="default"
                                                     >
-                                                        {task.complexity}
+                                                        {complexityLabel}
                                                     </Badge>
+                                                </div>
+                                                {task.deliverable && (
+                                                    <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                                                        {task.deliverable}
+                                                    </p>
                                                 )}
                                             </div>
-                                            {task.deliverable && (
-                                                <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                                                    {task.deliverable}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                     {column.tasks.length === 0 && (
                                         <p className="text-sm text-muted-foreground text-center py-4">
                                             No tasks
@@ -120,7 +128,19 @@ export function TaskBoard({ tasks, featureId, onTaskClick, onTasksChange }: Task
                 <TaskDetailDrawer
                     open={!!selectedTask}
                     onOpenChange={handleDrawerClose}
-                    task={selectedTask}
+                    task={{
+                        id: selectedTask.id ?? '',
+                        title: selectedTask.title ?? '',
+                        status: selectedTask.status ?? '',
+                        deliverable: selectedTask.deliverable ?? null,
+                        acceptanceCriteria: selectedTask.acceptanceCriteria ?? null,
+                        risks: selectedTask.risks ?? null,
+                        requiredFollowUps: selectedTask.requiredFollowUps ?? null,
+                        complexityRating: selectedTask.complexityRating ?? 5,
+                        result: selectedTask.result ?? null,
+                        createdAt: selectedTask.createdAt ?? '',
+                        updatedAt: selectedTask.updatedAt ?? '',
+                    }}
                     onTaskUpdate={onTasksChange}
                 />
             )}

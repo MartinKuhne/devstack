@@ -5,11 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Save, Trash2 } from 'lucide-react';
 import { useUpdateProject } from '@/features/projects/hooks/useUpdateProject';
-import type { Project } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 
+interface ProjectSummary {
+    id: string | null;
+    name: string | null;
+    description: string | null;
+    architecture: string | null;
+    memory: string | null;
+    githubUrl: string | null;
+}
+
 interface GitHubConfigurationSectionProps {
-    project: Project;
+    project: ProjectSummary;
     onProjectUpdated: () => void;
 }
 
@@ -29,14 +37,13 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
         try {
             await updateProject({
                 variables: {
-                    id: project.id,
                     input: {
+                        id: project.id ?? '',
                         name: project.name,
                         description: project.description,
                         architecture: project.architecture,
                         memory: project.memory,
                         githubUrl: project.githubUrl,
-                        version: 1,
                         githubToken_Encrypted: tokenValue,
                     },
                 },
@@ -56,14 +63,13 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
         try {
             await updateProject({
                 variables: {
-                    id: project.id,
                     input: {
+                        id: project.id ?? '',
                         name: project.name,
                         description: project.description,
                         architecture: project.architecture,
                         memory: project.memory,
                         githubUrl: project.githubUrl,
-                        version: 1,
                         githubToken_Encrypted: null,
                     },
                 },

@@ -2,10 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { gql } from '@apollo/client/core';
-import { useMutation, useQuery } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { CreateDefectMutation, CreateDefectMutationVariables, GetFeaturesQuery } from '@/generated/graphql';
+import { useCreateDefectMutation, useGetFeaturesQuery } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -18,31 +15,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib';
 import { toast } from 'react-toastify';
 
-const CREATE_DEFECT = gql`
-    mutation CreateDefect($input: CreateDefectInput!) {
-        createDefect(input: $input) {
-            id
-            title
-            severity
-            status
-        }
-    }
-`;
-
-const GET_FEATURES = gql`
-    query GetFeatures($projectId: ID) {
-        features(projectId: $projectId) {
-            edges {
-                node {
-                    id
-                    title
-                    status
-                }
-            }
-        }
-    }
-`;
-
 const defectSchema = z.object({
     title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
     description: z.string().optional(),
@@ -50,7 +22,7 @@ const defectSchema = z.object({
     plan: z.string().optional(),
     securityImpact: z.string().optional(),
     performanceImpact: z.string().optional(),
-    severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
+    severity: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']),
     projectId: z.string().min(1, 'Project is required'),
     parentFeatureId: z.string().optional(),
 });
@@ -66,13 +38,10 @@ interface CreateDefectDialogProps {
 
 export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }: CreateDefectDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [createDefect, { loading }] = useMutation<CreateDefectMutation, CreateDefectMutationVariables>(CREATE_DEFECT, {
-        client: getApolloClient(),
-    });
+    const [createDefect, { loading }] = useCreateDefectMutation();
 
-    const { data: featuresData } = useQuery<GetFeaturesQuery>(GET_FEATURES, {
-        client: getApolloClient(),
-        variables: { projectId },
+    const { data: featuresData } = useGetFeaturesQuery({
+        variables: { projectId, status: null },
         skip: !open,
     });
 
@@ -86,7 +55,7 @@ export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }:
     } = useForm<DefectFormData>({
         resolver: zodResolver(defectSchema),
         defaultValues: {
-            severity: 'Medium',
+            severity: 'MEDIUM',
         },
     });
 
@@ -101,7 +70,7 @@ export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }:
                 plan: '',
                 securityImpact: '',
                 performanceImpact: '',
-                severity: 'Medium',
+                severity: 'MEDIUM',
                 projectId: projectId,
                 parentFeatureId: '',
             });
@@ -111,12 +80,13 @@ export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }:
 
     const onSubmit = async (data: DefectFormData) => {
         setServerError(null);
-        
+
         try {
             const result = await createDefect({
                 variables: {
                     input: {
                         projectId: data.projectId,
+                        initialStatus: null,
                         parentFeatureId: data.parentFeatureId || null,
                         title: data.title,
                         description: data.description ?? null,
@@ -125,15 +95,22 @@ export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }:
                         securityImpact: data.securityImpact ?? null,
                         performanceImpact: data.performanceImpact ?? null,
                         severity: data.severity,
-                        result: null,
-                        errors: null,
+                        testPlan: null,
+                        deploymentPlan: null,
+                        openQuestions: null,
                     },
                 },
             });
 
+            const payload = result.data?.createDefect;
+            if (payload?.errors?.length) {
+                setServerError(payload.errors.join(', '));
+                return;
+            }
+
             reset();
             toast.success('Defect created successfully');
-            onSuccess?.(result.data?.createDefect.id ?? '');
+            onSuccess?.(payload?.defect?.id ?? '');
             onOpenChange(false);
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Failed to create defect');
@@ -148,7 +125,7 @@ export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }:
         onOpenChange(isOpen);
     };
 
-    const features = featuresData?.features.edges?.map(edge => edge.node) || [];
+    const features = featuresData?.features?.nodes ?? [];
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -178,15 +155,15 @@ export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }:
 
                         <div className="grid gap-2">
                             <Label htmlFor="severity">Severity *</Label>
-                            <Select defaultValue="Medium" onValueChange={(value) => setValue('severity', value as any)}>
+                            <Select defaultValue="MEDIUM" onValueChange={(value) => setValue('severity', value as DefectFormData['severity'])}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select severity" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Critical">Critical</SelectItem>
-                                    <SelectItem value="High">High</SelectItem>
-                                    <SelectItem value="Medium">Medium</SelectItem>
-                                    <SelectItem value="Low">Low</SelectItem>
+                                    <SelectItem value="CRITICAL">Critical</SelectItem>
+                                    <SelectItem value="HIGH">High</SelectItem>
+                                    <SelectItem value="MEDIUM">Medium</SelectItem>
+                                    <SelectItem value="LOW">Low</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.severity && (
@@ -200,7 +177,7 @@ export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }:
                                 <PopoverTrigger asChild>
                                     <Button variant="outline" role="combobox" className="w-full justify-between">
                                         {parentFeatureId
-                                            ? features.find(f => f.id === parentFeatureId)?.title
+                                            ? (features.find(f => f.id === parentFeatureId)?.title ?? 'Select a feature...')
                                             : 'Select a feature...'}
                                     </Button>
                                 </PopoverTrigger>
@@ -212,10 +189,10 @@ export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }:
                                             <CommandGroup>
                                                 {features.map((feature) => (
                                                     <CommandItem
-                                                        key={feature.id}
-                                                        value={feature.id}
+                                                        key={feature.id ?? ''}
+                                                        value={feature.id ?? ''}
                                                         onSelect={() => {
-                                                            setValue('parentFeatureId', feature.id === parentFeatureId ? '' : feature.id);
+                                                            setValue('parentFeatureId', feature.id === parentFeatureId ? '' : (feature.id ?? ''));
                                                         }}
                                                     >
                                                         {feature.title}

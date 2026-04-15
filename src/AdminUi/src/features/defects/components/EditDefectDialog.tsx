@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { gql } from '@apollo/client/core';
-import { useMutation } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { UpdateDefectMutation, UpdateDefectMutationVariables } from '@/generated/graphql';
+import { useUpdateDefectMutation } from '@/generated/graphql';
+import { toast } from 'react-toastify';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -13,19 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'react-toastify';
-
-const UPDATE_DEFECT = gql`
-    mutation UpdateDefect($id: ID!, $input: UpdateDefectInput!) {
-        updateDefect(id: $id, input: $input) {
-            id
-            title
-            severity
-            status
-            updatedAt
-        }
-    }
-`;
 
 const defectSchema = z.object({
     title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
@@ -34,7 +19,7 @@ const defectSchema = z.object({
     plan: z.string().optional(),
     securityImpact: z.string().optional(),
     performanceImpact: z.string().optional(),
-    severity: z.enum(['Critical', 'High', 'Medium', 'Low']),
+    severity: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']),
 });
 
 type DefectFormData = z.infer<typeof defectSchema>;
@@ -49,7 +34,6 @@ interface DefectData {
     performanceImpact: string | null;
     severity: string;
     updatedAt: string;
-    version: number;
 }
 
 interface EditDefectDialogProps {
@@ -61,9 +45,7 @@ interface EditDefectDialogProps {
 
 export function EditDefectDialog({ open, onOpenChange, defect, onSuccess }: EditDefectDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [updateDefect, { loading }] = useMutation<UpdateDefectMutation, UpdateDefectMutationVariables>(UPDATE_DEFECT, {
-        client: getApolloClient(),
-    });
+    const [updateDefect, { loading }] = useUpdateDefectMutation();
 
     const {
         register,
@@ -84,7 +66,7 @@ export function EditDefectDialog({ open, onOpenChange, defect, onSuccess }: Edit
                 plan: defect.plan ?? '',
                 securityImpact: defect.securityImpact ?? '',
                 performanceImpact: defect.performanceImpact ?? '',
-                severity: defect.severity as 'Critical' | 'High' | 'Medium' | 'Low',
+                severity: defect.severity as DefectFormData['severity'],
             });
             setServerError(null);
         }
@@ -92,40 +74,44 @@ export function EditDefectDialog({ open, onOpenChange, defect, onSuccess }: Edit
 
     const onSubmit = async (data: DefectFormData) => {
         if (!defect) return;
-        
+
         setServerError(null);
-        
+
         try {
-            await updateDefect({
+            const result = await updateDefect({
                 variables: {
-                    id: defect.id,
                     input: {
+                        id: defect.id,
                         title: data.title,
                         description: data.description ?? null,
                         acceptanceCriteria: data.acceptanceCriteria ?? null,
                         plan: data.plan ?? null,
                         securityImpact: data.securityImpact ?? null,
                         performanceImpact: data.performanceImpact ?? null,
-                        severity: data.severity,
-                        errors: null,
-                        result: null,
-                        version: 1,
+                        testPlan: null,
+                        deploymentPlan: null,
+                        openQuestions: null,
                     },
                 },
             });
+
+            const payload = result.data?.updateDefect;
+            if (payload?.errors?.length) {
+                const errorMessage = payload.errors.join(', ');
+                if (errorMessage.includes('NOT_FOUND')) {
+                    toast.error('Defect not found. It may have been deleted.');
+                    onOpenChange(false);
+                } else {
+                    setServerError(errorMessage);
+                }
+                return;
+            }
 
             toast.success('Defect updated successfully');
             onSuccess?.();
             onOpenChange(false);
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to update defect';
-            
-            if (errorMessage.includes('NOT_FOUND')) {
-                toast.error('Defect not found. It may have been deleted.');
-                onOpenChange(false);
-            } else {
-                setServerError(errorMessage);
-            }
+            setServerError(err instanceof Error ? err.message : 'Failed to update defect');
         }
     };
 
@@ -165,18 +151,18 @@ export function EditDefectDialog({ open, onOpenChange, defect, onSuccess }: Edit
 
                         <div className="grid gap-2">
                             <Label htmlFor="severity">Severity *</Label>
-                            <Select 
-                                defaultValue={defect.severity} 
-                                onValueChange={(value) => setValue('severity', value as any)}
+                            <Select
+                                defaultValue={defect.severity}
+                                onValueChange={(value) => setValue('severity', value as DefectFormData['severity'])}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select severity" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Critical">Critical</SelectItem>
-                                    <SelectItem value="High">High</SelectItem>
-                                    <SelectItem value="Medium">Medium</SelectItem>
-                                    <SelectItem value="Low">Low</SelectItem>
+                                    <SelectItem value="CRITICAL">Critical</SelectItem>
+                                    <SelectItem value="HIGH">High</SelectItem>
+                                    <SelectItem value="MEDIUM">Medium</SelectItem>
+                                    <SelectItem value="LOW">Low</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.severity && (

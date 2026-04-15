@@ -10,32 +10,31 @@ import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { gql } from '@apollo/client/core';
-import { useMutation } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { Task, UpdateTaskMutation, UpdateTaskMutationVariables, TaskComplexity, TaskStatus } from '@/generated/graphql';
+import { useUpdateTaskMutation, useTransitionTaskStatusMutation } from '@/generated/graphql';
+import type { TaskStatus } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 
-const UPDATE_TASK = gql`
-    mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {
-        updateTask(id: $id, input: $input) {
-            id
-            title
-            deliverable
-            acceptanceCriteria
-            risks
-            requiredFollowUps
-            complexity
-            status
-        }
-    }
-`;
+const COMPLEXITY_VALUES: Record<string, number> = {
+    Simple: 3,
+    Moderate: 5,
+    Complex: 7,
+    Major: 9,
+};
+
+function complexityRatingToLabel(rating: number): string {
+    if (rating <= 3) return 'Simple';
+    if (rating <= 6) return 'Moderate';
+    if (rating <= 8) return 'Complex';
+    return 'Major';
+}
 
 const STATUS_COLORS: Record<string, string> = {
     Todo: 'bg-gray-500',
     InProgress: 'bg-yellow-500',
     Review: 'bg-purple-500',
     Done: 'bg-green-500',
+    Failed: 'bg-red-500',
+    Code: 'bg-blue-500',
 };
 
 const COMPLEXITY_COLORS: Record<string, string> = {
@@ -51,27 +50,49 @@ const taskEditSchema = z.object({
     acceptanceCriteria: z.string().optional(),
     risks: z.string().optional(),
     requiredFollowUps: z.string().optional(),
-    complexity: z.enum(['Simple', 'Moderate', 'Complex', 'Major']),
-    status: z.enum(['Todo', 'InProgress', 'Review', 'Done']),
+    complexityLabel: z.enum(['Simple', 'Moderate', 'Complex', 'Major']),
 });
 
 type TaskEditFormData = z.infer<typeof taskEditSchema>;
 
+interface TaskItem {
+    id: string;
+    title: string;
+    status: string;
+    deliverable: string | null;
+    acceptanceCriteria: string | null;
+    risks: string | null;
+    requiredFollowUps: string | null;
+    complexityRating: number;
+    result: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
 interface TaskDetailDrawerProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    task: Task | null;
+    task: TaskItem | null;
     onTaskUpdate?: () => void;
 }
+
+const VALID_TRANSITIONS: Record<string, string[]> = {
+    READY: ['CODE'],
+    CODE: ['REVIEW', 'READY'],
+    REVIEW: ['DONE', 'CODE'],
+    DONE: ['REVIEW'],
+    FAILED: ['READY'],
+    IN_REVIEW: ['DONE', 'CODE'],
+    TESTING: ['DONE', 'CODE'],
+};
 
 export function TaskDetailDrawer({ open, onOpenChange, task, onTaskUpdate }: TaskDetailDrawerProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [transitioning, setTransitioning] = useState(false);
     const [targetStatus, setTargetStatus] = useState<string>('');
 
-    const [updateTask, { loading: updateLoading }] = useMutation<UpdateTaskMutation, UpdateTaskMutationVariables>(UPDATE_TASK, {
-        client: getApolloClient(),
-    });
+    const [updateTask, { loading: updateLoading }] = useUpdateTaskMutation();
+    const [transitionTaskStatus] = useTransitionTaskStatusMutation();
 
     const {
         register,
@@ -83,30 +104,45 @@ export function TaskDetailDrawer({ open, onOpenChange, task, onTaskUpdate }: Tas
     });
 
     const handleEditOpen = useCallback(() => {
+        if (task) {
+            setValue('title', task.title);
+            setValue('deliverable', task.deliverable ?? '');
+            setValue('acceptanceCriteria', task.acceptanceCriteria ?? '');
+            setValue('risks', task.risks ?? '');
+            setValue('requiredFollowUps', task.requiredFollowUps ?? '');
+            setValue('complexityLabel', complexityRatingToLabel(task.complexityRating) as TaskEditFormData['complexityLabel']);
+        }
         setIsEditing(true);
-    }, []);
+    }, [task, setValue]);
 
     const handleEditClose = useCallback(() => {
         setIsEditing(false);
     }, []);
 
     const handleEditSubmit = async (data: TaskEditFormData) => {
+        if (!task) return;
         try {
-            await updateTask({
+            const result = await updateTask({
                 variables: {
-                    id: task!.id,
                     input: {
+                        id: task.id,
                         title: data.title,
                         deliverable: data.deliverable || null,
                         acceptanceCriteria: data.acceptanceCriteria || null,
                         risks: data.risks || null,
                         requiredFollowUps: data.requiredFollowUps || null,
-                        complexity: data.complexity,
-                        status: data.status,
-                        version: 1,
+                        result: null,
+                        complexityRating: COMPLEXITY_VALUES[data.complexityLabel] ?? 5,
                     },
                 },
             });
+
+            const payload = result.data?.updateTask;
+            if (payload?.errors?.length) {
+                toast.error(payload.errors.join(', '));
+                return;
+            }
+
             toast.success('Task updated successfully');
             setIsEditing(false);
             onTaskUpdate?.();
@@ -120,22 +156,23 @@ export function TaskDetailDrawer({ open, onOpenChange, task, onTaskUpdate }: Tas
 
         setTransitioning(true);
         try {
-            await updateTask({
+            const result = await transitionTaskStatus({
                 variables: {
-                    id: task.id,
                     input: {
-                        title: task.title,
-                        deliverable: task.deliverable || null,
-                        acceptanceCriteria: task.acceptanceCriteria || null,
-                        risks: task.risks || null,
-                        requiredFollowUps: task.requiredFollowUps || null,
-                        complexity: task.complexity,
-                        status: targetStatus as Task['status'],
-                        version: 1,
+                        id: task.id,
+                        targetStatus: targetStatus as TaskStatus,
+                        actor: 'user',
                     },
                 },
             });
-            toast.success('Status transition successful');
+
+            const payload = result.data?.transitionTaskStatus;
+            if (payload?.errors?.length) {
+                toast.error(payload.errors.join(', '));
+                return;
+            }
+
+            toast.success('Status updated');
             setTargetStatus('');
             onTaskUpdate?.();
         } catch (err) {
@@ -153,16 +190,8 @@ export function TaskDetailDrawer({ open, onOpenChange, task, onTaskUpdate }: Tas
 
     if (!task) return null;
 
-    const validTransitions: string[] = [];
-    if (task.status === 'Todo') {
-        validTransitions.push('InProgress');
-    } else if (task.status === 'InProgress') {
-        validTransitions.push('Review', 'Todo');
-    } else if (task.status === 'Review') {
-        validTransitions.push('Done', 'InProgress');
-    } else if (task.status === 'Done') {
-        validTransitions.push('Review');
-    }
+    const complexityLabel = complexityRatingToLabel(task.complexityRating);
+    const validTransitions = VALID_TRANSITIONS[task.status] ?? [];
 
     return (
         <Drawer open={open} onOpenChange={handleDrawerClose}>
@@ -180,18 +209,16 @@ export function TaskDetailDrawer({ open, onOpenChange, task, onTaskUpdate }: Tas
                 </DrawerHeader>
 
                 <div className="p-4 space-y-4">
-                    {task.complexity && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-sm">Complexity</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Badge className={COMPLEXITY_COLORS[task.complexity] || 'bg-gray-500'}>
-                                    {task.complexity}
-                                </Badge>
-                            </CardContent>
-                        </Card>
-                    )}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm">Complexity</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Badge className={COMPLEXITY_COLORS[complexityLabel] || 'bg-gray-500'}>
+                                {complexityLabel} ({task.complexityRating})
+                            </Badge>
+                        </CardContent>
+                    </Card>
 
                     {task.deliverable && (
                         <Card>
@@ -233,6 +260,17 @@ export function TaskDetailDrawer({ open, onOpenChange, task, onTaskUpdate }: Tas
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm whitespace-pre-wrap">{task.requiredFollowUps}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {task.result && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-sm">Result</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm whitespace-pre-wrap">{task.result}</p>
                             </CardContent>
                         </Card>
                     )}
@@ -286,17 +324,6 @@ export function TaskDetailDrawer({ open, onOpenChange, task, onTaskUpdate }: Tas
                             <span className="font-medium">Updated:</span> {new Date(task.updatedAt).toLocaleDateString()}
                         </div>
                     </div>
-
-                    {task.feature && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-sm">Parent Feature</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm">{task.feature.title}</p>
-                            </CardContent>
-                        </Card>
-                    )}
                 </div>
 
                 <DrawerFooter>
@@ -365,8 +392,8 @@ export function TaskDetailDrawer({ open, onOpenChange, task, onTaskUpdate }: Tas
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="edit-complexity">Complexity</Label>
-                                    <Select onValueChange={(value) => setValue('complexity', value as TaskComplexity)}>
+                                    <Label htmlFor="edit-complexityLabel">Complexity</Label>
+                                    <Select onValueChange={(value) => setValue('complexityLabel', value as TaskEditFormData['complexityLabel'])}>
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
@@ -375,21 +402,6 @@ export function TaskDetailDrawer({ open, onOpenChange, task, onTaskUpdate }: Tas
                                             <SelectItem value="Moderate">Moderate</SelectItem>
                                             <SelectItem value="Complex">Complex</SelectItem>
                                             <SelectItem value="Major">Major</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-status">Status</Label>
-                                    <Select onValueChange={(value) => setValue('status', value as TaskStatus)}>
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Todo">Todo</SelectItem>
-                                            <SelectItem value="InProgress">InProgress</SelectItem>
-                                            <SelectItem value="Review">Review</SelectItem>
-                                            <SelectItem value="Done">Done</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>

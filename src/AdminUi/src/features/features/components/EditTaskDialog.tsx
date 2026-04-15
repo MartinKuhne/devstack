@@ -2,10 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { gql } from '@apollo/client/core';
-import { useMutation } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { UpdateTaskMutation, UpdateTaskMutationVariables } from '@/generated/graphql';
+import { useUpdateTaskMutation } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 
 import { Button } from '@/components/ui/button';
@@ -15,21 +12,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const UPDATE_TASK = gql`
-    mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {
-        updateTask(id: $id, input: $input) {
-            id
-            title
-            deliverable
-            acceptanceCriteria
-            risks
-            requiredFollowUps
-            complexity
-            status
-            updatedAt
-        }
-    }
-`;
+const COMPLEXITY_VALUES: Record<string, number> = {
+    Simple: 3,
+    Moderate: 5,
+    Complex: 7,
+    Major: 9,
+};
+
+function complexityRatingToLabel(rating: number): 'Simple' | 'Moderate' | 'Complex' | 'Major' {
+    if (rating <= 3) return 'Simple';
+    if (rating <= 6) return 'Moderate';
+    if (rating <= 8) return 'Complex';
+    return 'Major';
+}
 
 const taskSchema = z.object({
     title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
@@ -37,8 +32,7 @@ const taskSchema = z.object({
     acceptanceCriteria: z.string().optional(),
     risks: z.string().optional(),
     requiredFollowUps: z.string().optional(),
-    complexity: z.enum(['Simple', 'Moderate', 'Complex', 'Major']),
-    status: z.enum(['Todo', 'InProgress', 'Review', 'Done']),
+    complexityLabel: z.enum(['Simple', 'Moderate', 'Complex', 'Major']),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -50,10 +44,8 @@ interface TaskData {
     acceptanceCriteria: string | null;
     risks: string | null;
     requiredFollowUps: string | null;
-    complexity: string;
+    complexityRating: number;
     status: string;
-    updatedAt: string;
-    version: number;
 }
 
 interface EditTaskDialogProps {
@@ -65,9 +57,7 @@ interface EditTaskDialogProps {
 
 export function EditTaskDialog({ open, onOpenChange, task, onSuccess }: EditTaskDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [updateTask, { loading }] = useMutation<UpdateTaskMutation, UpdateTaskMutationVariables>(UPDATE_TASK, {
-        client: getApolloClient(),
-    });
+    const [updateTask, { loading }] = useUpdateTaskMutation();
 
     const {
         register,
@@ -87,8 +77,7 @@ export function EditTaskDialog({ open, onOpenChange, task, onSuccess }: EditTask
                 acceptanceCriteria: task.acceptanceCriteria ?? '',
                 risks: task.risks ?? '',
                 requiredFollowUps: task.requiredFollowUps ?? '',
-                complexity: task.complexity as 'Simple' | 'Moderate' | 'Complex' | 'Major',
-                status: task.status as 'Todo' | 'InProgress' | 'Review' | 'Done',
+                complexityLabel: complexityRatingToLabel(task.complexityRating),
             });
             setServerError(null);
         }
@@ -96,41 +85,45 @@ export function EditTaskDialog({ open, onOpenChange, task, onSuccess }: EditTask
 
     const onSubmit = async (data: TaskFormData) => {
         if (!task) return;
-        
+
         setServerError(null);
-        
+
         try {
-            await updateTask({
+            const result = await updateTask({
                 variables: {
-                    id: task.id,
                     input: {
+                        id: task.id,
                         title: data.title,
                         deliverable: data.deliverable ?? null,
                         acceptanceCriteria: data.acceptanceCriteria ?? null,
                         risks: data.risks ?? null,
                         requiredFollowUps: data.requiredFollowUps ?? null,
-                        complexity: data.complexity,
-                        status: data.status,
-                        version: task.version,
+                        result: null,
+                        complexityRating: COMPLEXITY_VALUES[data.complexityLabel] ?? 5,
                     },
                 },
             });
+
+            const payload = result.data?.updateTask;
+            if (payload?.errors?.length) {
+                const errorMessage = payload.errors.join(', ');
+                if (errorMessage.includes('NOT_FOUND')) {
+                    toast.error('Task not found. It may have been deleted.');
+                    onOpenChange(false);
+                } else if (errorMessage.includes('CONCURRENCY_CONFLICT')) {
+                    toast.error('The task was modified by another user. Please refresh and try again.');
+                    onOpenChange(false);
+                } else {
+                    setServerError(errorMessage);
+                }
+                return;
+            }
 
             toast.success('Task updated successfully');
             onSuccess?.();
             onOpenChange(false);
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to update task';
-            
-            if (errorMessage.includes('NOT_FOUND')) {
-                toast.error('Task not found. It may have been deleted.');
-                onOpenChange(false);
-            } else if (errorMessage.includes('CONCURRENT') || errorMessage.includes('version')) {
-                toast.error('The task was modified by another user. Please refresh and try again.');
-                onOpenChange(false);
-            } else {
-                setServerError(errorMessage);
-            }
+            setServerError(err instanceof Error ? err.message : 'Failed to update task');
         }
     };
 
@@ -169,10 +162,10 @@ export function EditTaskDialog({ open, onOpenChange, task, onSuccess }: EditTask
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="complexity">Complexity *</Label>
-                            <Select 
-                                defaultValue={task.complexity} 
-                                onValueChange={(value) => setValue('complexity', value as any)}
+                            <Label htmlFor="complexityLabel">Complexity *</Label>
+                            <Select
+                                defaultValue={complexityRatingToLabel(task.complexityRating)}
+                                onValueChange={(value) => setValue('complexityLabel', value as TaskFormData['complexityLabel'])}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select complexity" />
@@ -184,29 +177,8 @@ export function EditTaskDialog({ open, onOpenChange, task, onSuccess }: EditTask
                                     <SelectItem value="Major">Major</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.complexity && (
-                                <p className="text-sm text-destructive">{errors.complexity.message}</p>
-                            )}
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="status">Status *</Label>
-                            <Select 
-                                defaultValue={task.status} 
-                                onValueChange={(value) => setValue('status', value as any)}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Todo">Todo</SelectItem>
-                                    <SelectItem value="InProgress">InProgress</SelectItem>
-                                    <SelectItem value="Review">Review</SelectItem>
-                                    <SelectItem value="Done">Done</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.status && (
-                                <p className="text-sm text-destructive">{errors.status.message}</p>
+                            {errors.complexityLabel && (
+                                <p className="text-sm text-destructive">{errors.complexityLabel.message}</p>
                             )}
                         </div>
 

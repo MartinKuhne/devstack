@@ -110,7 +110,7 @@ export function FeatureDetailPage() {
                      <div>
                          <div className="flex items-center gap-3">
                              <h2 className="text-2xl font-bold tracking-tight">{feature.title}</h2>
-                             <Badge className={STATUS_COLORS[feature.status] || 'bg-gray-500'}>
+                             <Badge className={STATUS_COLORS[feature.status ?? ''] || 'bg-gray-500'}>
                                  {feature.status}
                              </Badge>
                          </div>
@@ -147,7 +147,7 @@ export function FeatureDetailPage() {
                 <TabsContent value="tasks">
                     <TaskBoard
                         tasks={tasks as any[]}
-                        featureId={feature.id}
+                        featureId={feature.id ?? ''}
                         onTasksChange={refetch}
                     />
                 </TabsContent>
@@ -157,8 +157,8 @@ export function FeatureDetailPage() {
                 open={isEditDialogOpen}
                 onOpenChange={setIsEditDialogOpen}
                 feature={feature ? {
-                    id: feature.id,
-                    title: feature.title,
+                    id: feature.id ?? '',
+                    title: feature.title ?? '',
                     description: feature.description,
                     acceptanceCriteria: feature.acceptanceCriteria,
                     plan: feature.plan,
@@ -167,7 +167,7 @@ export function FeatureDetailPage() {
                     testPlan: feature.testPlan,
                     deploymentPlan: feature.deploymentPlan,
                     openQuestions: feature.openQuestions,
-                    updatedAt: feature.updatedAt,
+                    updatedAt: feature.updatedAt ?? '',
                 } : null}
                 onSuccess={handleEditSuccess}
                 onError={handleEditError}

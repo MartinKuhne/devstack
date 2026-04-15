@@ -2,29 +2,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { gql } from '@apollo/client/core';
-import { useMutation } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { CreateFeatureMutation, CreateFeatureMutationVariables } from '@/generated/graphql';
+import { useCreateFeatureMutation } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
-const CREATE_FEATURE = gql`
-    mutation CreateFeature($input: CreateFeatureInput!) {
-        createFeature(input: $input) {
-            id
-            title
-            description
-            acceptanceCriteria
-            openQuestions
-            status
-        }
-    }
-`;
 
 const featureSchema = z.object({
     title: z.string().min(1, 'Title is required'),
@@ -45,9 +29,7 @@ interface CreateFeatureDialogProps {
 
 export function CreateFeatureDialog({ open, onOpenChange, projectId, onSuccess }: CreateFeatureDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [createFeature, { loading }] = useMutation<CreateFeatureMutation, CreateFeatureMutationVariables>(CREATE_FEATURE, {
-        client: getApolloClient(),
-    });
+    const [createFeature, { loading }] = useCreateFeatureMutation();
 
     const {
         register,
@@ -63,7 +45,7 @@ export function CreateFeatureDialog({ open, onOpenChange, projectId, onSuccess }
 
     const onSubmit = async (data: FeatureFormData) => {
         setServerError(null);
-        
+
         try {
             const result = await createFeature({
                 variables: {
@@ -73,6 +55,7 @@ export function CreateFeatureDialog({ open, onOpenChange, projectId, onSuccess }
                         acceptanceCriteria: data.acceptanceCriteria ?? null,
                         openQuestions: data.openQuestions ?? null,
                         projectId: data.projectId,
+                        initialStatus: null,
                         deploymentPlan: null,
                         performanceImpact: null,
                         plan: null,
@@ -82,8 +65,14 @@ export function CreateFeatureDialog({ open, onOpenChange, projectId, onSuccess }
                 },
             });
 
+            const payload = result.data?.createFeature;
+            if (payload?.errors?.length) {
+                setServerError(payload.errors.join(', '));
+                return;
+            }
+
             reset();
-            onSuccess?.(result.data?.createFeature.id ?? '');
+            onSuccess?.(payload?.feature?.id ?? '');
             onOpenChange(false);
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Failed to create feature');

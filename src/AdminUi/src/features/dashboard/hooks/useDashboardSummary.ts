@@ -1,14 +1,10 @@
 import { useState, useCallback } from 'react';
-import { useQuery } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import { GetDashboardSummaryDocument } from '@/graphql/queries/dashboard.graphql';
-import type { GetDashboardSummaryQuery } from '@/generated/graphql';
+import { useGetDashboardSummaryQuery } from '@/generated/graphql';
 
 export function useDashboardSummary() {
     const [isBackgroundRefresh, setIsBackgroundRefresh] = useState(false);
-    
-    const { data, loading, error, refetch } = useQuery<GetDashboardSummaryQuery>(GetDashboardSummaryDocument, {
-        client: getApolloClient(),
+
+    const { data, loading, error, refetch } = useGetDashboardSummaryQuery({
         fetchPolicy: 'cache-and-network',
         pollInterval: 30000,
     });

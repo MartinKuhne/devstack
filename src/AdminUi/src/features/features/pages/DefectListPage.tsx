@@ -1,9 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { gql } from '@apollo/client/core';
-import { useQuery } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { GetDefectsQuery } from '@/generated/graphql';
+import { useGetDefectsQuery } from '@/generated/graphql';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,32 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'react-toastify';
 import { SeverityBadge } from '@/features/defects/components/SeverityBadge';
-
-const GET_DEFECTS = gql`
-    query GetDefects {
-        defects {
-            edges {
-                node {
-                    id
-                    title
-                    description
-                    status
-                    severity
-                    parentFeature {
-                        id
-                        title
-                    }
-                    project {
-                        id
-                        name
-                    }
-                    createdAt
-                    updatedAt
-                }
-            }
-        }
-    }
-`;
 
 const STATUS_COLORS: Record<string, string> = {
     Reported: 'bg-gray-500',
@@ -49,19 +20,19 @@ const STATUS_COLORS: Record<string, string> = {
 export function DefectListPage() {
     const navigate = useNavigate();
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    
-    const { data, loading, error } = useQuery<GetDefectsQuery>(GET_DEFECTS, {
-        client: getApolloClient(),
+
+    const { data, loading, error } = useGetDefectsQuery({
+        fetchPolicy: 'cache-and-network',
     });
 
     const handleRowClick = useCallback((defectId: string) => {
         navigate(`/defects/${defectId}`);
     }, [navigate]);
 
-    const filteredDefects = data?.defects.edges?.map(edge => edge.node)?.filter(defect => {
+    const filteredDefects = (data?.defects.nodes ?? []).filter(defect => {
         if (statusFilter === 'all') return true;
         return defect.status === statusFilter;
-    }) || [];
+    });
 
     if (error) {
         toast.error('Failed to load defects');
@@ -128,16 +99,15 @@ export function DefectListPage() {
                                     <TableHead>Title</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Severity</TableHead>
-                                    <TableHead>Parent Feature</TableHead>
                                     <TableHead>Updated</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {filteredDefects.map((defect) => (
                                     <TableRow
-                                        key={defect.id}
+                                        key={defect.id ?? ''}
                                         className="cursor-pointer hover:bg-accent"
-                                        onClick={() => handleRowClick(defect.id)}
+                                        onClick={() => handleRowClick(defect.id ?? '')}
                                     >
                                         <TableCell className="font-medium">
                                             {defect.title}
@@ -149,21 +119,12 @@ export function DefectListPage() {
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            <Badge className={STATUS_COLORS[defect.status] || 'bg-gray-500'}>
+                                            <Badge className={STATUS_COLORS[defect.status ?? ''] || 'bg-gray-500'}>
                                                 {defect.status}
                                             </Badge>
                                         </TableCell>
-<TableCell>
-<SeverityBadge severity={defect.severity} />
-</TableCell>
                                         <TableCell>
-                                            {defect.parentFeature ? (
-                                                <span className="text-sm">
-                                                    {defect.parentFeature.title}
-                                                </span>
-                                            ) : (
-                                                <span className="text-muted-foreground text-sm">None</span>
-                                            )}
+                                            {defect.severity && <SeverityBadge severity={defect.severity} />}
                                         </TableCell>
                                         <TableCell className="text-sm text-muted-foreground">
                                             {new Date(defect.updatedAt).toLocaleDateString()}

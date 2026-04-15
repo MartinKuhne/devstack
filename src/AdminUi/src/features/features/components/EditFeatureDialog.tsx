@@ -2,34 +2,13 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { gql } from '@apollo/client/core';
-import { useMutation } from '@apollo/client/react';
-import { getApolloClient } from '@/hooks/useApolloClient';
-import type { UpdateFeatureMutation, UpdateFeatureMutationVariables } from '@/generated/graphql';
+import { useUpdateFeatureMutation } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
-const UPDATE_FEATURE = gql`
-    mutation UpdateFeature($id: ID!, $input: UpdateFeatureInput!) {
-        updateFeature(id: $id, input: $input) {
-            id
-            title
-            description
-            acceptanceCriteria
-            plan
-            securityImpact
-            performanceImpact
-            testPlan
-            deploymentPlan
-            openQuestions
-            status
-        }
-    }
-`;
 
 const featureSchema = z.object({
     title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
@@ -69,9 +48,7 @@ interface EditFeatureDialogProps {
 
 export function EditFeatureDialog({ open, onOpenChange, feature, onSuccess, onError }: EditFeatureDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [updateFeature, { loading }] = useMutation<UpdateFeatureMutation, UpdateFeatureMutationVariables>(UPDATE_FEATURE, {
-        client: getApolloClient(),
-    });
+    const [updateFeature, { loading }] = useUpdateFeatureMutation();
 
     const {
         register,
@@ -100,14 +77,14 @@ export function EditFeatureDialog({ open, onOpenChange, feature, onSuccess, onEr
 
     const onSubmit = async (data: FeatureFormData) => {
         if (!feature) return;
-        
+
         setServerError(null);
-        
+
         try {
-            await updateFeature({
+            const result = await updateFeature({
                 variables: {
-                    id: feature.id,
                     input: {
+                        id: feature.id,
                         title: data.title,
                         description: data.description ?? null,
                         acceptanceCriteria: data.acceptanceCriteria ?? null,
@@ -121,18 +98,23 @@ export function EditFeatureDialog({ open, onOpenChange, feature, onSuccess, onEr
                 },
             });
 
+            const payload = result.data?.updateFeature;
+            if (payload?.errors?.length) {
+                const errorMessage = payload.errors.join(', ');
+                if (errorMessage.includes('NOT_FOUND')) {
+                    onError?.('Feature not found. It may have been deleted.');
+                    onOpenChange(false);
+                } else {
+                    setServerError(errorMessage);
+                }
+                return;
+            }
+
             reset();
             onSuccess?.();
             onOpenChange(false);
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to update feature';
-            
-            if (errorMessage.includes('NOT_FOUND')) {
-                onError?.('Feature not found. It may have been deleted.');
-                onOpenChange(false);
-            } else {
-                setServerError(errorMessage);
-            }
+            setServerError(err instanceof Error ? err.message : 'Failed to update feature');
         }
     };
 

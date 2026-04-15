@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCreateModelConfigurationMutation } from '@/generated/graphql';
 
 interface ModelConfigurationDialogProps {
     open: boolean;
@@ -24,8 +25,9 @@ export function ModelConfigurationDialog({
     const [apiKey, setApiKey] = useState('');
     const [maxComplexity, setMaxComplexity] = useState('3');
     const [showApiKey, setShowApiKey] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const [createModelConfiguration, { loading }] = useCreateModelConfigurationMutation();
 
     const resetForm = () => {
         setModel('');
@@ -35,7 +37,6 @@ export function ModelConfigurationDialog({
         setMaxComplexity('3');
         setShowApiKey(false);
         setError(null);
-        setLoading(false);
     };
 
     const handleOpenChange = (newOpen: boolean) => {
@@ -45,88 +46,64 @@ export function ModelConfigurationDialog({
         onOpenChange(newOpen);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
-
-        try {
-            const validationResult = validateForm();
-            if (!validationResult.valid) {
-                setError(validationResult.error!);
-                return;
-            }
-
-            const response = await fetch('/api/graphql', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: `
-                        mutation CreateModelConfiguration($input: CreateModelConfigurationInput!) {
-                            createModelConfiguration(input: $input) {
-                                id
-                                projectId
-                                url
-                                model
-                                modelAlias
-                                maxComplexity
-                                createdAt
-                                updatedAt
-                            }
-                        }
-                    `,
-                    variables: {
-                        input: {
-                            projectId,
-                            model,
-                            modelAlias: modelAlias || null,
-                            url,
-                            apiKey,
-                            maxComplexity: parseInt(maxComplexity, 10),
-                        },
-                    },
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to create model configuration');
-            }
-
-            const result = await response.json();
-            if (result.errors) {
-                throw new Error(result.errors[0]?.message || 'Failed to create model configuration');
-            }
-
-            onOpenChange(false);
-            onSuccess();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const validateForm = () => {
         if (!url.trim()) {
             return { valid: false, error: 'URL is required' };
         }
-
         try {
             new URL(url);
         } catch {
             return { valid: false, error: 'Invalid URL format' };
         }
-
         if (!model.trim()) {
             return { valid: false, error: 'Model name is required' };
         }
-
+        if (!apiKey.trim()) {
+            return { valid: false, error: 'API key is required' };
+        }
         const complexity = parseInt(maxComplexity, 10);
         if (isNaN(complexity) || complexity < 1 || complexity > 10) {
             return { valid: false, error: 'Max complexity must be between 1 and 10' };
         }
-
         return { valid: true };
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        const validationResult = validateForm();
+        if (!validationResult.valid) {
+            setError(validationResult.error!);
+            return;
+        }
+
+        try {
+            const result = await createModelConfiguration({
+                variables: {
+                    input: {
+                        projectId,
+                        model,
+                        modelAlias: modelAlias || null,
+                        url,
+                        apiKey,
+                        maxComplexity: parseInt(maxComplexity, 10),
+                    },
+                },
+            });
+
+            const payload = result.data?.createModelConfiguration;
+            if (payload?.errors?.length) {
+                setError(payload.errors.join(', '));
+                return;
+            }
+
+            resetForm();
+            onOpenChange(false);
+            onSuccess();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+        }
     };
 
     return (
