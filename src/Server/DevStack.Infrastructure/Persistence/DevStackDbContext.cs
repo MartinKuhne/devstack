@@ -18,6 +18,7 @@ public class DevStackDbContext : DbContext
     public DbSet<ModelConfiguration> ModelConfigurations { get; set; } = null!;
     public DbSet<WorkflowRun> WorkflowRuns { get; set; } = null!;
     public DbSet<AuditEvent> AuditEvents { get; set; } = null!;
+    public DbSet<Epic> Epics { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,5 +46,11 @@ public class DevStackDbContext : DbContext
                     
         modelBuilder.Entity<DevStack.Domain.Entities.AgentTask>()
                     .HasIndex(t => new { t.FeatureId, t.Status });
+
+        modelBuilder.Entity<Feature>()
+                    .HasIndex(f => f.EpicId);
+
+        modelBuilder.Entity<Epic>()
+                    .HasIndex(e => e.Title);
     }
 }
