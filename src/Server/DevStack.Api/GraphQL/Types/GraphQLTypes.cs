@@ -48,31 +48,33 @@ public class FeatureType : ObjectType<Feature>
         descriptor.Field(f => f.UpdatedAt).Type<DateTimeType>();
         
         descriptor.Field("tasks").Resolve(ctx => ctx.Parent<Feature>().Tasks);
-        descriptor.Field("validStatusTransitions").Resolve(async ctx =>
-        {
-            var dbContext = ctx.Service<DevStackDbContext>();
-            var feature = ctx.Parent<Feature>();
-            var service = new FeatureStatusTransitionService();
-            var workItem = new Feature
+        descriptor.Field("validStatusTransitions")
+            .Type<ListType<EnumType<FeatureStatus>>>()
+            .Resolve(async ctx =>
             {
-                Id = feature.Id,
-                Status = feature.Status,
-                Result = feature.Result,
-                Errors = feature.Errors,
-                OpenQuestions = feature.OpenQuestions
-            };
-
-            var validTargets = new List<FeatureStatus>();
-            foreach (var targetStatus in Enum.GetValues<FeatureStatus>())
-            {
-                var result = service.Transition(workItem, targetStatus, "query-validation");
-                if (result.IsSuccess)
+                var dbContext = ctx.Service<DevStackDbContext>();
+                var feature = ctx.Parent<Feature>();
+                var service = new FeatureStatusTransitionService();
+                var workItem = new Feature
                 {
-                    validTargets.Add(targetStatus);
+                    Id = feature.Id,
+                    Status = feature.Status,
+                    Result = feature.Result,
+                    Errors = feature.Errors,
+                    OpenQuestions = feature.OpenQuestions
+                };
+
+                var validTargets = new List<FeatureStatus>();
+                foreach (var targetStatus in Enum.GetValues<FeatureStatus>())
+                {
+                    var result = service.Transition(workItem, targetStatus, "query-validation");
+                    if (result.IsSuccess)
+                    {
+                        validTargets.Add(targetStatus);
+                    }
                 }
-            }
-            return validTargets;
-        });
+                return validTargets;
+            });
     }
 }
 
