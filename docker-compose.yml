@@ -31,7 +31,7 @@ services:
   api:
     build:
       context: ./src/Server
-      dockerfile: ./src/Server/Dockerfile
+      dockerfile: Dockerfile
     container_name: devstack-api
     environment:
       ASPNETCORE_ENVIRONMENT: Production
@@ -48,7 +48,7 @@ services:
   agent-worker:
     build:
       context: ./src/AgentProcess
-      dockerfile: ./src/AgentProcess/Dockerfile
+      dockerfile: Dockerfile
     container_name: devstack-agent-worker
     environment:
       NODE_ENV: Production
@@ -63,7 +63,7 @@ services:
   admin-ui:
     build:
       context: ./src/AdminUi
-      dockerfile: ./src/AdminUi/Dockerfile
+      dockerfile: Dockerfile
     container_name: devstack-admin-ui
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://devstack-api:8080/graphql}
