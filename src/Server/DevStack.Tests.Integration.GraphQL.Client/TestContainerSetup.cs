@@ -102,7 +102,6 @@ public class TestContainerFixture : IAsyncLifetime
     {
         if (_dbContext is not null)
         {
-            // Truncate all tables instead of dropping database
             await _dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Projects\", \"Features\", \"Defects\", \"Tasks\", \"ModelConfigurations\", \"WorkflowRuns\", \"AuditEvents\" RESTART IDENTITY CASCADE");
             await _dbContext.DisposeAsync();
             _dbContext = null;
