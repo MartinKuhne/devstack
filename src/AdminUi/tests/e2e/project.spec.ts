@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { ProjectListPage, CreateProjectDialog, ProjectDetailPage, EditProjectDialog } from '../pages/ProjectPage';
+import { ProjectListPage, CreateProjectDialog, ProjectDetailPage, EditProjectDialog } from './pages/ProjectPage.js';
 
 test.describe('Project Page', () => {
     let projectListPage: ProjectListPage;

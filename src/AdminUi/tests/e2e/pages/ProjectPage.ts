@@ -1,5 +1,5 @@
 import type { Page, Locator } from '@playwright/test';
-import { BasePage } from '../fixtures/BasePage';
+import { BasePage } from '../fixtures/BasePage.js';
 
 export class ProjectListPage extends BasePage {
     readonly pageTitle: Locator;
