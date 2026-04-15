@@ -8,6 +8,7 @@ using Xunit;
 
 namespace DevStack.Tests.Integration.GraphQL.Client;
 
+[Collection("Integration")]
 public class MigrationExecutionTests : IClassFixture<TestContainerFixture>
 {
     private readonly TestContainerFixture _fixture;
