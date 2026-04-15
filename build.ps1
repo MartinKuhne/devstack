@@ -1,6 +1,22 @@
 $ErrorActionPreference = 'Continue'
 
-$Prompt = "read ./agents.md then find and finish any in progress items using the saga tool. If there are no in progress items, execute the next unblocked task from the saga tool. when tests pass, mark as completed. commit the changes. Do not wawit for approvals. Skip items that have open questions and create a markdown file with these questions. Focus on progress over perfection."
+$AgentsMdPath = Join-Path $PSScriptRoot "agents.md"
+$ToolsMdPath = Join-Path $PSScriptRoot "docs\TOOLS.md"
+
+$AgentsContent = if (Test-Path $AgentsMdPath) { Get-Content $AgentsMdPath -Raw } else { "" }
+$ToolsContent = if (Test-Path $ToolsMdPath) { Get-Content $ToolsMdPath -Raw } else { "" }
+
+$BasePrompt = "read ./agents.md then find and finish any in progress items using the saga tool. If there are no in progress items, execute the next unblocked task from the saga tool. when tests pass, mark as completed. commit the changes. Do not wait for approvals. Skip items that have open questions and create a markdown file with these questions. Focus on progress over perfection."
+
+$Prompt = @"
+$BasePrompt
+
+--- AGENTS.MD ---
+$AgentsContent
+
+--- TOOLS.MD ---
+$ToolsContent
+"@
 
 $Exe = "npx"
 $CommandArgs = @("opencode", "run", $Prompt)
