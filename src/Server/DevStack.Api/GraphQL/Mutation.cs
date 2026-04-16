@@ -80,7 +80,8 @@ public record CreateDefectInput(
     string? TestPlan,
     string? DeploymentPlan,
     string? OpenQuestions,
-    FeatureStatus? InitialStatus);
+    FeatureStatus? InitialStatus,
+    string? RootCause = null);
 
 public record UpdateDefectInput(
     Guid Id,
@@ -92,7 +93,8 @@ public record UpdateDefectInput(
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    string? OpenQuestions);
+    string? OpenQuestions,
+    string? RootCause = null);
 
 public record TransitionDefectInput(
     Guid Id,
@@ -445,7 +447,8 @@ public class Mutation
                 input.TestPlan,
                 input.DeploymentPlan,
                 input.OpenQuestions,
-                input.InitialStatus), cancellationToken);
+                input.InitialStatus,
+                input.RootCause), cancellationToken);
             
             var defect = new Defect { Id = id };
             return new DefectPayload(defect, new List<string>());
@@ -475,7 +478,8 @@ public class Mutation
                 input.PerformanceImpact,
                 input.TestPlan,
                 input.DeploymentPlan,
-                input.OpenQuestions), cancellationToken);
+                input.OpenQuestions,
+                input.RootCause), cancellationToken);
 
             var defect = new Defect { Id = input.Id };
             return new DefectPayload(defect, new List<string>());

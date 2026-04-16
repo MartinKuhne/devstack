@@ -10,5 +10,7 @@ public class Defect : WorkItem
 
     public Severity? Severity { get; set; }
 
+    public string? RootCause { get; set; }
+
     public virtual Feature? ParentFeature { get; set; }
 }
