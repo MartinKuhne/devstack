@@ -1,5 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
-import { Menu, Moon, Sun, LayoutDashboard, Folder, AlertCircle, Settings } from 'lucide-react';
+import { Menu, Moon, Sun, LayoutDashboard, Folder, AlertCircle, Settings, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
@@ -34,6 +34,12 @@ function SidebarContent() {
                 <Button variant="ghost" className="w-full justify-start">
                     <Folder className="mr-2 h-4 w-4" />
                     Features
+                </Button>
+            </Link>
+            <Link to="/epics">
+                <Button variant="ghost" className="w-full justify-start">
+                    <Layers className="mr-2 h-4 w-4" />
+                    Epics
                 </Button>
             </Link>
             <Link to="/defects">
