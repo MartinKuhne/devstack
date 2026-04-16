@@ -9,6 +9,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    profiles:
+      - langchain-worker
 
   postgres:
     image: postgres:17-alpine
@@ -42,11 +44,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-    # MCP Server endpoints:
-    # - GraphQL API: http://localhost:8087/graphql
-    # - MCP SSE: http://localhost:8087/mcp
 
   agent-worker:
     build:
@@ -62,6 +59,8 @@ services:
         condition: service_healthy
       api:
         condition: service_started
+    profiles:
+      - langchain-worker
 
   admin-ui:
     build:
@@ -90,7 +89,7 @@ services:
       - ./src/AdminUi/reports:/app/reports
       - ./src/AdminUi/tests/e2e/test-results:/app/test-results
     profiles:
-      - test
+      - integration-test
 
 volumes:
   postgres_data:
