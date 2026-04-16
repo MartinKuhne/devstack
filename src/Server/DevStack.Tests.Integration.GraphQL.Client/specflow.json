@@ -1,0 +1,12 @@
+{
+  "language": {
+    "tag": "en-US"
+  },
+  "stepAssemblies": [
+    { "assembly": "SpecFlow.xUnit" }
+  ],
+  "stepDefinitions": [
+    { "location": "Steps/**/*Step*.cs" },
+    { "location": "Features/**/*Step*.cs" }
+  ]
+}
