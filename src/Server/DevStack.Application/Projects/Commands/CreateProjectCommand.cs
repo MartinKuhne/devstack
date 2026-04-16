@@ -6,8 +6,3 @@ public record CreateProjectCommand(
     string? Architecture,
     string? Memory,
     string? GithubUrl);
-
-public interface ICreateProjectHandler
-{
-    Task<Guid> Handle(CreateProjectCommand command, CancellationToken cancellationToken = default);
-}
