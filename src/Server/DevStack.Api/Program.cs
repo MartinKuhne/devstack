@@ -172,6 +172,7 @@ if (useCustomMcpHandler)
 else
 {
     builder.Services.AddMcpServer()
+        .WithHttpTransport()
         .WithTools<DevStackTools>();
 }
 
