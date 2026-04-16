@@ -1,3 +1,4 @@
+using DevStack.Api.GraphQL;
 using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Services;
 using DevStack.Infrastructure.Projects;
@@ -29,6 +30,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.WithProperty("Application", "DevStack")
         .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
         .Enrich.FromLogContext()
+        .Enrich.WithMachineName()
         .Destructure.With(new SensitiveDataDestructuringPolicy());
 });
 
@@ -85,6 +87,7 @@ builder.Services.AddTransient<IUpdateWorkflowRunHandler, UpdateWorkflowRunHandle
 builder.Services.AddTransient<ICancelWorkflowRunHandler, CancelWorkflowRunHandler>();
 builder.Services.AddTransient<ICreateEpicHandler, CreateEpicHandler>();
 builder.Services.AddTransient<IUpdateEpicHandler, UpdateEpicHandler>();
+builder.Services.AddScoped<DevStackTools>();
 
 var secretKey = builder.Configuration["DEVSTACK_SECRET_KEY"] 
     ?? Environment.GetEnvironmentVariable("DEVSTACK_SECRET_KEY") 
@@ -150,7 +153,8 @@ builder.Services.AddGraphQLServer()
     .AddObjectType<DefectPageInfo>()
     .AddObjectType<TaskPageInfo>()
     .AddObjectType<EpicPageInfo>()
-    .DisableIntrospection(false);
+    .DisableIntrospection(false)
+    .AddErrorFilter<GraphQLErrorFilter>();
 
 // Register custom JSON-RPC 2.0 MCP handler
 builder.Services.AddScoped<IMcpMethodHandler, McpMethodHandler>();
@@ -165,6 +169,25 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<DevStackDbContext>();
     await db.Database.MigrateAsync();
 }
+
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+    options.GetLevel = (httpContext, elapsed, ex) =>
+    {
+        if (ex != null) return Serilog.Events.LogEventLevel.Error;
+        if (httpContext.Response.StatusCode > 500) return Serilog.Events.LogEventLevel.Error;
+        if (httpContext.Response.StatusCode > 400 && httpContext.Response.StatusCode < 500) return Serilog.Events.LogEventLevel.Warning;
+        return Serilog.Events.LogEventLevel.Information;
+    };
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? "");
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme ?? "");
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
+        diagnosticContext.Set("ContentType", httpContext.Request.ContentType ?? "");
+    };
+});
 
 app.UseRouting();
 

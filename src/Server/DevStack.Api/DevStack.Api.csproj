@@ -19,6 +19,8 @@
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.2.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Enrichers.AspNetCore" Version="1.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageReference Include="WolverineFx" Version="5.30.0" />
     <PackageReference Include="WolverineFx.Http" Version="5.30.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.12.0" />
