@@ -1,0 +1,17 @@
+{
+  "schema": "http://localhost:8087/graphql",
+  "documents": "**/*.graphql",
+  "projects": {
+    "": {
+      "type": "client",
+      "output": "Generated",
+      "generator": "StrawberryShake",
+      "transport": [
+        {
+          "name": "HttpGet",
+          "type": "http"
+        }
+      ]
+    }
+  }
+}
