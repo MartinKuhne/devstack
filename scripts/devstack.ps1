@@ -3,8 +3,6 @@ param(
     [ValidateSet("init", "run")]
     [string]$Command,
 
-    [string]$OpencodePrompt = '',
-
     [string]$ApiUrl = $env:DEVSTACK_API_URL
 )
 
@@ -167,16 +165,14 @@ function Get-CurrentProjectId {
 
 function Invoke-AgentBatch {
     param(
-        [string]   $EntityType,
-        [string]   $QueryFile,
-        [string]   $DataPath,
-        [string]   $StatusFilter,
-        [string]   $DefaultInstructions,
-        [string[]] $ExtraFields = @()
+        [string]      $EntityType,
+        [string]      $QueryFile,
+        [string]      $DataPath,
+        [string]      $StatusFilter,
+        [scriptblock] $BuildPrompt
     )
 
-    $plural      = "${EntityType}s"
-    $entityLabel = (Get-Culture).TextInfo.ToTitleCase($EntityType)
+    $plural = "${EntityType}s"
     Write-Host "Processing $plural in $StatusFilter status..."
 
     $projectId = Get-CurrentProjectId
@@ -200,27 +196,12 @@ function Invoke-AgentBatch {
     foreach ($item in $items) {
         Write-Host "`nProcessing ${EntityType}: $($item.title) (ID: $($item.id))"
 
-        $context = "$entityLabel ID: $($item.id)
-Title: $($item.title)
-Status: $($item.status)
-Description: $($item.description)
-AcceptanceCriteria: $($item.acceptanceCriteria)"
-
-        foreach ($field in $ExtraFields) {
-            $label    = $field -creplace '([A-Z])', ' $1'
-            $context += "`n${label}: $($item.$field)"
-        }
-
-        $context += "`nPlan: $($item.plan)"
-
-        $instructions = if ([string]::IsNullOrWhiteSpace($OpencodePrompt)) { $DefaultInstructions } else { $OpencodePrompt }
-        $prompt = "$instructions`n`n$context"
-
+        $prompt = & $BuildPrompt $item
         Write-Host $prompt
 
-        $args = @("opencode", "run", $prompt)
-        if (Test-Path $AgentsFile) { $args += @("--file", $AgentsFile) }
-        & npx @args
+        $npxArgs = @("opencode", "run", $prompt)
+        if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
+        & npx @npxArgs
 
         if ($LASTEXITCODE -ne 0) {
             Write-Warning "Opencode returned non-zero exit code for ${EntityType} $($item.id)"
@@ -232,58 +213,91 @@ AcceptanceCriteria: $($item.acceptanceCriteria)"
     Write-Host "`nAll $plural processed."
 }
 
-switch ($Command) {
-    "init" {
-        Initialize-Project
-    }
-    "run" {
-        Invoke-AgentBatch `
-            -EntityType          "defect" `
-            -QueryFile           "getDefects.graphql" `
-            -DataPath            "defects" `
-            -StatusFilter        "Planning" `
-            -DefaultInstructions @"
-Investigate the root cause for the failure. Reproduce it, collect logs/traces and metrics, identify the failing component and code path.
+function Plan-Defects {
+    Invoke-AgentBatch -EntityType "defect" -QueryFile "getDefects.graphql" -DataPath "defects" -StatusFilter "Planning" -BuildPrompt {
+        param($item)
+        @"
+Investigate the root cause for the failure. 
+
+Title: $($item.title)
+Description: $($item.description)
+AcceptanceCriteria: $($item.acceptanceCriteria)
+Plan: $($item.plan)
+Defect ID: $($item.id)
+
+Reproduce it, collect logs/traces and metrics, identify the failing component and code path.
 Propose a fix (if feasible within 5 minutes of research).
 Use the update_defect tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), rootCause, openQuestions.
 If there are no OpenQuestions, use the update_defect tool to change the state to Ready. If there are open questions, change the state to InReview.
 "@
+    }
+}
 
-        Invoke-AgentBatch `
-            -EntityType          "defect" `
-            -QueryFile           "getDefects.graphql" `
-            -DataPath            "defects" `
-            -StatusFilter        "Ready" `
-            -ExtraFields         @("RootCause") `
-            -DefaultInstructions @"
+function Run-Defects {
+    Invoke-AgentBatch -EntityType "defect" -QueryFile "getDefects.graphql" -DataPath "defects" -StatusFilter "Ready" -BuildPrompt {
+        param($item)
+        @"
 Create a fix for this issue.
+
+Title: $($item.title)
+Description: $($item.description)
+
 Quality gates must pass.
 Commit the changes.
 Use the update_defect tool to change the state to Done. If the operation was not successful, change the status to InReview instead.
-"@
 
-        Invoke-AgentBatch `
-            -EntityType          "feature" `
-            -QueryFile           "getFeatures.graphql" `
-            -DataPath            "features" `
-            -StatusFilter        "Planned" `
-            -DefaultInstructions @"
+Defect ID: $($item.id)
+AcceptanceCriteria: $($item.acceptanceCriteria)
+RootCause: $($item.rootCause)
+Plan: $($item.plan)
+"@
+    }
+}
+
+function Plan-Features {
+    Invoke-AgentBatch -EntityType "feature" -QueryFile "getFeatures.graphql" -DataPath "features" -StatusFilter "Planned" -BuildPrompt {
+        param($item)
+        @"
 Analyze the requirements for this feature. Break down the work, identify dependencies and risks.
+
+Feature ID: $($item.id)
+Title: $($item.title)
+Description: $($item.description)
+AcceptanceCriteria: $($item.acceptanceCriteria)
+Plan: $($item.plan)
+
 Propose an implementation plan.
 Use the update_feature tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), openQuestions.
 If there are no OpenQuestions, use the update_feature tool to change the state to Analysis. If there are open questions, change the state to InReview.
 "@
+    }
+}
 
-        Invoke-AgentBatch `
-            -EntityType          "feature" `
-            -QueryFile           "getFeatures.graphql" `
-            -DataPath            "features" `
-            -StatusFilter        "Analysis" `
-            -DefaultInstructions @"
-Implement this feature according to the plan.
+function Run-Features {
+    Invoke-AgentBatch -EntityType "feature" -QueryFile "getFeatures.graphql" -DataPath "features" -StatusFilter "Analysis" -BuildPrompt {
+        param($item)
+        @"
+Implement this feature 
+
+Feature ID: $($item.id)
+Title: $($item.title)
+Description: $($item.description)
+AcceptanceCriteria: $($item.acceptanceCriteria)
+Plan: $($item.plan)
+
 Quality gates must pass.
 Commit the changes.
 Use the update_feature tool to change the state to Passed. If the operation was not successful, change the status to InReview instead.
 "@
+    }
+}
+
+switch ($Command) {
+    "init" { Initialize-Project }
+    "run"  {
+        Plan-Defects
+        Run-Defects
+        Plan-Features
+        Run-Features
     }
 }
