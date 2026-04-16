@@ -1,0 +1,84 @@
+using TechTalk.SpecFlow;
+using DevStack.Tests.Integration.MCP.Client;
+using FluentAssertions;
+
+namespace DevStack.Tests.Integration.MCP.Steps;
+
+[Binding]
+public sealed class ToolsCallSteps
+{
+    private readonly ScenarioContext _scenarioContext;
+    private readonly IMcpJsonRpcClient _client;
+    private JsonRpcResponse? _response;
+
+    public ToolsCallSteps(ScenarioContext scenarioContext, IMcpJsonRpcClient client)
+    {
+        _scenarioContext = scenarioContext;
+        _client = client;
+    }
+
+    [Given(@"a valid tools/call request for ""(.*)""")]
+    public void GivenAValidToolsCallRequest(string toolName)
+    {
+        _scenarioContext["ToolName"] = toolName;
+    }
+
+    [Given(@"a tools/call request with missing required parameters")]
+    public void GivenAToolsCallRequestWithMissingRequiredParameters()
+    {
+        _scenarioContext["InvalidParams"] = true;
+    }
+
+    [When(@"I send the tools/call request")]
+    public async Task WhenISendTheToolsCallRequest()
+    {
+        if (_scenarioContext.TryGetValue<bool>("InvalidParams", out var invalid) && invalid)
+        {
+            var invalidRequest = new { name = "", arguments = new { } };
+            _response = await _client.SendRequestAsync("tools/call", invalidRequest);
+        }
+        else
+        {
+            var toolName = _scenarioContext.GetString("ToolName") ?? "devstack_getDashboardSummary";
+            var request = new { name = toolName, arguments = new { } };
+            _response = await _client.SendRequestAsync("tools/call", request);
+        }
+
+        _scenarioContext["Response"] = _response;
+    }
+
+    [Then(@"the response should contain the tool result")]
+    public void ThenTheResponseShouldContainTheToolResult()
+    {
+        _response.Should().NotBeNull();
+        _response!.Error.Should().BeNull();
+        _response!.Result.Should().NotBeNull();
+    }
+
+    [Then(@"the result should contain project count")]
+    public void ThenTheResultShouldContainProjectCount()
+    {
+        var result = _response!.Result!.ToString();
+        result.Should().ContainAny("projectCount", "projects", "project");
+    }
+
+    [Then(@"the result should contain feature count")]
+    public void ThenTheResultShouldContainFeatureCount()
+    {
+        var result = _response!.Result!.ToString();
+        result.Should().ContainAny("featureCount", "features", "feature");
+    }
+
+    [Then(@"the response should contain an error")]
+    public void ThenTheResponseShouldContainAnError()
+    {
+        _response.Should().NotBeNull();
+        _response!.Error.Should().NotBeNull();
+    }
+
+    [Then(@"the error code should be (-?\d+)")]
+    public void ThenTheErrorCodeShouldBe(int expectedCode)
+    {
+        _response!.Error!.Code.Should().Be(expectedCode);
+    }
+}
