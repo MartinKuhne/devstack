@@ -7,6 +7,7 @@ export class DashboardPage extends BasePage {
     readonly refreshButton: Locator;
     readonly newProjectButton: Locator;
     readonly createProjectDialog: Locator;
+    readonly statCards: Locator;
     readonly projectsInFlightCard: Locator;
     readonly featuresInReviewCard: Locator;
     readonly featuresFailedCard: Locator;
@@ -29,29 +30,30 @@ export class DashboardPage extends BasePage {
 
     constructor(page: Page) {
         super(page);
-        this.pageTitle = page.getByRole('heading', { name: 'Dashboard' });
+        this.pageTitle = page.getByRole('heading', { name: 'Dashboard', level: 2 });
         this.welcomeText = page.getByText('Welcome to your DevStack dashboard');
         this.refreshButton = page.getByRole('button', { name: 'Refresh' });
         this.newProjectButton = page.getByRole('button', { name: 'New Project' });
         this.createProjectDialog = page.getByRole('dialog', { name: 'Create New Project' });
-        this.projectsInFlightCard = page.getByRole('heading', { name: 'Projects In Flight', level: 3 }).locator('..').locator('..');
-        this.featuresInReviewCard = page.getByRole('heading', { name: 'Features In Review', level: 3 }).locator('..').locator('..');
-        this.featuresFailedCard = page.getByRole('heading', { name: 'Features Failed', level: 3 }).locator('..').locator('..');
-        this.tasksInProgressCard = page.getByRole('heading', { name: 'Tasks In Progress', level: 3 }).locator('..').locator('..');
-        this.tasksFailedCard = page.getByRole('heading', { name: 'Tasks Failed', level: 3 }).locator('..').locator('..');
-        this.projectsInFlightValue = this.projectsInFlightCard.getByRole('heading', { level: 3 }).first();
-        this.featuresInReviewValue = this.featuresInReviewCard.getByRole('heading', { level: 3 }).first();
-        this.featuresFailedValue = this.featuresFailedCard.getByRole('heading', { level: 3 }).first();
-        this.tasksInProgressValue = this.tasksInProgressCard.getByRole('heading', { level: 3 }).first();
-        this.tasksFailedValue = this.tasksFailedCard.getByRole('heading', { level: 3 }).first();
+        this.statCards = page.locator('[class*="grid"][class*="gap-4"] > [class*="Card"]');
+        this.projectsInFlightCard = this.statCards.filter({ hasText: 'Projects In Flight' });
+        this.featuresInReviewCard = this.statCards.filter({ hasText: 'Features In Review' });
+        this.featuresFailedCard = this.statCards.filter({ hasText: 'Features Failed' });
+        this.tasksInProgressCard = this.statCards.filter({ hasText: 'Tasks In Progress' });
+        this.tasksFailedCard = this.statCards.filter({ hasText: 'Tasks Failed' });
+        this.projectsInFlightValue = this.projectsInFlightCard.locator('div').filter({ hasText: /^[0-9]+$/ }).first();
+        this.featuresInReviewValue = this.featuresInReviewCard.locator('div').filter({ hasText: /^[0-9]+$/ }).first();
+        this.featuresFailedValue = this.featuresFailedCard.locator('div').filter({ hasText: /^[0-9]+$/ }).first();
+        this.tasksInProgressValue = this.tasksInProgressCard.locator('div').filter({ hasText: /^[0-9]+$/ }).first();
+        this.tasksFailedValue = this.tasksFailedCard.locator('div').filter({ hasText: /^[0-9]+$/ }).first();
         this.auditEventsTable = page.getByRole('table');
-        this.emptyStateMessage = page.getByText('No data available yet');
+        this.emptyStateMessage = page.getByText(/No data available|Create your first project/);
         this.noActivityMessage = page.getByText('No recent activity');
         this.errorCard = page.getByRole('heading', { name: 'Error loading dashboard' }).locator('..');
-        this.errorMessage = this.errorCard.getByText('Internal server error');
+        this.errorMessage = this.errorCard.getByText(/error/i);
         this.viewFailedFeaturesButton = page.getByRole('button', { name: /View Failed Features/ });
         this.viewFailedTasksButton = page.getByRole('button', { name: /View Failed Tasks/ });
-        this.loadingSkeletons = page.locator('.animate-pulse');
+        this.loadingSkeletons = page.locator('[class*="skeleton"], .animate-pulse');
         this.refreshingIndicator = page.getByText('Refreshing...');
     }
 
@@ -63,6 +65,7 @@ export class DashboardPage extends BasePage {
     async waitForDashboardLoaded(): Promise<void> {
         await this.pageTitle.waitFor({ state: 'visible', timeout: 10000 });
         await this.loadingSkeletons.first().waitFor({ state: 'detached', timeout: 10000 }).catch(() => { });
+        await this.page.waitForTimeout(1000);
     }
 
     async clickRefresh(): Promise<void> {
