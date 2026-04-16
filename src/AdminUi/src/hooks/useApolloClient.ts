@@ -1,17 +1,23 @@
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 import { logger } from '@/lib/logging';
 
+const GRAPHQL_API_URL = import.meta.env.VITE_GRAPHQL_API_URL || 'http://localhost:8087/graphql';
+
+logger.info('ApolloClient: connecting to', GRAPHQL_API_URL);
+
 const httpLink = new HttpLink({
-    uri: import.meta.env.VITE_GRAPHQL_API_URL || 'http://localhost:8087/graphql',
+    uri: GRAPHQL_API_URL,
 });
 
 let apolloClient: ApolloClient | undefined;
 
 function createApolloClient() {
-    return new ApolloClient({
+    const client = new ApolloClient({
         cache: new InMemoryCache(),
         link: httpLink,
     });
+    logger.debug('ApolloClient created');
+    return client;
 }
 
 export function logApolloError(error: unknown) {
