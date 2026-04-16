@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { ApolloWrapper } from './components/ApolloWrapper.tsx';
 import './index.css';
 import App from './App.tsx';
+import { setupGlobalErrorHandlers } from './lib/logging';
+
+setupGlobalErrorHandlers();
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
