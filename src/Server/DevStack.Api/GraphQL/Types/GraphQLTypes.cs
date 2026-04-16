@@ -20,9 +20,9 @@ public class ProjectType : ObjectType<Project>
         descriptor.Field(p => p.CreatedAt).Type<DateTimeType>();
         descriptor.Field(p => p.UpdatedAt).Type<DateTimeType>();
         
-        descriptor.Field("features").Resolve(ctx => ctx.Parent<Project>().Features);
-        descriptor.Field("defects").Resolve(ctx => ctx.Parent<Project>().Defects);
-        descriptor.Field("modelConfigurations").Resolve(ctx => ctx.Parent<Project>().ModelConfigurations);
+        descriptor.Field("features").Type<ListType<FeatureType>>().Resolve(ctx => ctx.Parent<Project>().Features);
+        descriptor.Field("defects").Type<ListType<DefectType>>().Resolve(ctx => ctx.Parent<Project>().Defects);
+        descriptor.Field("modelConfigurations").Type<ListType<ModelConfigurationType>>().Resolve(ctx => ctx.Parent<Project>().ModelConfigurations);
     }
 }
 
@@ -49,7 +49,7 @@ public class FeatureType : ObjectType<Feature>
         descriptor.Field(f => f.UpdatedAt).Type<DateTimeType>();
         
         descriptor.Field("epic").Resolve(ctx => ctx.Parent<Feature>().Epic).Type<EpicType>();
-        descriptor.Field("tasks").Resolve(ctx => ctx.Parent<Feature>().Tasks);
+        descriptor.Field("tasks").Type<ListType<TaskType>>().Resolve(ctx => ctx.Parent<Feature>().Tasks);
         descriptor.Field("validStatusTransitions")
             .Type<ListType<EnumType<FeatureStatus>>>()
             .Resolve(async ctx =>

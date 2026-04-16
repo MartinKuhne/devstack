@@ -140,6 +140,16 @@ builder.Services.AddGraphQLServer()
     .AddType<WorkflowRunType>()
     .AddType<AuditEventType>()
     .AddType<DashboardSummary>()
+    .AddObjectType<ProjectConnection>()
+    .AddObjectType<FeatureConnection>()
+    .AddObjectType<DefectConnection>()
+    .AddObjectType<TaskConnection>()
+    .AddObjectType<EpicConnection>()
+    .AddObjectType<ProjectPageInfo>()
+    .AddObjectType<FeaturePageInfo>()
+    .AddObjectType<DefectPageInfo>()
+    .AddObjectType<TaskPageInfo>()
+    .AddObjectType<EpicPageInfo>()
     .DisableIntrospection(false);
 
 // Register custom JSON-RPC 2.0 MCP handler
