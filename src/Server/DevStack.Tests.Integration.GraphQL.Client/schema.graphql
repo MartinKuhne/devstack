@@ -1,0 +1,489 @@
+type Project {
+  id: UUID!
+  name: String
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ProjectPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+type ProjectConnection {
+  nodes: [Project!]!
+  pageInfo: ProjectPageInfo!
+  totalCount: Int!
+}
+
+type Feature {
+  id: UUID!
+  projectId: UUID!
+  epicId: UUID
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  status: FeatureStatus!
+  result: String
+  errors: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum FeatureStatus {
+  Planned
+  Analysis
+  Development
+  Code
+  Review
+  InReview
+  Passed
+  Failed
+}
+
+type FeaturePageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+type FeatureConnection {
+  nodes: [Feature!]!
+  pageInfo: FeaturePageInfo!
+  totalCount: Int!
+}
+
+type Defect {
+  id: UUID!
+  projectId: UUID!
+  parentFeatureId: UUID
+  severity: Severity
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  status: FeatureStatus!
+  result: String
+  errors: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum Severity {
+  Critical
+  High
+  Medium
+  Low
+}
+
+type DefectPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+type DefectConnection {
+  nodes: [Defect!]!
+  pageInfo: DefectPageInfo!
+  totalCount: Int!
+}
+
+type Task {
+  id: UUID!
+  featureId: UUID!
+  title: String!
+  deliverable: String
+  acceptanceCriteria: String
+  risks: String
+  result: String
+  requiredFollowUps: String
+  complexityRating: Int!
+  status: TaskStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum TaskStatus {
+  Planned
+  Analysis
+  Development
+  Code
+  Review
+  InReview
+  Passed
+  Failed
+}
+
+type TaskPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+type TaskConnection {
+  nodes: [Task!]!
+  pageInfo: TaskPageInfo!
+  totalCount: Int!
+}
+
+type Epic {
+  id: UUID!
+  title: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type EpicPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+type EpicConnection {
+  nodes: [Epic!]!
+  pageInfo: EpicPageInfo!
+  totalCount: Int!
+}
+
+type ModelConfiguration {
+  id: UUID!
+  projectId: UUID!
+  url: String!
+  model: String!
+  modelAlias: String
+  maxComplexity: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type WorkflowRun {
+  id: UUID!
+  projectId: UUID!
+  featureId: UUID
+  taskId: UUID
+  workflowType: WorkflowType!
+  status: WorkflowRunStatus!
+  inputPayload: String!
+  outputPayload: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum WorkflowType {
+  Planner
+  DevLead
+  Coder
+  Tester
+  Architect
+}
+
+enum WorkflowRunStatus {
+  Pending
+  Running
+  Completed
+  Failed
+  Cancelled
+}
+
+type DashboardSummary {
+  projectsInFlight: Int!
+  featuresInReview: Int!
+  featuresFailed: Int!
+  tasksInProgress: Int!
+  tasksFailed: Int!
+  recentAuditEvents: [AuditEvent!]!
+}
+
+type AuditEvent {
+  id: UUID!
+  entityId: UUID!
+  entityType: String!
+  action: String!
+  userId: String
+  oldValues: String
+  newValues: String
+  occurredAt: DateTime!
+}
+
+scalar UUID
+scalar DateTime
+
+type Query {
+  getProjectById(id: UUID!): Project
+  getProjects(first: Int, skip: Int): ProjectConnection!
+  getFeatures(projectId: UUID, epicId: UUID, status: [FeatureStatus!], createdAfter: DateTime, createdBefore: DateTime, first: Int, skip: Int): FeatureConnection!
+  getFeatureById(id: UUID!): Feature
+  getDefects(projectId: UUID, first: Int, skip: Int): DefectConnection!
+  getDefectById(id: UUID!): Defect
+  getTasks(featureId: UUID, status: [TaskStatus!], createdAfter: DateTime, createdBefore: DateTime, first: Int, skip: Int): TaskConnection!
+  getTaskById(id: UUID!): Task
+  getEpics(title: String, first: Int, skip: Int): EpicConnection!
+  getEpicById(id: UUID!): Epic
+  getModelConfigurations(projectId: UUID!): [ModelConfiguration!]!
+  getValidStatusTransitions(featureId: UUID!): [FeatureStatus!]!
+  getDashboardSummary: DashboardSummary!
+}
+
+input CreateProjectInput {
+  name: String!
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+}
+
+input UpdateProjectInput {
+  id: UUID!
+  name: String
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+  githubToken_Encrypted: String
+}
+
+input DeleteProjectInput {
+  id: UUID!
+}
+
+type ProjectPayload {
+  project: Project
+  errors: [String!]!
+}
+
+input CreateFeatureInput {
+  projectId: UUID!
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  initialStatus: FeatureStatus
+}
+
+input UpdateFeatureInput {
+  id: UUID!
+  title: String
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+}
+
+input TransitionFeatureInput {
+  id: UUID!
+  targetStatus: FeatureStatus!
+  actor: String!
+}
+
+input DeleteFeatureInput {
+  id: UUID!
+}
+
+type FeaturePayload {
+  feature: Feature
+  errors: [String!]!
+}
+
+input CreateDefectInput {
+  projectId: UUID!
+  parentFeatureId: UUID
+  severity: Severity
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  initialStatus: FeatureStatus
+}
+
+input UpdateDefectInput {
+  id: UUID!
+  title: String
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+}
+
+input TransitionDefectInput {
+  id: UUID!
+  targetStatus: FeatureStatus!
+  actor: String!
+}
+
+input DeleteDefectInput {
+  id: UUID!
+}
+
+type DefectPayload {
+  defect: Defect
+  errors: [String!]!
+}
+
+input CreateTaskInput {
+  featureId: UUID!
+  title: String!
+  deliverable: String
+  acceptanceCriteria: String
+  risks: String
+  result: String
+  requiredFollowUps: String
+  complexityRating: Int!
+}
+
+input UpdateTaskInput {
+  id: UUID!
+  title: String
+  deliverable: String
+  acceptanceCriteria: String
+  risks: String
+  result: String
+  requiredFollowUps: String
+  complexityRating: Int
+}
+
+input TransitionTaskInput {
+  id: UUID!
+  targetStatus: TaskStatus!
+  actor: String!
+}
+
+input DeleteTaskInput {
+  id: UUID!
+}
+
+type TaskPayload {
+  task: Task
+  errors: [String!]!
+}
+
+input CreateModelConfigurationInput {
+  projectId: UUID!
+  url: String!
+  model: String!
+  modelAlias: String
+  apiKey: String!
+  maxComplexity: Int!
+}
+
+input UpdateModelConfigurationInput {
+  id: UUID!
+  url: String
+  model: String
+  modelAlias: String
+  apiKey: String
+  maxComplexity: Int
+}
+
+input DeleteModelConfigurationInput {
+  id: UUID!
+}
+
+type ModelConfigurationPayload {
+  modelConfiguration: ModelConfiguration
+  errors: [String!]!
+}
+
+input CreateWorkflowRunInput {
+  projectId: UUID!
+  featureId: UUID
+  taskId: UUID
+  workflowType: WorkflowType!
+  inputPayload: String!
+}
+
+input UpdateWorkflowRunInput {
+  id: UUID!
+  status: WorkflowRunStatus!
+  outputPayload: String
+}
+
+input CancelWorkflowRunInput {
+  id: UUID!
+}
+
+type WorkflowRunPayload {
+  workflowRun: WorkflowRun
+  errors: [String!]!
+}
+
+input CreateEpicInput {
+  title: String!
+  description: String
+}
+
+input UpdateEpicInput {
+  id: UUID!
+  title: String
+  description: String
+}
+
+input DeleteEpicInput {
+  id: UUID!
+}
+
+type EpicPayload {
+  epic: Epic
+  errors: [String!]!
+}
+
+type Mutation {
+  createProject(input: CreateProjectInput!): ProjectPayload!
+  updateProject(input: UpdateProjectInput!): ProjectPayload!
+  deleteProject(input: DeleteProjectInput!): ProjectPayload!
+  createFeature(input: CreateFeatureInput!): FeaturePayload!
+  updateFeature(input: UpdateFeatureInput!): FeaturePayload!
+  transitionFeatureStatus(input: TransitionFeatureInput!): FeaturePayload!
+  deleteFeature(input: DeleteFeatureInput!): FeaturePayload!
+  createDefect(input: CreateDefectInput!): DefectPayload!
+  updateDefect(input: UpdateDefectInput!): DefectPayload!
+  transitionDefectStatus(input: TransitionDefectInput!): DefectPayload!
+  deleteDefect(input: DeleteDefectInput!): DefectPayload!
+  createTask(input: CreateTaskInput!): TaskPayload!
+  updateTask(input: UpdateTaskInput!): TaskPayload!
+  transitionTaskStatus(input: TransitionTaskInput!): TaskPayload!
+  deleteTask(input: DeleteTaskInput!): TaskPayload!
+  createModelConfiguration(input: CreateModelConfigurationInput!): ModelConfigurationPayload!
+  updateModelConfiguration(input: UpdateModelConfigurationInput!): ModelConfigurationPayload!
+  deleteModelConfiguration(input: DeleteModelConfigurationInput!): ModelConfigurationPayload!
+  createWorkflowRun(input: CreateWorkflowRunInput!): WorkflowRunPayload!
+  updateWorkflowRun(input: UpdateWorkflowRunInput!): WorkflowRunPayload!
+  cancelWorkflowRun(input: CancelWorkflowRunInput!): WorkflowRunPayload!
+  createEpic(input: CreateEpicInput!): EpicPayload!
+  updateEpic(input: UpdateEpicInput!): EpicPayload!
+  deleteEpic(input: DeleteEpicInput!): EpicPayload!
+}
