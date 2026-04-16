@@ -96,19 +96,12 @@ var secretKey = builder.Configuration["DEVSTACK_SECRET_KEY"]
     ?? throw new InvalidOperationException("DEVSTACK_SECRET_KEY must be set");
 builder.Services.AddSingleton<ISecretService>(new AesSecretService(secretKey));
 
-var isDevelopment = builder.Environment.IsDevelopment();
-
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
     {
         tracing
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation();
-        
-        if (isDevelopment)
-        {
-            tracing.AddConsoleExporter();
-        }
         
         var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
         if (!string.IsNullOrEmpty(otlpEndpoint))
@@ -121,11 +114,6 @@ builder.Services.AddOpenTelemetry()
         metrics
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation();
-        
-        if (isDevelopment)
-        {
-            metrics.AddConsoleExporter();
-        }
         
         var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
         if (!string.IsNullOrEmpty(otlpEndpoint))
