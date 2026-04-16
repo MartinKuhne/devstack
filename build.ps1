@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Continue'
 
-$BasePrompt = "Use he saga_task_list tool to find and finish any in progress items. If there are no in progres items, Use he saga_task_list tool to find the next task. When complete and quality gates pass, mark as completed. commit the changes. Do not wait for approvals. Do not execute more tasks. Skip tasks that are unclear or have open questions and create a docs/OPEN_QUESTIONS.md file with these questions."
+$BasePrompt = "Use he saga_task_list tool to find and finish any in progress items. If there are no in progres items, Use he saga_task_list tool to find the next task. When complete and quality gates pass, mark as completed. commit the changes. Do not wait for approvals. Do not execute more tasks. Make the best decisions you can to proceed with the implementation."
 
 $Exe = "npx"
 $CommandArgs = @("opencode", "run", $BasePrompt, "--file", "agents.md", "--file", "docs\TOOLS.md")
