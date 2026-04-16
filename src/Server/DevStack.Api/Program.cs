@@ -1,4 +1,5 @@
 using DevStack.Api.GraphQL;
+using Microsoft.FeatureManagement;
 using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Services;
 using DevStack.Infrastructure.Projects;
@@ -31,7 +32,8 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
         .Enrich.FromLogContext()
         .Enrich.WithMachineName()
-        .Destructure.With(new SensitiveDataDestructuringPolicy());
+        .Destructure.With(new SensitiveDataDestructuringPolicy())
+        .WriteTo.Console();
 });
 
 builder.Host.UseWolverine();
@@ -156,9 +158,22 @@ builder.Services.AddGraphQLServer()
     .DisableIntrospection(false)
     .AddErrorFilter<GraphQLErrorFilter>();
 
-// Register custom JSON-RPC 2.0 MCP handler
-builder.Services.AddScoped<IMcpMethodHandler, McpMethodHandler>();
-builder.Services.AddScoped<JsonRpcMcpEndpointHandler>();
+builder.Services.AddFeatureManagement();
+
+var useCustomMcpHandler = builder.Configuration
+    .GetSection("FeatureManagement")
+    .GetValue<bool>("UseCustomMcpHandler");
+
+if (useCustomMcpHandler)
+{
+    builder.Services.AddScoped<IMcpMethodHandler, McpMethodHandler>();
+    builder.Services.AddScoped<JsonRpcMcpEndpointHandler>();
+}
+else
+{
+    builder.Services.AddMcpServer()
+        .WithTools<DevStackTools>();
+}
 
 
 
@@ -222,13 +237,21 @@ app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.
     }
 }).WithTags("Health");
 
-// MCP endpoint - JSON-RPC 2.0 per https://www.jsonrpc.org/specification
-app.MapPost("/mcp", async (HttpContext context, JsonRpcMcpEndpointHandler handler) =>
+if (useCustomMcpHandler)
 {
-    await handler.HandleMcpRequestAsync(context);
-})
-.WithName("MCP_JsonRpc")
-.Produces(StatusCodes.Status200OK);
+    app.MapPost("/mcp", async (HttpContext context, JsonRpcMcpEndpointHandler handler) =>
+        await handler.HandleMcpRequestAsync(context))
+        .WithName("MCP_JsonRpc")
+        .Produces(StatusCodes.Status200OK);
+
+    app.MapGet("/mcp", JsonRpcMcpEndpointHandler.HandleSseStreamAsync)
+        .WithName("MCP_SSE")
+        .ExcludeFromDescription();
+}
+else
+{
+    app.MapMcp("/mcp");
+}
 
 app.MapGraphQL("/graphql");
 

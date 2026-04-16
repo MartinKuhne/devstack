@@ -29,7 +29,7 @@ public class McpMethodHandlerTests
         result.Should().NotBeNull();
         var json = System.Text.Json.JsonSerializer.Serialize(result);
         var doc = JsonDocument.Parse(json);
-        doc.RootElement.GetProperty("protocolVersion").GetString().Should().Be("2024-11-05");
+        doc.RootElement.GetProperty("protocolVersion").GetString().Should().Be("2025-03-26");
     }
 
     [Fact]

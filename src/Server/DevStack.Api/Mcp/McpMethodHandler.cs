@@ -133,7 +133,7 @@ public class McpMethodHandler : IMcpMethodHandler
 
     private object HandleInitialize() => new
     {
-        protocolVersion = "2024-11-05",
+        protocolVersion = "2025-03-26",
         capabilities = new { tools = new { listChanged = true } },
         serverInfo = new { name = "DevStack MCP Server", version = "1.0.0" }
     };
