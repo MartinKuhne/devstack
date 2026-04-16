@@ -108,9 +108,9 @@ src/
 The following commands succeed without any errors
 
 ```
-dotnet test
-dotnet build
-docker compose
+dotnet build src/server
+dotnet test src/server
+docker compose build
 ```
 There are no build warnings or errors
 
