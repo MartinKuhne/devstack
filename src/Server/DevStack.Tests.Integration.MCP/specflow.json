@@ -1,0 +1,10 @@
+{
+  "language": {
+    "feature": "en-US"
+  },
+  "generator": {
+    "allowDebugGeneratedFiles": true
+  },
+  "plugins": [],
+  "stepAssemblies": []
+}
