@@ -1,17 +1,17 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace DevStack.Api.Mcp;
 
-/// <summary>
-/// JSON-RPC 2.0 endpoint handler for MCP
-/// Implements the specification from https://www.jsonrpc.org/specification
-/// </summary>
 public class JsonRpcMcpEndpointHandler
 {
     private readonly IMcpMethodHandler _methodHandler;
     private readonly ILogger<JsonRpcMcpEndpointHandler> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
+
+    // Session tracking for Mcp-Session-Id (Streamable HTTP spec 2025-03-26)
+    private static readonly ConcurrentDictionary<string, DateTime> _sessions = new();
 
     public JsonRpcMcpEndpointHandler(
         IMcpMethodHandler methodHandler,
@@ -31,7 +31,14 @@ public class JsonRpcMcpEndpointHandler
     {
         try
         {
-            // Validate content type
+            // Streamable HTTP spec requires Accept: application/json, text/event-stream
+            var accept = context.Request.Headers.Accept.ToString();
+            if (!string.IsNullOrEmpty(accept) && !accept.Contains("application/json") && !accept.Contains("*/*"))
+            {
+                context.Response.StatusCode = StatusCodes.Status406NotAcceptable;
+                return;
+            }
+
             if (!context.Request.ContentType?.Contains("application/json") ?? true)
             {
                 await SendErrorResponseAsync(context, null, JsonRpcErrorCode.InvalidRequest,
@@ -39,7 +46,6 @@ public class JsonRpcMcpEndpointHandler
                 return;
             }
 
-            // Read and parse request body
             string requestBody;
             try
             {
@@ -61,7 +67,6 @@ public class JsonRpcMcpEndpointHandler
                 return;
             }
 
-            // Parse JSON-RPC request
             JsonRpcRequest? request;
             try
             {
@@ -75,11 +80,9 @@ public class JsonRpcMcpEndpointHandler
                 return;
             }
 
-            // Validate request
             if (request == null)
             {
-                await SendErrorResponseAsync(context, null, JsonRpcErrorCode.InvalidRequest,
-                    "Request is null");
+                await SendErrorResponseAsync(context, null, JsonRpcErrorCode.InvalidRequest, "Request is null");
                 return;
             }
 
@@ -97,20 +100,21 @@ public class JsonRpcMcpEndpointHandler
                 return;
             }
 
-            // Process request
+            // Per JSON-RPC 2.0 and MCP Streamable HTTP spec: notifications have no id.
+            // The server MUST NOT send a response — return 202 Accepted.
+            if (request.Id == null)
+            {
+                _logger.LogInformation("Received MCP notification: {Method}", request.Method);
+                context.Response.StatusCode = StatusCodes.Status202Accepted;
+                return;
+            }
+
             try
             {
                 _logger.LogInformation("Processing JSON-RPC method: {Method}", request.Method);
                 var result = await _methodHandler.HandleAsync(request.Method, request.Params);
-
-                // Send success response
-                var response = new JsonRpcResponse
-                {
-                    Result = result,
-                    Id = request.Id
-                };
-
-                await SendResponseAsync(context, response);
+                var response = new JsonRpcResponse { Result = result, Id = request.Id };
+                await SendResponseAsync(context, response, isInitialize: request.Method == "initialize");
             }
             catch (JsonRpcException ex)
             {
@@ -127,13 +131,37 @@ public class JsonRpcMcpEndpointHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Critical error in JSON-RPC endpoint");
-            await SendErrorResponseAsync(context, null, JsonRpcErrorCode.InternalError,
-                "Internal server error");
+            await SendErrorResponseAsync(context, null, JsonRpcErrorCode.InternalError, "Internal server error");
         }
     }
 
-    private async Task SendResponseAsync(HttpContext context, JsonRpcResponse response)
+    // SSE stream for server-initiated messages (GET /mcp per Streamable HTTP spec 2025-03-26)
+    public static async Task HandleSseStreamAsync(HttpContext context)
     {
+        context.Response.ContentType = "text/event-stream";
+        context.Response.Headers["Cache-Control"] = "no-cache";
+        context.Response.Headers["X-Accel-Buffering"] = "no";
+
+        // Send initial keep-alive comment so the client knows the stream is open
+        await context.Response.WriteAsync(": connected\n\n");
+        await context.Response.Body.FlushAsync();
+
+        // Hold the connection open until the client disconnects
+        var tcs = new TaskCompletionSource();
+        context.RequestAborted.Register(() => tcs.TrySetResult());
+        await tcs.Task;
+    }
+
+    private async Task SendResponseAsync(HttpContext context, JsonRpcResponse response, bool isInitialize = false)
+    {
+        if (isInitialize)
+        {
+            // Issue a session ID per Streamable HTTP spec so clients can resume sessions
+            var sessionId = Guid.NewGuid().ToString();
+            _sessions[sessionId] = DateTime.UtcNow;
+            context.Response.Headers["Mcp-Session-Id"] = sessionId;
+        }
+
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = StatusCodes.Status200OK;
 
@@ -141,21 +169,16 @@ public class JsonRpcMcpEndpointHandler
         await context.Response.WriteAsync(jsonResponse);
     }
 
-    private async Task SendErrorResponseAsync(HttpContext context, JsonElement? id, int errorCode,
-        string errorMessage)
+    private async Task SendErrorResponseAsync(HttpContext context, JsonElement? id, int errorCode, string errorMessage)
     {
         var response = new JsonRpcResponse
         {
-            Error = new JsonRpcError
-            {
-                Code = errorCode,
-                Message = errorMessage
-            },
+            Error = new JsonRpcError { Code = errorCode, Message = errorMessage },
             Id = id
         };
 
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = StatusCodes.Status200OK; // JSON-RPC always returns 200 for valid requests
+        context.Response.StatusCode = StatusCodes.Status200OK;
 
         var jsonResponse = JsonSerializer.Serialize(response, _jsonOptions);
         await context.Response.WriteAsync(jsonResponse);
