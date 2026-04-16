@@ -1,0 +1,8 @@
+query GetProjects($first: Int) {
+  projects(first: $first) {
+    nodes {
+      id
+      name
+    }
+  }
+}

@@ -3,13 +3,70 @@ param(
     [ValidateSet("init", "run")]
     [string]$Command,
 
-    [string]$OpencodePrompt = ''
+    [string]$OpencodePrompt = '',
+
+    [string]$ApiUrl = $env:DEVSTACK_API_URL
 )
 
 $ErrorActionPreference = 'Continue'
 
-$ApiUrl = "http://localhost:8087"
-$GraphQLEndpoint = "$ApiUrl/graphql"
+if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
+    $ApiUrl = "http://localhost:8087"
+}
+
+$QueriesPath = Join-Path $PSScriptRoot "queries"
+
+function Load-GraphQLFile {
+    param(
+        [string]$FileName
+    )
+
+    $path = Join-Path $QueriesPath $FileName
+    if (-not (Test-Path $path)) {
+        Write-Error "GraphQL file not found: $path"
+        exit 1
+    }
+
+    return Get-Content -Path $path -Raw
+}
+
+function Test-GraphQLEndpoint {
+    param(
+        [string]$Url
+    )
+
+    $body = @{ query = 'query { __schema { queryType { name } } }' } | ConvertTo-Json -Depth 10
+
+    try {
+        $response = Invoke-WebRequest -Uri $Url -Method Post -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -ErrorAction Stop
+        $result = $response.Content | ConvertFrom-Json
+        return -not $result.errors
+    }
+    catch {
+        return $false
+    }
+}
+
+function Resolve-GraphQLEndpoint {
+    param(
+        [string]$PrimaryEndpoint,
+        [string]$FallbackEndpoint
+    )
+
+    if (Test-GraphQLEndpoint -Url $PrimaryEndpoint) {
+        return $PrimaryEndpoint
+    }
+
+    if ($FallbackEndpoint -and (Test-GraphQLEndpoint -Url $FallbackEndpoint)) {
+        Write-Host "Using fallback GraphQL endpoint: $FallbackEndpoint"
+        return $FallbackEndpoint
+    }
+
+    Write-Error "Unable to reach a valid GraphQL endpoint at '$PrimaryEndpoint' or '$FallbackEndpoint'."
+    exit 1
+}
+
+$GraphQLEndpoint = Resolve-GraphQLEndpoint -PrimaryEndpoint "$($ApiUrl.TrimEnd('/'))/graphql" -FallbackEndpoint "http://localhost:5000/graphql"
 
 function Invoke-GraphQLQuery {
     param(
@@ -28,11 +85,21 @@ function Invoke-GraphQLQuery {
     $jsonBody = $body | ConvertTo-Json -Depth 10
     
     try {
-        $response = Invoke-WebRequest -Uri $GraphQLEndpoint -Method Post -Body $jsonBody -ContentType "application/json" -UseBasicParsing
-        return $response.Content | ConvertFrom-Json
+        $response = Invoke-WebRequest -Uri $GraphQLEndpoint -Method Post -Body $jsonBody -ContentType "application/json; charset=utf-8" -UseBasicParsing
+        return $response | ConvertFrom-Json
     }
     catch {
+        $responseBody = $null
+        if ($_.Exception.Response) {
+            $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+            $responseBody = $reader.ReadToEnd()
+        }
+
         Write-Error "GraphQL query failed: $_"
+        if ($responseBody) {
+            Write-Error "Response body: $responseBody"
+        }
+
         throw
     }
 }
@@ -54,11 +121,21 @@ function Invoke-GraphQLMutation {
     $jsonBody = $body | ConvertTo-Json -Depth 10
     
     try {
-        $response = Invoke-WebRequest -Uri $GraphQLEndpoint -Method Post -Body $jsonBody -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-WebRequest -Uri $GraphQLEndpoint -Method Post -Body $jsonBody -ContentType "application/json; charset=utf-8" -UseBasicParsing
         return $response.Content | ConvertFrom-Json
     }
     catch {
+        $responseBody = $null
+        if ($_.Exception.Response) {
+            $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+            $responseBody = $reader.ReadToEnd()
+        }
+
         Write-Error "GraphQL mutation failed: $_"
+        if ($responseBody) {
+            Write-Error "Response body: $responseBody"
+        }
+
         throw
     }
 }
@@ -101,18 +178,10 @@ function Initialize-Project {
     
     Write-Host "Repository: $repoName"
     
-    $mutation = @"
-mutation {
-    createProject(input: { name: "$repoName", description: "Auto-initialized project" }) {
-        project {
-            id
-        }
-        errors
-    }
-}
-"@
-    
-    $result = Invoke-GraphQLMutation -Mutation $mutation
+    $mutation = Load-GraphQLFile "createProject.graphql"
+    $variables = @{ name = $repoName; description = 'Auto-initialized project' }
+
+    $result = Invoke-GraphQLMutation -Mutation $mutation -Variables $variables
     
     if ($result.data.createProject.errors) {
         Write-Error "Failed to create project: $($result.data.createProject.errors -join ', ')"
@@ -147,17 +216,7 @@ function Get-CurrentProjectId {
         exit 1
     }
 
-    $query = @'
-query GetProjects($first: Int) {
-    getProjects(first: $first) {
-        nodes {
-            id
-            name
-        }
-    }
-}
-'@
-
+    $query = Load-GraphQLFile "getProjects.graphql"
     $result = Invoke-GraphQLQuery -Query $query -Variables @{ first = 100 }
 
     if ($result.errors) {
@@ -165,7 +224,7 @@ query GetProjects($first: Int) {
         exit 1
     }
 
-    $project = $result.data.getProjects.nodes | Where-Object { $_.name -eq $repoName }
+    $project = $result.data.projects.nodes | Where-Object { $_.name -eq $repoName }
     if (-not $project) {
         Write-Error "No project matching '$repoName' found. Run init first."
         exit 1
@@ -179,20 +238,7 @@ function Plan-Defects {
 
     $projectId = Get-CurrentProjectId
 
-    $query = @'
-query GetDefects($projectId: UUID!) {
-    getDefects(projectId: $projectId, first: 200) {
-        nodes {
-            id
-            title
-            status
-            description
-            acceptanceCriteria
-            plan
-        }
-    }
-}
-'@
+    $query = Load-GraphQLFile "getDefects.graphql"
 
     $result = Invoke-GraphQLQuery -Query $query -Variables @{ projectId = $projectId }
 
@@ -201,7 +247,7 @@ query GetDefects($projectId: UUID!) {
         exit 1
     }
 
-    $defects = $result.data.getDefects.nodes | Where-Object { $_.status -eq 'Planning' }
+    $defects = $result.data.defects.nodes | Where-Object { $_.status -eq 'Planning' }
 
     if (-not $defects) {
         Write-Host "No defects in Planning status found for project."
@@ -259,24 +305,11 @@ Plan: $($defect.plan)
 }
 
 function Run-Defects {
-    Write-Host "Running defects in Planning status for current project..."
+    Write-Host "Running defects in Ready status for current project..."
 
     $projectId = Get-CurrentProjectId
 
-    $query = @'
-query GetDefects($projectId: UUID!) {
-    getDefects(projectId: $projectId, first: 200) {
-        nodes {
-            id
-            title
-            status
-            description
-            acceptanceCriteria
-            plan
-        }
-    }
-}
-'@
+    $query = Load-GraphQLFile "getDefects.graphql"
 
     $result = Invoke-GraphQLQuery -Query $query -Variables @{ projectId = $projectId }
 
@@ -285,7 +318,7 @@ query GetDefects($projectId: UUID!) {
         exit 1
     }
 
-    $defects = $result.data.getDefects.nodes | Where-Object { $_.status -eq 'Ready' }
+    $defects = $result.data.defects.nodes | Where-Object { $_.status -eq 'Ready' }
 
     if (-not $defects) {
         Write-Host "No defects in Ready status found for project."
@@ -350,5 +383,6 @@ switch ($Command) {
     }
     "run" {
         Plan-Defects
+        Run-Defects
     }
 }
