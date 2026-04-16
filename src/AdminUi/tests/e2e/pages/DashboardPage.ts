@@ -34,16 +34,16 @@ export class DashboardPage extends BasePage {
         this.refreshButton = page.getByRole('button', { name: 'Refresh' });
         this.newProjectButton = page.getByRole('button', { name: 'New Project' });
         this.createProjectDialog = page.getByRole('dialog', { name: 'Create New Project' });
-        this.projectsInFlightCard = page.getByText('Projects In Flight').locator('..').locator('..');
-        this.featuresInReviewCard = page.getByText('Features In Review').locator('..').locator('..');
-        this.featuresFailedCard = page.getByText('Features Failed').locator('..').locator('..');
-        this.tasksInProgressCard = page.getByText('Tasks In Progress').locator('..').locator('..');
-        this.tasksFailedCard = page.getByText('Tasks Failed').locator('..').locator('..');
-        this.projectsInFlightValue = this.projectsInFlightCard.getByRole('heading', { level: 3 }).last();
-        this.featuresInReviewValue = this.featuresInReviewCard.getByRole('heading', { level: 3 }).last();
-        this.featuresFailedValue = this.featuresFailedCard.getByRole('heading', { level: 3 }).last();
-        this.tasksInProgressValue = this.tasksInProgressCard.getByRole('heading', { level: 3 }).last();
-        this.tasksFailedValue = this.tasksFailedCard.getByRole('heading', { level: 3 }).last();
+        this.projectsInFlightCard = page.getByRole('heading', { name: 'Projects In Flight', level: 3 }).locator('..').locator('..');
+        this.featuresInReviewCard = page.getByRole('heading', { name: 'Features In Review', level: 3 }).locator('..').locator('..');
+        this.featuresFailedCard = page.getByRole('heading', { name: 'Features Failed', level: 3 }).locator('..').locator('..');
+        this.tasksInProgressCard = page.getByRole('heading', { name: 'Tasks In Progress', level: 3 }).locator('..').locator('..');
+        this.tasksFailedCard = page.getByRole('heading', { name: 'Tasks Failed', level: 3 }).locator('..').locator('..');
+        this.projectsInFlightValue = this.projectsInFlightCard.getByRole('heading', { level: 3 }).first();
+        this.featuresInReviewValue = this.featuresInReviewCard.getByRole('heading', { level: 3 }).first();
+        this.featuresFailedValue = this.featuresFailedCard.getByRole('heading', { level: 3 }).first();
+        this.tasksInProgressValue = this.tasksInProgressCard.getByRole('heading', { level: 3 }).first();
+        this.tasksFailedValue = this.tasksFailedCard.getByRole('heading', { level: 3 }).first();
         this.auditEventsTable = page.getByRole('table');
         this.emptyStateMessage = page.getByText('No data available yet');
         this.noActivityMessage = page.getByText('No recent activity');
@@ -56,7 +56,7 @@ export class DashboardPage extends BasePage {
     }
 
     async navigate(): Promise<void> {
-        await super.navigate('/dashboard');
+        await super.navigate('/');
         await this.page.waitForLoadState('networkidle');
     }
 
