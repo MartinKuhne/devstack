@@ -1,7 +1,9 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("init", "run")]
-    [string]$Command
+    [string]$Command,
+
+    [string]$OpencodePrompt = ''
 )
 
 $ErrorActionPreference = 'Continue'
@@ -138,92 +140,215 @@ mutation {
     Write-Host "Initialization complete!"
 }
 
-function Run-Tasks {
-    Write-Host "Running pending tasks..."
-    
-    $query = @"
-{
-    tasks(first: 50) {
+function Get-CurrentProjectId {
+    $repoName = Get-GitRemoteOrigin
+    if ([string]::IsNullOrWhiteSpace($repoName)) {
+        Write-Error "Could not determine repository name. Please ensure git remote 'origin' is configured."
+        exit 1
+    }
+
+    $query = @'
+query GetProjects($first: Int) {
+    getProjects(first: $first) {
+        nodes {
+            id
+            name
+        }
+    }
+}
+'@
+
+    $result = Invoke-GraphQLQuery -Query $query -Variables @{ first = 100 }
+
+    if ($result.errors) {
+        Write-Error "Failed to query projects: $($result.errors -join ', ')"
+        exit 1
+    }
+
+    $project = $result.data.getProjects.nodes | Where-Object { $_.name -eq $repoName }
+    if (-not $project) {
+        Write-Error "No project matching '$repoName' found. Run init first."
+        exit 1
+    }
+
+    return $project.id
+}
+
+function Plan-Defects {
+    Write-Host "Running defects in Planning status for current project..."
+
+    $projectId = Get-CurrentProjectId
+
+    $query = @'
+query GetDefects($projectId: UUID!) {
+    getDefects(projectId: $projectId, first: 200) {
         nodes {
             id
             title
             status
+            description
+            acceptanceCriteria
+            plan
         }
-    }
-}
-"@
-    
-    $result = Invoke-GraphQLQuery -Query $query
-    
-    if ($result.errors) {
-        Write-Error "Failed to query tasks: $($result.errors -join ', ')"
-        exit 1
-    }
-    
-    $tasks = $result.data.tasks.nodes
-    $todoTasks = $tasks | Where-Object { $_.status -in @('TODO', 'IN_PROGRESS') }
-    
-    if (-not $todoTasks) {
-        Write-Host "No pending tasks found."
-        return
-    }
-    
-    Write-Host "Found $($todoTasks.Count) pending tasks"
-    
-    foreach ($task in $todoTasks) {
-        Write-Host "`nProcessing task: $($task.title) (ID: $($task.id))"
-        
-        $taskQuery = @'
-query GetTaskById($id: ID!) {
-    task(id: $id) {
-        id
-        title
-        description
-        status
     }
 }
 '@
-        
-        $taskResult = Invoke-GraphQLQuery -Query $taskQuery -Variables @{ id = $task.id }
-        
-        if ($taskResult.errors) {
-            Write-Warning "Failed to get task details for $($task.id): $($taskResult.errors -join ', ')"
-            continue
-        }
-        
-        $taskDetails = $taskResult.data.task
-        $prompt = @"
-Task ID: $($taskDetails.id)
-Title: $($taskDetails.title)
-Description: $($taskDetails.description)
-Status: $($taskDetails.status)
 
-Please complete this task and mark it as done when finished.
+    $result = Invoke-GraphQLQuery -Query $query -Variables @{ projectId = $projectId }
+
+    if ($result.errors) {
+        Write-Error "Failed to query defects: $($result.errors -join ', ')"
+        exit 1
+    }
+
+    $defects = $result.data.getDefects.nodes | Where-Object { $_.status -eq 'Planning' }
+
+    if (-not $defects) {
+        Write-Host "No defects in Planning status found for project."
+        return
+    }
+
+    Write-Host "Found $($defects.Count) defect(s) in Planning status."
+
+    foreach ($defect in $defects) {
+        Write-Host "`nProcessing defect: $($defect.title) (ID: $($defect.id))"
+
+        if ([string]::IsNullOrWhiteSpace($OpencodePrompt)) {
+            $prompt = @"
+Investigate the root cause for the failure. reproduce it, collect logs/traces and metrics, identify the failing component and code path
+Propose a fix (if feasible within 5 minutes of research)
+Use the update_defect tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), rootCause, openQuestions.
+If there are no OpenQuestions, use the update_defect tool to change the state to Ready. If there are open questions, change the state to InReview.
+
+Defect ID: $($defect.id)
+Title: $($defect.title)
+Status: $($defect.status)
+Description: $($defect.description)
+AcceptanceCriteria: $($defect.acceptanceCriteria)
+Plan: $($defect.plan)
 "@
-        
-        Write-Host $prompt
-        
-        # Run opencode with the task prompt
-        $Exe = "npx"
-        $CommandArgs = @("opencode", "run", $prompt, "--file", "agents.md", "--file", "docs\TOOLS.md")
-        
-        & $Exe @CommandArgs
-        
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "Opencode returned non-zero exit code for task $($task.id)"
         }
-        
+        else {
+            $prompt = @"
+$OpencodePrompt
+
+Defect ID: $($defect.id)
+Title: $($defect.title)
+Status: $($defect.status)
+Description: $($defect.description)
+AcceptanceCriteria: $($defect.acceptanceCriteria)
+Plan: $($defect.plan)
+"@
+        }
+
+        Write-Host $prompt
+
+        $Exe = "npx"
+        $CommandArgs = @("opencode", "run", $prompt)
+
+        & $Exe @CommandArgs
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Opencode returned non-zero exit code for defect $($defect.id)"
+        }
+
         Start-Sleep -Seconds 2
     }
-    
-    Write-Host "`nAll tasks processed."
+
+    Write-Host "`nAll defects processed."
 }
+
+function Run-Defects {
+    Write-Host "Running defects in Planning status for current project..."
+
+    $projectId = Get-CurrentProjectId
+
+    $query = @'
+query GetDefects($projectId: UUID!) {
+    getDefects(projectId: $projectId, first: 200) {
+        nodes {
+            id
+            title
+            status
+            description
+            acceptanceCriteria
+            plan
+        }
+    }
+}
+'@
+
+    $result = Invoke-GraphQLQuery -Query $query -Variables @{ projectId = $projectId }
+
+    if ($result.errors) {
+        Write-Error "Failed to query defects: $($result.errors -join ', ')"
+        exit 1
+    }
+
+    $defects = $result.data.getDefects.nodes | Where-Object { $_.status -eq 'Ready' }
+
+    if (-not $defects) {
+        Write-Host "No defects in Ready status found for project."
+        return
+    }
+
+    Write-Host "Found $($defects.Count) defect(s) in Ready status."
+
+    foreach ($defect in $defects) {
+        Write-Host "`nProcessing defect: $($defect.title) (ID: $($defect.id))"
+
+        if ([string]::IsNullOrWhiteSpace($OpencodePrompt)) {
+            $prompt = @"
+Create a fix for this issue.
+Quality gates must pass.
+Commit the changes.
+Use the update_defect tool to change the state to Done. If the operation was not successful, change the status to InReview instead.
+
+Defect ID: $($defect.id)
+Title: $($defect.title)
+Status: $($defect.status)
+Description: $($defect.description)
+AcceptanceCriteria: $($defect.acceptanceCriteria)
+RootCause: $($defect.rootCause)
+Plan: $($defect.plan)
+"@
+        }
+        else {
+            $prompt = @"
+$OpencodePrompt
+
+Defect ID: $($defect.id)
+Title: $($defect.title)
+Status: $($defect.status)
+Description: $($defect.description)
+AcceptanceCriteria: $($defect.acceptanceCriteria)
+Plan: $($defect.plan)
+"@
+        }
+
+        Write-Host $prompt
+
+        $Exe = "npx"
+        $CommandArgs = @("opencode", "run", $prompt)
+
+        & $Exe @CommandArgs
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Opencode returned non-zero exit code for defect $($defect.id)"
+        }
+
+        Start-Sleep -Seconds 2
+    }
+
+    Write-Host "`nAll defects processed."
+}
+
 
 switch ($Command) {
     "init" {
         Initialize-Project
     }
     "run" {
-        Run-Tasks
+        Plan-Defects
     }
 }
