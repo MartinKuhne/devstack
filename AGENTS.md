@@ -4,20 +4,6 @@
 - C# 12, .NET 10 
 - Use this https://wolverinefx.net/introduction/getting-started.html instead of MediatR
 
-# Helpers
-- Use the codebase-memory tool to index the codebase, find out about the architecture and how modules relate to each other
-- Use the memory tool as a memory graph to create persistent memories
-- Use the refactor tool to quickly make changes to existing code
-- Use the context7 tool to research reference implementation to frequent code problems
-- Use the nuget tool to manage .net libraries and dependencies
-- Use the dotnet tool to analzye code and retrieve symbols
-- Use the serena tool as an alternate way to index and research code
-- Use the fetch tool for web access and retrieving data from URLs
-- Use the git tool to create branches and pull request and to research code history
-- Use the saga tool to manage todos and tasks
-- Use the filesystem tool for efficient access to files
-- Use the local rg binary in the path (ripgrep) for very fast searches
-
 ## Project Structure
 
 The solution file is 'src/Server/DevStack.slnx'
@@ -25,11 +11,6 @@ The solution file is 'src/Server/DevStack.slnx'
 ```text
 src/
 ```
-
-## Commands
-
-# Add commands for C# 12, .NET 10
-
 ## Code Style
 
 ### Naming
@@ -90,8 +71,6 @@ src/
 - Comments on their own line, not trailing code
 - Start with uppercase, end with period; one space after `//`
 
-# Knowledge
-
 
 # Development process
 - Create a detailed plan and decompose implementations steps into units of work that can be done by an AI agent in less than 20 minutes
@@ -124,3 +103,54 @@ There are no build warnings or errors
 - Use all [Microsoft coding](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)
 - Say it once
 - Do not put Client IDs and any passwords and secrets in the code
+
+
+## Immutability
+
+This section defines immutable goals and functional code principles that an AI agent must follow when generating or modifying code. These rules are non‑negotiable constraints: they must be enforced automatically and reviewed in every change set.
+
+### Immutable Goals
+- Immutability of state — Domain state must be immutable by default; updates return new values rather than mutating in place.
+- No hidden side effects — Functions must not perform I/O, global state mutation, or external calls unless explicitly declared.
+- Explicit effect boundaries — All effectful operations must be isolated behind named adapters with typed contracts.
+- Determinism — Given the same inputs and environment, functions must produce the same outputs; randomness and time are injected via parameters.
+
+### Functional Principles
+- Pure functions first — Business logic must be implemented as pure, referentially transparent functions.
+- Honest interfaces — Signatures must declare all inputs and outputs; no implicit context or hidden dependencies.
+- No implicit side effects — Any effect must be visible in the function’s type or signature.
+- Idempotency — Public operations should be idempotent where feasible and provide clear error semantics.
+
+### Quick Checklist
+- Mutates shared state? — Reject unless wrapped in an approved adapter.
+- Are side effects declared? — Reject if implicit.
+- Is business logic pure and testable? — Prefer yes.
+- Are adapters isolated and audited? — Must be yes.
+
+## Refactoring
+
+Refactoring is a disciplined, incremental process of applying small, behavior‑preserving transformations to improve design; an AI coding agent should treat it as a continuous, test‑backed activity that enforces modular, testable code and clear domain boundaries.
+
+### Core principle
+Refactoring preserves behavior while improving structure. Apply only small, reversible changes so tests can verify correctness after each step. This is the central definition and practice described by Martin Fowler. 
+
+### High‑level development guidelines
+- Always require tests before refactoring. The agent must add or verify automated tests that lock current behavior before any structural change. This enables safe, incremental transforms. 
+- Prefer many tiny, behavior‑preserving steps. Each change should be “too small to be worth doing” on its own but cumulatively meaningful; commit frequently and keep diffs reviewable. 
+- Follow the Rule of Three for duplication. Tolerate duplication until a pattern repeats; on the third occurrence, extract a shared abstraction. 
+- Make domain boundaries explicit. Use modules, packages, or bounded contexts to separate domain logic; expose only typed adapters at effectful edges (I/O, DB, network).
+- Favor pure functions and small interfaces inside domains. Keep side effects at the perimeter and inject effects via explicit adapters so core logic remains deterministic and testable.
+
+### Practical refactoring actions the agent should perform
+- Detect code smells (long methods, large classes, duplicated logic, feature envy) and prioritize low‑risk fixes. 
+- Apply canonical refactorings: Extract Method, Extract Class, Move Method, Replace Conditional with Polymorphism, Introduce Parameter Object, Encapsulate Field. Each refactor must be accompanied by tests and a short rationale. 
+- Enforce naming and intent: rename variables/functions to reflect domain concepts; prefer domain‑specific types over primitive bags.
+- Modularize by domain: group code by bounded context, not by technical layer; create clear adapter interfaces for persistence and external services.
+
+### Quick checklist for each refactor
+- Tests exist and pass.
+- Change is small and reversible.
+- Behavior preserved by assertions.
+- Domain boundary respected.
+- Adapters isolate effects.
+- Commit with rationale and tests.
