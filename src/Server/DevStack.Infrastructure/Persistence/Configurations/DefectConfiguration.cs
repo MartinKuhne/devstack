@@ -46,6 +46,9 @@ public class DefectConfiguration : IEntityTypeConfiguration<Defect>
             
         builder.Property(d => d.Errors)
             .IsRequired(false);
+
+        builder.Property(d => d.RootCause)
+            .IsRequired(false);
             
         builder.Property(d => d.Severity)
             .IsRequired();

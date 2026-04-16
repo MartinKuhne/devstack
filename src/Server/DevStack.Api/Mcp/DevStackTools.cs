@@ -130,10 +130,11 @@ public class DevStackTools(
         string? testPlan = null,
         string? deploymentPlan = null,
         string? openQuestions = null,
-        FeatureStatus? initialStatus = null)
+        FeatureStatus? initialStatus = null,
+        string? rootCause = null)
     {
         var id = await createDefectHandler.Handle(
-            new CreateDefectCommand(projectId, parentFeatureId, severity, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, initialStatus),
+            new CreateDefectCommand(projectId, parentFeatureId, severity, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, initialStatus, rootCause),
             CancellationToken.None);
         
         return $"Defect created with ID: {id}";
@@ -151,10 +152,11 @@ public class DevStackTools(
         string? testPlan = null,
         string? deploymentPlan = null,
         string? openQuestions = null,
+        string? rootCause = null,
         CancellationToken cancellationToken = default)
     {
         await updateDefectHandler.Handle(
-            new UpdateDefectCommand(id, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions),
+            new UpdateDefectCommand(id, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, rootCause),
             CancellationToken.None);
         
         return $"Defect {id} updated successfully";

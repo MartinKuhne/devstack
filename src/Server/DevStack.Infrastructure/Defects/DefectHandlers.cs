@@ -19,7 +19,8 @@ public record CreateDefectCommand(
     string? TestPlan,
     string? DeploymentPlan,
     string? OpenQuestions,
-    FeatureStatus? InitialStatus);
+    FeatureStatus? InitialStatus,
+    string? RootCause);
 
 public record UpdateDefectCommand(
     Guid Id,
@@ -31,7 +32,8 @@ public record UpdateDefectCommand(
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    string? OpenQuestions);
+    string? OpenQuestions,
+    string? RootCause);
 
 public record TransitionDefectStatusCommand(
     Guid Id,
@@ -81,6 +83,7 @@ public class CreateDefectHandler : ICreateDefectHandler
             TestPlan = request.TestPlan,
             DeploymentPlan = request.DeploymentPlan,
             OpenQuestions = request.OpenQuestions,
+            RootCause = request.RootCause,
             Status = request.InitialStatus ?? FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -117,6 +120,7 @@ public class UpdateDefectHandler : IUpdateDefectHandler
         if (request.TestPlan is not null) defect.TestPlan = request.TestPlan;
         if (request.DeploymentPlan is not null) defect.DeploymentPlan = request.DeploymentPlan;
         if (request.OpenQuestions is not null) defect.OpenQuestions = request.OpenQuestions;
+        if (request.RootCause is not null) defect.RootCause = request.RootCause;
 
         defect.UpdatedAt = DateTime.UtcNow;
 
