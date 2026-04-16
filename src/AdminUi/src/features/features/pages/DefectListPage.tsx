@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'react-toastify';
 import { SeverityBadge } from '@/features/defects/components/SeverityBadge';
+import { CreateDefectDialog } from '@/features/defects/components/CreateDefectDialog';
 
 const STATUS_COLORS: Record<string, string> = {
     Reported: 'bg-gray-500',
@@ -20,14 +21,21 @@ const STATUS_COLORS: Record<string, string> = {
 export function DefectListPage() {
     const navigate = useNavigate();
     const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     const { data, loading, error } = useGetDefectsQuery({
         fetchPolicy: 'cache-and-network',
     });
+    
+    const projectId = data?.defects.nodes?.[0]?.projectId ?? '2f20d4f1-cb84-4670-9117-1882f32d65cc';
 
     const handleRowClick = useCallback((defectId: string) => {
         navigate(`/defects/${defectId}`);
     }, [navigate]);
+
+    const handleCreateDefect = useCallback((defectId: string) => {
+        toast.success(`Defect ${defectId} created successfully`);
+    }, [toast]);
 
     const filteredDefects = (data?.defects.nodes ?? []).filter(defect => {
         if (statusFilter === 'all') return true;
@@ -59,7 +67,7 @@ export function DefectListPage() {
                             <SelectItem value="Closed">Closed</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button onClick={() => navigate('/defects/new')}>
+                    <Button onClick={() => setIsCreateDialogOpen(true)}>
                         New Defect
                     </Button>
                 </div>
@@ -136,6 +144,12 @@ export function DefectListPage() {
                     )}
                 </CardContent>
             </Card>
+            <CreateDefectDialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+                projectId={projectId}
+                onSuccess={handleCreateDefect}
+            />
         </div>
     );
 }
