@@ -16,8 +16,9 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Create a script to inject environment variables at runtime
-RUN echo '#!/bin/sh' > /docker-entrypoint.d/10-env.sh && \
-    echo 'sed -i "s|http://localhost:8087/graphql|$GRAPHQL_API_URL|g" /usr/share/nginx/html/*.js' >> /docker-entrypoint.d/10-env.sh && \
+RUN mkdir -p /docker-entrypoint.d && \
+    echo '#!/bin/sh' > /docker-entrypoint.d/10-env.sh && \
+    echo 'if [ -n "$GRAPHQL_API_URL" ]; then sed -i "s|http://localhost:8087/graphql|$GRAPHQL_API_URL|g" /usr/share/nginx/html/*.js 2>/dev/null || true; fi' >> /docker-entrypoint.d/10-env.sh && \
     chmod +x /docker-entrypoint.d/10-env.sh
 
 EXPOSE 80

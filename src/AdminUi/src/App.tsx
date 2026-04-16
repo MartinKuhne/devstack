@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-const DashboardPage = lazy(() => import('./features/features/pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
+const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
 const ProjectListPage = lazy(() => import('./features/features/pages/ProjectListPage').then(module => ({ default: module.ProjectListPage })));
 const ProjectDetailPage = lazy(() => import('./features/projects/pages/ProjectDetailPage').then(module => ({ default: module.ProjectDetailPage })));
 const FeatureListPage = lazy(() => import('./features/features/pages/FeatureListPage').then(module => ({ default: module.FeatureListPage })));
