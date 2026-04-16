@@ -36,12 +36,11 @@ public class DevStackTools(
         string? description = null,
         string? architecture = null,
         string? memory = null,
-        string? githubUrl = null,
-        CancellationToken cancellationToken = default)
+        string? githubUrl = null)
     {
         var id = await createProjectHandler.Handle(
             new CreateProjectCommand(name, description, architecture, memory, githubUrl),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Project created with ID: {id}";
     }
@@ -54,12 +53,11 @@ public class DevStackTools(
         string? architecture = null,
         string? memory = null,
         string? githubUrl = null,
-        string? githubToken_Encrypted = null,
-        CancellationToken cancellationToken = default)
+        string? githubToken_Encrypted = null)
     {
         await updateProjectHandler.Handle(
             new UpdateProjectCommand(id, name, description, architecture, memory, githubUrl, githubToken_Encrypted),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Project {id} updated successfully";
     }
@@ -76,12 +74,11 @@ public class DevStackTools(
         string? testPlan = null,
         string? deploymentPlan = null,
         string? openQuestions = null,
-        FeatureStatus? initialStatus = null,
-        CancellationToken cancellationToken = default)
+        FeatureStatus? initialStatus = null)
     {
         var id = await createFeatureHandler.Handle(
             new CreateFeatureCommand(projectId, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, initialStatus),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Feature created with ID: {id}";
     }
@@ -97,12 +94,11 @@ public class DevStackTools(
         string? performanceImpact = null,
         string? testPlan = null,
         string? deploymentPlan = null,
-        string? openQuestions = null,
-        CancellationToken cancellationToken = default)
+        string? openQuestions = null)
     {
         await updateFeatureHandler.Handle(
             new UpdateFeatureCommand(id, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Feature {id} updated successfully";
     }
@@ -111,12 +107,11 @@ public class DevStackTools(
     public async Task<string> TransitionFeatureStatus(
         Guid id,
         FeatureStatus targetStatus,
-        string actor,
-        CancellationToken cancellationToken = default)
+        string actor)
     {
         await transitionFeatureStatusHandler.Handle(
             new TransitionFeatureStatusCommand(id, targetStatus, actor),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Feature {id} transitioned to {targetStatus}";
     }
@@ -135,12 +130,11 @@ public class DevStackTools(
         string? testPlan = null,
         string? deploymentPlan = null,
         string? openQuestions = null,
-        FeatureStatus? initialStatus = null,
-        CancellationToken cancellationToken = default)
+        FeatureStatus? initialStatus = null)
     {
         var id = await createDefectHandler.Handle(
             new CreateDefectCommand(projectId, parentFeatureId, severity, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, initialStatus),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Defect created with ID: {id}";
     }
@@ -161,7 +155,7 @@ public class DevStackTools(
     {
         await updateDefectHandler.Handle(
             new UpdateDefectCommand(id, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Defect {id} updated successfully";
     }
@@ -175,7 +169,7 @@ public class DevStackTools(
     {
         await transitionDefectStatusHandler.Handle(
             new TransitionDefectStatusCommand(id, targetStatus, actor),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Defect {id} transitioned to {targetStatus}";
     }
@@ -194,7 +188,7 @@ public class DevStackTools(
     {
         var id = await createTaskHandler.Handle(
             new CreateTaskCommand(featureId, title, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Task created with ID: {id}";
     }
@@ -213,7 +207,7 @@ public class DevStackTools(
     {
         await updateTaskHandler.Handle(
             new UpdateTaskCommand(id, title, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating ?? 5),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Task {id} updated successfully";
     }
@@ -227,7 +221,7 @@ public class DevStackTools(
     {
         await transitionTaskHandler.Handle(
             new TransitionTaskStatusCommand(id, targetStatus, actor),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Task {id} transitioned to {targetStatus}";
     }
@@ -429,7 +423,7 @@ public class DevStackTools(
     {
         var id = await createEpicHandler.Handle(
             new CreateEpicCommand(title, description),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Epic created with ID: {id}";
     }
@@ -443,7 +437,7 @@ public class DevStackTools(
     {
         await updateEpicHandler.Handle(
             new UpdateEpicCommand(id, title, description),
-            cancellationToken);
+            CancellationToken.None);
         
         return $"Epic {id} updated successfully";
     }
