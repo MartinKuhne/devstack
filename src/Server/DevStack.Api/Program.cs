@@ -18,7 +18,6 @@ using Serilog;
 using Wolverine;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using ModelContextProtocol.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -143,12 +142,11 @@ builder.Services.AddGraphQLServer()
     .AddType<DashboardSummary>()
     .DisableIntrospection(false);
 
-builder.Services.AddMcpServer()
-    .WithHttpTransport(options =>
-    {
-        options.Stateless = true;
-    })
-    .WithToolsFromAssembly();
+// Register custom JSON-RPC 2.0 MCP handler
+builder.Services.AddScoped<IMcpMethodHandler, McpMethodHandler>();
+builder.Services.AddScoped<JsonRpcMcpEndpointHandler>();
+
+
 
 var app = builder.Build();
 
@@ -191,9 +189,15 @@ app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.
     }
 }).WithTags("Health");
 
-app.MapGraphQL("/graphql");
+// MCP endpoint - JSON-RPC 2.0 per https://www.jsonrpc.org/specification
+app.MapPost("/mcp", async (HttpContext context, JsonRpcMcpEndpointHandler handler) =>
+{
+    await handler.HandleMcpRequestAsync(context);
+})
+.WithName("MCP_JsonRpc")
+.Produces(StatusCodes.Status200OK);
 
-app.MapMcp();
+app.MapGraphQL("/graphql");
 
 app.Run();
 
