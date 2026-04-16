@@ -15,47 +15,35 @@ if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
 }
 
 $QueriesPath = Join-Path $PSScriptRoot "queries"
+$AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 
 function Load-GraphQLFile {
-    param(
-        [string]$FileName
-    )
+    param([string]$FileName)
 
     $path = Join-Path $QueriesPath $FileName
     if (-not (Test-Path $path)) {
         Write-Error "GraphQL file not found: $path"
         exit 1
     }
-
     return Get-Content -Path $path -Raw
 }
 
 function Test-GraphQLEndpoint {
-    param(
-        [string]$Url
-    )
+    param([string]$Url)
 
     $body = @{ query = 'query { __schema { queryType { name } } }' } | ConvertTo-Json -Depth 10
-
     try {
         $response = Invoke-WebRequest -Uri $Url -Method Post -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -ErrorAction Stop
-        $result = $response.Content | ConvertFrom-Json
+        $result = $response | ConvertFrom-Json
         return -not $result.errors
     }
-    catch {
-        return $false
-    }
+    catch { return $false }
 }
 
 function Resolve-GraphQLEndpoint {
-    param(
-        [string]$PrimaryEndpoint,
-        [string]$FallbackEndpoint
-    )
+    param([string]$PrimaryEndpoint, [string]$FallbackEndpoint)
 
-    if (Test-GraphQLEndpoint -Url $PrimaryEndpoint) {
-        return $PrimaryEndpoint
-    }
+    if (Test-GraphQLEndpoint -Url $PrimaryEndpoint) { return $PrimaryEndpoint }
 
     if ($FallbackEndpoint -and (Test-GraphQLEndpoint -Url $FallbackEndpoint)) {
         Write-Host "Using fallback GraphQL endpoint: $FallbackEndpoint"
@@ -66,26 +54,20 @@ function Resolve-GraphQLEndpoint {
     exit 1
 }
 
-$GraphQLEndpoint = Resolve-GraphQLEndpoint -PrimaryEndpoint "$($ApiUrl.TrimEnd('/'))/graphql" -FallbackEndpoint "http://localhost:5000/graphql"
+$GraphQLEndpoint = Resolve-GraphQLEndpoint `
+    -PrimaryEndpoint  "$($ApiUrl.TrimEnd('/'))/graphql" `
+    -FallbackEndpoint "http://localhost:5000/graphql"
 
-function Invoke-GraphQLQuery {
-    param(
-        [string]$Query,
-        [hashtable]$Variables = $null
-    )
-    
-    $body = @{
-        query = $Query
-    }
-    
-    if ($Variables) {
-        $body.variables = $Variables
-    }
-    
+function Invoke-GraphQL {
+    param([string]$Operation, [hashtable]$Variables = $null, [switch]$IsMutation)
+
+    $body = @{ query = $Operation }
+    if ($Variables) { $body.variables = $Variables }
     $jsonBody = $body | ConvertTo-Json -Depth 10
-    
+
     try {
-        $response = Invoke-WebRequest -Uri $GraphQLEndpoint -Method Post -Body $jsonBody -ContentType "application/json; charset=utf-8" -UseBasicParsing
+        $response = Invoke-WebRequest -Uri $GraphQLEndpoint -Method Post -Body $jsonBody `
+            -ContentType "application/json; charset=utf-8" -UseBasicParsing
         return $response | ConvertFrom-Json
     }
     catch {
@@ -94,48 +76,9 @@ function Invoke-GraphQLQuery {
             $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
             $responseBody = $reader.ReadToEnd()
         }
-
-        Write-Error "GraphQL query failed: $_"
-        if ($responseBody) {
-            Write-Error "Response body: $responseBody"
-        }
-
-        throw
-    }
-}
-
-function Invoke-GraphQLMutation {
-    param(
-        [string]$Mutation,
-        [hashtable]$Variables = $null
-    )
-    
-    $body = @{
-        query = $Mutation
-    }
-    
-    if ($Variables) {
-        $body.variables = $Variables
-    }
-    
-    $jsonBody = $body | ConvertTo-Json -Depth 10
-    
-    try {
-        $response = Invoke-WebRequest -Uri $GraphQLEndpoint -Method Post -Body $jsonBody -ContentType "application/json; charset=utf-8" -UseBasicParsing
-        return $response.Content | ConvertFrom-Json
-    }
-    catch {
-        $responseBody = $null
-        if ($_.Exception.Response) {
-            $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-            $responseBody = $reader.ReadToEnd()
-        }
-
-        Write-Error "GraphQL mutation failed: $_"
-        if ($responseBody) {
-            Write-Error "Response body: $responseBody"
-        }
-
+        $kind = if ($IsMutation) { "mutation" } else { "query" }
+        Write-Error "GraphQL $kind failed: $_"
+        if ($responseBody) { Write-Error "Response body: $responseBody" }
         throw
     }
 }
@@ -147,18 +90,12 @@ function Get-GitRemoteOrigin {
             Write-Error "No git remote 'origin' configured"
             return $null
         }
-        
-        # Extract repo name from various URL formats
-        # GitHub: git@github.com:org/repo.git or https://github.com/org/repo.git
         if ($originUrl -match 'github\.com[:/](?<org>[^/]+)/(?<repo>[^\.]+)') {
             return "$($matches.org)/$($matches.repo)"
         }
-        
-        # Generic: user@host:path/repo.git
         if ($originUrl -match '/(?<repo>[^/]+?)(\.git)?$') {
             return $matches.repo
         }
-        
         return $originUrl
     }
     catch {
@@ -169,43 +106,38 @@ function Get-GitRemoteOrigin {
 
 function Initialize-Project {
     Write-Host "Initializing DevStack project..."
-    
+
     $repoName = Get-GitRemoteOrigin
     if ([string]::IsNullOrWhiteSpace($repoName)) {
         Write-Error "Could not determine repository name. Please ensure git remote 'origin' is configured."
         exit 1
     }
-    
-    Write-Host "Repository: $repoName"
-    
-    $mutation = Load-GraphQLFile "createProject.graphql"
-    $variables = @{ name = $repoName; description = 'Auto-initialized project' }
 
-    $result = Invoke-GraphQLMutation -Mutation $mutation -Variables $variables
-    
+    Write-Host "Repository: $repoName"
+
+    $mutation = Load-GraphQLFile "createProject.graphql"
+    $result = Invoke-GraphQL -Operation $mutation -Variables @{ name = $repoName; description = 'Auto-initialized project' } -IsMutation
+
     if ($result.data.createProject.errors) {
         Write-Error "Failed to create project: $($result.data.createProject.errors -join ', ')"
         exit 1
     }
-    
+
     $projectId = $result.data.createProject.project.id
     Write-Host "Project created with ID: $projectId"
-    
-    $configPath = Join-Path $PSScriptRoot "opencode.json"
+
     $config = [ordered]@{
         '$schema' = "https://opencode.ai/config.json"
         mcp = @{
             devstack = @{
-                type = "remote"
-                url = "http://localhost:8087/mcp"
+                type    = "remote"
+                url     = "http://localhost:8087/mcp"
                 enabled = "true"
             }
         }
     }
-
-    $config | ConvertTo-Json -Depth 10 | Set-Content $configPath
+    $config | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $PSScriptRoot "opencode.json")
     Write-Host "Created opencode.json"
-    
     Write-Host "Initialization complete!"
 }
 
@@ -216,8 +148,8 @@ function Get-CurrentProjectId {
         exit 1
     }
 
-    $query = Load-GraphQLFile "getProjects.graphql"
-    $result = Invoke-GraphQLQuery -Query $query -Variables @{ first = 100 }
+    $query  = Load-GraphQLFile "getProjects.graphql"
+    $result = Invoke-GraphQL -Operation $query -Variables @{ first = 100 }
 
     if ($result.errors) {
         Write-Error "Failed to query projects: $($result.errors -join ', ')"
@@ -233,156 +165,125 @@ function Get-CurrentProjectId {
     return $project.id
 }
 
-function Plan-Defects {
-    Write-Host "Running defects in Planning status for current project..."
+function Invoke-AgentBatch {
+    param(
+        [string]   $EntityType,
+        [string]   $QueryFile,
+        [string]   $DataPath,
+        [string]   $StatusFilter,
+        [string]   $DefaultInstructions,
+        [string[]] $ExtraFields = @()
+    )
+
+    $plural      = "${EntityType}s"
+    $entityLabel = (Get-Culture).TextInfo.ToTitleCase($EntityType)
+    Write-Host "Processing $plural in $StatusFilter status..."
 
     $projectId = Get-CurrentProjectId
-
-    $query = Load-GraphQLFile "getDefects.graphql"
-
-    $result = Invoke-GraphQLQuery -Query $query -Variables @{ projectId = $projectId }
+    $query     = Load-GraphQLFile $QueryFile
+    $result    = Invoke-GraphQL -Operation $query -Variables @{ projectId = $projectId }
 
     if ($result.errors) {
-        Write-Error "Failed to query defects: $($result.errors -join ', ')"
+        Write-Error "Failed to query ${plural}: $($result.errors -join ', ')"
         exit 1
     }
 
-    $defects = $result.data.defects.nodes | Where-Object { $_.status -eq 'Planning' }
+    $items = $result.data.$DataPath.nodes | Where-Object { $_.status -eq $StatusFilter }
 
-    if (-not $defects) {
-        Write-Host "No defects in Planning status found for project."
+    if (-not $items) {
+        Write-Host "No $plural in $StatusFilter status found for project."
         return
     }
 
-    Write-Host "Found $($defects.Count) defect(s) in Planning status."
+    Write-Host "Found $($items.Count) ${EntityType}(s) in $StatusFilter status."
 
-    foreach ($defect in $defects) {
-        Write-Host "`nProcessing defect: $($defect.title) (ID: $($defect.id))"
+    foreach ($item in $items) {
+        Write-Host "`nProcessing ${EntityType}: $($item.title) (ID: $($item.id))"
 
-        if ([string]::IsNullOrWhiteSpace($OpencodePrompt)) {
-            $prompt = @"
-Investigate the root cause for the failure. reproduce it, collect logs/traces and metrics, identify the failing component and code path
-Propose a fix (if feasible within 5 minutes of research)
-Use the update_defect tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), rootCause, openQuestions.
-If there are no OpenQuestions, use the update_defect tool to change the state to Ready. If there are open questions, change the state to InReview.
+        $context = "$entityLabel ID: $($item.id)
+Title: $($item.title)
+Status: $($item.status)
+Description: $($item.description)
+AcceptanceCriteria: $($item.acceptanceCriteria)"
 
-Defect ID: $($defect.id)
-Title: $($defect.title)
-Status: $($defect.status)
-Description: $($defect.description)
-AcceptanceCriteria: $($defect.acceptanceCriteria)
-Plan: $($defect.plan)
-"@
+        foreach ($field in $ExtraFields) {
+            $label    = $field -creplace '([A-Z])', ' $1'
+            $context += "`n${label}: $($item.$field)"
         }
-        else {
-            $prompt = @"
-$OpencodePrompt
 
-Defect ID: $($defect.id)
-Title: $($defect.title)
-Status: $($defect.status)
-Description: $($defect.description)
-AcceptanceCriteria: $($defect.acceptanceCriteria)
-Plan: $($defect.plan)
-"@
-        }
+        $context += "`nPlan: $($item.plan)"
+
+        $instructions = if ([string]::IsNullOrWhiteSpace($OpencodePrompt)) { $DefaultInstructions } else { $OpencodePrompt }
+        $prompt = "$instructions`n`n$context"
 
         Write-Host $prompt
 
-        $Exe = "npx"
-        $CommandArgs = @("opencode", "run", $prompt)
-
-        & $Exe @CommandArgs
+        $args = @("opencode", "run", $prompt)
+        if (Test-Path $AgentsFile) { $args += @("--file", $AgentsFile) }
+        & npx @args
 
         if ($LASTEXITCODE -ne 0) {
-            Write-Warning "Opencode returned non-zero exit code for defect $($defect.id)"
+            Write-Warning "Opencode returned non-zero exit code for ${EntityType} $($item.id)"
         }
 
         Start-Sleep -Seconds 2
     }
 
-    Write-Host "`nAll defects processed."
+    Write-Host "`nAll $plural processed."
 }
-
-function Run-Defects {
-    Write-Host "Running defects in Ready status for current project..."
-
-    $projectId = Get-CurrentProjectId
-
-    $query = Load-GraphQLFile "getDefects.graphql"
-
-    $result = Invoke-GraphQLQuery -Query $query -Variables @{ projectId = $projectId }
-
-    if ($result.errors) {
-        Write-Error "Failed to query defects: $($result.errors -join ', ')"
-        exit 1
-    }
-
-    $defects = $result.data.defects.nodes | Where-Object { $_.status -eq 'Ready' }
-
-    if (-not $defects) {
-        Write-Host "No defects in Ready status found for project."
-        return
-    }
-
-    Write-Host "Found $($defects.Count) defect(s) in Ready status."
-
-    foreach ($defect in $defects) {
-        Write-Host "`nProcessing defect: $($defect.title) (ID: $($defect.id))"
-
-        if ([string]::IsNullOrWhiteSpace($OpencodePrompt)) {
-            $prompt = @"
-Create a fix for this issue.
-Quality gates must pass.
-Commit the changes.
-Use the update_defect tool to change the state to Done. If the operation was not successful, change the status to InReview instead.
-
-Defect ID: $($defect.id)
-Title: $($defect.title)
-Status: $($defect.status)
-Description: $($defect.description)
-AcceptanceCriteria: $($defect.acceptanceCriteria)
-RootCause: $($defect.rootCause)
-Plan: $($defect.plan)
-"@
-        }
-        else {
-            $prompt = @"
-$OpencodePrompt
-
-Defect ID: $($defect.id)
-Title: $($defect.title)
-Status: $($defect.status)
-Description: $($defect.description)
-AcceptanceCriteria: $($defect.acceptanceCriteria)
-Plan: $($defect.plan)
-"@
-        }
-
-        Write-Host $prompt
-
-        $Exe = "npx"
-        $CommandArgs = @("opencode", "run", $prompt)
-
-        & $Exe @CommandArgs
-
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "Opencode returned non-zero exit code for defect $($defect.id)"
-        }
-
-        Start-Sleep -Seconds 2
-    }
-
-    Write-Host "`nAll defects processed."
-}
-
 
 switch ($Command) {
     "init" {
         Initialize-Project
     }
     "run" {
-        Plan-Defects
-        Run-Defects
+        Invoke-AgentBatch `
+            -EntityType          "defect" `
+            -QueryFile           "getDefects.graphql" `
+            -DataPath            "defects" `
+            -StatusFilter        "Planning" `
+            -DefaultInstructions @"
+Investigate the root cause for the failure. Reproduce it, collect logs/traces and metrics, identify the failing component and code path.
+Propose a fix (if feasible within 5 minutes of research).
+Use the update_defect tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), rootCause, openQuestions.
+If there are no OpenQuestions, use the update_defect tool to change the state to Ready. If there are open questions, change the state to InReview.
+"@
+
+        Invoke-AgentBatch `
+            -EntityType          "defect" `
+            -QueryFile           "getDefects.graphql" `
+            -DataPath            "defects" `
+            -StatusFilter        "Ready" `
+            -ExtraFields         @("RootCause") `
+            -DefaultInstructions @"
+Create a fix for this issue.
+Quality gates must pass.
+Commit the changes.
+Use the update_defect tool to change the state to Done. If the operation was not successful, change the status to InReview instead.
+"@
+
+        Invoke-AgentBatch `
+            -EntityType          "feature" `
+            -QueryFile           "getFeatures.graphql" `
+            -DataPath            "features" `
+            -StatusFilter        "Planned" `
+            -DefaultInstructions @"
+Analyze the requirements for this feature. Break down the work, identify dependencies and risks.
+Propose an implementation plan.
+Use the update_feature tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), openQuestions.
+If there are no OpenQuestions, use the update_feature tool to change the state to Analysis. If there are open questions, change the state to InReview.
+"@
+
+        Invoke-AgentBatch `
+            -EntityType          "feature" `
+            -QueryFile           "getFeatures.graphql" `
+            -DataPath            "features" `
+            -StatusFilter        "Analysis" `
+            -DefaultInstructions @"
+Implement this feature according to the plan.
+Quality gates must pass.
+Commit the changes.
+Use the update_feature tool to change the state to Passed. If the operation was not successful, change the status to InReview instead.
+"@
     }
 }

@@ -1,10 +1,32 @@
-﻿# Development Guidelines
+﻿# Agent Principles
 
-## Active Technologies
-- C# 12, .NET 10 
-- Use this https://wolverinefx.net/introduction/getting-started.html instead of MediatR
+## Scope
+Work only on the item described in the prompt. Do not modify unrelated code or create unrelated commits.
 
-## Project Structure
+## Quality Gates
+All quality gates must pass before marking an item done:
+- Build succeeds
+- Existing tests pass
+- No new lint errors or warnings
+
+## Tools
+Use the DevStack MCP tools to update work item state:
+- `update_defect` — update defect fields and status
+- `update_feature` — update feature fields and status
+
+Always update the work item status at the end of your run, even if the work was unsuccessful. Use `InReview` when blocked or when open questions remain.
+
+## Commits
+- One focused commit per work item
+- Write a clear commit message describing what changed and why
+- Do not commit unrelated changes
+
+## Research Budget
+Limit investigation to what is needed to complete the item. If root cause cannot be determined within a reasonable effort, document open questions and transition to InReview.
+
+# Development Guidelines
+
+# Project Structure
 
 The solution file is 'src/Server/DevStack.slnx'
 

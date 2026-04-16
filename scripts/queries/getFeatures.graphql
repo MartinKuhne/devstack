@@ -1,0 +1,12 @@
+query GetFeatures($projectId: UUID!) {
+  features(projectId: $projectId, first: 200) {
+    nodes {
+      id
+      title
+      status
+      description
+      acceptanceCriteria
+      plan
+    }
+  }
+}
