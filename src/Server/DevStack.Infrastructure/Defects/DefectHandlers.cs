@@ -141,13 +141,14 @@ public class TransitionDefectStatusHandler : ITransitionDefectStatusHandler
         if (defect == null)
             throw new InvalidOperationException($"Defect with ID {request.Id} not found.");
 
+        var oldStatus = defect.Status;
         var result = _transitionService.Transition(defect, request.TargetStatus, request.Actor);
 
         if (!result.IsSuccess)
             throw new InvalidOperationException($"FEATURE_VALIDATION_ERROR: Transition failed: {string.Join(", ", result.Errors)}");
 
         _dbContext.Defects.Update(defect);
-        
+
         foreach (var @event in _transitionService.DomainEvents)
         {
             _dbContext.AuditEvents.Add(new AuditEvent
@@ -155,7 +156,7 @@ public class TransitionDefectStatusHandler : ITransitionDefectStatusHandler
                 EntityType = "Defect",
                 EntityId = defect.Id,
                 EventType = "StatusChanged",
-                OldValue = defect.Status.ToString(),
+                OldValue = oldStatus.ToString(),
                 NewValue = request.TargetStatus.ToString(),
                 Actor = request.Actor,
                 OccurredAt = DateTime.UtcNow
