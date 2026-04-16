@@ -1,9 +1,15 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ApolloWrapper } from './components/ApolloWrapper.tsx';
+import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import './index.css';
 import App from './App.tsx';
 import { setupGlobalErrorHandlers } from './lib/logging';
+
+if (import.meta.env.DEV) {
+    loadDevMessages();
+}
+loadErrorMessages();
 
 setupGlobalErrorHandlers();
 
