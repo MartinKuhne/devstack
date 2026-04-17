@@ -9,6 +9,12 @@ All quality gates must pass before marking an item done:
 - Existing tests pass
 - No new lint errors or warnings
 
+## Libraries
+- Prefer libraries over re-inventing the wheel
+- Libraries must be under a permissive license and have no licensing cost
+- Use the latest stable version applicable to the current framework version and other libraries which are already in use
+- Always research the correct usage for the current version, using context7 or web search
+
 ## Tools
 Use the DevStack MCP tools to update work item state:
 - `update_defect` — update defect fields and status
@@ -92,7 +98,6 @@ src/
 - XML doc comments (`///`) on all public/internal members
 - Comments on their own line, not trailing code
 - Start with uppercase, end with period; one space after `//`
-
 
 # Development process
 - Create a detailed plan and decompose implementations steps into units of work that can be done by an AI agent in less than 20 minutes
