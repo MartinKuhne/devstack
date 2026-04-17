@@ -19,7 +19,6 @@ public class ProjectTests
         Assert.Equal(string.Empty, project.Memory);
         Assert.NotNull(project.Features);
         Assert.NotNull(project.Defects);
-        Assert.NotNull(project.ModelConfigurations);
         Assert.Null(project.Description);
         Assert.Null(project.Architecture);
         Assert.Null(project.GithubUrl);

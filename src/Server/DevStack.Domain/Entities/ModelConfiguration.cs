@@ -1,13 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DevStack.Domain.Entities;
 
 public class ModelConfiguration : Entity
 {
-    [Required]
-    public Guid ProjectId { get; set; }
-
     [Required]
     [StringLength(500)]
     public string Url { get; set; } = string.Empty;

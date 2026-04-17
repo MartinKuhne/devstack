@@ -505,7 +505,6 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
 
         var modelConfig = new ModelConfiguration
         {
-            ProjectId = project.Id,
             Url = "https://api.example.com",
             Model = "gpt-4",
             ModelAlias = "GPT-4",
@@ -536,7 +535,6 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
 
         var modelConfig = new ModelConfiguration
         {
-            ProjectId = project.Id,
             Url = "https://api.example.com",
             Model = "gpt-3.5",
             MaxComplexity = 5
@@ -569,7 +567,6 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
 
         var modelConfig = new ModelConfiguration
         {
-            ProjectId = project.Id,
             Url = "https://api.example.com",
             Model = "gpt-4"
         };

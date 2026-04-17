@@ -62,7 +62,6 @@ public class CleanupTests : IClassFixture<TestContainerFixture>
 
         var modelConfig = new ModelConfiguration
         {
-            ProjectId = project.Id,
             Url = "https://api.example.com",
             Model = "gpt-4",
             MaxComplexity = 8
