@@ -22,7 +22,6 @@ public class ProjectType : ObjectType<Project>
         
         descriptor.Field("items").Type<ListType<ItemType>>().Resolve(ctx => ctx.Parent<Project>().Items);
         descriptor.Field("features").Type<ListType<ItemType>>().Deprecated("Use items field instead").Resolve(ctx => ctx.Parent<Project>().Items);
-        descriptor.Field("defects").Type<ListType<DefectType>>().Resolve(ctx => ctx.Parent<Project>().Defects);
     }
 }
 
@@ -61,10 +60,11 @@ public class ItemType : ObjectType<Item>
             {
                 var dbContext = ctx.Service<DevStackDbContext>();
                 var item = ctx.Parent<Item>();
-                var service = new FeatureStatusTransitionService();
+                var service = new ItemStatusTransitionService();
                 var workItem = new Item
                 {
                     Id = item.Id,
+                    Subtype = item.Subtype,
                     Status = item.Status,
                     Result = item.Result,
                     Errors = item.Errors,
@@ -115,10 +115,11 @@ public class FeatureType : ObjectType<Item>
             {
                 var dbContext = ctx.Service<DevStackDbContext>();
                 var feature = ctx.Parent<Item>();
-                var service = new FeatureStatusTransitionService();
+                var service = new ItemStatusTransitionService();
                 var workItem = new Item
                 {
                     Id = feature.Id,
+                    Subtype = feature.Subtype,
                     Status = feature.Status,
                     Result = feature.Result,
                     Errors = feature.Errors,
@@ -136,33 +137,6 @@ public class FeatureType : ObjectType<Item>
                 }
                 return validTargets;
             });
-    }
-}
-
-public class DefectType : ObjectType<Defect>
-{
-    protected override void Configure(IObjectTypeDescriptor<Defect> descriptor)
-    {
-        descriptor.Field(d => d.Id).Type<IdType>().ID();
-        descriptor.Field(d => d.ProjectId).Type<IdType>();
-        descriptor.Field(d => d.ParentFeatureId).Type<IdType>();
-        descriptor.Field(d => d.Severity).Type<EnumType<Severity>>();
-        descriptor.Field(d => d.Title).Type<StringType>();
-        descriptor.Field(d => d.Status).Type<EnumType<DevStack.Domain.Enums.FeatureStatus>>();
-        descriptor.Field(d => d.Description).Type<StringType>();
-        descriptor.Field(d => d.AcceptanceCriteria).Type<StringType>();
-        descriptor.Field(d => d.Plan).Type<StringType>();
-        descriptor.Field(d => d.SecurityImpact).Type<StringType>();
-        descriptor.Field(d => d.PerformanceImpact).Type<StringType>();
-        descriptor.Field(d => d.TestPlan).Type<StringType>();
-        descriptor.Field(d => d.DeploymentPlan).Type<StringType>();
-        descriptor.Field(d => d.OpenQuestions).Type<StringType>();
-        descriptor.Field(d => d.Result).Type<StringType>();
-        descriptor.Field(d => d.Errors).Type<StringType>();
-        descriptor.Field(d => d.RootCause).Type<StringType>();
-        descriptor.Field(d => d.CreatedAt).Type<DateTimeType>();
-        descriptor.Field(d => d.UpdatedAt).Type<DateTimeType>();
-        descriptor.Field("version").Type<IntType>().Resolve(_ => 1);
     }
 }
 

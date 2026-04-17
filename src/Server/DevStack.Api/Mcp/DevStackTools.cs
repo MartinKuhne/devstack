@@ -1,5 +1,4 @@
 using DevStack.Domain.Enums;
-using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Features;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Tasks;
@@ -21,9 +20,6 @@ public class DevStackTools(
     ICreateFeatureHandler createFeatureHandler,
     IUpdateFeatureHandler updateFeatureHandler,
     ITransitionFeatureStatusHandler transitionFeatureStatusHandler,
-    ICreateDefectHandler createDefectHandler,
-    IUpdateDefectHandler updateDefectHandler,
-    ITransitionDefectStatusHandler transitionDefectStatusHandler,
     ICreateTaskHandler createTaskHandler,
     IUpdateTaskHandler updateTaskHandler,
     ITransitionTaskStatusHandler transitionTaskHandler,
@@ -114,66 +110,6 @@ public class DevStackTools(
             CancellationToken.None);
         
         return $"Item {id} transitioned to {targetStatus}";
-    }
-
-    [McpServerTool, Description("Create a new defect")]
-    public async Task<string> CreateDefect(
-        Guid projectId,
-        Guid? parentFeatureId,
-        Severity? severity,
-        string title,
-        string? description = null,
-        string? acceptanceCriteria = null,
-        string? plan = null,
-        string? securityImpact = null,
-        string? performanceImpact = null,
-        string? testPlan = null,
-        string? deploymentPlan = null,
-        string? openQuestions = null,
-        FeatureStatus? initialStatus = null,
-        string? rootCause = null)
-    {
-        var id = await createDefectHandler.Handle(
-            new CreateDefectCommand(projectId, parentFeatureId, severity, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, initialStatus, rootCause),
-            CancellationToken.None);
-        
-        return $"Defect created with ID: {id}";
-    }
-
-    [McpServerTool, Description("Update an existing defect")]
-    public async Task<string> UpdateDefect(
-        Guid id,
-        string? title = null,
-        string? description = null,
-        string? acceptanceCriteria = null,
-        string? plan = null,
-        string? securityImpact = null,
-        string? performanceImpact = null,
-        string? testPlan = null,
-        string? deploymentPlan = null,
-        string? openQuestions = null,
-        string? rootCause = null,
-        CancellationToken cancellationToken = default)
-    {
-        await updateDefectHandler.Handle(
-            new UpdateDefectCommand(id, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, rootCause),
-            CancellationToken.None);
-        
-        return $"Defect {id} updated successfully";
-    }
-
-    [McpServerTool, Description("Transition a defect to a new status")]
-    public async Task<string> TransitionDefectStatus(
-        Guid id,
-        FeatureStatus targetStatus,
-        string actor,
-        CancellationToken cancellationToken = default)
-    {
-        await transitionDefectStatusHandler.Handle(
-            new TransitionDefectStatusCommand(id, targetStatus, actor),
-            CancellationToken.None);
-        
-        return $"Defect {id} transitioned to {targetStatus}";
     }
 
    [McpServerTool, Description("Create a new task")]
@@ -286,30 +222,6 @@ public class DevStackTools(
         return dbContext.Items.Find(id);
     }
 
-    [McpServerTool, Description("Get all defects with optional filtering")]
-    public List<DevStack.Domain.Entities.Defect> GetDefects(
-        Guid? projectId = null,
-        int first = 50,
-        int? skip = null)
-    {
-        var query = dbContext.Defects.AsQueryable();
-        if (projectId.HasValue)
-        {
-            query = query.Where(d => d.ProjectId == projectId.Value);
-        }
-        if (skip.HasValue)
-        {
-            query = query.Skip(skip.Value);
-        }
-        return query.OrderBy(d => d.CreatedAt).Take(first).ToList();
-    }
-
-    [McpServerTool, Description("Get a defect by ID")]
-    public DevStack.Domain.Entities.Defect? GetDefectById(Guid id)
-    {
-        return dbContext.Defects.Find(id);
-    }
-
     [McpServerTool, Description("Get all tasks with optional filtering")]
     public List<DevStack.Domain.Entities.AgentTask> GetTasks(
         Guid? featureId = null,
@@ -357,10 +269,11 @@ public class DevStackTools(
         if (feature == null)
             return new List<FeatureStatus>();
 
-        var service = new FeatureStatusTransitionService();
+        var service = new ItemStatusTransitionService();
         var workItem = new DevStack.Domain.Entities.Item
         {
             Id = feature.Id,
+            Subtype = feature.Subtype,
             Status = feature.Status,
             Result = feature.Result,
             Errors = feature.Errors,

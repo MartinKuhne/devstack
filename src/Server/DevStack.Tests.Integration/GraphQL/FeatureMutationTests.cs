@@ -85,8 +85,8 @@ public class FeatureMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Feature.Should().NotBeNull();
-        result.Feature!.Id.Should().NotBeEmpty();
+        result.Item.Should().NotBeNull();
+        result.Item!.Id.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class FeatureMutationTests : IAsyncLifetime
             new CreateFeatureHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Feature.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain("Title is required");
     }
 
@@ -121,16 +121,17 @@ public class FeatureMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         
         var featureId = Guid.NewGuid();
-        var feature = new Feature
+        var item = new Item
         {
             Id = featureId,
             ProjectId = _projectId,
+            Subtype = ItemSubtype.Feature,
             Title = "Original Title",
             Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext!.Features.Add(feature);
+        _dbContext!.Items.Add(item);
         await _dbContext.SaveChangesAsync();
 
         var input = new UpdateFeatureInput(
@@ -151,7 +152,7 @@ public class FeatureMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Feature.Should().NotBeNull();
+        result.Item.Should().NotBeNull();
     }
 
     [Fact]
@@ -175,7 +176,7 @@ public class FeatureMutationTests : IAsyncLifetime
             new UpdateFeatureHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Feature.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain(e => e.Contains("NOT_FOUND"));
     }
 
@@ -183,19 +184,20 @@ public class FeatureMutationTests : IAsyncLifetime
     public async Task TransitionFeatureStatus_Succeeds_For_Valid_Transition()
     {
         var mutation = new Mutation();
-        var transitionService = new Domain.Services.FeatureStatusTransitionService();
+        var transitionService = new Domain.Services.ItemStatusTransitionService();
         
         var featureId = Guid.NewGuid();
-        var feature = new Feature
+        var item = new Item
         {
             Id = featureId,
             ProjectId = _projectId,
-            Title = "Test Feature",
+            Subtype = ItemSubtype.Feature,
+            Title = "Test Item",
             Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext!.Features.Add(feature);
+        _dbContext!.Items.Add(item);
         await _dbContext.SaveChangesAsync();
 
         var input = new TransitionFeatureInput(
@@ -209,10 +211,10 @@ public class FeatureMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Feature.Should().NotBeNull();
+        result.Item.Should().NotBeNull();
         
-        var updatedFeature = await _dbContext.Features.FindAsync(featureId);
-        updatedFeature!.Status.Should().Be(FeatureStatus.Ready);
+        var updatedItem = await _dbContext.Items.FindAsync(featureId);
+        updatedItem!.Status.Should().Be(FeatureStatus.Ready);
         
         var auditEvent = await _dbContext.AuditEvents.FirstOrDefaultAsync();
         auditEvent.Should().NotBeNull();
@@ -224,19 +226,20 @@ public class FeatureMutationTests : IAsyncLifetime
     public async Task TransitionFeatureStatus_Returns_ValidationError_For_Invalid_Transition()
     {
         var mutation = new Mutation();
-        var transitionService = new Domain.Services.FeatureStatusTransitionService();
+        var transitionService = new Domain.Services.ItemStatusTransitionService();
         
         var featureId = Guid.NewGuid();
-        var feature = new Feature
+        var item = new Item
         {
             Id = featureId,
             ProjectId = _projectId,
-            Title = "Test Feature",
+            Subtype = ItemSubtype.Feature,
+            Title = "Test Item",
             Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext!.Features.Add(feature);
+        _dbContext!.Items.Add(item);
         await _dbContext.SaveChangesAsync();
 
         var input = new TransitionFeatureInput(
@@ -249,7 +252,7 @@ public class FeatureMutationTests : IAsyncLifetime
             new TransitionFeatureStatusHandler(_dbContext!, transitionService),
             CancellationToken.None);
 
-        result.Feature.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain(e => e.Contains("FEATURE_VALIDATION_ERROR"));
     }
 
@@ -259,16 +262,17 @@ public class FeatureMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         
         var featureId = Guid.NewGuid();
-        var feature = new Feature
+        var item = new Item
         {
             Id = featureId,
             ProjectId = _projectId,
+            Subtype = ItemSubtype.Feature,
             Title = "To Delete",
             Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext!.Features.Add(feature);
+        _dbContext!.Items.Add(item);
         await _dbContext.SaveChangesAsync();
 
         var input = new DeleteFeatureInput(Id: featureId);
@@ -279,10 +283,10 @@ public class FeatureMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Feature.Should().NotBeNull();
+        result.Item.Should().NotBeNull();
 
-        var deletedFeature = await _dbContext.Features.FindAsync(featureId);
-        deletedFeature.Should().BeNull();
+        var deletedItem = await _dbContext.Items.FindAsync(featureId);
+        deletedItem.Should().BeNull();
     }
 
     [Fact]
@@ -296,7 +300,7 @@ public class FeatureMutationTests : IAsyncLifetime
             new DeleteFeatureHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Feature.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain(e => e.Contains("NOT_FOUND"));
     }
 }

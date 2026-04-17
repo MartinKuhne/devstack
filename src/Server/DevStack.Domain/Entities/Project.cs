@@ -22,8 +22,6 @@ public class Project : Entity
 
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 
-    public virtual ICollection<Defect> Defects { get; set; } = new List<Defect>();
-
     [Obsolete("Use Items instead")]
     public virtual ICollection<Item> Features => Items;
 
