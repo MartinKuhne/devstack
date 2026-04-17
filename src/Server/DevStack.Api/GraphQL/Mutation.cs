@@ -136,7 +136,6 @@ public record DeleteTaskInput(Guid Id);
 public record TaskPayload(global::DevStack.Domain.Entities.AgentTask? Task, List<string> Errors);
 
 public record CreateModelConfigurationInput(
-    Guid ProjectId,
     string Url,
     string Model,
     string? ModelAlias,
@@ -692,7 +691,6 @@ public class Mutation
             var encryptedApiKey = secretService.Encrypt(input.ApiKey);
 
             var id = await handler.Handle(new CreateModelConfigurationCommand(
-                input.ProjectId,
                 input.Url,
                 input.Model,
                 input.ModelAlias,

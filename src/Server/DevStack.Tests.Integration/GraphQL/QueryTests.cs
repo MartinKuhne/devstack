@@ -138,7 +138,6 @@ public class QueryTests : IAsyncLifetime
         var modelConfig = new ModelConfiguration
         {
             Id = Guid.NewGuid(),
-            ProjectId = projectId,
             Url = "https://api.example.com",
             Model = "gpt-4",
             ModelAlias = "primary",
@@ -360,7 +359,7 @@ public class QueryTests : IAsyncLifetime
         var project = _dbContext!.Projects.First();
 
         // Act
-        var result = query.GetModelConfigurations(_dbContext, project.Id);
+        var result = query.GetModelConfigurations(_dbContext);
 
         // Assert
         result.Should().HaveCount(1);

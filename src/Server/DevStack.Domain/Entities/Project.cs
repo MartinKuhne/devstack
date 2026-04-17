@@ -24,8 +24,6 @@ public class Project : Entity
 
     public virtual ICollection<Defect> Defects { get; set; } = new List<Defect>();
 
-    public virtual ICollection<ModelConfiguration> ModelConfigurations { get; set; } = new List<ModelConfiguration>();
-
     public virtual ICollection<Epic> Epics { get; set; } = new List<Epic>();
 
     public DateTime CreatedAt { get; set; }

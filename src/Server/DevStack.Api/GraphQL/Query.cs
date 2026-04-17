@@ -188,9 +188,9 @@ public class Query
         return dbContext.Tasks.Find(id);
     }
 
-    public IQueryable<ModelConfiguration> GetModelConfigurations([Service] DevStackDbContext dbContext, Guid projectId)
+    public IQueryable<ModelConfiguration> GetModelConfigurations([Service] DevStackDbContext dbContext)
     {
-        return dbContext.ModelConfigurations.Where(mc => mc.ProjectId == projectId);
+        return dbContext.ModelConfigurations;
     }
 
     public IQueryable<AuditEvent> GetAuditEvents([Service] DevStackDbContext dbContext, Guid entityId, int take = 50)

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 namespace DevStack.Infrastructure.ModelConfigurations;
 
 public record CreateModelConfigurationCommand(
-    Guid ProjectId,
     string Url,
     string Model,
     string? ModelAlias,
@@ -48,7 +47,6 @@ public class CreateModelConfigurationHandler : ICreateModelConfigurationHandler
     {
         var config = new ModelConfiguration
         {
-            ProjectId = request.ProjectId,
             Url = request.Url,
             Model = request.Model,
             ModelAlias = request.ModelAlias,
