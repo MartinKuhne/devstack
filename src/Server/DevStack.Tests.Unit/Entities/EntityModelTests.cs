@@ -17,8 +17,7 @@ public class ProjectTests
         Assert.Equal(string.Empty, project.Name);
         Assert.NotNull(project.Memory);
         Assert.Equal(string.Empty, project.Memory);
-        Assert.NotNull(project.Features);
-        Assert.NotNull(project.Defects);
+        Assert.NotNull(project.Items);
         Assert.Null(project.Description);
         Assert.Null(project.Architecture);
         Assert.Null(project.GithubUrl);
@@ -82,70 +81,66 @@ public class ModelConfigurationTests
     }
 }
 
-public class FeatureTests
+public class ItemTests
 {
     [Fact]
-    public void Feature_Creation_Inherits_From_WorkItem()
+    public void Item_Creation_Inherits_From_WorkItem()
     {
-        var feature = new Feature();
+        var item = new Item();
         
-        Assert.NotEqual(Guid.Empty, feature.Id);
-        Assert.NotNull(feature.Title);
-       Assert.Equal(string.Empty, feature.Title);
-        Assert.Equal(FeatureStatus.Planning, feature.Status);
-        Assert.NotNull(feature.Tasks);
+        Assert.NotEqual(Guid.Empty, item.Id);
+        Assert.NotNull(item.Title);
+       Assert.Equal(string.Empty, item.Title);
+        Assert.Equal(FeatureStatus.Planning, item.Status);
+        Assert.NotNull(item.Tasks);
     }
 
     [Fact]
-    public void Feature_Has_Nullable_Properties()
+    public void Item_Has_Nullable_Properties()
     {
-        var feature = new Feature();
+        var item = new Item();
         
-        Assert.Null(feature.Description);
-        Assert.Null(feature.AcceptanceCriteria);
-        Assert.Null(feature.Plan);
-        Assert.Null(feature.SecurityImpact);
-        Assert.Null(feature.PerformanceImpact);
-        Assert.Null(feature.TestPlan);
-        Assert.Null(feature.DeploymentPlan);
-        Assert.Null(feature.OpenQuestions);
-        Assert.Null(feature.Result);
-        Assert.Null(feature.Errors);
+        Assert.Null(item.Description);
+        Assert.Null(item.AcceptanceCriteria);
+        Assert.Null(item.Plan);
+        Assert.Null(item.SecurityImpact);
+        Assert.Null(item.PerformanceImpact);
+        Assert.Null(item.TestPlan);
+        Assert.Null(item.DeploymentPlan);
+        Assert.Null(item.OpenQuestions);
+        Assert.Null(item.Result);
+        Assert.Null(item.Errors);
     }
 }
 
-public class DefectTests
+public class ItemDefectSubtypeTests
 {
     [Fact]
-    public void Defect_Creation_Inherits_From_WorkItem()
+    public void Item_With_DefectSubtype_Has_ParentFeatureId_Nullable()
     {
-        var defect = new Defect();
-        
-        Assert.NotEqual(Guid.Empty, defect.Id);
-        Assert.NotNull(defect.Title);
-        Assert.Equal(string.Empty, defect.Title);
-        Assert.Equal(FeatureStatus.Planning, defect.Status);
+        var item = new Item { Subtype = ItemSubtype.Defect };
+        Assert.Null(item.ParentFeatureId);
     }
 
     [Fact]
-    public void Defect_Has_ParentFeatureId_Nullable()
+    public void Item_With_DefectSubtype_Has_Severity_Nullable()
     {
-        var defect = new Defect();
-        Assert.Null(defect.ParentFeatureId);
+        var item = new Item { Subtype = ItemSubtype.Defect };
+        Assert.Null(item.Severity);
     }
 
     [Fact]
-    public void Defect_Has_Severity_Nullable()
+    public void Item_With_DefectSubtype_Has_ParentFeature_Nullable()
     {
-        var defect = new Defect();
-        Assert.Null(defect.Severity);
+        var item = new Item { Subtype = ItemSubtype.Defect };
+        Assert.Null(item.ParentFeature);
     }
 
     [Fact]
-    public void Defect_Has_ParentFeature_Nullable()
+    public void Item_Has_RootCause_Nullable()
     {
-        var defect = new Defect();
-        Assert.Null(defect.ParentFeature);
+        var item = new Item();
+        Assert.Null(item.RootCause);
     }
 }
 
@@ -216,7 +211,7 @@ public class WorkflowRunTests
     public void WorkflowRun_Has_Nullable_Foreign_Keys()
     {
         var workflowRun = new WorkflowRun();
-        Assert.Null(workflowRun.FeatureId);
+        Assert.Null(workflowRun.ItemId);
         Assert.Null(workflowRun.TaskId);
     }
 
