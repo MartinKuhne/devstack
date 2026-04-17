@@ -1,0 +1,12 @@
+query GetFeatureById($id: UUID!) {
+  getFeatureById(id: $id) {
+    id
+    projectId
+    epicId
+    title
+    description
+    status
+    createdAt
+    updatedAt
+  }
+}

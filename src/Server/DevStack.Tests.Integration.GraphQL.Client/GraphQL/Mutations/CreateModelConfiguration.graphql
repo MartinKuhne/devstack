@@ -1,0 +1,10 @@
+mutation CreateModelConfiguration($input: CreateModelConfigurationInput!) {
+  createModelConfiguration(input: $input) {
+    modelConfiguration {
+      id
+      url
+      model
+    }
+    errors
+  }
+}

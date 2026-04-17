@@ -1,0 +1,8 @@
+query GetEpicById($id: UUID!) {
+  getEpicById(id: $id) {
+    id
+    title
+    description
+    createdAt
+  }
+}

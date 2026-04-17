@@ -1,0 +1,9 @@
+mutation UpdateDefect($input: UpdateDefectInput!) {
+  updateDefect(input: $input) {
+    defect {
+      id
+      title
+    }
+    errors
+  }
+}

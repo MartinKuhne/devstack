@@ -1,0 +1,17 @@
+query GetFeatures($projectId: UUID, $epicId: UUID, $status: [FeatureStatus!], $first: Int, $skip: Int) {
+  getFeatures(projectId: $projectId, epicId: $epicId, status: $status, first: $first, skip: $skip) {
+    nodes {
+      id
+      projectId
+      title
+      status
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      totalCount
+    }
+    totalCount
+  }
+}

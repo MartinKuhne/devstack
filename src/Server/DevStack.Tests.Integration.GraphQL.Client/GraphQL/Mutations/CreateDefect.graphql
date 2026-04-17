@@ -1,0 +1,9 @@
+mutation CreateDefect($input: CreateDefectInput!) {
+  createDefect(input: $input) {
+    defect {
+      id
+      title
+    }
+    errors
+  }
+}

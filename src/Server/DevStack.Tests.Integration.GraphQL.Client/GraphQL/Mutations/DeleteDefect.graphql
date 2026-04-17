@@ -1,0 +1,8 @@
+mutation DeleteDefect($input: DeleteDefectInput!) {
+  deleteDefect(input: $input) {
+    defect {
+      id
+    }
+    errors
+  }
+}
