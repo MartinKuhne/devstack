@@ -6,7 +6,7 @@ import { ApiClient } from './api-client.js';
 
 vi.mock('../config.js', () => ({
   loadConfig: () => ({
-    GRAPHQL_API_URL: 'http://localhost:5000/graphql',
+    GRAPHQL_API_URL: 'http://localhost:8087/graphql',
     REDIS_URL: 'redis://localhost:6379',
     LOG_LEVEL: 'info',
     WORKER_CONCURRENCY: 2,
@@ -15,7 +15,7 @@ vi.mock('../config.js', () => ({
 }));
 
 const server = setupServer(
-  http.post('http://localhost:5000/graphql', async ({ request }) => {
+  http.post('http://localhost:8087/graphql', async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
 
     if (typeof body.query === 'string' && body.query.includes('dashboardSummary')) {

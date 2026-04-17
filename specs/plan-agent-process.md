@@ -82,7 +82,7 @@ Component: `src/AgentProcess/`
 
 ### Step 0.2 — Add configuration
 - [ ] Create `src/config.ts` loading environment variables with validation via `zod`:
-  - `GRAPHQL_API_URL` (required): base URL of the GraphQL API (e.g., `http://localhost:5000/graphql`).
+  - `GRAPHQL_API_URL` (required): base URL of the GraphQL API (e.g., `http://localhost:8087/graphql`).
   - `GRAPHQL_API_TOKEN` (optional): bearer token for API authentication (phase 1: not required; add if needed).
   - `REDIS_URL` (required): Redis connection string for BullMQ.
   - `GITHUB_TOKEN` (optional): default GitHub token if project-specific token is not set.

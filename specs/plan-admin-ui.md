@@ -116,7 +116,7 @@ Component: `src/AdminUi/`
 - [ ] Add `eslint` with `@typescript-eslint` and `react-hooks` plugins; configure `eslint.config.ts` (flat config format).
 - [ ] Add `prettier` with `.prettierrc` configured for 4-space indent, single quotes, trailing commas.
 - [ ] Configure `lint-staged` to run `eslint --fix` and `prettier --write` on staged `.ts` and `.tsx` files via a Husky pre-commit hook.
-- [ ] Add `.env.example` with `VITE_API_URL=http://localhost:5000/graphql`.
+- [ ] Add `.env.example` with `VITE_API_URL=http://localhost:8087/graphql`.
 - [ ] Add `Dockerfile` and `.dockerignore` for multi-stage build (Vite build → nginx serve).
 - [ ] Add `docker-compose.yml` entry or update root compose to include the Admin UI service.
 - [ ] Verify `npm run lint`, `npm run typecheck`, and `npm run build` all pass.
