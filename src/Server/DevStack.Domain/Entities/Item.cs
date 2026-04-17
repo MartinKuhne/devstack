@@ -29,4 +29,8 @@ public class Item : WorkItem
     public string? RootCause { get; set; }
 
     public virtual Item? ParentFeature { get; set; }
+
+    public Guid? DependsOnId { get; set; }
+
+    public virtual Item? DependsOn { get; set; }
 }
