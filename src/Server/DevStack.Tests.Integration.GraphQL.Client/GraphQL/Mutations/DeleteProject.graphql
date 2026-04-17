@@ -1,0 +1,8 @@
+mutation DeleteProject($input: DeleteProjectInput!) {
+  deleteProject(input: $input) {
+    project {
+      id
+    }
+    errors
+  }
+}

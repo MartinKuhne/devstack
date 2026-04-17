@@ -1,0 +1,10 @@
+mutation UpdateModelConfiguration($input: UpdateModelConfigurationInput!) {
+  updateModelConfiguration(input: $input) {
+    modelConfiguration {
+      id
+      url
+      model
+    }
+    errors
+  }
+}

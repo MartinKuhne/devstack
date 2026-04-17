@@ -1,0 +1,9 @@
+mutation TransitionFeatureStatus($input: TransitionFeatureInput!) {
+  transitionFeatureStatus(input: $input) {
+    feature {
+      id
+      status
+    }
+    errors
+  }
+}

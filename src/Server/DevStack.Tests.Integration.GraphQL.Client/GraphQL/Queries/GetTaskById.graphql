@@ -1,0 +1,10 @@
+query GetTaskById($id: UUID!) {
+  getTaskById(id: $id) {
+    id
+    featureId
+    title
+    complexityRating
+    status
+    createdAt
+  }
+}

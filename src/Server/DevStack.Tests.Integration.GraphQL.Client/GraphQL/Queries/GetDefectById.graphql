@@ -1,0 +1,11 @@
+query GetDefectById($id: UUID!) {
+  getDefectById(id: $id) {
+    id
+    projectId
+    parentFeatureId
+    title
+    severity
+    status
+    createdAt
+  }
+}

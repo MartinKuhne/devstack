@@ -1,0 +1,12 @@
+query GetProjectById($id: UUID!) {
+  getProjectById(id: $id) {
+    id
+    name
+    description
+    architecture
+    memory
+    githubUrl
+    createdAt
+    updatedAt
+  }
+}

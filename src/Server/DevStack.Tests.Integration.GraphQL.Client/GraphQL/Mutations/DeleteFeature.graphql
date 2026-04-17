@@ -1,0 +1,8 @@
+mutation DeleteFeature($input: DeleteFeatureInput!) {
+  deleteFeature(input: $input) {
+    feature {
+      id
+    }
+    errors
+  }
+}

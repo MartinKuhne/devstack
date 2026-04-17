@@ -1,0 +1,9 @@
+query GetDashboardSummary {
+  getDashboardSummary {
+    projectsInFlight
+    featuresInReview
+    featuresFailed
+    tasksInProgress
+    tasksFailed
+  }
+}

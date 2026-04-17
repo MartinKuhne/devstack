@@ -20,6 +20,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="StrawberryShake.Transport.Http" Version="15.1.14" />
+    <PackageReference Include="SpecFlow" Version="3.9.8" />
+    <PackageReference Include="SpecFlow.xUnit" Version="3.9.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
   </ItemGroup>
 
@@ -39,5 +41,9 @@
     <StrawberryShakeCodeGenerator>StrawberryShake.CodeGeneration.CSharp.CSharpCodeGenerator</StrawberryShakeCodeGenerator>
     <StrawberryShakeOutputDirectory>Generated</StrawberryShakeOutputDirectory>
   </PropertyGroup>
+
+  <Target Name="DownloadGraphQLSchema" BeforeTargets="StrawberryShakeCodeGeneration;CoreCompile">
+    <Exec Command="npx get-graphql-schema http://localhost:8087/graphql -o schema.graphql" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="!Exists('$(MSBuildProjectDirectory)/schema.graphql')" />
+  </Target>
 
 </Project>
