@@ -8,7 +8,7 @@ using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
-using FeatureStatus = DevStack.Domain.Enums.FeatureStatus;
+using FeatureStatus = DevStack.Client.FeatureStatus;
 using TaskStatus = DevStack.Domain.Enums.TaskStatus;
 
 namespace DevStack.Tests.Integration.GraphQL;
@@ -60,7 +60,7 @@ public class TaskMutationTests : IAsyncLifetime
             Id = _featureId,
             ProjectId = _projectId,
             Title = "Test Feature",
-            Status = FeatureStatus.Planning,
+            Status = (DevStack.Domain.Enums.FeatureStatus)(object)FeatureStatus.Planning,
             Subtype = ItemSubtype.Feature,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
