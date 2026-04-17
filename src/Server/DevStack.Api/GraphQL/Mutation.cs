@@ -65,7 +65,7 @@ public record TransitionFeatureInput(
 
 public record DeleteFeatureInput(Guid Id);
 
-public record FeaturePayload(Feature? Feature, List<string> Errors);
+public record FeaturePayload(Item? Item, List<string> Errors);
 
 public record CreateDefectInput(
     Guid ProjectId,
@@ -107,7 +107,7 @@ public record DefectPayload(Defect? Defect, List<string> Errors);
 
 public record CreateTaskInput(
     Guid ProjectId,
-    Guid FeatureId,
+    Guid ItemId,
     string Title,
     string? Deliverable,
     string? AcceptanceCriteria,
@@ -156,7 +156,7 @@ public record ModelConfigurationPayload(ModelConfiguration? ModelConfiguration, 
 
 public record CreateWorkflowRunInput(
     Guid ProjectId,
-    Guid? FeatureId,
+    Guid? ItemId,
     Guid? TaskId,
     WorkflowType WorkflowType,
     string InputPayload);
@@ -313,7 +313,7 @@ public class Mutation
                 input.OpenQuestions,
                 input.InitialStatus), cancellationToken);
             
-            var feature = new Feature { Id = id };
+            var feature = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Feature };
             return new FeaturePayload(feature, new List<string>());
         }
         catch (Exception ex)
@@ -343,12 +343,12 @@ public class Mutation
                 input.DeploymentPlan,
                 input.OpenQuestions), cancellationToken);
 
-            var feature = new Feature { Id = input.Id };
+            var feature = new Item{ Id = input.Id };
             return new FeaturePayload(feature, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return new FeaturePayload(null, ["NOT_FOUND: Feature not found"]);
+            return new FeaturePayload(null, ["NOT_FOUND: Item not found"]);
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
         {
@@ -374,12 +374,12 @@ public class Mutation
                 input.TargetStatus,
                 input.Actor), cancellationToken);
 
-            var feature = new Feature { Id = input.Id };
+            var feature = new Item{ Id = input.Id };
             return new FeaturePayload(feature, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return new FeaturePayload(null, ["NOT_FOUND: Feature not found"]);
+            return new FeaturePayload(null, ["NOT_FOUND: Item not found"]);
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
         {
@@ -406,12 +406,12 @@ public class Mutation
         {
             await handler.Handle(new DeleteFeatureCommand(input.Id), cancellationToken);
             
-            var feature = new Feature { Id = input.Id };
+            var feature = new Item{ Id = input.Id };
             return new FeaturePayload(feature, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return new FeaturePayload(null, ["NOT_FOUND: Feature not found"]);
+            return new FeaturePayload(null, ["NOT_FOUND: Item not found"]);
         }
         catch (Exception ex)
         {
@@ -553,7 +553,7 @@ public class Mutation
         {
             var id = await handler.Handle(new CreateTaskCommand(
                 input.ProjectId,
-                input.FeatureId,
+                input.ItemId,
                 input.Title,
                 input.Deliverable,
                 input.AcceptanceCriteria,
@@ -759,7 +759,7 @@ public class Mutation
         {
             var id = await handler.Handle(new CreateWorkflowRunCommand(
                 input.ProjectId,
-                input.FeatureId,
+                input.ItemId,
                 input.TaskId,
                 input.WorkflowType,
                 input.InputPayload), cancellationToken);

@@ -7,7 +7,7 @@ namespace DevStack.Infrastructure.WorkflowRuns;
 
 public record CreateWorkflowRunCommand(
     Guid ProjectId,
-    Guid? FeatureId,
+    Guid? ItemId,
     Guid? TaskId,
     WorkflowType WorkflowType,
     string InputPayload);
@@ -45,7 +45,7 @@ public class CreateWorkflowRunHandler : ICreateWorkflowRunHandler
         var run = new WorkflowRun
         {
             ProjectId = request.ProjectId,
-            FeatureId = request.FeatureId,
+            ItemId = request.ItemId,
             TaskId = request.TaskId,
             WorkflowType = request.WorkflowType,
             Status = WorkflowRunStatus.Queued,

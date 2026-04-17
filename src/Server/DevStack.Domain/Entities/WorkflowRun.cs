@@ -9,7 +9,7 @@ public class WorkflowRun : Entity
     [Required]
     public Guid ProjectId { get; set; }
 
-    public Guid? FeatureId { get; set; }
+    public Guid? ItemId { get; set; }
 
     public Guid? TaskId { get; set; }
 
@@ -33,7 +33,12 @@ public class WorkflowRun : Entity
 
     // Navigation properties
     public virtual Project? Project { get; set; }
-    public virtual Feature? Feature { get; set; }
+    [ForeignKey(nameof(ItemId))]
+    public virtual Item? Item { get; set; }
+    [Obsolete("Use ItemId and Item instead")]
+    public Guid? FeatureId { get => ItemId; set => ItemId = value; }
+    [Obsolete("Use Item instead")]
+    public virtual Item? Feature { get => Item; set => Item = value; }
     public virtual AgentTask? Task { get; set; }
 
     public WorkflowRun()

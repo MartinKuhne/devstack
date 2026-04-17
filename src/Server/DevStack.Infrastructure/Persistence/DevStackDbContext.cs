@@ -12,13 +12,15 @@ public class DevStackDbContext : DbContext
     }
 
     public DbSet<Project> Projects { get; set; } = null!;
-    public DbSet<Feature> Features { get; set; } = null!;
+    public DbSet<Item> Items { get; set; } = null!;
     public DbSet<Defect> Defects { get; set; } = null!;
     public DbSet<DevStack.Domain.Entities.AgentTask> Tasks { get; set; } = null!;
     public DbSet<ModelConfiguration> ModelConfigurations { get; set; } = null!;
     public DbSet<WorkflowRun> WorkflowRuns { get; set; } = null!;
     public DbSet<AuditEvent> AuditEvents { get; set; } = null!;
     public DbSet<Epic> Epics { get; set; } = null!;
+
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,7 +34,7 @@ public class DevStackDbContext : DbContext
         // For SQLite: Use IsConcurrencyToken only (application must provide value)
 
         // Add indexes for common queries
-        modelBuilder.Entity<Feature>()
+        modelBuilder.Entity<Item>()
                     .HasIndex(f => f.Status);
                     
         modelBuilder.Entity<DevStack.Domain.Entities.AgentTask>()
@@ -41,13 +43,13 @@ public class DevStackDbContext : DbContext
         modelBuilder.Entity<AuditEvent>()
                     .HasIndex(a => a.EntityId);
                     
-        modelBuilder.Entity<Feature>()
+        modelBuilder.Entity<Item>()
                     .HasIndex(f => new { f.ProjectId, f.Status });
                     
         modelBuilder.Entity<DevStack.Domain.Entities.AgentTask>()
-                    .HasIndex(t => new { t.FeatureId, t.Status });
+                    .HasIndex(t => new { t.ItemId, t.Status });
 
-        modelBuilder.Entity<Feature>()
+        modelBuilder.Entity<Item>()
                     .HasIndex(f => f.EpicId);
 
         modelBuilder.Entity<Epic>()

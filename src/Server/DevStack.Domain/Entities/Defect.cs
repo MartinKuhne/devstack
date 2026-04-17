@@ -12,5 +12,5 @@ public class Defect : WorkItem
 
     public string? RootCause { get; set; }
 
-    public virtual Feature? ParentFeature { get; set; }
+    public virtual Item? ParentFeature { get; set; }
 }

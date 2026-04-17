@@ -80,7 +80,7 @@ public class DevStackTools(
             new CreateFeatureCommand(projectId, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, initialStatus),
             CancellationToken.None);
         
-        return $"Feature created with ID: {id}";
+        return $"Item created with ID: {id}";
     }
 
     [McpServerTool, Description("Update an existing feature")]
@@ -100,7 +100,7 @@ public class DevStackTools(
             new UpdateFeatureCommand(id, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions),
             CancellationToken.None);
         
-        return $"Feature {id} updated successfully";
+        return $"Item {id} updated successfully";
     }
 
     [McpServerTool, Description("Transition a feature to a new status")]
@@ -113,7 +113,7 @@ public class DevStackTools(
             new TransitionFeatureStatusCommand(id, targetStatus, actor),
             CancellationToken.None);
         
-        return $"Feature {id} transitioned to {targetStatus}";
+        return $"Item {id} transitioned to {targetStatus}";
     }
 
     [McpServerTool, Description("Create a new defect")]
@@ -247,7 +247,7 @@ public class DevStackTools(
     }
 
     [McpServerTool, Description("Get all features with optional filtering")]
-    public List<DevStack.Domain.Entities.Feature> GetFeatures(
+    public List<DevStack.Domain.Entities.Item> GetFeatures(
         Guid? projectId = null,
         List<FeatureStatus>? status = null,
         DateTime? createdAfter = null,
@@ -255,7 +255,7 @@ public class DevStackTools(
         int first = 50,
         int? skip = null)
     {
-        var query = dbContext.Features.AsQueryable();
+        var query = dbContext.Items.AsQueryable();
         if (projectId.HasValue)
         {
             query = query.Where(f => f.ProjectId == projectId.Value);
@@ -281,9 +281,9 @@ public class DevStackTools(
     }
 
     [McpServerTool, Description("Get a feature by ID")]
-    public DevStack.Domain.Entities.Feature? GetFeatureById(Guid id)
+    public DevStack.Domain.Entities.Item? GetFeatureById(Guid id)
     {
-        return dbContext.Features.Find(id);
+        return dbContext.Items.Find(id);
     }
 
     [McpServerTool, Description("Get all defects with optional filtering")]
@@ -322,7 +322,7 @@ public class DevStackTools(
         var query = dbContext.Tasks.AsQueryable();
         if (featureId.HasValue)
         {
-            query = query.Where(t => t.FeatureId == featureId.Value);
+            query = query.Where(t => t.ItemId == featureId.Value);
         }
         if (status is not null && status.Count > 0)
         {
@@ -353,12 +353,12 @@ public class DevStackTools(
     [McpServerTool, Description("Get valid status transitions for a feature")]
     public List<FeatureStatus> GetValidStatusTransitions(Guid featureId)
     {
-        var feature = dbContext.Features.Find(featureId);
+        var feature = dbContext.Items.Find(featureId);
         if (feature == null)
             return new List<FeatureStatus>();
 
         var service = new FeatureStatusTransitionService();
-        var workItem = new DevStack.Domain.Entities.Feature
+        var workItem = new DevStack.Domain.Entities.Item
         {
             Id = feature.Id,
             Status = feature.Status,
@@ -386,8 +386,8 @@ public class DevStackTools(
         return new
         {
             ProjectsInFlight = dbContext.Projects.Count(),
-            FeaturesInReview = dbContext.Features.Count(f => f.Status == FeatureStatus.InReview),
-            FeaturesFailed = dbContext.Features.Count(f => f.Status == FeatureStatus.Failed),
+            FeaturesInReview = dbContext.Items.Count(f => f.Status == FeatureStatus.InReview),
+            FeaturesFailed = dbContext.Items.Count(f => f.Status == FeatureStatus.Failed),
             TasksInProgress = dbContext.Tasks.Count(t => t.Status == DevStack.Domain.Enums.TaskStatus.Code),
             TasksFailed = dbContext.Tasks.Count(t => t.Status == DevStack.Domain.Enums.TaskStatus.Failed)
         };

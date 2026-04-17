@@ -12,6 +12,23 @@ public abstract class DomainEvent
     public DateTime OccurredAt { get; }
 }
 
+public sealed class ItemStatusChangedEvent : DomainEvent
+{
+    public ItemStatusChangedEvent(Guid itemId, FeatureStatus oldStatus, FeatureStatus newStatus, string actor)
+    {
+        ItemId = itemId;
+        OldStatus = oldStatus;
+        NewStatus = newStatus;
+        Actor = actor ?? string.Empty;
+    }
+
+    public Guid ItemId { get; }
+    public FeatureStatus OldStatus { get; }
+    public FeatureStatus NewStatus { get; }
+    public string Actor { get; }
+}
+
+[Obsolete("Use ItemStatusChangedEvent instead")]
 public sealed class FeatureStatusChangedEvent : DomainEvent
 {
     public FeatureStatusChangedEvent(Guid featureId, FeatureStatus oldStatus, FeatureStatus newStatus, string actor)

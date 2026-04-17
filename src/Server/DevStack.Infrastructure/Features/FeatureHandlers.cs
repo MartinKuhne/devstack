@@ -65,9 +65,10 @@ public class CreateFeatureHandler : ICreateFeatureHandler
 
     public async global::System.Threading.Tasks.Task<Guid> Handle(CreateFeatureCommand request, CancellationToken cancellationToken)
     {
-        var feature = new Feature
+        var item = new Item
         {
             ProjectId = request.ProjectId,
+            Subtype = Domain.Enums.ItemSubtype.Feature,
             Title = request.Title,
             Description = request.Description,
             AcceptanceCriteria = request.AcceptanceCriteria,
@@ -82,10 +83,10 @@ public class CreateFeatureHandler : ICreateFeatureHandler
             UpdatedAt = DateTime.UtcNow
         };
 
-        _dbContext.Features.Add(feature);
+        _dbContext.Items.Add(item);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return feature.Id;
+        return item.Id;
     }
 }
 
@@ -100,21 +101,21 @@ public class UpdateFeatureHandler : IUpdateFeatureHandler
 
     public async global::System.Threading.Tasks.Task Handle(UpdateFeatureCommand request, CancellationToken cancellationToken)
     {
-        var feature = await _dbContext.Features.FindAsync([request.Id], cancellationToken);
-        if (feature == null)
-            throw new InvalidOperationException($"Feature with ID {request.Id} not found.");
+        var item = await _dbContext.Items.FindAsync([request.Id], cancellationToken);
+        if (item == null)
+            throw new InvalidOperationException($"Item with ID {request.Id} not found.");
 
-        if (!string.IsNullOrEmpty(request.Title)) feature.Title = request.Title;
-        if (request.Description is not null) feature.Description = request.Description;
-        if (request.AcceptanceCriteria is not null) feature.AcceptanceCriteria = request.AcceptanceCriteria;
-        if (request.Plan is not null) feature.Plan = request.Plan;
-        if (request.SecurityImpact is not null) feature.SecurityImpact = request.SecurityImpact;
-        if (request.PerformanceImpact is not null) feature.PerformanceImpact = request.PerformanceImpact;
-        if (request.TestPlan is not null) feature.TestPlan = request.TestPlan;
-        if (request.DeploymentPlan is not null) feature.DeploymentPlan = request.DeploymentPlan;
-        if (request.OpenQuestions is not null) feature.OpenQuestions = request.OpenQuestions;
+        if (!string.IsNullOrEmpty(request.Title)) item.Title = request.Title;
+        if (request.Description is not null) item.Description = request.Description;
+        if (request.AcceptanceCriteria is not null) item.AcceptanceCriteria = request.AcceptanceCriteria;
+        if (request.Plan is not null) item.Plan = request.Plan;
+        if (request.SecurityImpact is not null) item.SecurityImpact = request.SecurityImpact;
+        if (request.PerformanceImpact is not null) item.PerformanceImpact = request.PerformanceImpact;
+        if (request.TestPlan is not null) item.TestPlan = request.TestPlan;
+        if (request.DeploymentPlan is not null) item.DeploymentPlan = request.DeploymentPlan;
+        if (request.OpenQuestions is not null) item.OpenQuestions = request.OpenQuestions;
 
-        feature.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -133,25 +134,25 @@ public class TransitionFeatureStatusHandler : ITransitionFeatureStatusHandler
 
     public async global::System.Threading.Tasks.Task Handle(TransitionFeatureStatusCommand request, CancellationToken cancellationToken)
     {
-        var feature = await _dbContext.Features.FindAsync([request.Id], cancellationToken);
-        if (feature == null)
-            throw new InvalidOperationException($"Feature with ID {request.Id} not found.");
+        var item = await _dbContext.Items.FindAsync([request.Id], cancellationToken);
+        if (item == null)
+            throw new InvalidOperationException($"Item with ID {request.Id} not found.");
 
-        var result = _transitionService.Transition(feature, request.TargetStatus, request.Actor);
+        var result = _transitionService.Transition(item, request.TargetStatus, request.Actor);
 
         if (!result.IsSuccess)
             throw new InvalidOperationException($"Transition failed: {string.Join(", ", result.Errors)}");
 
-        _dbContext.Features.Update(feature);
+        _dbContext.Items.Update(item);
         
         foreach (var @event in _transitionService.DomainEvents)
         {
             _dbContext.AuditEvents.Add(new AuditEvent
             {
-                EntityType = "Feature",
-                EntityId = feature.Id,
+                EntityType = "Item",
+                EntityId = item.Id,
                 EventType = "StatusChanged",
-                OldValue = feature.Status.ToString(),
+                OldValue = item.Status.ToString(),
                 NewValue = request.TargetStatus.ToString(),
                 Actor = request.Actor,
                 OccurredAt = DateTime.UtcNow
@@ -173,11 +174,11 @@ public class DeleteFeatureHandler : IDeleteFeatureHandler
 
     public async global::System.Threading.Tasks.Task Handle(DeleteFeatureCommand request, CancellationToken cancellationToken)
     {
-        var feature = await _dbContext.Features.FindAsync([request.Id], cancellationToken);
-        if (feature == null)
-            throw new InvalidOperationException($"Feature with ID {request.Id} not found.");
+        var item = await _dbContext.Items.FindAsync([request.Id], cancellationToken);
+        if (item == null)
+            throw new InvalidOperationException($"Item with ID {request.Id} not found.");
 
-        _dbContext.Features.Remove(feature);
+        _dbContext.Items.Remove(item);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -40,17 +40,18 @@ public class Query
         };
     }
 
-    public FeatureConnection GetFeatures(
+    public ItemConnection GetItems(
         [Service] DevStackDbContext dbContext,
         Guid? projectId = null,
         Guid? epicId = null,
         List<FeatureStatus>? status = null,
+        List<ItemSubtype>? subtype = null,
         DateTime? createdAfter = null,
         DateTime? createdBefore = null,
         int first = 50,
         int? skip = null)
     {
-        var query = dbContext.Features.AsQueryable();
+        var query = dbContext.Items.AsQueryable();
         if (projectId.HasValue)
         {
             query = query.Where(f => f.ProjectId == projectId.Value);
@@ -62,6 +63,10 @@ public class Query
         if (status is not null && status.Count > 0)
         {
             query = query.Where(f => status.Contains(f.Status));
+        }
+        if (subtype is not null && subtype.Count > 0)
+        {
+            query = query.Where(f => subtype.Contains(f.Subtype));
         }
         if (createdAfter.HasValue)
         {
@@ -80,10 +85,10 @@ public class Query
         }
         var nodes = query.Take(first).ToList();
 
-        return new FeatureConnection
+        return new ItemConnection
         {
             Nodes = nodes,
-            PageInfo = new FeaturePageInfo
+            PageInfo = new ItemPageInfo
             {
                 HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
                 HasPreviousPage = skip > 0,
@@ -93,9 +98,11 @@ public class Query
         };
     }
 
-    public Feature? GetFeatureById([Service] DevStackDbContext dbContext, Guid id)
+    [Obsolete("Use GetItemById instead")]
+    public Item? GetFeatureById([Service] DevStackDbContext dbContext, Guid id)
     {
-        return dbContext.Features.Find(id);
+        var item = dbContext.Items.Find(id);
+        return item == null ? null : new Item{ Id = item.Id };
     }
 
     public DefectConnection GetDefects(
@@ -137,7 +144,7 @@ public class Query
 
     public TaskConnection GetTasks(
         [Service] DevStackDbContext dbContext,
-        Guid? featureId = null,
+        Guid? itemId = null,
         List<global::DevStack.Domain.Enums.TaskStatus>? status = null,
         DateTime? createdAfter = null,
         DateTime? createdBefore = null,
@@ -145,9 +152,9 @@ public class Query
         int? skip = null)
     {
         var query = dbContext.Tasks.AsQueryable();
-        if (featureId.HasValue)
+        if (itemId.HasValue)
         {
-            query = query.Where(t => t.FeatureId == featureId.Value);
+            query = query.Where(t => t.ItemId == itemId.Value);
         }
         if (status is not null && status.Count > 0)
         {
@@ -239,20 +246,20 @@ public class Query
         return dbContext.Epics.Find(id);
     }
 
-    public List<FeatureStatus> GetValidStatusTransitions([Service] DevStackDbContext dbContext, Guid featureId)
+    public List<FeatureStatus> GetValidStatusTransitions([Service] DevStackDbContext dbContext, Guid itemId)
     {
-        var feature = dbContext.Features.Find(featureId);
-        if (feature == null)
+        var item = dbContext.Items.Find(itemId);
+        if (item == null)
             return new List<FeatureStatus>();
 
         var service = new FeatureStatusTransitionService();
-        var workItem = new Feature
+        var workItem = new Item
         {
-            Id = feature.Id,
-            Status = feature.Status,
-            Result = feature.Result,
-            Errors = feature.Errors,
-            OpenQuestions = feature.OpenQuestions
+            Id = item.Id,
+            Status = item.Status,
+            Result = item.Result,
+            Errors = item.Errors,
+            OpenQuestions = item.OpenQuestions
         };
 
         var validTargets = new List<FeatureStatus>();
@@ -273,8 +280,8 @@ public class Query
         return new DashboardSummary
         {
             ProjectsInFlight = dbContext.Projects.Count(),
-            FeaturesInReview = dbContext.Features.Count(f => f.Status == FeatureStatus.InReview),
-            FeaturesFailed = dbContext.Features.Count(f => f.Status == FeatureStatus.Failed),
+            FeaturesInReview = dbContext.Items.Count(f => f.Status == FeatureStatus.InReview),
+            FeaturesFailed = dbContext.Items.Count(f => f.Status == FeatureStatus.Failed),
             TasksInProgress = dbContext.Tasks.Count(t => t.Status == global::DevStack.Domain.Enums.TaskStatus.Code),
             TasksFailed = dbContext.Tasks.Count(t => t.Status == global::DevStack.Domain.Enums.TaskStatus.Failed),
             RecentAuditEvents = dbContext.AuditEvents
