@@ -1,5 +1,5 @@
 query GetFeatureById($id: UUID!) {
-  getFeatureById(id: $id) {
+  featureById(id: $id) {
     id
     projectId
     epicId

@@ -21,6 +21,7 @@
     <PackageReference Include="SpecFlow" Version="3.9.8" />
     <PackageReference Include="SpecFlow.xUnit" Version="3.9.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -39,5 +40,11 @@
     <StrawberryShakeCodeGenerator>StrawberryShake.CodeGeneration.CSharp.CSharpCodeGenerator</StrawberryShakeCodeGenerator>
     <StrawberryShakeOutputDirectory>Generated</StrawberryShakeOutputDirectory>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

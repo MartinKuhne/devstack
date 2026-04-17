@@ -1,5 +1,5 @@
 query GetEpics($title: String, $first: Int, $skip: Int) {
-  getEpics(title: $title, first: $first, skip: $skip) {
+  epics(title: $title, first: $first, skip: $skip) {
     nodes {
       id
       title

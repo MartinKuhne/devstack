@@ -1,5 +1,5 @@
 query GetDefectById($id: UUID!) {
-  getDefectById(id: $id) {
+  defectById(id: $id) {
     id
     projectId
     parentFeatureId

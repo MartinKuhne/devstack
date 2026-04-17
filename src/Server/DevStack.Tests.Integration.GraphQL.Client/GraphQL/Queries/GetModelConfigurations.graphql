@@ -1,7 +1,6 @@
-query GetModelConfigurations($projectId: UUID!) {
-  getModelConfigurations(projectId: $projectId) {
+query GetModelConfigurations {
+  modelConfigurations {
     id
-    projectId
     url
     model
     modelAlias
