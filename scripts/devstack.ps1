@@ -217,18 +217,18 @@ function Plan-Defects {
     Invoke-AgentBatch -EntityType "defect" -QueryFile "getDefects.graphql" -DataPath "defects" -StatusFilter "Planning" -BuildPrompt {
         param($item)
         @"
-Investigate the root cause for the failure. 
+Investigate the root cause for the failure for the following issue:
+$($item.description)
 
-Title: $($item.title)
-Description: $($item.description)
-AcceptanceCriteria: $($item.acceptanceCriteria)
 Plan: $($item.plan)
-Defect ID: $($item.id)
+AcceptanceCriteria: $($item.acceptanceCriteria)
 
 Reproduce it, collect logs/traces and metrics, identify the failing component and code path.
 Propose a fix (if feasible within 5 minutes of research).
+Defect ID: $($item.id)
 Use the update_defect tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), rootCause, openQuestions.
 If there are no OpenQuestions, use the update_defect tool to change the state to Ready. If there are open questions, change the state to InReview.
+
 "@
     }
 }
@@ -237,19 +237,17 @@ function Run-Defects {
     Invoke-AgentBatch -EntityType "defect" -QueryFile "getDefects.graphql" -DataPath "defects" -StatusFilter "Ready" -BuildPrompt {
         param($item)
         @"
-Create a fix for this issue.
+Correct the following problem: 
+$($item.description)
 
-Title: $($item.title)
-Description: $($item.description)
+RootCause: $($item.rootCause)
+Plan: $($item.plan)
+AcceptanceCriteria: $($item.acceptanceCriteria)
 
 Quality gates must pass.
 Commit the changes.
-Use the update_defect tool to change the state to Done. If the operation was not successful, change the status to InReview instead.
-
 Defect ID: $($item.id)
-AcceptanceCriteria: $($item.acceptanceCriteria)
-RootCause: $($item.rootCause)
-Plan: $($item.plan)
+Use the update_defect tool to change the state to Done. If the operation was not successful, change the status to InReview instead.
 "@
     }
 }
@@ -258,16 +256,16 @@ function Plan-Features {
     Invoke-AgentBatch -EntityType "feature" -QueryFile "getFeatures.graphql" -DataPath "features" -StatusFilter "Planned" -BuildPrompt {
         param($item)
         @"
-Analyze the requirements for this feature. Break down the work, identify dependencies and risks.
+Analyze the requirements for this feature. Break down the work into tasks that can be executed by an AI code agent in less than 20 minutes. Identify dependencies and risks.
 
-Feature ID: $($item.id)
-Title: $($item.title)
-Description: $($item.description)
-AcceptanceCriteria: $($item.acceptanceCriteria)
+$($item.description)
+
 Plan: $($item.plan)
+AcceptanceCriteria: $($item.acceptanceCriteria)
 
 Propose an implementation plan.
 Use the update_feature tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), openQuestions.
+Feature ID: $($item.id)
 If there are no OpenQuestions, use the update_feature tool to change the state to Analysis. If there are open questions, change the state to InReview.
 "@
     }
@@ -277,16 +275,14 @@ function Run-Features {
     Invoke-AgentBatch -EntityType "feature" -QueryFile "getFeatures.graphql" -DataPath "features" -StatusFilter "Analysis" -BuildPrompt {
         param($item)
         @"
-Implement this feature 
+Implement this feature: $($item.description)
 
-Feature ID: $($item.id)
-Title: $($item.title)
-Description: $($item.description)
-AcceptanceCriteria: $($item.acceptanceCriteria)
 Plan: $($item.plan)
+AcceptanceCriteria: $($item.acceptanceCriteria)
 
 Quality gates must pass.
 Commit the changes.
+Feature ID: $($item.id)
 Use the update_feature tool to change the state to Passed. If the operation was not successful, change the status to InReview instead.
 "@
     }
