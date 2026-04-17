@@ -23,7 +23,7 @@ export function DefectListPage() {
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-    const { data, loading, error } = useGetDefectsQuery({
+    const { data, loading, error, refetch } = useGetDefectsQuery({
         fetchPolicy: 'cache-and-network',
     });
     
@@ -35,7 +35,8 @@ export function DefectListPage() {
 
     const handleCreateDefect = useCallback((defectId: string) => {
         toast.success(`Defect ${defectId} created successfully`);
-    }, [toast]);
+        refetch();
+    }, [toast, refetch]);
 
     const filteredDefects = (data?.defects.nodes ?? []).filter(defect => {
         if (statusFilter === 'all') return true;
