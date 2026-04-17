@@ -1,28 +1,20 @@
 {
   "schema": "schema.graphql",
-  "documents": "GraphQL/**/*.graphql",
-  "projects": {
-    "default": {
-      "schema": "schema.graphql",
-      "documents": "GraphQL/**/*.graphql",
-      "type": "client",
-      "output": "Generated",
-      "generator": "StrawberryShake",
-      "transport": [
+  "documents": "**/*.graphql",
+  "extensions": {
+    "strawberryShake": {
+      "name": "DevstackClient",
+      "url": "http://localhost:8087/graphql/",
+      "records": {
+        "inputs": false,
+        "entities": false
+      },
+      "transportProfiles": [
         {
-          "name": "http",
-          "type": "http",
-          "url": "http://localhost:8087/graphql"
+          "default": "Http",
+          "subscription": "WebSocket"
         }
-      ],
-      "generators": {
-        "client": {
-          "name": "StrawberryShake",
-          "language": "CSharp",
-          "output": "Generated",
-          "namespace": "DevStack.Tests.Integration.GraphQL.Client.Generated"
-        }
-      }
+      ]
     }
   }
 }
