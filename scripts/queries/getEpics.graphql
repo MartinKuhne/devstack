@@ -7,6 +7,10 @@ query GetEpics {
       projectId
       createdAt
       updatedAt
+      dependsOn {
+        id
+        status
+      }
     }
   }
 }

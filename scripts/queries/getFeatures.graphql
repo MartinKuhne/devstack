@@ -7,6 +7,10 @@ query GetFeatures($projectId: UUID!) {
       description
       acceptanceCriteria
       plan
+      dependsOn {
+        id
+        status
+      }
     }
   }
 }
