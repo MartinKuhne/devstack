@@ -9,6 +9,9 @@ public class Item : WorkItem
     [Required]
     public ItemSubtype Subtype { get; set; }
 
+    [ForeignKey(nameof(ProjectId))]
+    public virtual Project? Project { get; set; }
+
     public Guid? EpicId { get; set; }
 
     [ForeignKey(nameof(EpicId))]
