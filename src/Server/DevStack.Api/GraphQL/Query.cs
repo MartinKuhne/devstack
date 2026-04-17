@@ -102,7 +102,9 @@ public class Query
     public Item? GetFeatureById([Service] DevStackDbContext dbContext, Guid id)
     {
         var item = dbContext.Items.Find(id);
-        return item == null ? null : new Item{ Id = item.Id };
+        if (item == null || item.Subtype != Domain.Enums.ItemSubtype.Feature)
+            return null;
+        return item;
     }
 
     [Obsolete("Use GetItems instead")]
@@ -113,7 +115,7 @@ public class Query
         int first = 50,
         int? skip = null)
     {
-        return GetItems(dbContext, projectId, null, status, null, null, null, first, skip);
+        return GetItems(dbContext, projectId, null, status, [Domain.Enums.ItemSubtype.Feature], null, null, first, skip);
     }
 
     [Obsolete("Use GetItems with subtype filter instead")]
