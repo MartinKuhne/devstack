@@ -17,7 +17,8 @@ public record CreateFeatureCommand(
     string? TestPlan,
     string? DeploymentPlan,
     string? OpenQuestions,
-    FeatureStatus? InitialStatus);
+    FeatureStatus? InitialStatus,
+    Guid? DependsOnId);
 
 public record UpdateFeatureCommand(
     Guid Id,
@@ -29,7 +30,8 @@ public record UpdateFeatureCommand(
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    string? OpenQuestions);
+    string? OpenQuestions,
+    Guid? DependsOnId);
 
 public record TransitionFeatureStatusCommand(
     Guid Id,
@@ -79,6 +81,7 @@ public class CreateFeatureHandler : ICreateFeatureHandler
             DeploymentPlan = request.DeploymentPlan,
             OpenQuestions = request.OpenQuestions,
             Status = request.InitialStatus ?? FeatureStatus.Planning,
+            DependsOnId = request.DependsOnId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -114,6 +117,7 @@ public class UpdateFeatureHandler : IUpdateFeatureHandler
         if (request.TestPlan is not null) item.TestPlan = request.TestPlan;
         if (request.DeploymentPlan is not null) item.DeploymentPlan = request.DeploymentPlan;
         if (request.OpenQuestions is not null) item.OpenQuestions = request.OpenQuestions;
+        if (request.DependsOnId is not null) item.DependsOnId = request.DependsOnId;
 
         item.UpdatedAt = DateTime.UtcNow;
 

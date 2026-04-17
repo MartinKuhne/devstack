@@ -19,7 +19,8 @@ public record CreateDefectCommand(
     string? DeploymentPlan,
     string? OpenQuestions,
     Severity? Severity,
-    FeatureStatus? InitialStatus);
+    FeatureStatus? InitialStatus,
+    Guid? DependsOnId);
 
 public record UpdateDefectCommand(
     Guid Id,
@@ -33,7 +34,8 @@ public record UpdateDefectCommand(
     string? DeploymentPlan,
     string? OpenQuestions,
     Severity? Severity,
-    string? RootCause);
+    string? RootCause,
+    Guid? DependsOnId);
 
 public record TransitionDefectStatusCommand(
     Guid Id,
@@ -69,7 +71,7 @@ public class CreateDefectHandler : ICreateDefectHandler
 
     public async global::System.Threading.Tasks.Task<Guid> Handle(CreateDefectCommand request, CancellationToken cancellationToken)
     {
-        var item = new Item
+         var item = new Item
         {
             ProjectId = request.ProjectId,
             Subtype = Domain.Enums.ItemSubtype.Defect,
@@ -85,6 +87,7 @@ public class CreateDefectHandler : ICreateDefectHandler
             OpenQuestions = request.OpenQuestions,
             Severity = request.Severity,
             Status = request.InitialStatus ?? FeatureStatus.Planning,
+            DependsOnId = request.DependsOnId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -111,7 +114,7 @@ public class UpdateDefectHandler : IUpdateDefectHandler
         if (item == null)
             throw new InvalidOperationException($"Item with ID {request.Id} not found.");
 
-        if (request.Title is not null) item.Title = request.Title;
+       if (request.Title is not null) item.Title = request.Title;
         if (request.Description is not null) item.Description = request.Description;
         if (request.AcceptanceCriteria is not null) item.AcceptanceCriteria = request.AcceptanceCriteria;
         if (request.Plan is not null) item.Plan = request.Plan;
@@ -122,6 +125,7 @@ public class UpdateDefectHandler : IUpdateDefectHandler
         if (request.OpenQuestions is not null) item.OpenQuestions = request.OpenQuestions;
         if (request.Severity is not null) item.Severity = request.Severity;
         if (request.RootCause is not null) item.RootCause = request.RootCause;
+        if (request.DependsOnId is not null) item.DependsOnId = request.DependsOnId;
 
         item.UpdatedAt = DateTime.UtcNow;
 

@@ -64,7 +64,8 @@ public class EpicMutationTests : IAsyncLifetime
         var input = new CreateEpicInput(
             ProjectId: _projectId,
             Title: "New Epic",
-            Description: "Test description");
+            Description: "Test description",
+            DependsOnId: null);
 
         var result = await mutation.CreateEpicAsync(
             input,
@@ -84,7 +85,8 @@ public class EpicMutationTests : IAsyncLifetime
         var input = new CreateEpicInput(
             ProjectId: _projectId,
             Title: "",
-            Description: null);
+            Description: null,
+            DependsOnId: null);
 
         var result = await mutation.CreateEpicAsync(
             input,
@@ -102,7 +104,8 @@ public class EpicMutationTests : IAsyncLifetime
         var input = new CreateEpicInput(
             ProjectId: _projectId,
             Title: new string('A', 201),
-            Description: null);
+            Description: null,
+            DependsOnId: null);
 
         var result = await mutation.CreateEpicAsync(
             input,
@@ -135,7 +138,8 @@ public class EpicMutationTests : IAsyncLifetime
         var input = new UpdateEpicInput(
             Id: epicId,
             Title: "Updated Title",
-            Description: "Updated description");
+            Description: "Updated description",
+            DependsOnId: null);
 
         var result = await mutation.UpdateEpicAsync(
             input,
@@ -157,7 +161,8 @@ public class EpicMutationTests : IAsyncLifetime
         var input = new UpdateEpicInput(
             Id: Guid.NewGuid(),
             Title: "Updated Title",
-            Description: null);
+            Description: null,
+            DependsOnId: null);
 
         var result = await mutation.UpdateEpicAsync(
             input,

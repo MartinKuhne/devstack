@@ -44,7 +44,8 @@ public record CreateFeatureInput(
     string? TestPlan,
     string? DeploymentPlan,
     string? OpenQuestions,
-    FeatureStatus? InitialStatus);
+    FeatureStatus? InitialStatus,
+    Guid? DependsOnId);
 
 public record UpdateFeatureInput(
     Guid Id,
@@ -56,7 +57,8 @@ public record UpdateFeatureInput(
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    string? OpenQuestions);
+    string? OpenQuestions,
+    Guid? DependsOnId);
 
 public record TransitionFeatureInput(
     Guid Id,
@@ -80,7 +82,8 @@ public record CreateDefectInput(
     string? DeploymentPlan,
     string? OpenQuestions,
     Severity? Severity,
-    FeatureStatus? InitialStatus);
+    FeatureStatus? InitialStatus,
+    Guid? DependsOnId);
 
 public record UpdateDefectInput(
     Guid Id,
@@ -94,7 +97,8 @@ public record UpdateDefectInput(
     string? DeploymentPlan,
     string? OpenQuestions,
     Severity? Severity,
-    string? RootCause);
+    string? RootCause,
+    Guid? DependsOnId);
 
 public record TransitionDefectInput(
     Guid Id,
@@ -182,9 +186,9 @@ public record CancelWorkflowRunInput(Guid Id);
 
 public record WorkflowRunPayload(WorkflowRun? WorkflowRun, List<string> Errors);
 
-public record CreateEpicInput(Guid ProjectId, string Title, string? Description);
+public record CreateEpicInput(Guid ProjectId, string Title, string? Description, Guid? DependsOnId);
 
-public record UpdateEpicInput(Guid Id, string? Title, string? Description);
+public record UpdateEpicInput(Guid Id, string? Title, string? Description, Guid? DependsOnId);
 
 public record DeleteEpicInput(Guid Id);
 
@@ -323,7 +327,8 @@ public class Mutation
                 input.TestPlan,
                 input.DeploymentPlan,
                 input.OpenQuestions,
-                input.InitialStatus), cancellationToken);
+                input.InitialStatus,
+                input.DependsOnId), cancellationToken);
             
             var feature = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Feature };
             return new FeaturePayload(feature, new List<string>());
@@ -353,7 +358,8 @@ public class Mutation
                 input.PerformanceImpact,
                 input.TestPlan,
                 input.DeploymentPlan,
-                input.OpenQuestions), cancellationToken);
+                input.OpenQuestions,
+                input.DependsOnId), cancellationToken);
 
             var feature = new Item{ Id = input.Id };
             return new FeaturePayload(feature, new List<string>());
@@ -446,7 +452,7 @@ public class Mutation
 
         try
         {
-            var id = await handler.Handle(new CreateDefectCommand(
+           var id = await handler.Handle(new CreateDefectCommand(
                 input.ProjectId,
                 input.ParentFeatureId,
                 input.Title,
@@ -459,7 +465,8 @@ public class Mutation
                 input.DeploymentPlan,
                 input.OpenQuestions,
                 input.Severity,
-                input.InitialStatus), cancellationToken);
+                input.InitialStatus,
+                input.DependsOnId), cancellationToken);
             
             var defect = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Defect };
             return new DefectPayload(defect, new List<string>());
@@ -491,7 +498,8 @@ public class Mutation
                 input.DeploymentPlan,
                 input.OpenQuestions,
                 input.Severity,
-                input.RootCause), cancellationToken);
+                input.RootCause,
+                input.DependsOnId), cancellationToken);
 
             var defect = new Item { Id = input.Id };
             return new DefectPayload(defect, new List<string>());
@@ -902,10 +910,11 @@ public class Mutation
 
         try
         {
-            var id = await handler.Handle(new CreateEpicCommand(
+          var id = await handler.Handle(new CreateEpicCommand(
                 input.ProjectId,
                 input.Title,
-                input.Description), cancellationToken);
+                input.Description,
+                input.DependsOnId), cancellationToken);
             
             var epic = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Epic };
             return new EpicPayload(epic, new List<string>());
@@ -928,7 +937,8 @@ public class Mutation
             await handler.Handle(new UpdateEpicCommand(
                 input.Id,
                 input.Title,
-                input.Description), cancellationToken);
+                input.Description,
+                input.DependsOnId), cancellationToken);
 
             var epic = new Item { Id = input.Id };
             return new EpicPayload(epic, new List<string>());
