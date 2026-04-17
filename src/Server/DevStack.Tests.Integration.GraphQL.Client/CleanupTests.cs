@@ -31,28 +31,28 @@ public class CleanupTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project.Id,
             Title = "Test Feature",
             Status = FeatureStatus.Planning
         };
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         await context.SaveChangesAsync();
 
-        var defect = new Defect
+        var defect = new Item
         {
             ProjectId = project.Id,
             Severity = Severity.Medium,
             Title = "Test Defect",
-            Status = FeatureStatus.Planning
+            Status = FeatureStatus.Planning,
+            Subtype = ItemSubtype.Defect
         };
-        context.Defects.Add(defect);
+        context.Items.Add(defect);
         await context.SaveChangesAsync();
 
         var task = new AgentTask
         {
-            FeatureId = feature.Id,
+            ItemId = feature.Id,
             Title = "Test Task",
             ComplexityRating = 5,
             Status = Domain.Enums.TaskStatus.Planning

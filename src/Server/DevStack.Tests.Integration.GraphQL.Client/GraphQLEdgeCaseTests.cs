@@ -106,13 +106,12 @@ public class GraphQLEdgeCaseTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project.Id,
             Title = "Test Feature",
             Status = from
         };
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         await context.SaveChangesAsync();
 
         feature.Status = to;
@@ -129,14 +128,13 @@ public class GraphQLEdgeCaseTests : IClassFixture<TestContainerFixture>
                 .UseNpgsql(_fixture.ConnectionString)
                 .Options);
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = Guid.NewGuid(),
             Title = "Test Feature",
             Status = FeatureStatus.Planning
         };
 
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         var action = async () => await context.SaveChangesAsync();
 
         await action.Should().ThrowAsync<DbUpdateException>();
@@ -206,18 +204,17 @@ public class GraphQLEdgeCaseTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project.Id,
             Title = "Test Feature",
             Status = FeatureStatus.Planning
         };
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         await context.SaveChangesAsync();
 
         var task = new AgentTask
         {
-            FeatureId = feature.Id,
+            ItemId = feature.Id,
             Title = "Test Task",
             ComplexityRating = complexity,
             Status = Domain.Enums.TaskStatus.Planning
@@ -345,18 +342,19 @@ public class GraphQLEdgeCaseTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var defect = new Defect
+        var defect = new Item
         {
             ProjectId = project.Id,
             Title = "Orphan Defect",
             Severity = Severity.Medium,
-            Status = FeatureStatus.Planning
+            Status = FeatureStatus.Planning,
+            Subtype = ItemSubtype.Defect
         };
 
-        context.Defects.Add(defect);
+        context.Items.Add(defect);
         await context.SaveChangesAsync();
 
-        var fetched = await context.Defects.FindAsync(defect.Id);
+        var fetched = await context.Items.FindAsync(defect.Id);
         fetched.Should().NotBeNull();
     }
 
@@ -376,18 +374,19 @@ public class GraphQLEdgeCaseTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var defect = new Defect
+        var defect = new Item
         {
             ProjectId = project.Id,
             Title = $"Defect with {severity} severity",
             Severity = severity,
-            Status = FeatureStatus.Planning
+            Status = FeatureStatus.Planning,
+            Subtype = ItemSubtype.Defect
         };
 
-        context.Defects.Add(defect);
+        context.Items.Add(defect);
         await context.SaveChangesAsync();
 
-        var fetched = await context.Defects.FindAsync(defect.Id);
+        var fetched = await context.Items.FindAsync(defect.Id);
         fetched.Should().NotBeNull();
         fetched!.Severity.Should().Be(severity);
     }

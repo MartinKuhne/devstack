@@ -50,8 +50,7 @@ public class SchemaSnapshotTests : IAsyncLifetime
         };
         _dbContext.Projects.Add(project);
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "Snapshot Feature",
@@ -60,13 +59,13 @@ public class SchemaSnapshotTests : IAsyncLifetime
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.Features.Add(feature);
+        _dbContext.Items.Add(feature);
 
         var task = new AgentTask
         {
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            FeatureId = feature.Id,
+            ItemId = feature.Id,
             Title = "Snapshot Task",
             Status = DevStack.Domain.Enums.TaskStatus.Planning,
             Deliverable = "Test task",

@@ -29,8 +29,7 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project.Id,
             Title = "Test Feature",
             Description = "Feature description",
@@ -44,10 +43,10 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
             Status = FeatureStatus.Planning
         };
 
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         await context.SaveChangesAsync();
 
-        var fetched = await context.Features.FindAsync(feature.Id);
+        var fetched = await context.Items.FindAsync(feature.Id);
         fetched.Should().NotBeNull();
         fetched!.Title.Should().Be("Test Feature");
         fetched.Description.Should().Be("Feature description");
@@ -66,13 +65,12 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project.Id,
             Title = "Original Title",
             Description = "Original Description"
         };
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         await context.SaveChangesAsync();
 
         feature.Title = "Updated Title";
@@ -80,7 +78,7 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         feature.AcceptanceCriteria = "Updated criteria";
         await context.SaveChangesAsync();
 
-        var fetched = await context.Features.FindAsync(feature.Id);
+        var fetched = await context.Items.FindAsync(feature.Id);
         fetched!.Title.Should().Be("Updated Title");
         fetched.Description.Should().Be("Updated Description");
         fetched.AcceptanceCriteria.Should().Be("Updated criteria");
@@ -100,28 +98,25 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         context.Projects.AddRange(project1, project2);
         await context.SaveChangesAsync();
 
-        var feature1 = new Feature
-        {
+        var feature1 = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project1.Id,
             Title = $"Feature 1 {testGuid}",
             Status = FeatureStatus.Planning
         };
-        var feature2 = new Feature
-        {
+        var feature2 = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project1.Id,
             Title = $"Feature 2 {testGuid}",
             Status = FeatureStatus.InProgress
         };
-        var feature3 = new Feature
-        {
+        var feature3 = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project2.Id,
             Title = $"Feature 3 {testGuid}",
             Status = FeatureStatus.Planning
         };
-        context.Features.AddRange(feature1, feature2, feature3);
+        context.Items.AddRange(feature1, feature2, feature3);
         await context.SaveChangesAsync();
 
-        var project1Features = await context.Features
+        var project1Features = await context.Items
             .Where(f => f.ProjectId == project1.Id)
             .ToListAsync();
 
@@ -129,7 +124,7 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         project1Features.Should().Contain(f => f.Title == $"Feature 1 {testGuid}");
         project1Features.Should().Contain(f => f.Title == $"Feature 2 {testGuid}");
 
-        var planningFeatures = await context.Features
+        var planningFeatures = await context.Items
             .Where(f => f.ProjectId == project1.Id || f.ProjectId == project2.Id)
             .Where(f => f.Status == FeatureStatus.Planning)
             .ToListAsync();
@@ -151,16 +146,15 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project.Id,
             Title = "Test Feature",
             Description = "Test description"
         };
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         await context.SaveChangesAsync();
 
-        var fetched = await context.Features.FindAsync(feature.Id);
+        var fetched = await context.Items.FindAsync(feature.Id);
         fetched.Should().NotBeNull();
         fetched!.Title.Should().Be("Test Feature");
         fetched.Description.Should().Be("Test description");
@@ -175,7 +169,7 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
                 .Options);
 
         var nonExistentId = Guid.NewGuid();
-        var fetched = await context.Features.FindAsync(nonExistentId);
+        var fetched = await context.Items.FindAsync(nonExistentId);
         fetched.Should().BeNull();
     }
 
@@ -191,20 +185,19 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project.Id,
             Title = "Test Feature",
             Status = FeatureStatus.Planning
         };
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         await context.SaveChangesAsync();
 
         feature.Status = FeatureStatus.InProgress;
         feature.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
-        var fetched = await context.Features.FindAsync(feature.Id);
+        var fetched = await context.Items.FindAsync(feature.Id);
         fetched!.Status.Should().Be(FeatureStatus.InProgress);
     }
 
@@ -220,19 +213,18 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project.Id,
             Title = "Feature to Delete"
         };
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         await context.SaveChangesAsync();
 
         var id = feature.Id;
-        context.Features.Remove(feature);
+        context.Items.Remove(feature);
         await context.SaveChangesAsync();
 
-        var fetched = await context.Features.FindAsync(id);
+        var fetched = await context.Items.FindAsync(id);
         fetched.Should().BeNull();
     }
 
@@ -248,8 +240,7 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         context.Projects.Add(project);
         await context.SaveChangesAsync();
 
-        var feature = new Feature
-        {
+        var feature = new Item { Subtype = ItemSubtype.Feature,
             ProjectId = project.Id,
             Title = "Complete Feature",
             Description = "Full description",
@@ -265,10 +256,10 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
             UpdatedAt = DateTime.UtcNow
         };
 
-        context.Features.Add(feature);
+        context.Items.Add(feature);
         await context.SaveChangesAsync();
 
-        var fetched = await context.Features.FindAsync(feature.Id);
+        var fetched = await context.Items.FindAsync(feature.Id);
         fetched.Should().NotBeNull();
         fetched!.Title.Should().Be("Complete Feature");
         fetched.Description.Should().Be("Full description");
@@ -296,8 +287,7 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
 
         for (int i = 0; i < 10; i++)
         {
-            context.Features.Add(new Feature
-            {
+            context.Items.Add(new Item { Subtype = ItemSubtype.Feature,
                 ProjectId = project.Id,
                 Title = $"Feature {i} {testGuid}",
                 Status = FeatureStatus.Planning,
@@ -306,14 +296,14 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         }
         await context.SaveChangesAsync();
 
-        var allFeatures = await context.Features
+        var allFeatures = await context.Items
             .Where(f => f.ProjectId == project.Id)
             .OrderBy(f => f.CreatedAt)
             .ToListAsync();
 
         allFeatures.Should().HaveCount(10);
 
-        var firstPage = await context.Features
+        var firstPage = await context.Items
             .Where(f => f.ProjectId == project.Id)
             .OrderBy(f => f.CreatedAt)
             .Skip(0)
@@ -323,7 +313,7 @@ public class GraphQLFeatureCrudTests : IClassFixture<TestContainerFixture>
         firstPage.Should().HaveCount(5);
         firstPage.First().Title.Should().Be($"Feature 0 {testGuid}");
 
-        var secondPage = await context.Features
+        var secondPage = await context.Items
             .Where(f => f.ProjectId == project.Id)
             .OrderBy(f => f.CreatedAt)
             .Skip(5)
