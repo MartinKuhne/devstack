@@ -1,6 +1,7 @@
 using DevStack.Api.GraphQL;
 using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Entities;
+using DevStack.Domain.Enums;
 using DevStack.Infrastructure.Persistence;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
@@ -47,37 +48,43 @@ public class EpicQueryTests : IAsyncLifetime
             UpdatedAt = DateTime.UtcNow
         });
 
-        var epic1 = new Epic
+        var epic1 = new Item
         {
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "Epic One",
             Description = "First epic",
+            Subtype = ItemSubtype.Epic,
+            Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        var epic2 = new Epic
+        var epic2 = new Item
         {
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "Epic Two",
             Description = "Second epic",
+            Subtype = ItemSubtype.Epic,
+            Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow.AddHours(1),
             UpdatedAt = DateTime.UtcNow.AddHours(1)
         };
 
-        var epic3 = new Epic
+        var epic3 = new Item
         {
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "Testing Epic",
             Description = "Epic about testing",
+            Subtype = ItemSubtype.Epic,
+            Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow.AddHours(2),
             UpdatedAt = DateTime.UtcNow.AddHours(2)
         };
 
-        _dbContext.Epics.AddRange(epic1, epic2, epic3);
+        _dbContext.Items.AddRange(epic1, epic2, epic3);
         await _dbContext.SaveChangesAsync();
     }
 
@@ -93,7 +100,7 @@ public class EpicQueryTests : IAsyncLifetime
     [Fact]
     public void GetEpicById_Returns_Epic_When_Exists()
     {
-        var epic = _dbContext!.Epics.First();
+        var epic = _dbContext!.Items.First(i => i.Subtype == ItemSubtype.Epic);
         var result = _query.GetEpicById(_dbContext, epic.Id);
 
         result.Should().NotBeNull();

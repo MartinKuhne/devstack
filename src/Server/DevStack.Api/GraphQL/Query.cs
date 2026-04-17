@@ -98,7 +98,7 @@ public class Query
         };
     }
 
-[Obsolete("Use GetItemById instead")]
+   [Obsolete("Use GetItemById instead")]
     public Item? GetFeatureById([Service] DevStackDbContext dbContext, Guid id)
     {
         var item = dbContext.Items.Find(id);
@@ -232,30 +232,30 @@ public TaskConnection GetTasks(
             .Take(take);
     }
 
-    public EpicConnection GetEpics(
+    [Obsolete("Use GetItems with subtype filter instead")]
+    public ItemConnection GetEpics(
         [Service] DevStackDbContext dbContext,
         string? title = null,
         int first = 50,
         int? skip = null)
     {
-        var query = dbContext.Epics.AsQueryable();
+        var query = dbContext.Items.Where(i => i.Subtype == Domain.Enums.ItemSubtype.Epic);
         if (!string.IsNullOrWhiteSpace(title))
         {
             query = query.Where(e => e.Title.Contains(title));
         }
-
-        var totalCount = query.Count();
-        query = query.OrderBy(e => e.CreatedAt);
         if (skip.HasValue)
         {
             query = query.Skip(skip.Value);
         }
+        var totalCount = query.Count();
+        query = query.OrderBy(e => e.CreatedAt);
         var nodes = query.Take(first).ToList();
 
-        return new EpicConnection
+        return new ItemConnection
         {
             Nodes = nodes,
-            PageInfo = new EpicPageInfo
+            PageInfo = new ItemPageInfo
             {
                 HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
                 HasPreviousPage = skip > 0,
@@ -265,9 +265,13 @@ public TaskConnection GetTasks(
         };
     }
 
-    public Epic? GetEpicById([Service] DevStackDbContext dbContext, Guid id)
+    [Obsolete("Use GetItems with subtype filter instead")]
+    public Item? GetEpicById([Service] DevStackDbContext dbContext, Guid id)
     {
-        return dbContext.Epics.Find(id);
+        var item = dbContext.Items.Find(id);
+        if (item == null || item.Subtype != Domain.Enums.ItemSubtype.Epic)
+            return null;
+        return item;
     }
 
     public List<FeatureStatus> GetValidStatusTransitions([Service] DevStackDbContext dbContext, Guid itemId)
