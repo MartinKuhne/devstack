@@ -1,3 +1,0 @@
-{
-  "query": "query IntrospectionQuery { __schema { types { kind name description fields { name description args { name description type { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name } } } } } } } } } inputFields { name description type { kind name } } enumValues { name description isDeprecated deprecationReason } } } }"
-}
