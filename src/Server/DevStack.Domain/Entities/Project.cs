@@ -23,6 +23,7 @@ public class Project : Entity
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 
     [Obsolete("Use Items instead")]
+    [NotMapped]
     public virtual ICollection<Item> Features => Items;
 
     public virtual ICollection<Epic> Epics { get; set; } = new List<Epic>();

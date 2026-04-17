@@ -36,8 +36,10 @@ public class WorkflowRun : Entity
     [ForeignKey(nameof(ItemId))]
     public virtual Item? Item { get; set; }
     [Obsolete("Use ItemId and Item instead")]
+    [NotMapped]
     public Guid? FeatureId { get => ItemId; set => ItemId = value; }
     [Obsolete("Use Item instead")]
+    [NotMapped]
     public virtual Item? Feature { get => Item; set => Item = value; }
     public virtual AgentTask? Task { get; set; }
 

@@ -41,9 +41,6 @@ namespace DevStack.Infrastructure.Migrations
                     b.Property<string>("Deliverable")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("FeatureId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("ItemId")
                         .HasColumnType("uuid");
 
@@ -174,9 +171,6 @@ namespace DevStack.Infrastructure.Migrations
                     b.Property<Guid?>("EpicId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("EpicId1")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Errors")
                         .HasColumnType("text");
 
@@ -193,9 +187,6 @@ namespace DevStack.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<Guid>("ProjectId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("ProjectId1")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Result")
@@ -231,11 +222,7 @@ namespace DevStack.Infrastructure.Migrations
 
                     b.HasIndex("EpicId");
 
-                    b.HasIndex("EpicId1");
-
                     b.HasIndex("ParentFeatureId");
-
-                    b.HasIndex("ProjectId1");
 
                     b.HasIndex("Status");
 
@@ -337,9 +324,6 @@ namespace DevStack.Infrastructure.Migrations
                     b.Property<string>("ErrorMessage")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("FeatureId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("InputPayload")
                         .HasColumnType("text");
 
@@ -365,8 +349,6 @@ namespace DevStack.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FeatureId");
 
                     b.HasIndex("ItemId");
 
@@ -412,24 +394,16 @@ namespace DevStack.Infrastructure.Migrations
                         .HasForeignKey("EpicId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("DevStack.Domain.Entities.Epic", null)
-                        .WithMany("Features")
-                        .HasForeignKey("EpicId1");
-
                     b.HasOne("DevStack.Domain.Entities.Item", "ParentFeature")
                         .WithMany()
                         .HasForeignKey("ParentFeatureId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("DevStack.Domain.Entities.Project", null)
+                    b.HasOne("DevStack.Domain.Entities.Project", "Project")
                         .WithMany("Items")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("DevStack.Domain.Entities.Project", "Project")
-                        .WithMany("Features")
-                        .HasForeignKey("ProjectId1");
 
                     b.Navigation("Epic");
 
@@ -440,10 +414,6 @@ namespace DevStack.Infrastructure.Migrations
 
             modelBuilder.Entity("DevStack.Domain.Entities.WorkflowRun", b =>
                 {
-                    b.HasOne("DevStack.Domain.Entities.Item", "Feature")
-                        .WithMany()
-                        .HasForeignKey("FeatureId");
-
                     b.HasOne("DevStack.Domain.Entities.Item", "Item")
                         .WithMany()
                         .HasForeignKey("ItemId")
@@ -460,8 +430,6 @@ namespace DevStack.Infrastructure.Migrations
                         .HasForeignKey("TaskId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("Feature");
-
                     b.Navigation("Item");
 
                     b.Navigation("Project");
@@ -471,8 +439,6 @@ namespace DevStack.Infrastructure.Migrations
 
             modelBuilder.Entity("DevStack.Domain.Entities.Epic", b =>
                 {
-                    b.Navigation("Features");
-
                     b.Navigation("Items");
                 });
 
@@ -484,8 +450,6 @@ namespace DevStack.Infrastructure.Migrations
             modelBuilder.Entity("DevStack.Domain.Entities.Project", b =>
                 {
                     b.Navigation("Epics");
-
-                    b.Navigation("Features");
 
                     b.Navigation("Items");
                 });

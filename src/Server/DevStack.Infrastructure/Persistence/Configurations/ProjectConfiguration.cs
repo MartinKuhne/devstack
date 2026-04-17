@@ -28,10 +28,5 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             
         builder.Property(p => p.GithubToken_Encrypted)
             .IsRequired(false);
-            
-        builder.HasMany(p => p.Items)
-            .WithOne()
-            .HasForeignKey(f => f.ProjectId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

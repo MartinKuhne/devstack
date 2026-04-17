@@ -38,6 +38,7 @@ public class AgentTask : Entity
     public virtual Item? Item { get; set; }
 
     [Obsolete("Use ItemId and Item instead")]
+    [NotMapped]
     public Guid FeatureId { get => ItemId; set => ItemId = value; }
 
     [Obsolete("Use Item instead")]

@@ -20,6 +20,7 @@ public class Epic : Entity
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 
     [Obsolete("Use Items instead")]
+    [NotMapped]
     public virtual ICollection<Item> Features => Items;
 
     public DateTime CreatedAt { get; set; }
