@@ -1,5 +1,5 @@
 query GetDefects($projectId: UUID, $first: Int, $skip: Int) {
-  getDefects(projectId: $projectId, first: $first, skip: $skip) {
+  defects(projectId: $projectId, first: $first, skip: $skip) {
     nodes {
       id
       projectId

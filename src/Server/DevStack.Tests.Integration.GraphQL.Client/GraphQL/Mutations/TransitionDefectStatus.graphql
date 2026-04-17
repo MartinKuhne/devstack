@@ -1,6 +1,6 @@
 mutation TransitionDefectStatus($input: TransitionDefectInput!) {
   transitionDefectStatus(input: $input) {
-    defect {
+    item {
       id
       status
     }

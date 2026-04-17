@@ -1,5 +1,5 @@
-query GetTasks($featureId: UUID, $status: [TaskStatus!], $first: Int, $skip: Int) {
-  getTasks(featureId: $featureId, status: $status, first: $first, skip: $skip) {
+query GetTasks($itemId: UUID, $status: [TaskStatus!], $first: Int, $skip: Int) {
+  tasks(itemId: $itemId, status: $status, first: $first, skip: $skip) {
     nodes {
       id
       featureId

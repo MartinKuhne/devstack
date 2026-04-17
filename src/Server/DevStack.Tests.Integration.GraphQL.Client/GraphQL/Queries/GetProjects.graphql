@@ -1,5 +1,5 @@
 query GetProjects($first: Int, $skip: Int) {
-  getProjects(first: $first, skip: $skip) {
+  projects(first: $first, skip: $skip) {
     nodes {
       id
       name
