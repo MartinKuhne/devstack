@@ -59,13 +59,13 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.Property(i => i.RootCause)
             .IsRequired(false);
             
-        builder.HasOne<Project>()
+        builder.HasOne(i => i.Project)
             .WithMany(p => p.Items)
             .HasForeignKey(i => i.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
             
         builder.HasMany(i => i.Tasks)
-            .WithOne()
+            .WithOne(t => t.Item)
             .HasForeignKey(t => t.ItemId)
             .OnDelete(DeleteBehavior.Cascade);
 
