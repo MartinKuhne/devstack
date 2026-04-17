@@ -1,5 +1,5 @@
 query GetEpics {
-  epics(first: 200) {
+  items(subtype: [EPIC], first: 200) {
     nodes {
       id
       title
