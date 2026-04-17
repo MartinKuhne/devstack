@@ -213,6 +213,83 @@ function Invoke-AgentBatch {
     Write-Host "`nAll $plural processed."
 }
 
+function Invoke-EpicBatch {
+    param(
+        [string]      $QueryFile,
+        [string]      $DataPath,
+        [scriptblock] $BuildPrompt
+    )
+
+    Write-Host "Processing epics..."
+
+    $projectId = Get-CurrentProjectId
+    $query     = Load-GraphQLFile $QueryFile
+    $result    = Invoke-GraphQL -Operation $query
+
+    if ($result.errors) {
+        Write-Error "Failed to query epics: $($result.errors -join ', ')"
+        exit 1
+    }
+
+    $items = $result.data.$DataPath.nodes | Where-Object { $_.projectId -eq $projectId }
+
+    if (-not $items) {
+        Write-Host "No epics found for project."
+        return
+    }
+
+    Write-Host "Found $($items.Count) epic(s) for project."
+
+    foreach ($item in $items) {
+        Write-Host "`nProcessing Epic: $($item.title) (ID: $($item.id))"
+
+        $prompt = & $BuildPrompt $item
+        Write-Host $prompt
+
+        $npxArgs = @("opencode", "run", ($prompt -replace "`r`n|`n|`r", " "))
+        if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
+        & npx @npxArgs
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Opencode returned non-zero exit code for Epic $($item.id)"
+        }
+
+        Start-Sleep -Seconds 2
+    }
+
+    Write-Host "`nAll epics processed."
+}
+
+function Plan-Epics {
+    Invoke-EpicBatch -QueryFile "getEpics.graphql" -DataPath "epics" -BuildPrompt {
+        param($item)
+        @"
+Analyze the requirements for this epic. Break down the work into tasks that can be executed by an AI code agent in less than 20 minutes. Identify dependencies and risks.
+
+Description: $($item.description)
+
+Propose an implementation plan.
+Epic ID: $($item.id)
+Project ID: $($item.projectId)
+"@
+    }
+}
+
+function Run-Epics {
+    Invoke-EpicBatch -QueryFile "getEpics.graphql" -DataPath "epics" -BuildPrompt {
+        param($item)
+        @"
+Implement this epic: $($item.description)
+
+Epic ID: $($item.id)
+Project ID: $($item.projectId)
+
+Quality gates must pass.
+Commit the changes.
+"@
+    }
+}
+
 function Plan-Defects {
     Invoke-AgentBatch -EntityType "defect" -QueryFile "getDefects.graphql" -DataPath "defects" -StatusFilter "Planning" -BuildPrompt {
         param($item)
@@ -294,5 +371,7 @@ switch ($Command) {
         Run-Defects
         Plan-Features
         Run-Features
+        Plan-Epics
+        Run-Epics
     }
 }

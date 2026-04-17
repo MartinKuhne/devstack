@@ -1,0 +1,12 @@
+query GetEpics {
+  epics(first: 200) {
+    nodes {
+      id
+      title
+      description
+      projectId
+      createdAt
+      updatedAt
+    }
+  }
+}
