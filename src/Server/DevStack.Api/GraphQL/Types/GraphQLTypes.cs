@@ -22,7 +22,6 @@ public class ProjectType : ObjectType<Project>
         
         descriptor.Field("features").Type<ListType<FeatureType>>().Resolve(ctx => ctx.Parent<Project>().Features);
         descriptor.Field("defects").Type<ListType<DefectType>>().Resolve(ctx => ctx.Parent<Project>().Defects);
-        descriptor.Field("modelConfigurations").Type<ListType<ModelConfigurationType>>().Resolve(ctx => ctx.Parent<Project>().ModelConfigurations);
     }
 }
 
@@ -131,7 +130,6 @@ public class ModelConfigurationType : ObjectType<ModelConfiguration>
     protected override void Configure(IObjectTypeDescriptor<ModelConfiguration> descriptor)
     {
         descriptor.Field(m => m.Id).Type<IdType>().ID();
-        descriptor.Field(m => m.ProjectId).Type<IdType>();
         descriptor.Field(m => m.Url).Type<StringType>();
         descriptor.Field(m => m.Model).Type<StringType>();
         descriptor.Field(m => m.ModelAlias).Type<StringType>();
