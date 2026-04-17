@@ -120,7 +120,7 @@ ADRs are written as individual files in `specs/architecture-decision-records/` a
 ### Development environment
 - `docker compose up` starts: PostgreSQL, Redis, DevStack.Api, AdminUi (dev server), AgentProcess (dev watcher).
 - Each component has its own `.env` / `.env.local` for local configuration.
-- The API is available at `http://localhost:5000/graphql` (Banana Cake Pop IDE in dev).
+- The API is available at `http://localhost:8087/graphql` (Banana Cake Pop IDE in dev).
 - Admin UI dev server at `http://localhost:5173`.
 - Agent Process health at `http://localhost:3000/health`.
 

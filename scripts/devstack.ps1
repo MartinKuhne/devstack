@@ -54,7 +54,7 @@ function Resolve-GraphQLEndpoint {
 
 $GraphQLEndpoint = Resolve-GraphQLEndpoint `
     -PrimaryEndpoint  "$($ApiUrl.TrimEnd('/'))/graphql" `
-    -FallbackEndpoint "http://localhost:5000/graphql"
+    -FallbackEndpoint "http://localhost:8087/graphql"
 
 function Invoke-GraphQL {
     param([string]$Operation, [hashtable]$Variables = $null, [switch]$IsMutation)
