@@ -25,7 +25,7 @@ const taskSchema = z.object({
     risks: z.string().optional(),
     requiredFollowUps: z.string().optional(),
     complexityLabel: z.enum(['Simple', 'Moderate', 'Complex', 'Major']),
-    featureId: z.string().min(1, 'Feature is required'),
+    itemId: z.string().min(1, 'Item is required'),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -33,11 +33,11 @@ type TaskFormData = z.infer<typeof taskSchema>;
 interface CreateTaskDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    featureId: string;
+    itemId: string;
     onSuccess?: (taskId: string) => void;
 }
 
-export function CreateTaskDialog({ open, onOpenChange, featureId, onSuccess }: CreateTaskDialogProps) {
+export function CreateTaskDialog({ open, onOpenChange, itemId, onSuccess }: CreateTaskDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
     const [createTask, { loading }] = useCreateTaskMutation();
 
@@ -49,9 +49,9 @@ export function CreateTaskDialog({ open, onOpenChange, featureId, onSuccess }: C
         formState: { errors },
     } = useForm<TaskFormData>({
         resolver: zodResolver(taskSchema),
-        defaultValues: {
+          defaultValues: {
             complexityLabel: 'Moderate',
-            featureId,
+            itemId,
         },
     });
 
@@ -62,7 +62,8 @@ export function CreateTaskDialog({ open, onOpenChange, featureId, onSuccess }: C
             const result = await createTask({
                 variables: {
                     input: {
-                        featureId: data.featureId,
+                        projectId: '',
+                        itemId: data.itemId,
                         title: data.title,
                         deliverable: data.deliverable ?? null,
                         acceptanceCriteria: data.acceptanceCriteria ?? null,
@@ -108,7 +109,7 @@ export function CreateTaskDialog({ open, onOpenChange, featureId, onSuccess }: C
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="grid gap-4 py-4">
-                        <input type="hidden" {...register('featureId')} value={featureId} />
+                        <input type="hidden" {...register('itemId')} value={itemId} />
 
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title *</Label>

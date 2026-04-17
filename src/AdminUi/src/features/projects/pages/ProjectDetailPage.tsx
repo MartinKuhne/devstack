@@ -236,7 +236,6 @@ export function ProjectDetailPage() {
 
                 <TabsContent value="models">
                     <ModelConfigurationList
-                        projectId={id ?? ''}
                         onAddModel={() => setAddModelDialogOpen(true)}
                     />
                 </TabsContent>
@@ -266,7 +265,6 @@ export function ProjectDetailPage() {
             <ModelConfigurationDialog
                 open={addModelDialogOpen}
                 onOpenChange={setAddModelDialogOpen}
-                projectId={id ?? ''}
                 onSuccess={() => refetch()}
             />
             <CreateFeatureDialog

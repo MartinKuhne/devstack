@@ -9,14 +9,12 @@ import { useCreateModelConfigurationMutation } from '@/generated/graphql';
 interface ModelConfigurationDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    projectId: string;
     onSuccess: () => void;
 }
 
 export function ModelConfigurationDialog({
     open,
     onOpenChange,
-    projectId,
     onSuccess,
 }: ModelConfigurationDialogProps) {
     const [model, setModel] = useState('');
@@ -82,7 +80,6 @@ export function ModelConfigurationDialog({
             const result = await createModelConfiguration({
                 variables: {
                     input: {
-                        projectId,
                         model,
                         modelAlias: modelAlias || null,
                         url,

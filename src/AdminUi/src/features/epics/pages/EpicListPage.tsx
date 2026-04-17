@@ -55,8 +55,8 @@ export function EpicListPage() {
         );
     }
 
-    const epics = data?.epics?.nodes ?? [];
-    const totalCount = data?.epics?.nodes?.length ?? 0;
+    const epics = data?.items?.nodes ?? [];
+    const totalCount = data?.items?.pageInfo?.totalCount ?? 0;
 
     return (
         <div className="space-y-6">
@@ -163,6 +163,7 @@ export function EpicListPage() {
             <CreateEpicDialog
                 open={createDialogOpen}
                 onOpenChange={setCreateDialogOpen}
+                projectId=""
                 onSuccess={() => {
                     refetch();
                     setCreateDialogOpen(false);

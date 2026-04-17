@@ -1,6 +1,6 @@
 mutation CreateDefect($input: CreateDefectInput!) {
     createDefect(input: $input) {
-        defect {
+        item {
             id
             title
             description

@@ -110,7 +110,7 @@ export function CreateDefectDialog({ open, onOpenChange, projectId, onSuccess }:
 
             reset();
             toast.success('Defect created successfully');
-            onSuccess?.(payload?.defect?.id ?? '');
+            onSuccess?.(payload?.item?.id ?? '');
             onOpenChange(false);
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Failed to create defect');

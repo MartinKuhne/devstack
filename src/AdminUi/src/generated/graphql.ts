@@ -17,6 +17,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  /** The `DateTime` scalar represents an ISO-8601 compliant date time type. */
   DateTime: { input: any; output: any; }
   UUID: { input: any; output: any; }
 };
@@ -27,9 +28,14 @@ export type AgentTask = {
   complexityRating: Maybe<Scalars['Int']['output']>;
   createdAt: Maybe<Scalars['DateTime']['output']>;
   deliverable: Maybe<Scalars['String']['output']>;
-  feature: Maybe<Feature>;
-  featureId: Maybe<Scalars['ID']['output']>;
+  /** @deprecated Use Item instead */
+  feature: Maybe<Item>;
+  /** @deprecated Use ItemId and Item instead */
+  featureId: Scalars['UUID']['output'];
   id: Maybe<Scalars['ID']['output']>;
+  item: Maybe<Item>;
+  itemId: Maybe<Scalars['ID']['output']>;
+  projectId: Scalars['UUID']['output'];
   requiredFollowUps: Maybe<Scalars['String']['output']>;
   result: Maybe<Scalars['String']['output']>;
   risks: Maybe<Scalars['String']['output']>;
@@ -72,6 +78,7 @@ export type CreateDefectInput = {
 
 export type CreateEpicInput = {
   description: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['UUID']['input'];
   title: Scalars['String']['input'];
 };
 
@@ -94,7 +101,6 @@ export type CreateModelConfigurationInput = {
   maxComplexity: Scalars['Int']['input'];
   model: Scalars['String']['input'];
   modelAlias: InputMaybe<Scalars['String']['input']>;
-  projectId: Scalars['UUID']['input'];
   url: Scalars['String']['input'];
 };
 
@@ -110,7 +116,8 @@ export type CreateTaskInput = {
   acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
   complexityRating: Scalars['Int']['input'];
   deliverable: InputMaybe<Scalars['String']['input']>;
-  featureId: Scalars['UUID']['input'];
+  itemId: Scalars['UUID']['input'];
+  projectId: Scalars['UUID']['input'];
   requiredFollowUps: InputMaybe<Scalars['String']['input']>;
   result: InputMaybe<Scalars['String']['input']>;
   risks: InputMaybe<Scalars['String']['input']>;
@@ -118,8 +125,8 @@ export type CreateTaskInput = {
 };
 
 export type CreateWorkflowRunInput = {
-  featureId: InputMaybe<Scalars['UUID']['input']>;
   inputPayload: Scalars['String']['input'];
+  itemId: InputMaybe<Scalars['UUID']['input']>;
   projectId: Scalars['UUID']['input'];
   taskId: InputMaybe<Scalars['UUID']['input']>;
   workflowType: WorkflowType;
@@ -135,48 +142,10 @@ export type DashboardSummary = {
   tasksInProgress: Scalars['Int']['output'];
 };
 
-export type Defect = {
-  __typename?: 'Defect';
-  acceptanceCriteria: Maybe<Scalars['String']['output']>;
-  createdAt: Maybe<Scalars['DateTime']['output']>;
-  deploymentPlan: Maybe<Scalars['String']['output']>;
-  description: Maybe<Scalars['String']['output']>;
-  errors: Maybe<Scalars['String']['output']>;
-  id: Maybe<Scalars['ID']['output']>;
-  openQuestions: Maybe<Scalars['String']['output']>;
-  parentFeature: Maybe<Feature>;
-  parentFeatureId: Maybe<Scalars['ID']['output']>;
-  performanceImpact: Maybe<Scalars['String']['output']>;
-  plan: Maybe<Scalars['String']['output']>;
-  projectId: Maybe<Scalars['ID']['output']>;
-  result: Maybe<Scalars['String']['output']>;
-  securityImpact: Maybe<Scalars['String']['output']>;
-  severity: Maybe<Severity>;
-  status: Maybe<FeatureStatus>;
-  testPlan: Maybe<Scalars['String']['output']>;
-  title: Maybe<Scalars['String']['output']>;
-  updatedAt: Maybe<Scalars['DateTime']['output']>;
-  version: Maybe<Scalars['Int']['output']>;
-};
-
-export type DefectConnection = {
-  __typename?: 'DefectConnection';
-  nodes: Array<Defect>;
-  pageInfo: DefectPageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type DefectPageInfo = {
-  __typename?: 'DefectPageInfo';
-  hasNextPage: Scalars['Boolean']['output'];
-  hasPreviousPage: Scalars['Boolean']['output'];
-  totalCount: Scalars['Int']['output'];
-};
-
 export type DefectPayload = {
   __typename?: 'DefectPayload';
-  defect: Maybe<Defect>;
   errors: Array<Scalars['String']['output']>;
+  item: Maybe<Item>;
 };
 
 export type DeleteDefectInput = {
@@ -207,8 +176,12 @@ export type Epic = {
   __typename?: 'Epic';
   createdAt: Maybe<Scalars['DateTime']['output']>;
   description: Maybe<Scalars['String']['output']>;
-  features: Maybe<Array<Maybe<Feature>>>;
+  /** @deprecated Use Items instead */
+  features: Array<Item>;
   id: Maybe<Scalars['ID']['output']>;
+  items: Maybe<Array<Maybe<Item>>>;
+  project: Maybe<Project>;
+  projectId: Scalars['UUID']['output'];
   title: Maybe<Scalars['String']['output']>;
   updatedAt: Maybe<Scalars['DateTime']['output']>;
 };
@@ -233,48 +206,10 @@ export type EpicPayload = {
   errors: Array<Scalars['String']['output']>;
 };
 
-export type Feature = {
-  __typename?: 'Feature';
-  acceptanceCriteria: Maybe<Scalars['String']['output']>;
-  createdAt: Maybe<Scalars['DateTime']['output']>;
-  deploymentPlan: Maybe<Scalars['String']['output']>;
-  description: Maybe<Scalars['String']['output']>;
-  epic: Maybe<Epic>;
-  epicId: Maybe<Scalars['ID']['output']>;
-  errors: Maybe<Scalars['String']['output']>;
-  id: Maybe<Scalars['ID']['output']>;
-  openQuestions: Maybe<Scalars['String']['output']>;
-  performanceImpact: Maybe<Scalars['String']['output']>;
-  plan: Maybe<Scalars['String']['output']>;
-  projectId: Maybe<Scalars['ID']['output']>;
-  result: Maybe<Scalars['String']['output']>;
-  securityImpact: Maybe<Scalars['String']['output']>;
-  status: Maybe<FeatureStatus>;
-  tasks: Maybe<Array<Maybe<AgentTask>>>;
-  testPlan: Maybe<Scalars['String']['output']>;
-  title: Maybe<Scalars['String']['output']>;
-  updatedAt: Maybe<Scalars['DateTime']['output']>;
-  validStatusTransitions: Maybe<Array<Maybe<FeatureStatus>>>;
-};
-
-export type FeatureConnection = {
-  __typename?: 'FeatureConnection';
-  nodes: Array<Feature>;
-  pageInfo: FeaturePageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type FeaturePageInfo = {
-  __typename?: 'FeaturePageInfo';
-  hasNextPage: Scalars['Boolean']['output'];
-  hasPreviousPage: Scalars['Boolean']['output'];
-  totalCount: Scalars['Int']['output'];
-};
-
 export type FeaturePayload = {
   __typename?: 'FeaturePayload';
   errors: Array<Scalars['String']['output']>;
-  feature: Maybe<Feature>;
+  item: Maybe<Item>;
 };
 
 export const FeatureStatus = {
@@ -290,6 +225,60 @@ export const FeatureStatus = {
 } as const;
 
 export type FeatureStatus = typeof FeatureStatus[keyof typeof FeatureStatus];
+export type Item = {
+  __typename?: 'Item';
+  acceptanceCriteria: Maybe<Scalars['String']['output']>;
+  createdAt: Maybe<Scalars['DateTime']['output']>;
+  deploymentPlan: Maybe<Scalars['String']['output']>;
+  description: Maybe<Scalars['String']['output']>;
+  epic: Maybe<Epic>;
+  epicId: Maybe<Scalars['ID']['output']>;
+  errors: Maybe<Scalars['String']['output']>;
+  featureSubtype: ItemSubtype;
+  id: Maybe<Scalars['ID']['output']>;
+  openQuestions: Maybe<Scalars['String']['output']>;
+  parentFeature: Maybe<Item>;
+  parentFeatureId: Maybe<Scalars['ID']['output']>;
+  performanceImpact: Maybe<Scalars['String']['output']>;
+  plan: Maybe<Scalars['String']['output']>;
+  project: Maybe<Project>;
+  projectId: Maybe<Scalars['ID']['output']>;
+  result: Maybe<Scalars['String']['output']>;
+  rootCause: Maybe<Scalars['String']['output']>;
+  securityImpact: Maybe<Scalars['String']['output']>;
+  severity: Maybe<Severity>;
+  status: Maybe<FeatureStatus>;
+  subtype: Maybe<ItemSubtype>;
+  tasks: Maybe<Array<Maybe<AgentTask>>>;
+  testPlan: Maybe<Scalars['String']['output']>;
+  title: Maybe<Scalars['String']['output']>;
+  updatedAt: Maybe<Scalars['DateTime']['output']>;
+  validStatusTransitions: Maybe<Array<Maybe<FeatureStatus>>>;
+};
+
+export type ItemConnection = {
+  __typename?: 'ItemConnection';
+  nodes: Array<Item>;
+  pageInfo: ItemPageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
+export type ItemPageInfo = {
+  __typename?: 'ItemPageInfo';
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  totalCount: Scalars['Int']['output'];
+};
+
+export const ItemSubtype = {
+  DEFECT: 'DEFECT',
+  ENABLER: 'ENABLER',
+  EPIC: 'EPIC',
+  FEATURE: 'FEATURE',
+  MAINTENANCE: 'MAINTENANCE'
+} as const;
+
+export type ItemSubtype = typeof ItemSubtype[keyof typeof ItemSubtype];
 export type ModelConfiguration = {
   __typename?: 'ModelConfiguration';
   apiKey_Encrypted: Maybe<Scalars['String']['output']>;
@@ -298,7 +287,6 @@ export type ModelConfiguration = {
   maxComplexity: Maybe<Scalars['Int']['output']>;
   model: Maybe<Scalars['String']['output']>;
   modelAlias: Maybe<Scalars['String']['output']>;
-  projectId: Maybe<Scalars['ID']['output']>;
   updatedAt: Maybe<Scalars['DateTime']['output']>;
   url: Maybe<Scalars['String']['output']>;
 };
@@ -461,14 +449,15 @@ export type Project = {
   __typename?: 'Project';
   architecture: Maybe<Scalars['String']['output']>;
   createdAt: Maybe<Scalars['DateTime']['output']>;
-  defects: Maybe<Array<Maybe<Defect>>>;
   description: Maybe<Scalars['String']['output']>;
-  features: Maybe<Array<Maybe<Feature>>>;
+  epics: Array<Epic>;
+  /** @deprecated Use items field instead */
+  features: Maybe<Array<Maybe<Item>>>;
   githubToken_Encrypted: Maybe<Scalars['String']['output']>;
   githubUrl: Maybe<Scalars['String']['output']>;
   id: Maybe<Scalars['ID']['output']>;
+  items: Maybe<Array<Maybe<Item>>>;
   memory: Maybe<Scalars['String']['output']>;
-  modelConfigurations: Maybe<Array<Maybe<ModelConfiguration>>>;
   name: Maybe<Scalars['String']['output']>;
   updatedAt: Maybe<Scalars['DateTime']['output']>;
 };
@@ -497,12 +486,16 @@ export type Query = {
   __typename?: 'Query';
   auditEvents: Array<AuditEvent>;
   dashboardSummary: DashboardSummary;
-  defectById: Maybe<Defect>;
-  defects: DefectConnection;
-  epicById: Maybe<Epic>;
-  epics: EpicConnection;
-  featureById: Maybe<Feature>;
-  features: FeatureConnection;
+  /** @deprecated Use getItemById instead */
+  defectById: Maybe<Item>;
+  /** @deprecated Use GetItems with subtype filter instead */
+  defects: ItemConnection;
+  /** @deprecated Use getItemById instead */
+  featureById: Maybe<Item>;
+  /** @deprecated Use GetItems instead */
+  features: ItemConnection;
+  getItemById: Maybe<Item>;
+  items: ItemConnection;
   modelConfigurations: Array<ModelConfiguration>;
   projectById: Maybe<Project>;
   projects: ProjectConnection;
@@ -527,18 +520,7 @@ export type QuerydefectsArgs = {
   first?: Scalars['Int']['input'];
   projectId: InputMaybe<Scalars['UUID']['input']>;
   skip: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryepicByIdArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QueryepicsArgs = {
-  first?: Scalars['Int']['input'];
-  skip: InputMaybe<Scalars['Int']['input']>;
-  title: InputMaybe<Scalars['String']['input']>;
+  status: InputMaybe<Array<FeatureStatus>>;
 };
 
 
@@ -548,9 +530,6 @@ export type QueryfeatureByIdArgs = {
 
 
 export type QueryfeaturesArgs = {
-  createdAfter: InputMaybe<Scalars['DateTime']['input']>;
-  createdBefore: InputMaybe<Scalars['DateTime']['input']>;
-  epicId: InputMaybe<Scalars['UUID']['input']>;
   first?: Scalars['Int']['input'];
   projectId: InputMaybe<Scalars['UUID']['input']>;
   skip: InputMaybe<Scalars['Int']['input']>;
@@ -558,8 +537,20 @@ export type QueryfeaturesArgs = {
 };
 
 
-export type QuerymodelConfigurationsArgs = {
-  projectId: Scalars['UUID']['input'];
+export type QuerygetItemByIdArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryitemsArgs = {
+  createdAfter: InputMaybe<Scalars['DateTime']['input']>;
+  createdBefore: InputMaybe<Scalars['DateTime']['input']>;
+  epicId: InputMaybe<Scalars['UUID']['input']>;
+  first?: Scalars['Int']['input'];
+  projectId: InputMaybe<Scalars['UUID']['input']>;
+  skip: InputMaybe<Scalars['Int']['input']>;
+  status: InputMaybe<Array<FeatureStatus>>;
+  subtype: InputMaybe<Array<ItemSubtype>>;
 };
 
 
@@ -582,15 +573,15 @@ export type QuerytaskByIdArgs = {
 export type QuerytasksArgs = {
   createdAfter: InputMaybe<Scalars['DateTime']['input']>;
   createdBefore: InputMaybe<Scalars['DateTime']['input']>;
-  featureId: InputMaybe<Scalars['UUID']['input']>;
   first?: Scalars['Int']['input'];
+  itemId: InputMaybe<Scalars['UUID']['input']>;
   skip: InputMaybe<Scalars['Int']['input']>;
   status: InputMaybe<Array<TaskStatus>>;
 };
 
 
 export type QueryvalidStatusTransitionsArgs = {
-  featureId: Scalars['UUID']['input'];
+  itemId: Scalars['UUID']['input'];
 };
 
 export const Severity = {
@@ -662,7 +653,9 @@ export type UpdateDefectInput = {
   openQuestions: InputMaybe<Scalars['String']['input']>;
   performanceImpact: InputMaybe<Scalars['String']['input']>;
   plan: InputMaybe<Scalars['String']['input']>;
+  rootCause: InputMaybe<Scalars['String']['input']>;
   securityImpact: InputMaybe<Scalars['String']['input']>;
+  severity: InputMaybe<Severity>;
   testPlan: InputMaybe<Scalars['String']['input']>;
   title: InputMaybe<Scalars['String']['input']>;
 };
@@ -727,10 +720,14 @@ export type WorkflowRun = {
   completedAt: Maybe<Scalars['DateTime']['output']>;
   createdAt: Maybe<Scalars['DateTime']['output']>;
   errorMessage: Maybe<Scalars['String']['output']>;
-  feature: Maybe<Feature>;
-  featureId: Maybe<Scalars['ID']['output']>;
+  /** @deprecated Use Item instead */
+  feature: Maybe<Item>;
+  /** @deprecated Use ItemId and Item instead */
+  featureId: Maybe<Scalars['UUID']['output']>;
   id: Maybe<Scalars['ID']['output']>;
   inputPayload: Maybe<Scalars['String']['output']>;
+  item: Maybe<Item>;
+  itemId: Maybe<Scalars['ID']['output']>;
   outputPayload: Maybe<Scalars['String']['output']>;
   project: Maybe<Project>;
   projectId: Maybe<Scalars['ID']['output']>;
@@ -770,7 +767,7 @@ export type CreateDefectMutationVariables = Exact<{
 }>;
 
 
-export type CreateDefectMutation = { __typename?: 'Mutation', createDefect: { __typename?: 'DefectPayload', errors: Array<string>, defect: { __typename?: 'Defect', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null } | null } };
+export type CreateDefectMutation = { __typename?: 'Mutation', createDefect: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null } | null } };
 
 export type CreateEpicMutationVariables = Exact<{
   input: CreateEpicInput;
@@ -784,14 +781,14 @@ export type CreateFeatureMutationVariables = Exact<{
 }>;
 
 
-export type CreateFeatureMutation = { __typename?: 'Mutation', createFeature: { __typename?: 'FeaturePayload', errors: Array<string>, feature: { __typename?: 'Feature', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, openQuestions: string | null, status: FeatureStatus | null, projectId: string | null, createdAt: any | null, updatedAt: any | null } | null } };
+export type CreateFeatureMutation = { __typename?: 'Mutation', createFeature: { __typename?: 'FeaturePayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, openQuestions: string | null, status: FeatureStatus | null, projectId: string | null, createdAt: any | null, updatedAt: any | null } | null } };
 
 export type CreateModelConfigurationMutationVariables = Exact<{
   input: CreateModelConfigurationInput;
 }>;
 
 
-export type CreateModelConfigurationMutation = { __typename?: 'Mutation', createModelConfiguration: { __typename?: 'ModelConfigurationPayload', errors: Array<string>, modelConfiguration: { __typename?: 'ModelConfiguration', id: string | null, projectId: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, createdAt: any | null, updatedAt: any | null } | null } };
+export type CreateModelConfigurationMutation = { __typename?: 'Mutation', createModelConfiguration: { __typename?: 'ModelConfigurationPayload', errors: Array<string>, modelConfiguration: { __typename?: 'ModelConfiguration', id: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, createdAt: any | null, updatedAt: any | null } | null } };
 
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
@@ -805,21 +802,21 @@ export type CreateTaskMutationVariables = Exact<{
 }>;
 
 
-export type CreateTaskMutation = { __typename?: 'Mutation', createTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, featureId: string | null, createdAt: any | null, updatedAt: any | null } | null } };
+export type CreateTaskMutation = { __typename?: 'Mutation', createTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, featureId: any, createdAt: any | null, updatedAt: any | null } | null } };
 
 export type CreateWorkflowRunMutationVariables = Exact<{
   input: CreateWorkflowRunInput;
 }>;
 
 
-export type CreateWorkflowRunMutation = { __typename?: 'Mutation', createWorkflowRun: { __typename?: 'WorkflowRunPayload', errors: Array<string>, workflowRun: { __typename?: 'WorkflowRun', id: string | null, projectId: string | null, featureId: string | null, taskId: string | null, workflowType: WorkflowType | null, status: WorkflowRunStatus | null, startedAt: any | null, createdAt: any | null } | null } };
+export type CreateWorkflowRunMutation = { __typename?: 'Mutation', createWorkflowRun: { __typename?: 'WorkflowRunPayload', errors: Array<string>, workflowRun: { __typename?: 'WorkflowRun', id: string | null, projectId: string | null, featureId: any | null, taskId: string | null, workflowType: WorkflowType | null, status: WorkflowRunStatus | null, startedAt: any | null, createdAt: any | null } | null } };
 
 export type DeleteDefectMutationVariables = Exact<{
   input: DeleteDefectInput;
 }>;
 
 
-export type DeleteDefectMutation = { __typename?: 'Mutation', deleteDefect: { __typename?: 'DefectPayload', errors: Array<string>, defect: { __typename?: 'Defect', id: string | null } | null } };
+export type DeleteDefectMutation = { __typename?: 'Mutation', deleteDefect: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null } | null } };
 
 export type DeleteEpicMutationVariables = Exact<{
   input: DeleteEpicInput;
@@ -833,7 +830,7 @@ export type DeleteFeatureMutationVariables = Exact<{
 }>;
 
 
-export type DeleteFeatureMutation = { __typename?: 'Mutation', deleteFeature: { __typename?: 'FeaturePayload', errors: Array<string>, feature: { __typename?: 'Feature', id: string | null } | null } };
+export type DeleteFeatureMutation = { __typename?: 'Mutation', deleteFeature: { __typename?: 'FeaturePayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null } | null } };
 
 export type DeleteModelConfigurationMutationVariables = Exact<{
   input: DeleteModelConfigurationInput;
@@ -861,14 +858,14 @@ export type TransitionDefectStatusMutationVariables = Exact<{
 }>;
 
 
-export type TransitionDefectStatusMutation = { __typename?: 'Mutation', transitionDefectStatus: { __typename?: 'DefectPayload', errors: Array<string>, defect: { __typename?: 'Defect', id: string | null, status: FeatureStatus | null } | null } };
+export type TransitionDefectStatusMutation = { __typename?: 'Mutation', transitionDefectStatus: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, status: FeatureStatus | null } | null } };
 
 export type TransitionFeatureStatusMutationVariables = Exact<{
   input: TransitionFeatureInput;
 }>;
 
 
-export type TransitionFeatureStatusMutation = { __typename?: 'Mutation', transitionFeatureStatus: { __typename?: 'FeaturePayload', errors: Array<string>, feature: { __typename?: 'Feature', id: string | null, status: FeatureStatus | null, validStatusTransitions: Array<FeatureStatus | null> | null } | null } };
+export type TransitionFeatureStatusMutation = { __typename?: 'Mutation', transitionFeatureStatus: { __typename?: 'FeaturePayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, status: FeatureStatus | null, validStatusTransitions: Array<FeatureStatus | null> | null } | null } };
 
 export type TransitionTaskStatusMutationVariables = Exact<{
   input: TransitionTaskInput;
@@ -882,7 +879,7 @@ export type UpdateDefectMutationVariables = Exact<{
 }>;
 
 
-export type UpdateDefectMutation = { __typename?: 'Mutation', updateDefect: { __typename?: 'DefectPayload', errors: Array<string>, defect: { __typename?: 'Defect', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, updatedAt: any | null } | null } };
+export type UpdateDefectMutation = { __typename?: 'Mutation', updateDefect: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, updatedAt: any | null } | null } };
 
 export type UpdateEpicMutationVariables = Exact<{
   input: UpdateEpicInput;
@@ -896,14 +893,14 @@ export type UpdateFeatureMutationVariables = Exact<{
 }>;
 
 
-export type UpdateFeatureMutation = { __typename?: 'Mutation', updateFeature: { __typename?: 'FeaturePayload', errors: Array<string>, feature: { __typename?: 'Feature', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, status: FeatureStatus | null, updatedAt: any | null } | null } };
+export type UpdateFeatureMutation = { __typename?: 'Mutation', updateFeature: { __typename?: 'FeaturePayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, status: FeatureStatus | null, updatedAt: any | null } | null } };
 
 export type UpdateModelConfigurationMutationVariables = Exact<{
   input: UpdateModelConfigurationInput;
 }>;
 
 
-export type UpdateModelConfigurationMutation = { __typename?: 'Mutation', updateModelConfiguration: { __typename?: 'ModelConfigurationPayload', errors: Array<string>, modelConfiguration: { __typename?: 'ModelConfiguration', id: string | null, projectId: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, updatedAt: any | null } | null } };
+export type UpdateModelConfigurationMutation = { __typename?: 'Mutation', updateModelConfiguration: { __typename?: 'ModelConfigurationPayload', errors: Array<string>, modelConfiguration: { __typename?: 'ModelConfiguration', id: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, updatedAt: any | null } | null } };
 
 export type UpdateProjectMutationVariables = Exact<{
   input: UpdateProjectInput;
@@ -917,7 +914,7 @@ export type UpdateTaskMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTaskMutation = { __typename?: 'Mutation', updateTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, featureId: string | null, updatedAt: any | null } | null } };
+export type UpdateTaskMutation = { __typename?: 'Mutation', updateTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, featureId: any, updatedAt: any | null } | null } };
 
 export type GetDashboardSummaryQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -927,35 +924,35 @@ export type GetDashboardSummaryQuery = { __typename?: 'Query', dashboardSummary:
 export type GetDefectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetDefectsQuery = { __typename?: 'Query', defects: { __typename?: 'DefectConnection', nodes: Array<{ __typename?: 'Defect', id: string | null, title: string | null, description: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null }> } };
+export type GetDefectsQuery = { __typename?: 'Query', defects: { __typename?: 'ItemConnection', nodes: Array<{ __typename?: 'Item', id: string | null, title: string | null, description: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null }> } };
 
 export type GetDefectByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetDefectByIdQuery = { __typename?: 'Query', defectById: { __typename?: 'Defect', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null, version: number | null } | null };
+export type GetDefectByIdQuery = { __typename?: 'Query', defectById: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null } | null };
 
 export type GetEpicsQueryVariables = Exact<{
   title: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type GetEpicsQuery = { __typename?: 'Query', epics: { __typename?: 'EpicConnection', nodes: Array<{ __typename?: 'Epic', id: string | null, title: string | null, description: string | null, createdAt: any | null, updatedAt: any | null }> } };
+export type GetEpicsQuery = { __typename?: 'Query', items: { __typename?: 'ItemConnection', totalCount: number, nodes: Array<{ __typename?: 'Item', id: string | null, title: string | null, description: string | null, createdAt: any | null, updatedAt: any | null }>, pageInfo: { __typename?: 'ItemPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, totalCount: number } } };
 
 export type GetEpicByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetEpicByIdQuery = { __typename?: 'Query', epicById: { __typename?: 'Epic', id: string | null, title: string | null, description: string | null, createdAt: any | null, updatedAt: any | null } | null };
+export type GetEpicByIdQuery = { __typename?: 'Query', getItemById: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, createdAt: any | null, updatedAt: any | null } | null };
 
 export type GetFeatureByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetFeatureByIdQuery = { __typename?: 'Query', featureById: { __typename?: 'Feature', id: string | null, title: string | null, status: FeatureStatus | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, createdAt: any | null, updatedAt: any | null, validStatusTransitions: Array<FeatureStatus | null> | null, tasks: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, status: TaskStatus | null } | null> | null } | null };
+export type GetFeatureByIdQuery = { __typename?: 'Query', featureById: { __typename?: 'Item', id: string | null, title: string | null, status: FeatureStatus | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, createdAt: any | null, updatedAt: any | null, validStatusTransitions: Array<FeatureStatus | null> | null, tasks: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, status: TaskStatus | null } | null> | null } | null };
 
 export type GetFeaturesQueryVariables = Exact<{
   projectId: InputMaybe<Scalars['UUID']['input']>;
@@ -963,14 +960,12 @@ export type GetFeaturesQueryVariables = Exact<{
 }>;
 
 
-export type GetFeaturesQuery = { __typename?: 'Query', features: { __typename?: 'FeatureConnection', nodes: Array<{ __typename?: 'Feature', id: string | null, title: string | null, status: FeatureStatus | null, updatedAt: any | null, tasks: Array<{ __typename?: 'AgentTask', id: string | null } | null> | null }> } };
+export type GetFeaturesQuery = { __typename?: 'Query', features: { __typename?: 'ItemConnection', nodes: Array<{ __typename?: 'Item', id: string | null, title: string | null, status: FeatureStatus | null, updatedAt: any | null, tasks: Array<{ __typename?: 'AgentTask', id: string | null } | null> | null }> } };
 
-export type ModelConfigurationsQueryVariables = Exact<{
-  projectId: Scalars['UUID']['input'];
-}>;
+export type ModelConfigurationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ModelConfigurationsQuery = { __typename?: 'Query', modelConfigurations: Array<{ __typename?: 'ModelConfiguration', id: string | null, projectId: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, createdAt: any | null, updatedAt: any | null }> };
+export type ModelConfigurationsQuery = { __typename?: 'Query', modelConfigurations: Array<{ __typename?: 'ModelConfiguration', id: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, createdAt: any | null, updatedAt: any | null }> };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -989,21 +984,21 @@ export type GetTaskByIdQueryVariables = Exact<{
 }>;
 
 
-export type GetTaskByIdQuery = { __typename?: 'Query', taskById: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, featureId: string | null, createdAt: any | null, updatedAt: any | null } | null };
+export type GetTaskByIdQuery = { __typename?: 'Query', taskById: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, itemId: string | null, createdAt: any | null, updatedAt: any | null } | null };
 
 export type GetTasksQueryVariables = Exact<{
-  featureId: InputMaybe<Scalars['UUID']['input']>;
+  itemId: InputMaybe<Scalars['UUID']['input']>;
   status: InputMaybe<Array<TaskStatus> | TaskStatus>;
 }>;
 
 
-export type GetTasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', nodes: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, featureId: string | null, createdAt: any | null, updatedAt: any | null }> } };
+export type GetTasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', nodes: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, itemId: string | null, createdAt: any | null, updatedAt: any | null }> } };
 
 
 export const CreateDefectDocument = gql`
     mutation CreateDefect($input: CreateDefectInput!) {
   createDefect(input: $input) {
-    defect {
+    item {
       id
       title
       description
@@ -1093,7 +1088,7 @@ export type CreateEpicMutationOptions = Apollo.BaseMutationOptions<CreateEpicMut
 export const CreateFeatureDocument = gql`
     mutation CreateFeature($input: CreateFeatureInput!) {
   createFeature(input: $input) {
-    feature {
+    item {
       id
       title
       description
@@ -1139,7 +1134,6 @@ export const CreateModelConfigurationDocument = gql`
   createModelConfiguration(input: $input) {
     modelConfiguration {
       id
-      projectId
       url
       model
       modelAlias
@@ -1313,7 +1307,7 @@ export type CreateWorkflowRunMutationOptions = Apollo.BaseMutationOptions<Create
 export const DeleteDefectDocument = gql`
     mutation DeleteDefect($input: DeleteDefectInput!) {
   deleteDefect(input: $input) {
-    defect {
+    item {
       id
     }
     errors
@@ -1385,7 +1379,7 @@ export type DeleteEpicMutationOptions = Apollo.BaseMutationOptions<DeleteEpicMut
 export const DeleteFeatureDocument = gql`
     mutation DeleteFeature($input: DeleteFeatureInput!) {
   deleteFeature(input: $input) {
-    feature {
+    item {
       id
     }
     errors
@@ -1529,7 +1523,7 @@ export type DeleteTaskMutationOptions = Apollo.BaseMutationOptions<DeleteTaskMut
 export const TransitionDefectStatusDocument = gql`
     mutation TransitionDefectStatus($input: TransitionDefectInput!) {
   transitionDefectStatus(input: $input) {
-    defect {
+    item {
       id
       status
     }
@@ -1566,7 +1560,7 @@ export type TransitionDefectStatusMutationOptions = Apollo.BaseMutationOptions<T
 export const TransitionFeatureStatusDocument = gql`
     mutation TransitionFeatureStatus($input: TransitionFeatureInput!) {
   transitionFeatureStatus(input: $input) {
-    feature {
+    item {
       id
       status
       validStatusTransitions
@@ -1641,7 +1635,7 @@ export type TransitionTaskStatusMutationOptions = Apollo.BaseMutationOptions<Tra
 export const UpdateDefectDocument = gql`
     mutation UpdateDefect($input: UpdateDefectInput!) {
   updateDefect(input: $input) {
-    defect {
+    item {
       id
       title
       description
@@ -1729,7 +1723,7 @@ export type UpdateEpicMutationOptions = Apollo.BaseMutationOptions<UpdateEpicMut
 export const UpdateFeatureDocument = gql`
     mutation UpdateFeature($input: UpdateFeatureInput!) {
   updateFeature(input: $input) {
-    feature {
+    item {
       id
       title
       description
@@ -1778,7 +1772,6 @@ export const UpdateModelConfigurationDocument = gql`
   updateModelConfiguration(input: $input) {
     modelConfiguration {
       id
-      projectId
       url
       model
       modelAlias
@@ -2031,7 +2024,6 @@ export const GetDefectByIdDocument = gql`
     parentFeatureId
     createdAt
     updatedAt
-    version
   }
 }
     `;
@@ -2073,7 +2065,7 @@ export type GetDefectByIdSuspenseQueryHookResult = ReturnType<typeof useGetDefec
 export type GetDefectByIdQueryResult = Apollo.QueryResult<GetDefectByIdQuery, GetDefectByIdQueryVariables>;
 export const GetEpicsDocument = gql`
     query GetEpics($title: String) {
-  epics(title: $title) {
+  items(subtype: [EPIC], first: 50, skip: null) {
     nodes {
       id
       title
@@ -2081,6 +2073,12 @@ export const GetEpicsDocument = gql`
       createdAt
       updatedAt
     }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      totalCount
+    }
+    totalCount
   }
 }
     `;
@@ -2122,7 +2120,7 @@ export type GetEpicsSuspenseQueryHookResult = ReturnType<typeof useGetEpicsSuspe
 export type GetEpicsQueryResult = Apollo.QueryResult<GetEpicsQuery, GetEpicsQueryVariables>;
 export const GetEpicByIdDocument = gql`
     query GetEpicById($id: UUID!) {
-  epicById(id: $id) {
+  getItemById(id: $id) {
     id
     title
     description
@@ -2283,10 +2281,9 @@ export type GetFeaturesLazyQueryHookResult = ReturnType<typeof useGetFeaturesLaz
 export type GetFeaturesSuspenseQueryHookResult = ReturnType<typeof useGetFeaturesSuspenseQuery>;
 export type GetFeaturesQueryResult = Apollo.QueryResult<GetFeaturesQuery, GetFeaturesQueryVariables>;
 export const ModelConfigurationsDocument = gql`
-    query ModelConfigurations($projectId: UUID!) {
-  modelConfigurations(projectId: $projectId) {
+    query ModelConfigurations {
+  modelConfigurations {
     id
-    projectId
     url
     model
     modelAlias
@@ -2309,11 +2306,10 @@ export const ModelConfigurationsDocument = gql`
  * @example
  * const { data, loading, error } = useModelConfigurationsQuery({
  *   variables: {
- *      projectId: // value for 'projectId'
  *   },
  * });
  */
-export function useModelConfigurationsQuery(baseOptions: ApolloReactHooks.QueryHookOptions<ModelConfigurationsQuery, ModelConfigurationsQueryVariables> & ({ variables: ModelConfigurationsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useModelConfigurationsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return ApolloReactHooks.useQuery<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>(ModelConfigurationsDocument, options);
       }
@@ -2442,7 +2438,7 @@ export const GetTaskByIdDocument = gql`
     complexityRating
     result
     status
-    featureId
+    itemId
     createdAt
     updatedAt
   }
@@ -2485,8 +2481,8 @@ export type GetTaskByIdLazyQueryHookResult = ReturnType<typeof useGetTaskByIdLaz
 export type GetTaskByIdSuspenseQueryHookResult = ReturnType<typeof useGetTaskByIdSuspenseQuery>;
 export type GetTaskByIdQueryResult = Apollo.QueryResult<GetTaskByIdQuery, GetTaskByIdQueryVariables>;
 export const GetTasksDocument = gql`
-    query GetTasks($featureId: UUID, $status: [TaskStatus!]) {
-  tasks(featureId: $featureId, status: $status) {
+    query GetTasks($itemId: UUID, $status: [TaskStatus!]) {
+  tasks(itemId: $itemId, status: $status) {
     nodes {
       id
       title
@@ -2497,7 +2493,7 @@ export const GetTasksDocument = gql`
       complexityRating
       result
       status
-      featureId
+      itemId
       createdAt
       updatedAt
     }
@@ -2517,7 +2513,7 @@ export const GetTasksDocument = gql`
  * @example
  * const { data, loading, error } = useGetTasksQuery({
  *   variables: {
- *      featureId: // value for 'featureId'
+ *      itemId: // value for 'itemId'
  *      status: // value for 'status'
  *   },
  * });

@@ -1,10 +1,8 @@
 import { useModelConfigurationsQuery } from '@/generated/graphql';
 
-export function useModelConfigurations(projectId: string) {
+export function useModelConfigurations() {
     const { data, loading, error, refetch } = useModelConfigurationsQuery({
-        variables: { projectId },
         fetchPolicy: 'cache-and-network',
-        skip: !projectId,
     });
 
     return {

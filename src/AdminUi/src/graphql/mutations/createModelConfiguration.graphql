@@ -2,7 +2,6 @@ mutation CreateModelConfiguration($input: CreateModelConfigurationInput!) {
     createModelConfiguration(input: $input) {
         modelConfiguration {
             id
-            projectId
             url
             model
             modelAlias

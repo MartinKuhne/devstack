@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 const epicSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().optional(),
+    projectId: z.string(),
 });
 
 type EpicFormData = z.infer<typeof epicSchema>;
@@ -19,10 +20,11 @@ type EpicFormData = z.infer<typeof epicSchema>;
 interface CreateEpicDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    projectId: string;
     onSuccess?: (epicId: string) => void;
 }
 
-export function CreateEpicDialog({ open, onOpenChange, onSuccess }: CreateEpicDialogProps) {
+export function CreateEpicDialog({ open, onOpenChange, projectId, onSuccess }: CreateEpicDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
     const [createEpic, { loading }] = useCreateEpicMutation();
 
@@ -42,6 +44,7 @@ export function CreateEpicDialog({ open, onOpenChange, onSuccess }: CreateEpicDi
             const result = await createEpic({
                 variables: {
                     input: {
+                        projectId: data.projectId,
                         title: data.title,
                         description: data.description ?? null,
                     },
@@ -82,6 +85,7 @@ export function CreateEpicDialog({ open, onOpenChange, onSuccess }: CreateEpicDi
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="grid gap-4 py-4">
+                        <input type="hidden" {...register('projectId')} value={projectId} />
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title *</Label>
                             <Input

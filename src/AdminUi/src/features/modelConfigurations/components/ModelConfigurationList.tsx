@@ -4,12 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { useModelConfigurations } from '@/features/modelConfigurations/hooks/useModelConfigurations';
 
 interface ModelConfigurationListProps {
-    projectId: string;
     onAddModel: () => void;
 }
 
-export function ModelConfigurationList({ projectId, onAddModel }: ModelConfigurationListProps) {
-    const { modelConfigurations, loading, error } = useModelConfigurations(projectId);
+export function ModelConfigurationList({ onAddModel }: ModelConfigurationListProps) {
+    const { modelConfigurations, loading, error } = useModelConfigurations();
 
     if (loading) {
         return (

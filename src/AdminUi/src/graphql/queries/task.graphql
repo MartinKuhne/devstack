@@ -9,14 +9,14 @@ query GetTaskById($id: UUID!) {
         complexityRating
         result
         status
-        featureId
+        itemId
         createdAt
         updatedAt
     }
 }
 
-query GetTasks($featureId: UUID, $status: [TaskStatus!]) {
-    tasks(featureId: $featureId, status: $status) {
+query GetTasks($itemId: UUID, $status: [TaskStatus!]) {
+    tasks(itemId: $itemId, status: $status) {
         nodes {
             id
             title
@@ -27,7 +27,7 @@ query GetTasks($featureId: UUID, $status: [TaskStatus!]) {
             complexityRating
             result
             status
-            featureId
+            itemId
             createdAt
             updatedAt
         }
