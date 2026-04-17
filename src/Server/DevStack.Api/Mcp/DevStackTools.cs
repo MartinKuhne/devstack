@@ -307,18 +307,18 @@ public class DevStackTools(
     }
 
     [McpServerTool, Description("Get an epic by ID")]
-    public DevStack.Domain.Entities.Epic? GetEpicById(Guid id)
+    public DevStack.Domain.Entities.Item? GetEpicById(Guid id)
     {
-        return dbContext.Epics.Find(id);
+        return dbContext.Items.FirstOrDefault(i => i.Id == id && i.Subtype == ItemSubtype.Epic);
     }
 
     [McpServerTool, Description("Get all epics with optional filtering")]
-    public List<DevStack.Domain.Entities.Epic> GetEpics(
+    public List<DevStack.Domain.Entities.Item> GetEpics(
         string? title = null,
         int first = 50,
         int? skip = null)
     {
-        var query = dbContext.Epics.AsQueryable();
+        var query = dbContext.Items.AsQueryable().Where(e => e.Subtype == ItemSubtype.Epic);
         if (!string.IsNullOrWhiteSpace(title))
         {
             query = query.Where(e => e.Title.Contains(title));
