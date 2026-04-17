@@ -144,7 +144,7 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
         var featureId = featureData["createFeature"]!["feature"]!["id"]!.GetValue<Guid>();
 
         await using var ctx = _fixture.CreateDbContext();
-        var fetched = await ctx.Features.FindAsync(featureId);
+        var fetched = await ctx.Items.FindAsync(featureId);
         fetched.Should().NotBeNull();
         fetched!.Title.Should().Be("Test Feature");
         fetched.Status.Should().Be(DevStack.Domain.Enums.FeatureStatus.Planning);
@@ -180,7 +180,7 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
         updateData!["updateFeature"]!["errors"]!.AsArray().Should().BeEmpty();
 
         await using var ctx = _fixture.CreateDbContext();
-        var fetched = await ctx.Features.FindAsync(featureId);
+        var fetched = await ctx.Items.FindAsync(featureId);
         fetched!.Title.Should().Be("Updated Title");
         fetched.Description.Should().Be("Updated Description");
     }
@@ -215,7 +215,7 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
         transitionData!["transitionFeatureStatus"]!["errors"]!.AsArray().Should().BeEmpty();
 
         await using var ctx = _fixture.CreateDbContext();
-        var fetched = await ctx.Features.FindAsync(featureId);
+        var fetched = await ctx.Items.FindAsync(featureId);
         fetched!.Status.Should().Be(DevStack.Domain.Enums.FeatureStatus.InProgress);
     }
 
@@ -245,7 +245,7 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
         deleteData!["deleteFeature"]!["errors"]!.AsArray().Should().BeEmpty();
 
         await using var ctx = _fixture.CreateDbContext();
-        var fetched = await ctx.Features.FindAsync(featureId);
+        var fetched = await ctx.Items.FindAsync(featureId);
         fetched.Should().BeNull();
     }
 
@@ -280,7 +280,7 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
         var defectId = defectData["createDefect"]!["defect"]!["id"]!.GetValue<Guid>();
 
         await using var ctx = _fixture.CreateDbContext();
-        var fetched = await ctx.Defects.FindAsync(defectId);
+        var fetched = await ctx.Items.FindAsync(defectId);
         fetched.Should().NotBeNull();
         fetched!.Title.Should().Be("Test Defect");
         fetched.Severity.Should().Be(DevStack.Domain.Enums.Severity.High);
@@ -316,7 +316,7 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
         updateData!["updateDefect"]!["errors"]!.AsArray().Should().BeEmpty();
 
         await using var ctx = _fixture.CreateDbContext();
-        var fetched = await ctx.Defects.FindAsync(defectId);
+        var fetched = await ctx.Items.FindAsync(defectId);
         fetched!.Title.Should().Be("Updated Title");
         fetched.Description.Should().Be("Updated Description");
     }
@@ -351,7 +351,7 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
         transitionData!["transitionDefectStatus"]!["errors"]!.AsArray().Should().BeEmpty();
 
         await using var ctx = _fixture.CreateDbContext();
-        var fetched = await ctx.Defects.FindAsync(defectId);
+        var fetched = await ctx.Items.FindAsync(defectId);
         fetched!.Status.Should().Be(DevStack.Domain.Enums.FeatureStatus.InProgress);
     }
 
@@ -381,7 +381,7 @@ public class GraphQLMutationTests : IClassFixture<TestContainerFixture>
         deleteData!["deleteDefect"]!["errors"]!.AsArray().Should().BeEmpty();
 
         await using var ctx = _fixture.CreateDbContext();
-        var fetched = await ctx.Defects.FindAsync(defectId);
+        var fetched = await ctx.Items.FindAsync(defectId);
         fetched.Should().BeNull();
     }
 

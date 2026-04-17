@@ -49,8 +49,7 @@ public class QueryTests : IAsyncLifetime
         };
         _dbContext.Projects.Add(project);
 
-        var feature1 = new Feature
-        {
+        var feature1 = new Item { Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "Feature 1",
@@ -60,8 +59,7 @@ public class QueryTests : IAsyncLifetime
             UpdatedAt = DateTime.UtcNow
         };
 
-        var feature2 = new Feature
-        {
+        var feature2 = new Item { Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "Feature 2",
@@ -71,8 +69,7 @@ public class QueryTests : IAsyncLifetime
             UpdatedAt = DateTime.UtcNow
         };
 
-        var feature3 = new Feature
-        {
+        var feature3 = new Item { Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "Feature 3",
@@ -82,10 +79,9 @@ public class QueryTests : IAsyncLifetime
             UpdatedAt = DateTime.UtcNow
         };
 
-        _dbContext.Features.AddRange(feature1, feature2, feature3);
+        _dbContext.Items.AddRange(feature1, feature2, feature3);
 
-        var defect1 = new Defect
-        {
+        var defect1 = new Item { Subtype = ItemSubtype.Defect,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "Critical Bug",
@@ -95,7 +91,7 @@ public class QueryTests : IAsyncLifetime
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.Defects.Add(defect1);
+        _dbContext.Items.Add(defect1);
 
         var task1 = new AgentTask
         {
@@ -252,7 +248,7 @@ public class QueryTests : IAsyncLifetime
     {
         // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
-        var feature = _dbContext!.Features.First(f => f.Title == "Feature 1");
+        var feature = _dbContext!.Items.First(f => f.Title == "Feature 1");
 
         // Act
         var result = query.GetFeatureById(_dbContext, feature.Id);
@@ -312,10 +308,10 @@ public class QueryTests : IAsyncLifetime
     {
         // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
-        var feature = _dbContext!.Features.First(f => f.Title == "Feature 1");
+        var feature = _dbContext!.Items.First(f => f.Title == "Feature 1");
 
         // Act
-        var result = query.GetTasks(_dbContext, featureId: feature.Id);
+        var result = query.GetTasks(_dbContext, itemId: feature.Id);
 
         // Assert
         result.Nodes.Should().HaveCount(2);
@@ -370,7 +366,7 @@ public class QueryTests : IAsyncLifetime
     {
         // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
-        var feature = _dbContext!.Features.First(f => f.Title == "Feature 1");
+        var feature = _dbContext!.Items.First(f => f.Title == "Feature 1");
 
         // Act
         var result = query.GetAuditEvents(_dbContext, feature.Id);
@@ -437,7 +433,7 @@ public class QueryTests : IAsyncLifetime
         var oneHourAgo = DateTime.UtcNow.AddHours(-1);
 
         // Act
-        var result = query.GetFeatures(_dbContext!, createdAfter: oneHourAgo);
+        var result = query.GetItems(_dbContext!, subtype: [ItemSubtype.Feature], createdAfter: oneHourAgo);
 
         // Assert
         result.Nodes.Should().HaveCount(3);

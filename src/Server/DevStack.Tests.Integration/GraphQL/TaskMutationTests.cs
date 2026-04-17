@@ -55,16 +55,17 @@ public class TaskMutationTests : IAsyncLifetime
         };
         _dbContext.Projects.Add(project);
 
-        var feature = new Feature
+        var item = new Item
         {
             Id = _featureId,
             ProjectId = _projectId,
             Title = "Test Feature",
             Status = FeatureStatus.Planning,
+            Subtype = ItemSubtype.Feature,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.Features.Add(feature);
+        _dbContext.Items.Add(item);
         await _dbContext.SaveChangesAsync();
     }
 
@@ -83,7 +84,7 @@ public class TaskMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         var input = new CreateTaskInput(
             ProjectId: _projectId,
-            FeatureId: _featureId,
+            ItemId: _featureId,
             Title: "New Task",
             Deliverable: "Implement feature",
             AcceptanceCriteria: "Tests pass",
@@ -108,7 +109,7 @@ public class TaskMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         var input = new CreateTaskInput(
             ProjectId: _projectId,
-            FeatureId: _featureId,
+            ItemId: _featureId,
             Title: "",
             Deliverable: null,
             AcceptanceCriteria: null,
@@ -132,7 +133,7 @@ public class TaskMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         var input = new CreateTaskInput(
             ProjectId: _projectId,
-            FeatureId: _featureId,
+            ItemId: _featureId,
             Title: "Invalid Task",
             Deliverable: null,
             AcceptanceCriteria: null,

@@ -21,7 +21,7 @@ public class TestDataCleanup : ITestDataCleanup
     public async Task VerifyCleanupAsync(DevStackDbContext context)
     {
         var projectCount = await context.Projects.CountAsync();
-        var featureCount = await context.Features.CountAsync();
+        var featureCount = await context.Items.CountAsync();
         var defectCount = await context.Defects.CountAsync();
         var taskCount = await context.Tasks.CountAsync();
         var modelConfigCount = await context.ModelConfigurations.CountAsync();
