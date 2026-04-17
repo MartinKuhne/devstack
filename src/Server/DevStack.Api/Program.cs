@@ -71,7 +71,10 @@ builder.Services.AddTransient<ICreateFeatureHandler, CreateFeatureHandler>();
 builder.Services.AddTransient<IUpdateFeatureHandler, UpdateFeatureHandler>();
 builder.Services.AddTransient<ITransitionFeatureStatusHandler, TransitionFeatureStatusHandler>();
 builder.Services.AddTransient<IDeleteFeatureHandler, DeleteFeatureHandler>();
-builder.Services.AddTransient<FeatureStatusTransitionService>();
+var limitFeatureStatusTransitions = builder.Configuration
+    .GetSection("FeatureManagement")
+    .GetValue<bool>("LimitFeatureStatusTransitions");
+builder.Services.AddTransient<FeatureStatusTransitionService>(_ => new FeatureStatusTransitionService(limitFeatureStatusTransitions));
 builder.Services.AddTransient<ICreateDefectHandler, CreateDefectHandler>();
 builder.Services.AddTransient<IUpdateDefectHandler, UpdateDefectHandler>();
 builder.Services.AddTransient<ITransitionDefectStatusHandler, TransitionDefectStatusHandler>();
