@@ -8,7 +8,7 @@ namespace DevStack.Infrastructure.Tasks;
 
 public record CreateTaskCommand(
     Guid ProjectId,
-    Guid FeatureId,
+    Guid ItemId,
     string Title,
     string? Deliverable,
     string? AcceptanceCriteria,
@@ -67,7 +67,7 @@ public class CreateTaskHandler : ICreateTaskHandler
         var task = new global::DevStack.Domain.Entities.AgentTask
         {
             ProjectId = request.ProjectId,
-            FeatureId = request.FeatureId,
+            ItemId = request.ItemId,
             Title = request.Title,
             Deliverable = request.Deliverable,
             AcceptanceCriteria = request.AcceptanceCriteria,

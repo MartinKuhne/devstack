@@ -17,7 +17,10 @@ public class Epic : Entity
 
     public string? Description { get; set; }
 
-    public virtual ICollection<Feature> Features { get; set; } = new List<Feature>();
+    public virtual ICollection<Item> Items { get; set; } = new List<Item>();
+
+    [Obsolete("Use Items instead")]
+    public virtual ICollection<Item> Features => Items;
 
     public DateTime CreatedAt { get; set; }
 

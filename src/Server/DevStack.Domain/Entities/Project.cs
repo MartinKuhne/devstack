@@ -20,9 +20,12 @@ public class Project : Entity
 
     public string? GithubToken_Encrypted { get; set; }
 
-    public virtual ICollection<Feature> Features { get; set; } = new List<Feature>();
+    public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 
     public virtual ICollection<Defect> Defects { get; set; } = new List<Defect>();
+
+    [Obsolete("Use Items instead")]
+    public virtual ICollection<Item> Features => Items;
 
     public virtual ICollection<Epic> Epics { get; set; } = new List<Epic>();
 

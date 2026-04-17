@@ -44,12 +44,12 @@ public class AgentTaskConfiguration : IEntityTypeConfiguration<DevStack.Domain.E
             .HasForeignKey(t => t.ProjectId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(t => t.Feature)
-            .WithMany(f => f.Tasks)
-            .HasForeignKey(t => t.FeatureId)
+        builder.HasOne(t => t.Item)
+            .WithMany(i => i.Tasks)
+            .HasForeignKey(t => t.ItemId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(t => new { t.FeatureId, t.Status });
+        builder.HasIndex(t => new { t.ItemId, t.Status });
         builder.HasIndex(t => t.ProjectId);
     }
 }

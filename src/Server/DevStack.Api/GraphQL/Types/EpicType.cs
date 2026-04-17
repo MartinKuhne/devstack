@@ -13,6 +13,6 @@ public class EpicType : ObjectType<Epic>
         descriptor.Field(e => e.CreatedAt).Type<DateTimeType>();
         descriptor.Field(e => e.UpdatedAt).Type<DateTimeType>();
         
-        descriptor.Field("features").Type<ListType<FeatureType>>().Resolve(ctx => ctx.Parent<Epic>().Features);
+        descriptor.Field("items").Type<ListType<ItemType>>().Resolve(ctx => ctx.Parent<Epic>().Items);
     }
 }

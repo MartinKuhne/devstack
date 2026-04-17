@@ -89,7 +89,7 @@ public sealed class FeatureStatusTransitionService(bool limitFeatureStatusTransi
         workItem.UpdatedAt = DateTime.UtcNow;
 
         // Emit domain event
-        _domainEvents.Add(new FeatureStatusChangedEvent(workItem.Id, oldStatus, targetStatus, actor));
+        _domainEvents.Add(new ItemStatusChangedEvent(workItem.Id, oldStatus, targetStatus, actor));
 
         return TransitionResult<Unit>.Success(Unit.Value);
     }

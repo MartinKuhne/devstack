@@ -19,7 +19,7 @@ public class TaskPageInfo
 
 public class TaskFilterInput
 {
-    public Guid? FeatureId { get; set; }
+    public Guid? ItemId { get; set; }
     public List<global::DevStack.Domain.Enums.TaskStatus>? Status { get; set; }
     public DateTime? CreatedAfter { get; set; }
     public DateTime? CreatedBefore { get; set; }

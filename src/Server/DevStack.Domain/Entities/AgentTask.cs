@@ -10,7 +10,7 @@ public class AgentTask : Entity
     public Guid ProjectId { get; set; }
 
     [Required]
-    public Guid FeatureId { get; set; }
+    public Guid ItemId { get; set; }
 
     [Required]
     [StringLength(300)]
@@ -34,7 +34,14 @@ public class AgentTask : Entity
 
     public DateTime CreatedAt { get; set; }
 
-    public virtual Feature? Feature { get; set; }
+    [ForeignKey(nameof(ItemId))]
+    public virtual Item? Item { get; set; }
+
+    [Obsolete("Use ItemId and Item instead")]
+    public Guid FeatureId { get => ItemId; set => ItemId = value; }
+
+    [Obsolete("Use Item instead")]
+    public virtual Item? Feature { get => Item; set => Item = value; }
 
     public DateTime UpdatedAt { get; set; }
 
