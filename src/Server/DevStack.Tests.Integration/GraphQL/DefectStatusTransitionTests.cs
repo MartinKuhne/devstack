@@ -201,7 +201,7 @@ public class DefectStatusTransitionTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Defect.Should().BeNull();
-        result.Errors.Should().Contain(e => e.Contains("result must be provided"));
+        result.Errors.Should().Contain(e => e.Contains("A result must be provided"));
         var persisted = await _dbContext.Defects.FindAsync(id);
         persisted!.Status.Should().Be(FeatureStatus.Testing);
     }
