@@ -71,8 +71,8 @@ public class DefectStatusTransitionTests : IAsyncLifetime
         return id;
     }
 
-    private (Mutation mutation, TransitionDefectStatusHandler handler) CreateHandler() =>
-        (new Mutation(), new TransitionDefectStatusHandler(_dbContext!, new FeatureStatusTransitionService()));
+    private (Mutation mutation, TransitionDefectStatusHandler handler) CreateHandler(bool limitTransitions = false) =>
+        (new Mutation(), new TransitionDefectStatusHandler(_dbContext!, new FeatureStatusTransitionService(limitTransitions)));
 
     // -------------------------------------------------------------------------
     // All valid transitions
@@ -163,7 +163,7 @@ public class DefectStatusTransitionTests : IAsyncLifetime
     public async Task InvalidTransition_Returns_ValidationError_And_Leaves_Status_Unchanged(FeatureStatus from, FeatureStatus to)
     {
         var id = await SeedDefectAsync(from);
-        var (mutation, handler) = CreateHandler();
+        var (mutation, handler) = CreateHandler(limitTransitions: true);
 
         var result = await mutation.TransitionDefectStatusAsync(
             new TransitionDefectInput(Id: id, TargetStatus: to, Actor: "operator"),

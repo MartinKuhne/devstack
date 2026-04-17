@@ -82,6 +82,7 @@ public class TaskMutationTests : IAsyncLifetime
     {
         var mutation = new Mutation();
         var input = new CreateTaskInput(
+            ProjectId: _projectId,
             FeatureId: _featureId,
             Title: "New Task",
             Deliverable: "Implement feature",
@@ -106,6 +107,7 @@ public class TaskMutationTests : IAsyncLifetime
     {
         var mutation = new Mutation();
         var input = new CreateTaskInput(
+            ProjectId: _projectId,
             FeatureId: _featureId,
             Title: "",
             Deliverable: null,
@@ -129,6 +131,7 @@ public class TaskMutationTests : IAsyncLifetime
     {
         var mutation = new Mutation();
         var input = new CreateTaskInput(
+            ProjectId: _projectId,
             FeatureId: _featureId,
             Title: "Invalid Task",
             Deliverable: null,
@@ -156,6 +159,7 @@ public class TaskMutationTests : IAsyncLifetime
         var task = new AgentTask
         {
             Id = taskId,
+            ProjectId = _projectId,
             FeatureId = _featureId,
             Title = "Original Title",
             Status = TaskStatus.Planning,
@@ -218,6 +222,7 @@ public class TaskMutationTests : IAsyncLifetime
         var task = new AgentTask
         {
             Id = taskId,
+            ProjectId = _projectId,
             FeatureId = _featureId,
             Title = "Test Task",
             Status = TaskStatus.Planning,
@@ -260,6 +265,7 @@ public class TaskMutationTests : IAsyncLifetime
         var task = new AgentTask
         {
             Id = taskId,
+            ProjectId = _projectId,
             FeatureId = _featureId,
             Title = "To Delete",
             Status = TaskStatus.Planning,

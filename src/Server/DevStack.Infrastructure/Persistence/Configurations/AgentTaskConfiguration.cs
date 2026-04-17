@@ -36,11 +36,20 @@ public class AgentTaskConfiguration : IEntityTypeConfiguration<DevStack.Domain.E
             .IsRequired()
             .HasMaxLength(2); // For values 1-10
             
+        builder.Property(t => t.ProjectId)
+            .IsRequired();
+
+        builder.HasOne<Project>()
+            .WithMany()
+            .HasForeignKey(t => t.ProjectId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasOne(t => t.Feature)
             .WithMany(f => f.Tasks)
             .HasForeignKey(t => t.FeatureId)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         builder.HasIndex(t => new { t.FeatureId, t.Status });
+        builder.HasIndex(t => t.ProjectId);
     }
 }

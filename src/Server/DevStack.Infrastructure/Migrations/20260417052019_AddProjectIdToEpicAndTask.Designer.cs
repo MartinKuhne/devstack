@@ -3,6 +3,7 @@ using System;
 using DevStack.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DevStack.Infrastructure.Migrations
 {
     [DbContext(typeof(DevStackDbContext))]
-    partial class DevStackDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260417052019_AddProjectIdToEpicAndTask")]
+    partial class AddProjectIdToEpicAndTask
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

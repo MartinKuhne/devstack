@@ -1,0 +1,635 @@
+{
+  "info": {
+    "name": "DevStack GraphQL",
+    "_postman_id": "devstack-graphql",
+    "description": "All GraphQL queries and mutations at http://localhost:5049/graphql",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5049/graphql", "type": "string" },
+    { "key": "projectId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "featureId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "defectId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "taskId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "epicId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "modelConfigId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "workflowRunId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Queries",
+      "item": [
+        {
+          "name": "GetProjectById",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetProjectById($id: UUID!) {\n  projectById(id: $id) {\n    id\n    name\n    description\n    architecture\n    memory\n    githubUrl\n  }\n}",
+                "variables": "{\n  \"id\": \"{{projectId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetProjects",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetProjects($first: Int, $skip: Int) {\n  projects(first: $first, skip: $skip) {\n    nodes {\n      id\n      name\n      description\n      architecture\n      githubUrl\n    }\n    totalCount\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n    }\n  }\n}",
+                "variables": "{\n  \"first\": 50,\n  \"skip\": 0\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetFeatureById",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetFeatureById($id: UUID!) {\n  featureById(id: $id) {\n    id\n    title\n    description\n    status\n    acceptanceCriteria\n    plan\n    securityImpact\n    performanceImpact\n    testPlan\n    deploymentPlan\n    openQuestions\n  }\n}",
+                "variables": "{\n  \"id\": \"{{featureId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetFeatures",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetFeatures($projectId: UUID, $epicId: UUID, $status: [FeatureStatus!], $createdAfter: DateTime, $createdBefore: DateTime, $first: Int, $skip: Int) {\n  features(projectId: $projectId, epicId: $epicId, status: $status, createdAfter: $createdAfter, createdBefore: $createdBefore, first: $first, skip: $skip) {\n    nodes {\n      id\n      title\n      description\n      status\n    }\n    totalCount\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n    }\n  }\n}",
+                "variables": "{\n  \"projectId\": \"{{projectId}}\",\n  \"status\": [\"PLANNING\", \"IN_PROGRESS\"],\n  \"first\": 50,\n  \"skip\": 0\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetDefectById",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetDefectById($id: UUID!) {\n  defectById(id: $id) {\n    id\n    title\n    description\n    status\n    severity\n    rootCause\n    acceptanceCriteria\n    plan\n  }\n}",
+                "variables": "{\n  \"id\": \"{{defectId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetDefects",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetDefects($projectId: UUID, $first: Int, $skip: Int) {\n  defects(projectId: $projectId, first: $first, skip: $skip) {\n    nodes {\n      id\n      title\n      status\n      severity\n    }\n    totalCount\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n    }\n  }\n}",
+                "variables": "{\n  \"projectId\": \"{{projectId}}\",\n  \"first\": 50,\n  \"skip\": 0\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetTaskById",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetTaskById($id: UUID!) {\n  taskById(id: $id) {\n    id\n    title\n    status\n    deliverable\n    acceptanceCriteria\n    risks\n    result\n    requiredFollowUps\n    complexityRating\n  }\n}",
+                "variables": "{\n  \"id\": \"{{taskId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetTasks",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetTasks($featureId: UUID, $status: [TaskStatus!], $createdAfter: DateTime, $createdBefore: DateTime, $first: Int, $skip: Int) {\n  tasks(featureId: $featureId, status: $status, createdAfter: $createdAfter, createdBefore: $createdBefore, first: $first, skip: $skip) {\n    nodes {\n      id\n      title\n      status\n      complexityRating\n    }\n    totalCount\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n    }\n  }\n}",
+                "variables": "{\n  \"featureId\": \"{{featureId}}\",\n  \"status\": [\"READY\", \"CODE\"],\n  \"first\": 50,\n  \"skip\": 0\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetEpicById",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetEpicById($id: UUID!) {\n  epicById(id: $id) {\n    id\n    title\n    description\n  }\n}",
+                "variables": "{\n  \"id\": \"{{epicId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetEpics",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetEpics($title: String, $first: Int, $skip: Int) {\n  epics(title: $title, first: $first, skip: $skip) {\n    nodes {\n      id\n      title\n      description\n    }\n    totalCount\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n    }\n  }\n}",
+                "variables": "{\n  \"first\": 50,\n  \"skip\": 0\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetModelConfigurations",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetModelConfigurations($projectId: UUID!) {\n  modelConfigurations(projectId: $projectId) {\n    id\n    url\n    model\n    modelAlias\n    maxComplexity\n  }\n}",
+                "variables": "{\n  \"projectId\": \"{{projectId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetAuditEvents",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetAuditEvents($entityId: UUID!, $take: Int) {\n  auditEvents(entityId: $entityId, take: $take) {\n    id\n    entityId\n    eventType\n    actor\n    occurredAt\n    payload\n  }\n}",
+                "variables": "{\n  \"entityId\": \"{{featureId}}\",\n  \"take\": 50\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetValidStatusTransitions",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetValidStatusTransitions($featureId: UUID!) {\n  validStatusTransitions(featureId: $featureId)\n}",
+                "variables": "{\n  \"featureId\": \"{{featureId}}\"\n}"
+              }
+            }
+          }
+        },
+        {
+          "name": "GetDashboardSummary",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}",
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetDashboardSummary {\n  dashboardSummary {\n    projectsInFlight\n    featuresInReview\n    featuresFailed\n    tasksInProgress\n    tasksFailed\n    recentAuditEvents {\n      id\n      entityId\n      eventType\n      actor\n      occurredAt\n    }\n  }\n}",
+                "variables": "{}"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutations",
+      "item": [
+        {
+          "name": "Projects",
+          "item": [
+            {
+              "name": "CreateProject",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation CreateProject($input: CreateProjectInput!) {\n  createProject(input: $input) {\n    project {\n      id\n      name\n      description\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"name\": \"My Project\",\n    \"description\": \"Project description\",\n    \"architecture\": \"Microservices\",\n    \"memory\": \"\",\n    \"githubUrl\": \"https://github.com/org/repo\"\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "UpdateProject",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation UpdateProject($input: UpdateProjectInput!) {\n  updateProject(input: $input) {\n    project {\n      id\n      name\n      description\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{projectId}}\",\n    \"name\": \"Updated Name\",\n    \"description\": \"Updated description\",\n    \"architecture\": \"Monolith\",\n    \"githubUrl\": \"https://github.com/org/repo\"\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "DeleteProject",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation DeleteProject($input: DeleteProjectInput!) {\n  deleteProject(input: $input) {\n    project {\n      id\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{projectId}}\"\n  }\n}"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Features",
+          "item": [
+            {
+              "name": "CreateFeature",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation CreateFeature($input: CreateFeatureInput!) {\n  createFeature(input: $input) {\n    feature {\n      id\n      title\n      status\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"projectId\": \"{{projectId}}\",\n    \"title\": \"Feature Title\",\n    \"description\": \"Feature description\",\n    \"acceptanceCriteria\": \"\",\n    \"plan\": \"\",\n    \"securityImpact\": \"\",\n    \"performanceImpact\": \"\",\n    \"testPlan\": \"\",\n    \"deploymentPlan\": \"\",\n    \"openQuestions\": \"\",\n    \"initialStatus\": \"PLANNING\"\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "UpdateFeature",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation UpdateFeature($input: UpdateFeatureInput!) {\n  updateFeature(input: $input) {\n    feature {\n      id\n      title\n      status\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{featureId}}\",\n    \"title\": \"Updated Title\",\n    \"description\": \"Updated description\",\n    \"acceptanceCriteria\": \"\",\n    \"plan\": \"\",\n    \"securityImpact\": \"\",\n    \"performanceImpact\": \"\",\n    \"testPlan\": \"\",\n    \"deploymentPlan\": \"\",\n    \"openQuestions\": \"\"\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "TransitionFeatureStatus",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation TransitionFeatureStatus($input: TransitionFeatureInput!) {\n  transitionFeatureStatus(input: $input) {\n    feature {\n      id\n      title\n      status\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{featureId}}\",\n    \"targetStatus\": \"IN_PROGRESS\",\n    \"actor\": \"system\"\n  }\n}\n\n// FeatureStatus values: PLANNING, READY, IN_PROGRESS, READY_FOR_TEST, TESTING, DONE, FAILED, REJECTED, IN_REVIEW"
+                  }
+                }
+              }
+            },
+            {
+              "name": "DeleteFeature",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation DeleteFeature($input: DeleteFeatureInput!) {\n  deleteFeature(input: $input) {\n    feature {\n      id\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{featureId}}\"\n  }\n}"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Defects",
+          "item": [
+            {
+              "name": "CreateDefect",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation CreateDefect($input: CreateDefectInput!) {\n  createDefect(input: $input) {\n    defect {\n      id\n      title\n      status\n      severity\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"projectId\": \"{{projectId}}\",\n    \"parentFeatureId\": \"{{featureId}}\",\n    \"severity\": \"MEDIUM\",\n    \"title\": \"Defect Title\",\n    \"description\": \"Defect description\",\n    \"acceptanceCriteria\": \"\",\n    \"plan\": \"\",\n    \"securityImpact\": \"\",\n    \"performanceImpact\": \"\",\n    \"testPlan\": \"\",\n    \"deploymentPlan\": \"\",\n    \"openQuestions\": \"\",\n    \"initialStatus\": \"PLANNING\",\n    \"rootCause\": \"\"\n  }\n}\n\n// Severity values: LOW, MEDIUM, HIGH, CRITICAL"
+                  }
+                }
+              }
+            },
+            {
+              "name": "UpdateDefect",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation UpdateDefect($input: UpdateDefectInput!) {\n  updateDefect(input: $input) {\n    defect {\n      id\n      title\n      status\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{defectId}}\",\n    \"title\": \"Updated Title\",\n    \"description\": \"Updated description\",\n    \"rootCause\": \"\"\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "TransitionDefectStatus",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation TransitionDefectStatus($input: TransitionDefectInput!) {\n  transitionDefectStatus(input: $input) {\n    defect {\n      id\n      title\n      status\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{defectId}}\",\n    \"targetStatus\": \"IN_PROGRESS\",\n    \"actor\": \"system\"\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "DeleteDefect",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation DeleteDefect($input: DeleteDefectInput!) {\n  deleteDefect(input: $input) {\n    defect {\n      id\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{defectId}}\"\n  }\n}"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tasks",
+          "item": [
+            {
+              "name": "CreateTask",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation CreateTask($input: CreateTaskInput!) {\n  createTask(input: $input) {\n    task {\n      id\n      title\n      status\n      complexityRating\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"featureId\": \"{{featureId}}\",\n    \"title\": \"Task Title\",\n    \"deliverable\": \"\",\n    \"acceptanceCriteria\": \"\",\n    \"risks\": \"\",\n    \"result\": \"\",\n    \"requiredFollowUps\": \"\",\n    \"complexityRating\": 5\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "UpdateTask",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation UpdateTask($input: UpdateTaskInput!) {\n  updateTask(input: $input) {\n    task {\n      id\n      title\n      status\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{taskId}}\",\n    \"title\": \"Updated Title\",\n    \"deliverable\": \"\",\n    \"acceptanceCriteria\": \"\",\n    \"risks\": \"\",\n    \"result\": \"\",\n    \"requiredFollowUps\": \"\",\n    \"complexityRating\": 5\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "TransitionTaskStatus",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation TransitionTaskStatus($input: TransitionTaskInput!) {\n  transitionTaskStatus(input: $input) {\n    task {\n      id\n      title\n      status\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{taskId}}\",\n    \"targetStatus\": \"CODE\",\n    \"actor\": \"system\"\n  }\n}\n\n// TaskStatus values: PLANNING, READY, PREPARE, CODE, REVIEW, READY_FOR_TEST, TESTING, DONE, FAILED, REJECTED, IN_REVIEW"
+                  }
+                }
+              }
+            },
+            {
+              "name": "DeleteTask",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation DeleteTask($input: DeleteTaskInput!) {\n  deleteTask(input: $input) {\n    task {\n      id\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{taskId}}\"\n  }\n}"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Epics",
+          "item": [
+            {
+              "name": "CreateEpic",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation CreateEpic($input: CreateEpicInput!) {\n  createEpic(input: $input) {\n    epic {\n      id\n      title\n      description\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"title\": \"Epic Title\",\n    \"description\": \"Epic description\"\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "UpdateEpic",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation UpdateEpic($input: UpdateEpicInput!) {\n  updateEpic(input: $input) {\n    epic {\n      id\n      title\n      description\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{epicId}}\",\n    \"title\": \"Updated Title\",\n    \"description\": \"Updated description\"\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "DeleteEpic",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation DeleteEpic($input: DeleteEpicInput!) {\n  deleteEpic(input: $input) {\n    epic {\n      id\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{epicId}}\"\n  }\n}"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Model Configurations",
+          "item": [
+            {
+              "name": "CreateModelConfiguration",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation CreateModelConfiguration($input: CreateModelConfigurationInput!) {\n  createModelConfiguration(input: $input) {\n    modelConfiguration {\n      id\n      url\n      model\n      modelAlias\n      maxComplexity\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"projectId\": \"{{projectId}}\",\n    \"url\": \"https://api.anthropic.com\",\n    \"model\": \"claude-sonnet-4-6\",\n    \"modelAlias\": \"default\",\n    \"apiKey\": \"sk-ant-...\",\n    \"maxComplexity\": 7\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "UpdateModelConfiguration",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation UpdateModelConfiguration($input: UpdateModelConfigurationInput!) {\n  updateModelConfiguration(input: $input) {\n    modelConfiguration {\n      id\n      model\n      modelAlias\n      maxComplexity\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{modelConfigId}}\",\n    \"model\": \"claude-opus-4-7\",\n    \"maxComplexity\": 10\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "DeleteModelConfiguration",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation DeleteModelConfiguration($input: DeleteModelConfigurationInput!) {\n  deleteModelConfiguration(input: $input) {\n    modelConfiguration {\n      id\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{modelConfigId}}\"\n  }\n}"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Workflow Runs",
+          "item": [
+            {
+              "name": "CreateWorkflowRun",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation CreateWorkflowRun($input: CreateWorkflowRunInput!) {\n  createWorkflowRun(input: $input) {\n    workflowRun {\n      id\n      status\n      workflowType\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"projectId\": \"{{projectId}}\",\n    \"featureId\": \"{{featureId}}\",\n    \"workflowType\": \"CODER\",\n    \"inputPayload\": \"{}\"\n  }\n}\n\n// WorkflowType values: PLANNER, DEV_LEAD, CODER, TESTER, ARCHITECT"
+                  }
+                }
+              }
+            },
+            {
+              "name": "UpdateWorkflowRun",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation UpdateWorkflowRun($input: UpdateWorkflowRunInput!) {\n  updateWorkflowRun(input: $input) {\n    workflowRun {\n      id\n      status\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{workflowRunId}}\",\n    \"status\": \"SUCCEEDED\",\n    \"outputPayload\": \"{}\"\n  }\n}\n\n// Status values: QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELLED"
+                  }
+                }
+              }
+            },
+            {
+              "name": "CancelWorkflowRun",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{baseUrl}}",
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation CancelWorkflowRun($input: CancelWorkflowRunInput!) {\n  cancelWorkflowRun(input: $input) {\n    workflowRun {\n      id\n      status\n    }\n    errors\n  }\n}",
+                    "variables": "{\n  \"input\": {\n    \"id\": \"{{workflowRunId}}\"\n  }\n}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

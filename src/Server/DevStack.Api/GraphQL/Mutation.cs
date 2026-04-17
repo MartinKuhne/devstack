@@ -106,6 +106,7 @@ public record DeleteDefectInput(Guid Id);
 public record DefectPayload(Defect? Defect, List<string> Errors);
 
 public record CreateTaskInput(
+    Guid ProjectId,
     Guid FeatureId,
     string Title,
     string? Deliverable,
@@ -170,7 +171,7 @@ public record CancelWorkflowRunInput(Guid Id);
 
 public record WorkflowRunPayload(WorkflowRun? WorkflowRun, List<string> Errors);
 
-public record CreateEpicInput(string Title, string? Description);
+public record CreateEpicInput(Guid ProjectId, string Title, string? Description);
 
 public record UpdateEpicInput(Guid Id, string? Title, string? Description);
 
@@ -552,6 +553,7 @@ public class Mutation
         try
         {
             var id = await handler.Handle(new CreateTaskCommand(
+                input.ProjectId,
                 input.FeatureId,
                 input.Title,
                 input.Deliverable,
@@ -867,6 +869,7 @@ public class Mutation
         try
         {
             var id = await handler.Handle(new CreateEpicCommand(
+                input.ProjectId,
                 input.Title,
                 input.Description), cancellationToken);
             

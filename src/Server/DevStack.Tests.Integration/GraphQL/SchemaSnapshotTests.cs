@@ -65,6 +65,7 @@ public class SchemaSnapshotTests : IAsyncLifetime
         var task = new AgentTask
         {
             Id = Guid.NewGuid(),
+            ProjectId = projectId,
             FeatureId = feature.Id,
             Title = "Snapshot Task",
             Status = DevStack.Domain.Enums.TaskStatus.Planning,

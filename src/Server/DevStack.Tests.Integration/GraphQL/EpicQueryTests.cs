@@ -38,9 +38,19 @@ public class EpicQueryTests : IAsyncLifetime
     {
         if (_dbContext is null) return;
 
+        var projectId = Guid.NewGuid();
+        _dbContext.Projects.Add(new Project
+        {
+            Id = projectId,
+            Name = "Test Project",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+
         var epic1 = new Epic
         {
             Id = Guid.NewGuid(),
+            ProjectId = projectId,
             Title = "Epic One",
             Description = "First epic",
             CreatedAt = DateTime.UtcNow,
@@ -50,6 +60,7 @@ public class EpicQueryTests : IAsyncLifetime
         var epic2 = new Epic
         {
             Id = Guid.NewGuid(),
+            ProjectId = projectId,
             Title = "Epic Two",
             Description = "Second epic",
             CreatedAt = DateTime.UtcNow.AddHours(1),
@@ -59,6 +70,7 @@ public class EpicQueryTests : IAsyncLifetime
         var epic3 = new Epic
         {
             Id = Guid.NewGuid(),
+            ProjectId = projectId,
             Title = "Testing Epic",
             Description = "Epic about testing",
             CreatedAt = DateTime.UtcNow.AddHours(2),

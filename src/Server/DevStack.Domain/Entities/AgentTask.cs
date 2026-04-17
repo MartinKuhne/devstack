@@ -7,6 +7,9 @@ namespace DevStack.Domain.Entities;
 public class AgentTask : Entity
 {
     [Required]
+    public Guid ProjectId { get; set; }
+
+    [Required]
     public Guid FeatureId { get; set; }
 
     [Required]

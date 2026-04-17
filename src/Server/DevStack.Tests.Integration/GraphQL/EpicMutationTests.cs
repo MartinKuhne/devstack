@@ -15,6 +15,7 @@ public class EpicMutationTests : IAsyncLifetime
     private DevStackDbContext? _dbContext;
     private readonly SqliteConnection _connection;
     private readonly DbContextOptions<DevStackDbContext> _options;
+    private Guid _projectId;
 
     public EpicMutationTests()
     {
@@ -30,6 +31,20 @@ public class EpicMutationTests : IAsyncLifetime
         _dbContext = new DevStackDbContext(_options);
         await _dbContext.Database.EnsureDeletedAsync();
         await _dbContext.Database.EnsureCreatedAsync();
+        await SeedDataAsync();
+    }
+
+    private async System.Threading.Tasks.Task SeedDataAsync()
+    {
+        _projectId = Guid.NewGuid();
+        _dbContext!.Projects.Add(new Project
+        {
+            Id = _projectId,
+            Name = "Test Project",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        await _dbContext.SaveChangesAsync();
     }
 
     public async System.Threading.Tasks.Task DisposeAsync()
@@ -46,6 +61,7 @@ public class EpicMutationTests : IAsyncLifetime
     {
         var mutation = new Mutation();
         var input = new CreateEpicInput(
+            ProjectId: _projectId,
             Title: "New Epic",
             Description: "Test description");
 
@@ -64,6 +80,7 @@ public class EpicMutationTests : IAsyncLifetime
     {
         var mutation = new Mutation();
         var input = new CreateEpicInput(
+            ProjectId: _projectId,
             Title: "",
             Description: null);
 
@@ -81,6 +98,7 @@ public class EpicMutationTests : IAsyncLifetime
     {
         var mutation = new Mutation();
         var input = new CreateEpicInput(
+            ProjectId: _projectId,
             Title: new string('A', 201),
             Description: null);
 
@@ -102,6 +120,7 @@ public class EpicMutationTests : IAsyncLifetime
         var epic = new Epic
         {
             Id = epicId,
+            ProjectId = _projectId,
             Title = "Original Title",
             Description = "Original description",
             CreatedAt = DateTime.UtcNow,
@@ -155,6 +174,7 @@ public class EpicMutationTests : IAsyncLifetime
         var epic = new Epic
         {
             Id = epicId,
+            ProjectId = _projectId,
             Title = "To Delete",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
