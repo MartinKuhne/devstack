@@ -4,6 +4,7 @@ using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Features;
+using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Services;
@@ -65,6 +66,44 @@ public record TransitionFeatureInput(
 public record DeleteFeatureInput(Guid Id);
 
 public record FeaturePayload(Item? Item, List<string> Errors);
+
+public record CreateDefectInput(
+    Guid ProjectId,
+    Guid? ParentFeatureId,
+    string Title,
+    string? Description,
+    string? AcceptanceCriteria,
+    string? Plan,
+    string? SecurityImpact,
+    string? PerformanceImpact,
+    string? TestPlan,
+    string? DeploymentPlan,
+    string? OpenQuestions,
+    Severity? Severity,
+    FeatureStatus? InitialStatus);
+
+public record UpdateDefectInput(
+    Guid Id,
+    string? Title,
+    string? Description,
+    string? AcceptanceCriteria,
+    string? Plan,
+    string? SecurityImpact,
+    string? PerformanceImpact,
+    string? TestPlan,
+    string? DeploymentPlan,
+    string? OpenQuestions,
+    Severity? Severity,
+    string? RootCause);
+
+public record TransitionDefectInput(
+    Guid Id,
+    FeatureStatus TargetStatus,
+    string Actor);
+
+public record DeleteDefectInput(Guid Id);
+
+public record DefectPayload(Item? Item, List<string> Errors);
 
 [Obsolete("Use CreateTaskInput with ItemId parameter instead")]
 public record CreateTaskInput_Old(
@@ -389,6 +428,144 @@ public class Mutation
         catch (Exception ex)
         {
             return new FeaturePayload(null, [ex.Message]);
+        }
+    }
+
+    public async Task<DefectPayload> CreateDefectAsync(
+        CreateDefectInput input,
+        [Service] ICreateDefectHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(input.Title))
+            errors.Add("Title is required");
+
+        if (errors.Count > 0)
+            return new DefectPayload(null, errors);
+
+        try
+        {
+            var id = await handler.Handle(new CreateDefectCommand(
+                input.ProjectId,
+                input.ParentFeatureId,
+                input.Title,
+                input.Description,
+                input.AcceptanceCriteria,
+                input.Plan,
+                input.SecurityImpact,
+                input.PerformanceImpact,
+                input.TestPlan,
+                input.DeploymentPlan,
+                input.OpenQuestions,
+                input.Severity,
+                input.InitialStatus), cancellationToken);
+            
+            var defect = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Defect };
+            return new DefectPayload(defect, new List<string>());
+        }
+        catch (Exception ex)
+        {
+            return new DefectPayload(null, [ex.Message]);
+        }
+    }
+
+    public async Task<DefectPayload> UpdateDefectAsync(
+        UpdateDefectInput input,
+        [Service] IUpdateDefectHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = new List<string>();
+
+        try
+        {
+            await handler.Handle(new UpdateDefectCommand(
+                input.Id,
+                input.Title,
+                input.Description,
+                input.AcceptanceCriteria,
+                input.Plan,
+                input.SecurityImpact,
+                input.PerformanceImpact,
+                input.TestPlan,
+                input.DeploymentPlan,
+                input.OpenQuestions,
+                input.Severity,
+                input.RootCause), cancellationToken);
+
+            var defect = new Item { Id = input.Id };
+            return new DefectPayload(defect, new List<string>());
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        {
+            return new DefectPayload(null, ["NOT_FOUND: Item not found"]);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
+        {
+            return new DefectPayload(null, ["CONCURRENCY_CONFLICT: The defect has been modified by another process"]);
+        }
+        catch (Exception ex)
+        {
+            return new DefectPayload(null, [ex.Message]);
+        }
+    }
+
+    public async Task<DefectPayload> TransitionDefectStatusAsync(
+        TransitionDefectInput input,
+        [Service] ITransitionDefectStatusHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = new List<string>();
+
+        try
+        {
+            await handler.Handle(new TransitionDefectStatusCommand(
+                input.Id,
+                input.TargetStatus,
+                input.Actor), cancellationToken);
+
+            var defect = new Item { Id = input.Id };
+            return new DefectPayload(defect, new List<string>());
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        {
+            return new DefectPayload(null, ["NOT_FOUND: Item not found"]);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
+        {
+            return new DefectPayload(null, ["CONCURRENCY_CONFLICT: The defect has been modified by another process"]);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Transition failed"))
+        {
+            return new DefectPayload(null, ["DEFECT_VALIDATION_ERROR: " + ex.Message.Replace("Transition failed: ", "")]);
+        }
+        catch (Exception ex)
+        {
+            return new DefectPayload(null, [ex.Message]);
+        }
+    }
+
+    public async Task<DefectPayload> DeleteDefectAsync(
+        DeleteDefectInput input,
+        [Service] IDeleteDefectHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var errors = new List<string>();
+
+        try
+        {
+            await handler.Handle(new DeleteDefectCommand(input.Id), cancellationToken);
+            
+            var defect = new Item { Id = input.Id };
+            return new DefectPayload(defect, new List<string>());
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        {
+            return new DefectPayload(null, ["NOT_FOUND: Item not found"]);
+        }
+        catch (Exception ex)
+        {
+            return new DefectPayload(null, [ex.Message]);
         }
     }
 

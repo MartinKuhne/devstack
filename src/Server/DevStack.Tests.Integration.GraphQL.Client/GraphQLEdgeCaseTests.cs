@@ -214,6 +214,7 @@ public class GraphQLEdgeCaseTests : IClassFixture<TestContainerFixture>
 
         var task = new AgentTask
         {
+            ProjectId = project.Id,
             ItemId = feature.Id,
             Title = "Test Task",
             ComplexityRating = complexity,

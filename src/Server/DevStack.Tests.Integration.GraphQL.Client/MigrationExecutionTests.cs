@@ -44,8 +44,7 @@ public class MigrationExecutionTests : IClassFixture<TestContainerFixture>
         }
 
         tableNames.Should().Contain("Projects");
-        tableNames.Should().Contain("Features");
-        tableNames.Should().Contain("Defects");
+        tableNames.Should().Contain("Items");
         tableNames.Should().Contain("Tasks");
         tableNames.Should().Contain("ModelConfigurations");
         tableNames.Should().Contain("WorkflowRuns");
@@ -65,16 +64,14 @@ public class MigrationExecutionTests : IClassFixture<TestContainerFixture>
 
         // Act & Assert - Verify initial tables from InitialCreate migration
         var hasProjects = await context.Database.SqlQueryRaw<string>("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'Projects')").AnyAsync();
-        var hasFeatures = await context.Database.SqlQueryRaw<string>("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'Features')").AnyAsync();
-        var hasDefects = await context.Database.SqlQueryRaw<string>("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'Defects')").AnyAsync();
+        var hasItems = await context.Database.SqlQueryRaw<string>("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'Items')").AnyAsync();
         var hasTasks = await context.Database.SqlQueryRaw<string>("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'Tasks')").AnyAsync();
         var hasModelConfigurations = await context.Database.SqlQueryRaw<string>("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'ModelConfigurations')").AnyAsync();
         var hasWorkflowRuns = await context.Database.SqlQueryRaw<string>("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'WorkflowRuns')").AnyAsync();
         var hasAuditEvents = await context.Database.SqlQueryRaw<string>("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'AuditEvents')").AnyAsync();
 
         hasProjects.Should().BeTrue();
-        hasFeatures.Should().BeTrue();
-        hasDefects.Should().BeTrue();
+        hasItems.Should().BeTrue();
         hasTasks.Should().BeTrue();
         hasModelConfigurations.Should().BeTrue();
         hasWorkflowRuns.Should().BeTrue();
@@ -110,8 +107,8 @@ public class MigrationExecutionTests : IClassFixture<TestContainerFixture>
         await context.Database.MigrateAsync();
 
         // Act & Assert - Verify indexes were added
-        var hasFeatureStatusIndex = await context.Database.SqlQueryRaw<string>(
-            "SELECT EXISTS (SELECT FROM pg_indexes WHERE tablename = 'Features' AND indexname = 'IX_Features_Status')"
+        var hasItemStatusIndex = await context.Database.SqlQueryRaw<string>(
+            "SELECT EXISTS (SELECT FROM pg_indexes WHERE tablename = 'Items' AND indexname = 'IX_Items_Status')"
         ).AnyAsync();
 
         var hasTaskStatusIndex = await context.Database.SqlQueryRaw<string>(
@@ -122,38 +119,19 @@ public class MigrationExecutionTests : IClassFixture<TestContainerFixture>
             "SELECT EXISTS (SELECT FROM pg_indexes WHERE tablename = 'AuditEvents' AND indexname = 'IX_AuditEvents_EntityId')"
         ).AnyAsync();
 
-        var hasFeatureProjectStatusIndex = await context.Database.SqlQueryRaw<string>(
-            "SELECT EXISTS (SELECT FROM pg_indexes WHERE tablename = 'Features' AND indexname = 'IX_Features_ProjectId_Status')"
+        var hasItemProjectStatusIndex = await context.Database.SqlQueryRaw<string>(
+            "SELECT EXISTS (SELECT FROM pg_indexes WHERE tablename = 'Items' AND indexname = 'IX_Items_ProjectId_Status')"
         ).AnyAsync();
 
-        var hasTaskFeatureStatusIndex = await context.Database.SqlQueryRaw<string>(
-            "SELECT EXISTS (SELECT FROM pg_indexes WHERE tablename = 'Tasks' AND indexname = 'IX_Tasks_FeatureId_Status')"
+        var hasTaskItemStatusIndex = await context.Database.SqlQueryRaw<string>(
+            "SELECT EXISTS (SELECT FROM pg_indexes WHERE tablename = 'Tasks' AND indexname = 'IX_Tasks_ItemId_Status')"
         ).AnyAsync();
 
-        hasFeatureStatusIndex.Should().BeTrue("AddWorkItemIndexes migration should have added IX_Features_Status");
+        hasItemStatusIndex.Should().BeTrue("AddWorkItemIndexes migration should have added IX_Items_Status");
         hasTaskStatusIndex.Should().BeTrue("AddWorkItemIndexes migration should have added IX_Tasks_Status");
         hasAuditEventEntityIdIndex.Should().BeTrue("AddWorkItemIndexes migration should have added IX_AuditEvents_EntityId");
-        hasFeatureProjectStatusIndex.Should().BeTrue("AddWorkItemIndexes migration should have added IX_Features_ProjectId_Status");
-        hasTaskFeatureStatusIndex.Should().BeTrue("AddWorkItemIndexes migration should have added IX_Tasks_FeatureId_Status");
-    }
-
-    [Fact]
-    public async Task AddDefectIndex_Migration_Verify()
-    {
-        // Arrange
-        await using var context = new DevStackDbContext(
-            new DbContextOptionsBuilder<DevStackDbContext>()
-                .UseNpgsql(_fixture.ConnectionString)
-                .Options);
-
-        await context.Database.MigrateAsync();
-
-        // Act & Assert - Verify defect index was added
-        var hasDefectProjectStatusIndex = await context.Database.SqlQueryRaw<string>(
-            "SELECT EXISTS (SELECT FROM pg_indexes WHERE tablename = 'Defects' AND indexname = 'IX_Defects_ProjectId_Status')"
-        ).AnyAsync();
-
-        hasDefectProjectStatusIndex.Should().BeTrue("AddDefectIndex migration should have added IX_Defects_ProjectId_Status");
+        hasItemProjectStatusIndex.Should().BeTrue("AddWorkItemIndexes migration should have added IX_Items_ProjectId_Status");
+        hasTaskItemStatusIndex.Should().BeTrue("AddWorkItemIndexes migration should have added IX_Tasks_ItemId_Status");
     }
 
     [Fact]
@@ -172,8 +150,7 @@ public class MigrationExecutionTests : IClassFixture<TestContainerFixture>
 
         // Verify entities are in the model
         model.FindEntityType(typeof(Project))!.Should().NotBeNull();
-        model.FindEntityType(typeof(Feature))!.Should().NotBeNull();
-        model.FindEntityType(typeof(Defect))!.Should().NotBeNull();
+        model.FindEntityType(typeof(Item))!.Should().NotBeNull();
         model.FindEntityType(typeof(Domain.Entities.AgentTask))!.Should().NotBeNull();
         model.FindEntityType(typeof(ModelConfiguration))!.Should().NotBeNull();
         model.FindEntityType(typeof(WorkflowRun))!.Should().NotBeNull();
