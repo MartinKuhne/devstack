@@ -29,16 +29,6 @@ public class DefectMutationsSteps
         _projectId = await _fixture.CreateTestProjectAsync("Test Project");
     }
 
-    [Given("the API is available")]
-    public void GivenTheApiIsAvailable()
-    {
-    }
-
-    [Given("a parent project exists")]
-    public void GivenAParentProjectExists()
-    {
-    }
-
     [When(@"I create a defect with title ""([^""]*)"" and severity ""([^""]*)""")]
     public async Task WhenICreateADefectWithTitleAndSeverity(string title, string severity)
     {

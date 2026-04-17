@@ -33,7 +33,6 @@ public class IntegrationTestFixture : IAsyncLifetime
             .Options;
         
         _dbContext = new DevStackDbContext(_options);
-        HttpClient = new HttpClient();
         
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
@@ -41,6 +40,7 @@ public class IntegrationTestFixture : IAsyncLifetime
             .Build();
         
         GraphQlUrl = configuration.GetValue<string>("GraphQL:Url") ?? "http://localhost:8087/graphql";
+        HttpClient = new HttpClient { BaseAddress = new Uri(GraphQlUrl) };
     }
 
     public DevStackDbContext CreateDbContext()
@@ -66,7 +66,7 @@ public class IntegrationTestFixture : IAsyncLifetime
 
     private async Task<JsonNode?> SendMutationAsync(string query, object? variables = null)
     {
-        var response = await HttpClient.PostAsJsonAsync("GraphQlUrl", new { query, variables });
+        var response = await HttpClient.PostAsJsonAsync("", new { query, variables });
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadAsStringAsync();
         return JsonNode.Parse(json)?["data"];

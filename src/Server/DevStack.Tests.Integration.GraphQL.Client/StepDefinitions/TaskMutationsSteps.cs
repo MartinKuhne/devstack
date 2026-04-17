@@ -31,19 +31,10 @@ public class TaskMutationsSteps
         _featureId = await _fixture.CreateTestFeatureAsync(_projectId.Value, "Parent Feature");
     }
 
-    [Given("the API is available")]
-    public void GivenTheApiIsAvailable()
-    {
-    }
-
-    [Given("a parent project exists")]
-    public void GivenAParentProjectExists()
-    {
-    }
-
     [Given("a parent feature exists")]
     public void GivenAParentFeatureExists()
     {
+        // No-op: Feature setup handled in BeforeScenario
     }
 
     [When(@"I create a task with title ""([^""]*)"" and complexity rating (\d+)")]

@@ -22,11 +22,6 @@ public class ProjectMutationsSteps
         _fixture = fixture;
     }
 
-    [Given("the API is available")]
-    public void GivenTheApiIsAvailable()
-    {
-    }
-
     [When(@"I create a project with name ""([^""]*)"" and description ""([^""]*)""")]
     public async Task WhenICreateAProjectWithNameAndDescription(string name, string description)
     {
