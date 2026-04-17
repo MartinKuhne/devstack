@@ -163,7 +163,7 @@ public class CommonSteps
         _scenarioContext[$"DefectId_{defectTitle}"] = createdDefectId;
     }
 
-    [Given("a task with status (.*) exists")]
+    [Given("a task with status \"(.*)\" exists")]
     public async Task GivenATaskWithStatusExists(string status)
     {
         var projectId = _scenarioContext.TryGetValue<string>("ParentProjectId", out var pid) ? pid : null;
@@ -204,7 +204,7 @@ public class CommonSteps
         _scenarioContext["CurrentTaskStatus"] = status;
     }
 
-    [Given("a feature with status (.*) exists")]
+    [Given("a feature with status \"(.*)\" exists")]
     public async Task GivenAFeatureWithStatusExists(string status)
     {
         var projectId = _scenarioContext.TryGetValue<string>("ParentProjectId", out var pid) ? pid : null;
@@ -240,7 +240,7 @@ public class CommonSteps
         _scenarioContext["CurrentFeatureStatus"] = status;
     }
 
-    [Given("a defect with status (.*) exists")]
+    [Given("a defect with status \"(.*)\" exists")]
     public async Task GivenADefectWithStatusExists(string status)
     {
         var projectId = _scenarioContext.TryGetValue<string>("ParentProjectId", out var pid) ? pid : null;
