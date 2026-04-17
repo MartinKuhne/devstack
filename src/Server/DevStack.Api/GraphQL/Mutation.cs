@@ -188,7 +188,7 @@ public record UpdateEpicInput(Guid Id, string? Title, string? Description);
 
 public record DeleteEpicInput(Guid Id);
 
-public record EpicPayload(Epic? Epic, List<string> Errors);
+public record EpicPayload(Item? Item, List<string> Errors);
 
 public class Mutation
 {
@@ -907,7 +907,7 @@ public class Mutation
                 input.Title,
                 input.Description), cancellationToken);
             
-            var epic = new Epic { Id = id };
+            var epic = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Epic };
             return new EpicPayload(epic, new List<string>());
         }
         catch (Exception ex)
@@ -930,7 +930,7 @@ public class Mutation
                 input.Title,
                 input.Description), cancellationToken);
 
-            var epic = new Epic { Id = input.Id };
+            var epic = new Item { Id = input.Id };
             return new EpicPayload(epic, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
@@ -958,7 +958,7 @@ public class Mutation
         {
             await handler.Handle(new DeleteEpicCommand(input.Id), cancellationToken);
             
-            var epic = new Epic { Id = input.Id };
+            var epic = new Item { Id = input.Id };
             return new EpicPayload(epic, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))

@@ -1,6 +1,7 @@
 using DevStack.Api.GraphQL;
 using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Entities;
+using DevStack.Domain.Enums;
 using DevStack.Infrastructure.Persistence;
 using DevStack.Infrastructure.Epics;
 using FluentAssertions;
@@ -71,8 +72,9 @@ public class EpicMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Epic.Should().NotBeNull();
-        result.Epic!.Id.Should().NotBeEmpty();
+        result.Item.Should().NotBeNull();
+        result.Item!.Id.Should().NotBeEmpty();
+        result.Item.Subtype.Should().Be(ItemSubtype.Epic);
     }
 
     [Fact]
@@ -89,7 +91,7 @@ public class EpicMutationTests : IAsyncLifetime
             new CreateEpicHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Epic.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain("Title is required");
     }
 
@@ -107,7 +109,7 @@ public class EpicMutationTests : IAsyncLifetime
             new CreateEpicHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Epic.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain("Title must be 200 characters or less");
     }
 
@@ -117,16 +119,17 @@ public class EpicMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         
         var epicId = Guid.NewGuid();
-        var epic = new Epic
+        var item = new Item
         {
             Id = epicId,
             ProjectId = _projectId,
+            Subtype = ItemSubtype.Epic,
             Title = "Original Title",
             Description = "Original description",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext!.Epics.Add(epic);
+        _dbContext!.Items.Add(item);
         await _dbContext.SaveChangesAsync();
 
         var input = new UpdateEpicInput(
@@ -140,11 +143,11 @@ public class EpicMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Epic.Should().NotBeNull();
+        result.Item.Should().NotBeNull();
         
-        var updatedEpic = await _dbContext.Epics.FindAsync(epicId);
-        updatedEpic!.Title.Should().Be("Updated Title");
-        updatedEpic.Description.Should().Be("Updated description");
+        var updatedItem = await _dbContext.Items.FindAsync(epicId);
+        updatedItem!.Title.Should().Be("Updated Title");
+        updatedItem.Description.Should().Be("Updated description");
     }
 
     [Fact]
@@ -161,7 +164,7 @@ public class EpicMutationTests : IAsyncLifetime
             new UpdateEpicHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Epic.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain(e => e.Contains("NOT_FOUND"));
     }
 
@@ -171,15 +174,16 @@ public class EpicMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         
         var epicId = Guid.NewGuid();
-        var epic = new Epic
+        var item = new Item
         {
             Id = epicId,
             ProjectId = _projectId,
+            Subtype = ItemSubtype.Epic,
             Title = "To Delete",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext!.Epics.Add(epic);
+        _dbContext!.Items.Add(item);
         await _dbContext.SaveChangesAsync();
 
         var input = new DeleteEpicInput(Id: epicId);
@@ -190,10 +194,10 @@ public class EpicMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Epic.Should().NotBeNull();
+        result.Item.Should().NotBeNull();
 
-        var deletedEpic = await _dbContext.Epics.FindAsync(epicId);
-        deletedEpic.Should().BeNull();
+        var deletedItem = await _dbContext.Items.FindAsync(epicId);
+        deletedItem.Should().BeNull();
     }
 
     [Fact]
@@ -207,7 +211,7 @@ public class EpicMutationTests : IAsyncLifetime
             new DeleteEpicHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Epic.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain(e => e.Contains("NOT_FOUND"));
     }
 }
