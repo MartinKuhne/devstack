@@ -1,9 +1,9 @@
 {
-  "schema": "http://localhost:8087/graphql",
+  "schema": "schema.graphql",
   "documents": "GraphQL/**/*.graphql",
   "projects": {
     "default": {
-      "schema": "http://localhost:8087/graphql",
+      "schema": "schema.graphql",
       "documents": "GraphQL/**/*.graphql",
       "type": "client",
       "output": "Generated",
