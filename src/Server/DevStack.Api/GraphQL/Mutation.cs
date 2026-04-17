@@ -4,7 +4,6 @@ using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Features;
-using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Services;
@@ -67,43 +66,17 @@ public record DeleteFeatureInput(Guid Id);
 
 public record FeaturePayload(Item? Item, List<string> Errors);
 
-public record CreateDefectInput(
+[Obsolete("Use CreateTaskInput with ItemId parameter instead")]
+public record CreateTaskInput_Old(
     Guid ProjectId,
-    Guid? ParentFeatureId,
-    Severity? Severity,
+    Guid FeatureId,
     string Title,
-    string? Description,
+    string? Deliverable,
     string? AcceptanceCriteria,
-    string? Plan,
-    string? SecurityImpact,
-    string? PerformanceImpact,
-    string? TestPlan,
-    string? DeploymentPlan,
-    string? OpenQuestions,
-    FeatureStatus? InitialStatus,
-    string? RootCause = null);
-
-public record UpdateDefectInput(
-    Guid Id,
-    string? Title,
-    string? Description,
-    string? AcceptanceCriteria,
-    string? Plan,
-    string? SecurityImpact,
-    string? PerformanceImpact,
-    string? TestPlan,
-    string? DeploymentPlan,
-    string? OpenQuestions,
-    string? RootCause = null);
-
-public record TransitionDefectInput(
-    Guid Id,
-    FeatureStatus TargetStatus,
-    string Actor);
-
-public record DeleteDefectInput(Guid Id);
-
-public record DefectPayload(Defect? Defect, List<string> Errors);
+    string? Risks,
+    string? Result,
+    string? RequiredFollowUps,
+    int ComplexityRating);
 
 public record CreateTaskInput(
     Guid ProjectId,
@@ -416,120 +389,6 @@ public class Mutation
         catch (Exception ex)
         {
             return new FeaturePayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<DefectPayload> CreateDefectAsync(
-        CreateDefectInput input,
-        [Service] ICreateDefectHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(input.Title))
-            errors.Add("Title is required");
-
-        if (errors.Count > 0)
-            return new DefectPayload(null, errors);
-
-        try
-        {
-            var id = await handler.Handle(new CreateDefectCommand(
-                input.ProjectId,
-                input.ParentFeatureId,
-                input.Severity,
-                input.Title,
-                input.Description,
-                input.AcceptanceCriteria,
-                input.Plan,
-                input.SecurityImpact,
-                input.PerformanceImpact,
-                input.TestPlan,
-                input.DeploymentPlan,
-                input.OpenQuestions,
-                input.InitialStatus,
-                input.RootCause), cancellationToken);
-            
-            var defect = new Defect { Id = id };
-            return new DefectPayload(defect, new List<string>());
-        }
-        catch (Exception ex)
-        {
-            return new DefectPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<DefectPayload> UpdateDefectAsync(
-        UpdateDefectInput input,
-        [Service] IUpdateDefectHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new UpdateDefectCommand(
-                input.Id,
-                input.Title,
-                input.Description,
-                input.AcceptanceCriteria,
-                input.Plan,
-                input.SecurityImpact,
-                input.PerformanceImpact,
-                input.TestPlan,
-                input.DeploymentPlan,
-                input.OpenQuestions,
-                input.RootCause), cancellationToken);
-
-            var defect = new Defect { Id = input.Id };
-            return new DefectPayload(defect, new List<string>());
-        }
-        catch (Exception ex)
-        {
-            return new DefectPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<DefectPayload> TransitionDefectStatusAsync(
-        TransitionDefectInput input,
-        [Service] ITransitionDefectStatusHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new TransitionDefectStatusCommand(
-                input.Id,
-                input.TargetStatus,
-                input.Actor), cancellationToken);
-
-            var defect = new Defect { Id = input.Id };
-            return new DefectPayload(defect, new List<string>());
-        }
-        catch (Exception ex)
-        {
-            return new DefectPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<DefectPayload> DeleteDefectAsync(
-        DeleteDefectInput input,
-        [Service] IDeleteDefectHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new DeleteDefectCommand(input.Id), cancellationToken);
-            
-            var defect = new Defect { Id = input.Id };
-            return new DefectPayload(defect, new List<string>());
-        }
-        catch (Exception ex)
-        {
-            return new DefectPayload(null, [ex.Message]);
         }
     }
 

@@ -4,7 +4,6 @@ using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Services;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Features;
-using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.Epics;
 using DevStack.Infrastructure.ModelConfigurations;
@@ -74,11 +73,7 @@ builder.Services.AddTransient<IDeleteFeatureHandler, DeleteFeatureHandler>();
 var limitFeatureStatusTransitions = builder.Configuration
     .GetSection("FeatureManagement")
     .GetValue<bool>("LimitFeatureStatusTransitions");
-builder.Services.AddTransient<FeatureStatusTransitionService>(_ => new FeatureStatusTransitionService(limitFeatureStatusTransitions));
-builder.Services.AddTransient<ICreateDefectHandler, CreateDefectHandler>();
-builder.Services.AddTransient<IUpdateDefectHandler, UpdateDefectHandler>();
-builder.Services.AddTransient<ITransitionDefectStatusHandler, TransitionDefectStatusHandler>();
-builder.Services.AddTransient<IDeleteDefectHandler, DeleteDefectHandler>();
+builder.Services.AddTransient<ItemStatusTransitionService>(_ => new ItemStatusTransitionService(limitFeatureStatusTransitions));
 builder.Services.AddTransient<ICreateTaskHandler, CreateTaskHandler>();
 builder.Services.AddTransient<IUpdateTaskHandler, UpdateTaskHandler>();
 builder.Services.AddTransient<ITransitionTaskStatusHandler, TransitionTaskStatusHandler>();
@@ -128,21 +123,21 @@ builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddType<ProjectType>()
+    .AddType<ItemType>()
     .AddType<FeatureType>()
-    .AddType<DefectType>()
     .AddType<TaskType>()
     .AddType<ModelConfigurationType>()
     .AddType<WorkflowRunType>()
     .AddType<AuditEventType>()
     .AddType<DashboardSummary>()
     .AddObjectType<ProjectConnection>()
+    .AddObjectType<ItemConnection>()
     .AddObjectType<FeatureConnection>()
-    .AddObjectType<DefectConnection>()
     .AddObjectType<TaskConnection>()
     .AddObjectType<EpicConnection>()
     .AddObjectType<ProjectPageInfo>()
+    .AddObjectType<ItemPageInfo>()
     .AddObjectType<FeaturePageInfo>()
-    .AddObjectType<DefectPageInfo>()
     .AddObjectType<TaskPageInfo>()
     .AddObjectType<EpicPageInfo>()
     .DisableIntrospection(false)

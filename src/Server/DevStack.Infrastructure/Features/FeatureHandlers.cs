@@ -124,9 +124,9 @@ public class UpdateFeatureHandler : IUpdateFeatureHandler
 public class TransitionFeatureStatusHandler : ITransitionFeatureStatusHandler
 {
     private readonly DevStackDbContext _dbContext;
-    private readonly FeatureStatusTransitionService _transitionService;
+    private readonly ItemStatusTransitionService _transitionService;
 
-    public TransitionFeatureStatusHandler(DevStackDbContext dbContext, FeatureStatusTransitionService transitionService)
+    public TransitionFeatureStatusHandler(DevStackDbContext dbContext, ItemStatusTransitionService transitionService)
     {
         _dbContext = dbContext;
         _transitionService = transitionService;

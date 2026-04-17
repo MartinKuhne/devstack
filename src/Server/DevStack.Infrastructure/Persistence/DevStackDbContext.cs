@@ -13,14 +13,18 @@ public class DevStackDbContext : DbContext
 
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<Item> Items { get; set; } = null!;
-    public DbSet<Defect> Defects { get; set; } = null!;
     public DbSet<DevStack.Domain.Entities.AgentTask> Tasks { get; set; } = null!;
     public DbSet<ModelConfiguration> ModelConfigurations { get; set; } = null!;
     public DbSet<WorkflowRun> WorkflowRuns { get; set; } = null!;
     public DbSet<AuditEvent> AuditEvents { get; set; } = null!;
     public DbSet<Epic> Epics { get; set; } = null!;
 
-    
+    [Obsolete("Use Items with Subtype filter instead")]
+    public IQueryable<Item> Features => Items.Where(i => i.Subtype == Domain.Enums.ItemSubtype.Feature);
+
+    [Obsolete("Use Items with Subtype filter instead")]
+    public IQueryable<Item> Defects => Items.Where(i => i.Subtype == Domain.Enums.ItemSubtype.Defect);
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

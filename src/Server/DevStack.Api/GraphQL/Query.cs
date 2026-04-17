@@ -98,36 +98,54 @@ public class Query
         };
     }
 
-    [Obsolete("Use GetItemById instead")]
+[Obsolete("Use GetItemById instead")]
     public Item? GetFeatureById([Service] DevStackDbContext dbContext, Guid id)
     {
         var item = dbContext.Items.Find(id);
         return item == null ? null : new Item{ Id = item.Id };
     }
 
-    public DefectConnection GetDefects(
+    [Obsolete("Use GetItems instead")]
+    public ItemConnection GetFeatures(
         [Service] DevStackDbContext dbContext,
         Guid? projectId = null,
+        List<FeatureStatus>? status = null,
         int first = 50,
         int? skip = null)
     {
-        var query = dbContext.Defects.AsQueryable();
+        return GetItems(dbContext, projectId, null, status, null, null, null, first, skip);
+    }
+
+    [Obsolete("Use GetItems with subtype filter instead")]
+    public ItemConnection GetDefects(
+        [Service] DevStackDbContext dbContext,
+        Guid? projectId = null,
+        List<FeatureStatus>? status = null,
+        int first = 50,
+        int? skip = null)
+    {
+        var query = dbContext.Items.Where(i => i.Subtype == Domain.Enums.ItemSubtype.Defect);
         if (projectId.HasValue)
         {
-            query = query.Where(d => d.ProjectId == projectId.Value);
+            query = query.Where(i => i.ProjectId == projectId.Value);
         }
+        if (status is not null && status.Count > 0)
+        {
+            query = query.Where(i => status.Contains(i.Status));
+        }
+
         var totalCount = query.Count();
-        query = query.OrderBy(d => d.CreatedAt);
+        query = query.OrderBy(i => i.CreatedAt);
         if (skip.HasValue)
         {
             query = query.Skip(skip.Value);
         }
         var nodes = query.Take(first).ToList();
 
-        return new DefectConnection
+        return new ItemConnection
         {
             Nodes = nodes,
-            PageInfo = new DefectPageInfo
+            PageInfo = new ItemPageInfo
             {
                 HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
                 HasPreviousPage = skip > 0,
@@ -137,12 +155,16 @@ public class Query
         };
     }
 
-    public Defect? GetDefectById([Service] DevStackDbContext dbContext, Guid id)
+    [Obsolete("Use GetItemById instead")]
+    public Item? GetDefectById([Service] DevStackDbContext dbContext, Guid id)
     {
-        return dbContext.Defects.Find(id);
+        var item = dbContext.Items.Find(id);
+        if (item == null || item.Subtype != Domain.Enums.ItemSubtype.Defect)
+            return null;
+        return item;
     }
 
-    public TaskConnection GetTasks(
+public TaskConnection GetTasks(
         [Service] DevStackDbContext dbContext,
         Guid? itemId = null,
         List<global::DevStack.Domain.Enums.TaskStatus>? status = null,
@@ -252,10 +274,11 @@ public class Query
         if (item == null)
             return new List<FeatureStatus>();
 
-        var service = new FeatureStatusTransitionService();
+        var service = new ItemStatusTransitionService();
         var workItem = new Item
         {
             Id = item.Id,
+            Subtype = item.Subtype,
             Status = item.Status,
             Result = item.Result,
             Errors = item.Errors,
