@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake;
 using TechTalk.SpecFlow;
+using TechTalk.SpecFlow.Infrastructure;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.Hooks;
 
@@ -17,10 +18,18 @@ public sealed class SpecFlowHooks
     private IDevStackClient? _client;
     private IServiceProvider? _serviceProvider;
 
-    public SpecFlowHooks(ScenarioContext scenarioContext, IConfiguration configuration)
+    private static readonly Lazy<IConfiguration> Configuration = new(() =>
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+        return configuration;
+    });
+
+    public SpecFlowHooks(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
-        _configuration = configuration;
+        _configuration = Configuration.Value;
     }
 
     [BeforeScenario]
