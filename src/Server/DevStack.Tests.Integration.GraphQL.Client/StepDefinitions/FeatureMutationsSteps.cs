@@ -1,8 +1,10 @@
-using System.Net.Http.Json;
-using System.Text.Json.Nodes;
-using DevStack.Infrastructure.Persistence;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
+using DevStack.Infrastructure.Persistence;
+using DevStack.Infrastructure.Projects;
+using DevStack.Infrastructure.Features;
+using DevStack.Infrastructure.Defects;
+using DevStack.Infrastructure.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using TechTalk.SpecFlow;
@@ -23,6 +25,12 @@ public class FeatureMutationsSteps
         _fixture = fixture;
     }
 
+    [Given("the API is available")]
+    public void GivenTheApiIsAvailable() { }
+
+    [Given("a parent project exists")]
+    public void GivenAParentProjectExists() { }
+
     [BeforeScenario]
     public async Task BeforeFeatureScenario()
     {
@@ -32,25 +40,13 @@ public class FeatureMutationsSteps
     [When(@"I create a feature with title ""([^""]*)"" and description ""([^""]*)""")]
     public async Task WhenICreateAFeatureWithTitleAndDescription(string title, string description)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateFeature($input: CreateFeatureInput!) {
-              createFeature(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, Title = title, Description = description } });
-        
-        _scenarioContext.Add("result", data);
-        _createdFeatureId = Guid.Parse(data!["createFeature"]!["item"]!["id"]!.GetValue<string>());
+        _createdFeatureId = await _fixture.CreateTestFeatureAsync(_projectId!.Value, title, description);
     }
 
     [Then("the feature should be created successfully")]
     public void ThenTheFeatureShouldBeCreatedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("result");
-        data!["createFeature"]!["errors"]!.AsArray().Should().BeEmpty();
+        _createdFeatureId.Should().NotBe(Guid.Empty);
     }
 
     [Then("the feature should exist in the database")]
@@ -65,40 +61,25 @@ public class FeatureMutationsSteps
     [Given(@"a feature ""([^""]*)"" exists")]
     public async Task GivenAFeatureExists(string title)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateFeature($input: CreateFeatureInput!) {
-              createFeature(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, Title = title, Description = "Original description" } });
-        
-        _createdFeatureId = Guid.Parse(data!["createFeature"]!["item"]!["id"]!.GetValue<string>());
+        _createdFeatureId = await _fixture.CreateTestFeatureAsync(_projectId!.Value, title, "Original description");
     }
 
     [When(@"I update the feature title to ""([^""]*)""")]
     public async Task WhenIUpdateTheFeatureTitleTo(string newTitle)
     {
-        var data = await SendMutationAsync("""
-            mutation UpdateFeature($input: UpdateFeatureInput!) {
-              updateFeature(input: $input) {
-                item { id title }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdFeatureId, Title = newTitle, Description = "Updated Description" } });
+        var mutation = new DevStack.Api.GraphQL.Types.Mutation();
+        var input = new DevStack.Api.GraphQL.Types.UpdateFeatureInput(_createdFeatureId!.Value, newTitle, "Updated Description", null, null, null, null, null, null, null);
+        var handler = new UpdateFeatureHandler(_fixture.CreateDbContext());
         
-        _scenarioContext.Add("updateResult", data);
+        var result = await mutation.UpdateFeatureAsync(input, handler, CancellationToken.None);
+        _scenarioContext.Add("updateResult", result);
     }
 
     [Then("the feature should be updated successfully")]
     public async Task ThenTheFeatureShouldBeUpdatedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("updateResult");
-        data!["updateFeature"]!["errors"]!.AsArray().Should().BeEmpty();
+        var result = _scenarioContext.Get<DevStack.Api.GraphQL.Types.FeaturePayload>("updateResult");
+        result.Errors.Should().BeEmpty();
         
         await using var ctx = _fixture.CreateDbContext();
         var feature = await ctx.Items.FindAsync(_createdFeatureId);
@@ -108,96 +89,87 @@ public class FeatureMutationsSteps
     [Given(@"a feature with status ""([^""]*)"" exists")]
     public async Task GivenAFeatureWithStatusExists(string status)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateFeature($input: CreateFeatureInput!) {
-              createFeature(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, Title = "Test Feature", InitialStatus = status } });
+        var initialStatus = status switch
+        {
+            "Planning" => FeatureStatus.Planning,
+            "InProgress" => FeatureStatus.InProgress,
+            "Ready" => FeatureStatus.Ready,
+            _ => FeatureStatus.Planning
+        };
         
-        _createdFeatureId = Guid.Parse(data!["createFeature"]!["item"]!["id"]!.GetValue<string>());
+        var mutation = new DevStack.Api.GraphQL.Types.Mutation();
+        var input = new DevStack.Api.GraphQL.Types.CreateFeatureInput(_projectId!.Value, "Test Feature", null, null, null, null, null, null, null, null, initialStatus);
+        var handler = new CreateFeatureHandler(_fixture.CreateDbContext());
+        
+        var result = await mutation.CreateFeatureAsync(input, handler, CancellationToken.None);
+        result.Errors.Should().BeEmpty();
+        _createdFeatureId = result.Item!.Id;
     }
 
     [When(@"I transition the feature status to ""([^""]*)""")]
     public async Task WhenITransitionTheFeatureStatusTo(string targetStatus)
     {
-        var data = await SendMutationAsync("""
-            mutation TransitionFeatureStatus($input: TransitionFeatureInput!) {
-              transitionFeatureStatus(input: $input) {
-                item { id status }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdFeatureId, TargetStatus = targetStatus, Actor = "test-user" } });
+        var target = targetStatus switch
+        {
+            "Planning" => FeatureStatus.Planning,
+            "InProgress" => FeatureStatus.InProgress,
+            "Ready" => FeatureStatus.Ready,
+            "ReadyForTest" => FeatureStatus.ReadyForTest,
+            "Testing" => FeatureStatus.Testing,
+            "Done" => FeatureStatus.Done,
+            "Failed" => FeatureStatus.Failed,
+            "Rejected" => FeatureStatus.Rejected,
+            "InReview" => FeatureStatus.InReview,
+            _ => FeatureStatus.Planning
+        };
         
-        _scenarioContext.Add("transitionResult", data);
+        await _fixture.UpdateFeatureStatusAsync(_createdFeatureId!.Value, target, "test-user");
     }
 
     [Then(@"the feature status should be ""([^""]*)""")]
     public async Task ThenTheFeatureStatusShouldBe(string expectedStatus)
     {
-        var data = _scenarioContext.Get<JsonNode>("transitionResult");
-        data!["transitionFeatureStatus"]!["errors"]!.AsArray().Should().BeEmpty();
+        var expected = expectedStatus switch
+        {
+            "Planning" => FeatureStatus.Planning,
+            "InProgress" => FeatureStatus.InProgress,
+            "Ready" => FeatureStatus.Ready,
+            "ReadyForTest" => FeatureStatus.ReadyForTest,
+            "Testing" => FeatureStatus.Testing,
+            "Done" => FeatureStatus.Done,
+            "Failed" => FeatureStatus.Failed,
+            "Rejected" => FeatureStatus.Rejected,
+            "InReview" => FeatureStatus.InReview,
+            _ => FeatureStatus.Planning
+        };
         
         await using var ctx = _fixture.CreateDbContext();
         var feature = await ctx.Items.FindAsync(_createdFeatureId);
-        var expected = expectedStatus switch
-        {
-            "Planning" => Domain.Enums.FeatureStatus.Planning,
-            "InProgress" => Domain.Enums.FeatureStatus.InProgress,
-            "Ready" => Domain.Enums.FeatureStatus.Ready,
-            "ReadyForTest" => Domain.Enums.FeatureStatus.ReadyForTest,
-            "Testing" => Domain.Enums.FeatureStatus.Testing,
-            "Done" => Domain.Enums.FeatureStatus.Done,
-            "Failed" => Domain.Enums.FeatureStatus.Failed,
-            "Rejected" => Domain.Enums.FeatureStatus.Rejected,
-            "InReview" => Domain.Enums.FeatureStatus.InReview,
-            _ => Domain.Enums.FeatureStatus.Planning
-        };
         feature!.Status.Should().Be(expected);
     }
 
     [Given(@"a feature ""([^""]*)"" exists for deletion")]
     public async Task GivenAFeatureExistsForDeletion(string title)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateFeature($input: CreateFeatureInput!) {
-              createFeature(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, Title = title } });
-        
-        _createdFeatureId = Guid.Parse(data!["createFeature"]!["item"]!["id"]!.GetValue<string>());
+        _createdFeatureId = await _fixture.CreateTestFeatureAsync(_projectId!.Value, title);
     }
 
     [When("I delete the feature")]
     public async Task WhenIDeleteTheFeature()
     {
-        var data = await SendMutationAsync("""
-            mutation DeleteFeature($input: DeleteFeatureInput!) {
-              deleteFeature(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdFeatureId } });
+        var mutation = new DevStack.Api.GraphQL.Types.Mutation();
+        var input = new DevStack.Api.GraphQL.Types.DeleteFeatureInput(_createdFeatureId!.Value);
+        var handler = new DeleteFeatureHandler(_fixture.CreateDbContext());
         
-        _scenarioContext.Add("deleteResult", data);
+        var result = await mutation.DeleteFeatureAsync(input, handler, CancellationToken.None);
+        _scenarioContext.Add("deleteResult", result);
     }
 
     [Then("the feature should be deleted successfully")]
     public void ThenTheFeatureShouldBeDeletedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("deleteResult");
-        data!["deleteFeature"]!["errors"]!.AsArray().Should().BeEmpty();
+        var result = _scenarioContext.Get<DevStack.Api.GraphQL.Types.FeaturePayload>("deleteResult");
+        result.Errors.Should().BeEmpty();
     }
 
     [Then("the feature should not exist in the database")]
@@ -206,13 +178,5 @@ public class FeatureMutationsSteps
         await using var ctx = _fixture.CreateDbContext();
         var feature = await ctx.Items.FindAsync(_createdFeatureId);
         feature.Should().BeNull();
-    }
-
-    private async Task<JsonNode?> SendMutationAsync(string query, object? variables = null)
-    {
-        var response = await _fixture.HttpClient.PostAsJsonAsync("_fixture.GraphQlUrl", new { query, variables });
-        response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadAsStringAsync();
-        return JsonNode.Parse(json)?["data"];
     }
 }

@@ -1,0 +1,511 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+input DeleteDefectInput {
+  id: UUID!
+}
+
+type WorkflowRunPayload {
+  workflowRun: WorkflowRun
+  errors: [String!]!
+}
+
+type ProjectPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+input UpdateModelConfigurationInput {
+  id: UUID!
+  url: String
+  model: String
+  modelAlias: String
+  apiKey: String
+  maxComplexity: Int
+}
+
+type ProjectPayload {
+  project: Project
+  errors: [String!]!
+}
+
+type ItemConnection {
+  nodes: [Item!]!
+  pageInfo: ItemPageInfo!
+  totalCount: Int!
+}
+
+enum TaskStatus {
+  PLANNING
+  READY
+  PREPARE
+  CODE
+  REVIEW
+  READY_FOR_TEST
+  TESTING
+  DONE
+  FAILED
+  REJECTED
+  IN_REVIEW
+}
+
+input UpdateProjectInput {
+  id: UUID!
+  name: String
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+  githubToken_Encrypted: String
+}
+
+type Mutation {
+  createProject(input: CreateProjectInput!): ProjectPayload!
+  updateProject(input: UpdateProjectInput!): ProjectPayload!
+  deleteProject(input: DeleteProjectInput!): ProjectPayload!
+  createFeature(input: CreateFeatureInput!): FeaturePayload!
+  updateFeature(input: UpdateFeatureInput!): FeaturePayload!
+  transitionFeatureStatus(input: TransitionFeatureInput!): FeaturePayload!
+  deleteFeature(input: DeleteFeatureInput!): FeaturePayload!
+  createDefect(input: CreateDefectInput!): DefectPayload!
+  updateDefect(input: UpdateDefectInput!): DefectPayload!
+  transitionDefectStatus(input: TransitionDefectInput!): DefectPayload!
+  deleteDefect(input: DeleteDefectInput!): DefectPayload!
+  createTask(input: CreateTaskInput!): TaskPayload!
+  updateTask(input: UpdateTaskInput!): TaskPayload!
+  transitionTaskStatus(input: TransitionTaskInput!): TaskPayload!
+  deleteTask(input: DeleteTaskInput!): TaskPayload!
+  createModelConfiguration(input: CreateModelConfigurationInput!): ModelConfigurationPayload!
+  updateModelConfiguration(input: UpdateModelConfigurationInput!): ModelConfigurationPayload!
+  createWorkflowRun(input: CreateWorkflowRunInput!): WorkflowRunPayload!
+  updateWorkflowRun(input: UpdateWorkflowRunInput!): WorkflowRunPayload!
+  cancelWorkflowRun(input: CancelWorkflowRunInput!): WorkflowRunPayload!
+  deleteModelConfiguration(input: DeleteModelConfigurationInput!): ModelConfigurationPayload!
+  createEpic(input: CreateEpicInput!): EpicPayload!
+  updateEpic(input: UpdateEpicInput!): EpicPayload!
+  deleteEpic(input: DeleteEpicInput!): EpicPayload!
+}
+
+input UpdateDefectInput {
+  id: UUID!
+  title: String
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  severity: Severity
+  rootCause: String
+}
+
+input DeleteProjectInput {
+  id: UUID!
+}
+
+input CreateTaskInput {
+  projectId: UUID!
+  itemId: UUID!
+  title: String!
+  deliverable: String
+  acceptanceCriteria: String
+  risks: String
+  result: String
+  requiredFollowUps: String
+  complexityRating: Int!
+}
+
+type DashboardSummary {
+  projectsInFlight: Int!
+  featuresInReview: Int!
+  featuresFailed: Int!
+  tasksInProgress: Int!
+  tasksFailed: Int!
+  recentAuditEvents: [AuditEvent!]!
+}
+
+type EpicConnection {
+  nodes: [Epic!]!
+  pageInfo: EpicPageInfo!
+  totalCount: Int!
+}
+
+input DeleteEpicInput {
+  id: UUID!
+}
+
+type TaskPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+type FeaturePayload {
+  item: Item
+  errors: [String!]!
+}
+
+enum WorkflowType {
+  PLANNER
+  DEV_LEAD
+  CODER
+  TESTER
+  ARCHITECT
+}
+
+input DeleteTaskInput {
+  id: UUID!
+}
+
+type EpicPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+enum ItemSubtype {
+  FEATURE
+  DEFECT
+  MAINTENANCE
+  ENABLER
+}
+
+type EpicPayload {
+  epic: Epic
+  errors: [String!]!
+}
+
+input CreateProjectInput {
+  name: String!
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+}
+
+input TransitionDefectInput {
+  id: UUID!
+  targetStatus: FeatureStatus!
+  actor: String!
+}
+
+input UpdateWorkflowRunInput {
+  id: UUID!
+  status: WorkflowRunStatus!
+  outputPayload: String
+}
+
+input CreateEpicInput {
+  projectId: UUID!
+  title: String!
+  description: String
+}
+
+type ModelConfigurationPayload {
+  modelConfiguration: ModelConfiguration
+  errors: [String!]!
+}
+
+input UpdateEpicInput {
+  id: UUID!
+  title: String
+  description: String
+}
+
+input DeleteFeatureInput {
+  id: UUID!
+}
+
+input UpdateTaskInput {
+  id: UUID!
+  title: String
+  deliverable: String
+  acceptanceCriteria: String
+  risks: String
+  result: String
+  requiredFollowUps: String
+  complexityRating: Int
+}
+
+type ModelConfiguration {
+  id: ID
+  url: String
+  model: String
+  modelAlias: String
+  apiKey_Encrypted: String
+  maxComplexity: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type TaskConnection {
+  nodes: [AgentTask!]!
+  pageInfo: TaskPageInfo!
+  totalCount: Int!
+}
+
+enum WorkflowRunStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+type WorkflowRun {
+  id: ID
+  projectId: ID
+  itemId: ID
+  taskId: ID
+  workflowType: WorkflowType
+  status: WorkflowRunStatus
+  startedAt: DateTime
+  completedAt: DateTime
+  errorMessage: String
+  inputPayload: String
+  outputPayload: String
+  createdAt: DateTime
+  project: Project
+  item: Item
+  featureId: UUID @deprecated(reason: "Use ItemId and Item instead")
+  feature: Item @deprecated(reason: "Use Item instead")
+  task: AgentTask
+}
+
+input CreateFeatureInput {
+  projectId: UUID!
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  initialStatus: FeatureStatus
+}
+
+type AuditEvent {
+  id: ID
+  entityType: String
+  entityId: ID
+  eventType: String
+  oldValue: String
+  newValue: String
+  actor: String
+  occurredAt: DateTime
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+input CreateWorkflowRunInput {
+  projectId: UUID!
+  itemId: UUID
+  taskId: UUID
+  workflowType: WorkflowType!
+  inputPayload: String!
+}
+
+type TaskPayload {
+  task: AgentTask
+  errors: [String!]!
+}
+
+input DeleteModelConfigurationInput {
+  id: UUID!
+}
+
+type DefectPayload {
+  item: Item
+  errors: [String!]!
+}
+
+type AgentTask {
+  id: ID
+  itemId: ID
+  title: String
+  status: TaskStatus
+  deliverable: String
+  acceptanceCriteria: String
+  risks: String
+  result: String
+  requiredFollowUps: String
+  complexityRating: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+  projectId: UUID!
+  item: Item
+  featureId: UUID! @deprecated(reason: "Use ItemId and Item instead")
+  feature: Item @deprecated(reason: "Use Item instead")
+}
+
+type Item {
+  id: ID
+  projectId: ID
+  epicId: ID
+  subtype: ItemSubtype
+  title: String
+  status: FeatureStatus
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  result: String
+  errors: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  parentFeatureId: ID
+  severity: Severity
+  rootCause: String
+  epic: Epic
+  tasks: [AgentTask]
+  parentFeature: Item
+  validStatusTransitions: [FeatureStatus]
+  project: Project
+  featureSubtype: ItemSubtype!
+}
+
+type Query {
+  projectById(id: UUID!): Project
+  projects(first: Int! = 50 skip: Int): ProjectConnection!
+  items(projectId: UUID epicId: UUID status: [FeatureStatus!] subtype: [ItemSubtype!] createdAfter: DateTime createdBefore: DateTime first: Int! = 50 skip: Int): ItemConnection!
+  featureById(id: UUID!): Item @deprecated(reason: "Use GetItemById instead")
+  features(projectId: UUID status: [FeatureStatus!] first: Int! = 50 skip: Int): ItemConnection! @deprecated(reason: "Use GetItems instead")
+  defects(projectId: UUID status: [FeatureStatus!] first: Int! = 50 skip: Int): ItemConnection! @deprecated(reason: "Use GetItems with subtype filter instead")
+  defectById(id: UUID!): Item @deprecated(reason: "Use GetItemById instead")
+  tasks(itemId: UUID status: [TaskStatus!] createdAfter: DateTime createdBefore: DateTime first: Int! = 50 skip: Int): TaskConnection!
+  taskById(id: UUID!): AgentTask
+  modelConfigurations: [ModelConfiguration!]!
+  auditEvents(entityId: UUID! take: Int! = 50): [AuditEvent!]!
+  epics(title: String first: Int! = 50 skip: Int): EpicConnection!
+  epicById(id: UUID!): Epic
+  validStatusTransitions(itemId: UUID!): [FeatureStatus!]!
+  dashboardSummary: DashboardSummary!
+}
+
+type ProjectConnection {
+  nodes: [Project!]!
+  pageInfo: ProjectPageInfo!
+  totalCount: Int!
+}
+
+type Epic {
+  id: ID
+  title: String
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  items: [Item]
+  projectId: UUID!
+  project: Project
+  features: [Item!]! @deprecated(reason: "Use Items instead")
+}
+
+enum FeatureStatus {
+  PLANNING
+  READY
+  IN_PROGRESS
+  READY_FOR_TEST
+  TESTING
+  DONE
+  FAILED
+  REJECTED
+  IN_REVIEW
+}
+
+input CancelWorkflowRunInput {
+  id: UUID!
+}
+
+type ItemPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+input TransitionFeatureInput {
+  id: UUID!
+  targetStatus: FeatureStatus!
+  actor: String!
+}
+
+input CreateDefectInput {
+  projectId: UUID!
+  parentFeatureId: UUID
+  title: String!
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+  severity: Severity
+  initialStatus: FeatureStatus
+}
+
+input TransitionTaskInput {
+  id: UUID!
+  targetStatus: TaskStatus!
+  actor: String!
+}
+
+type Project {
+  id: ID
+  name: String
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+  githubToken_Encrypted: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  items: [Item]
+  features: [Item] @deprecated(reason: "Use items field instead")
+  epics: [Epic!]!
+}
+
+input CreateModelConfigurationInput {
+  url: String!
+  model: String!
+  modelAlias: String
+  apiKey: String!
+  maxComplexity: Int!
+}
+
+input UpdateFeatureInput {
+  id: UUID!
+  title: String
+  description: String
+  acceptanceCriteria: String
+  plan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  openQuestions: String
+}
+
+scalar UUID
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION

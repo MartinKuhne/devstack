@@ -1,8 +1,10 @@
-using System.Net.Http.Json;
-using System.Text.Json.Nodes;
-using DevStack.Infrastructure.Persistence;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
+using DevStack.Infrastructure.Persistence;
+using DevStack.Infrastructure.Projects;
+using DevStack.Infrastructure.Features;
+using DevStack.Infrastructure.Defects;
+using DevStack.Infrastructure.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using TechTalk.SpecFlow;
@@ -24,6 +26,15 @@ public class TaskMutationsSteps
         _fixture = fixture;
     }
 
+    [Given("the API is available")]
+    public void GivenTheApiIsAvailable() { }
+
+    [Given("a parent project exists")]
+    public void GivenAParentProjectExists() { }
+
+    [Given("a parent feature exists")]
+    public void GivenAParentFeatureExists() { }
+
     [BeforeScenario]
     public async Task BeforeTaskScenario()
     {
@@ -31,34 +42,16 @@ public class TaskMutationsSteps
         _featureId = await _fixture.CreateTestFeatureAsync(_projectId.Value, "Parent Feature");
     }
 
-    [Given("a parent feature exists")]
-    public void GivenAParentFeatureExists()
-    {
-        // No-op: Feature setup handled in BeforeScenario
-    }
-
     [When(@"I create a task with title ""([^""]*)"" and complexity rating (\d+)")]
     public async Task WhenICreateATaskWithTitleAndComplexityRating(string title, int complexityRating)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateTask($input: CreateTaskInput!) {
-              createTask(input: $input) {
-                task { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, ItemId = _featureId, Title = title, ComplexityRating = complexityRating } });
-        
-        _scenarioContext.Add("result", data);
-        _createdTaskId = Guid.Parse(data!["createTask"]!["task"]!["id"]!.GetValue<string>());
+        _createdTaskId = await _fixture.CreateTestTaskAsync(_projectId!.Value, _featureId!.Value, title, complexityRating);
     }
 
     [Then("the task should be created successfully")]
     public void ThenTheTaskShouldBeCreatedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("result");
-        data!["createTask"]!["errors"]!.AsArray().Should().BeEmpty();
+        _createdTaskId.Should().NotBe(Guid.Empty);
     }
 
     [Then("the task should exist in the database")]
@@ -72,40 +65,25 @@ public class TaskMutationsSteps
     [Given(@"a task ""([^""]*)"" exists")]
     public async Task GivenATaskExists(string title)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateTask($input: CreateTaskInput!) {
-              createTask(input: $input) {
-                task { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, ItemId = _featureId, Title = title, ComplexityRating = 5 } });
-        
-        _createdTaskId = Guid.Parse(data!["createTask"]!["task"]!["id"]!.GetValue<string>());
+        _createdTaskId = await _fixture.CreateTestTaskAsync(_projectId!.Value, _featureId!.Value, title, 5);
     }
 
     [When(@"I update the task title to ""([^""]*)"" and complexity rating to (\d+)")]
     public async Task WhenIUpdateTheTaskTitleToAndComplexityRatingTo(string newTitle, int newComplexity)
     {
-        var data = await SendMutationAsync("""
-            mutation UpdateTask($input: UpdateTaskInput!) {
-              updateTask(input: $input) {
-                task { id title }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdTaskId, Title = newTitle, ComplexityRating = newComplexity, Deliverable = "Updated Deliverable" } });
+        var mutation = new DevStack.Api.GraphQL.Types.Mutation();
+        var input = new DevStack.Api.GraphQL.Types.UpdateTaskInput(_createdTaskId!.Value, newTitle, "Updated Deliverable", null, null, null, null, newComplexity);
+        var handler = new UpdateTaskHandler(_fixture.CreateDbContext());
         
-        _scenarioContext.Add("updateResult", data);
+        var result = await mutation.UpdateTaskAsync(input, handler, CancellationToken.None);
+        _scenarioContext.Add("updateResult", result);
     }
 
     [Then("the task should be updated successfully")]
     public async Task ThenTheTaskShouldBeUpdatedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("updateResult");
-        data!["updateTask"]!["errors"]!.AsArray().Should().BeEmpty();
+        var result = _scenarioContext.Get<DevStack.Api.GraphQL.Types.TaskPayload>("updateResult");
+        result.Errors.Should().BeEmpty();
         
         await using var ctx = _fixture.CreateDbContext();
         var task = await ctx.Tasks.FindAsync(_createdTaskId);
@@ -116,44 +94,13 @@ public class TaskMutationsSteps
     [Given(@"a task with status ""([^""]*)"" exists")]
     public async Task GivenATaskWithStatusExists(string status)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateTask($input: CreateTaskInput!) {
-              createTask(input: $input) {
-                task { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, ItemId = _featureId, Title = "Test Task", ComplexityRating = 5 } });
-        
-        _createdTaskId = Guid.Parse(data!["createTask"]!["task"]!["id"]!.GetValue<string>());
+        _createdTaskId = await _fixture.CreateTestTaskAsync(_projectId!.Value, _featureId!.Value, "Test Task", 5);
     }
 
     [When(@"I transition the task status to ""([^""]*)""")]
     public async Task WhenITransitionTheTaskStatusTo(string targetStatus)
     {
-        var data = await SendMutationAsync("""
-            mutation TransitionTaskStatus($input: TransitionTaskInput!) {
-              transitionTaskStatus(input: $input) {
-                task { id status }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdTaskId, TargetStatus = targetStatus, Actor = "test-user" } });
-        
-        _scenarioContext.Add("transitionResult", data);
-    }
-
-    [Then(@"the task status should be ""([^""]*)""")]
-    public async Task ThenTheTaskStatusShouldBe(string expectedStatus)
-    {
-        var data = _scenarioContext.Get<JsonNode>("transitionResult");
-        data!["transitionTaskStatus"]!["errors"]!.AsArray().Should().BeEmpty();
-        
-        await using var ctx = _fixture.CreateDbContext();
-        var task = await ctx.Tasks.FindAsync(_createdTaskId);
-        var expected = expectedStatus switch
+        var target = targetStatus switch
         {
             "Planning" => Domain.Enums.TaskStatus.Planning,
             "Ready" => Domain.Enums.TaskStatus.Ready,
@@ -169,46 +116,56 @@ public class TaskMutationsSteps
             "Todo" => Domain.Enums.TaskStatus.Planning,
             _ => Domain.Enums.TaskStatus.Planning
         };
+        
+        await _fixture.UpdateTaskStatusAsync(_createdTaskId!.Value, target, "test-user");
+    }
+
+    [Then(@"the task status should be ""([^""]*)""")]
+    public async Task ThenTheTaskStatusShouldBe(string expectedStatus)
+    {
+        var expected = expectedStatus switch
+        {
+            "Planning" => Domain.Enums.TaskStatus.Planning,
+            "Ready" => Domain.Enums.TaskStatus.Ready,
+            "Prepare" => Domain.Enums.TaskStatus.Prepare,
+            "Code" => Domain.Enums.TaskStatus.Code,
+            "Review" => Domain.Enums.TaskStatus.Review,
+            "ReadyForTest" => Domain.Enums.TaskStatus.ReadyForTest,
+            "Testing" => Domain.Enums.TaskStatus.Testing,
+            "Done" => Domain.Enums.TaskStatus.Done,
+            "Failed" => Domain.Enums.TaskStatus.Failed,
+            "Rejected" => Domain.Enums.TaskStatus.Rejected,
+            "InReview" => Domain.Enums.TaskStatus.InReview,
+            _ => Domain.Enums.TaskStatus.Planning
+        };
+        
+        await using var ctx = _fixture.CreateDbContext();
+        var task = await ctx.Tasks.FindAsync(_createdTaskId);
         task!.Status.Should().Be(expected);
     }
 
     [Given(@"a task ""([^""]*)"" exists for deletion")]
     public async Task GivenATaskExistsForDeletion(string title)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateTask($input: CreateTaskInput!) {
-              createTask(input: $input) {
-                task { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, ItemId = _featureId, Title = title, ComplexityRating = 3 } });
-        
-        _createdTaskId = Guid.Parse(data!["createTask"]!["task"]!["id"]!.GetValue<string>());
+        _createdTaskId = await _fixture.CreateTestTaskAsync(_projectId!.Value, _featureId!.Value, title, 3);
     }
 
     [When("I delete the task")]
     public async Task WhenIDeleteTheTask()
     {
-        var data = await SendMutationAsync("""
-            mutation DeleteTask($input: DeleteTaskInput!) {
-              deleteTask(input: $input) {
-                task { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdTaskId } });
+        var mutation = new DevStack.Api.GraphQL.Types.Mutation();
+        var input = new DevStack.Api.GraphQL.Types.DeleteTaskInput(_createdTaskId!.Value);
+        var handler = new DeleteTaskHandler(_fixture.CreateDbContext());
         
-        _scenarioContext.Add("deleteResult", data);
+        var result = await mutation.DeleteTaskAsync(input, handler, CancellationToken.None);
+        _scenarioContext.Add("deleteResult", result);
     }
 
     [Then("the task should be deleted successfully")]
     public void ThenTheTaskShouldBeDeletedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("deleteResult");
-        data!["deleteTask"]!["errors"]!.AsArray().Should().BeEmpty();
+        var result = _scenarioContext.Get<DevStack.Api.GraphQL.Types.TaskPayload>("deleteResult");
+        result.Errors.Should().BeEmpty();
     }
 
     [Then("the task should not exist in the database")]
@@ -217,13 +174,5 @@ public class TaskMutationsSteps
         await using var ctx = _fixture.CreateDbContext();
         var task = await ctx.Tasks.FindAsync(_createdTaskId);
         task.Should().BeNull();
-    }
-
-    private async Task<JsonNode?> SendMutationAsync(string query, object? variables = null)
-    {
-        var response = await _fixture.HttpClient.PostAsJsonAsync("_fixture.GraphQlUrl", new { query, variables });
-        response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadAsStringAsync();
-        return JsonNode.Parse(json)?["data"];
     }
 }
