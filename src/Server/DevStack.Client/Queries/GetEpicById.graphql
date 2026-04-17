@@ -1,8 +1,10 @@
 query GetEpicById($id: UUID!) {
-  epicById(id: $id) {
+  getItemById(id: $id) {
     id
     title
     description
     createdAt
+    updatedAt
+    subtype
   }
 }

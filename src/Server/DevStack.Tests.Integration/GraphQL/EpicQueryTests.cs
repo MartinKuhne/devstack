@@ -98,10 +98,10 @@ public class EpicQueryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetEpicById_Returns_Epic_When_Exists()
+    public void GetItemById_Returns_Epic_When_Exists()
     {
         var epic = _dbContext!.Items.First(i => i.Subtype == ItemSubtype.Epic);
-        var result = _query.GetEpicById(_dbContext, epic.Id);
+        var result = _query.GetItemById(_dbContext, epic.Id);
 
         result.Should().NotBeNull();
         result!.Id.Should().Be(epic.Id);
@@ -109,35 +109,35 @@ public class EpicQueryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetEpicById_Returns_Null_When_Not_Exists()
+    public void GetItemById_Returns_Null_When_Not_Exists()
     {
-        var result = _query.GetEpicById(_dbContext!, Guid.NewGuid());
+        var result = _query.GetItemById(_dbContext!, Guid.NewGuid());
 
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetEpics_Returns_All_Epics_By_Default()
+    public void GetItems_With_Epic_Subtype_Returns_All_Epics_By_Default()
     {
-        var result = _query.GetEpics(_dbContext!);
+        var result = _query.GetItems(_dbContext!, subtype: [ItemSubtype.Epic]);
 
         result.Nodes.Should().HaveCount(3);
         result.TotalCount.Should().Be(3);
     }
 
     [Fact]
-    public void GetEpics_Filters_By_Title()
+    public void GetItems_With_Epic_Subtype_Filters_By_ProjectId()
     {
-        var result = _query.GetEpics(_dbContext!, title: "Testing");
+        var result = _query.GetItems(_dbContext!, projectId: _dbContext!.Projects.First().Id, subtype: [ItemSubtype.Epic]);
 
-        result.Nodes.Should().HaveCount(1);
-        result.Nodes[0].Title.Should().Be("Testing Epic");
+        result.Nodes.Should().HaveCount(3);
+        result.Nodes.Should().OnlyContain(e => e.ProjectId == _dbContext.Projects.First().Id);
     }
 
     [Fact]
-    public void GetEpics_Supports_Pagination()
+    public void GetItems_With_Epic_Subtype_Supports_Pagination()
     {
-        var result = _query.GetEpics(_dbContext!, first: 2, skip: 0);
+        var result = _query.GetItems(_dbContext!, subtype: [ItemSubtype.Epic], first: 2, skip: 0);
 
         result.Nodes.Should().HaveCount(2);
         result.PageInfo.HasNextPage.Should().BeTrue();
@@ -145,27 +145,27 @@ public class EpicQueryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetEpics_Supports_Skip()
+    public void GetItems_With_Epic_Subtype_Supports_Skip()
     {
-        var result = _query.GetEpics(_dbContext!, first: 2, skip: 1);
+        var result = _query.GetItems(_dbContext!, subtype: [ItemSubtype.Epic], first: 2, skip: 1);
 
         result.Nodes.Should().HaveCount(2);
         result.PageInfo.HasPreviousPage.Should().BeTrue();
     }
 
     [Fact]
-    public void GetEpics_Returns_Empty_When_No_Matches()
+    public void GetItems_With_Epic_Subtype_Returns_Empty_When_No_Matches()
     {
-        var result = _query.GetEpics(_dbContext!, title: "NonExistent");
+        var result = _query.GetItems(_dbContext!, projectId: Guid.NewGuid(), subtype: [ItemSubtype.Epic]);
 
         result.Nodes.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
     }
 
     [Fact]
-    public void GetEpics_Returns_Epics_OrderedBy_CreatedAt()
+    public void GetItems_With_Epic_Subtype_Returns_Epics_OrderedBy_CreatedAt()
     {
-        var result = _query.GetEpics(_dbContext!);
+        var result = _query.GetItems(_dbContext!, subtype: [ItemSubtype.Epic]);
 
         result.Nodes.Should().BeInAscendingOrder(e => e.CreatedAt);
     }
