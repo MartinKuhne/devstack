@@ -4,18 +4,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useProject } from '@/features/projects/hooks/useProject';
 import { EditProjectDialog } from '@/features/projects/components/EditProjectDialog';
 import { ModelConfigurationList } from '@/features/modelConfigurations/components/ModelConfigurationList';
 import { ModelConfigurationDialog } from '@/features/modelConfigurations/components/ModelConfigurationDialog';
 import { GitHubConfigurationSection } from '@/features/projects/components/GitHubConfigurationSection';
+import { CreateFeatureDialog } from '@/features/features/components/CreateFeatureDialog';
+import { useFeatures } from '@/features/features/hooks/useFeatures';
+
+const STATUS_COLORS: Record<string, string> = {
+    Planned: 'bg-blue-500',
+    InProgress: 'bg-yellow-500',
+    Review: 'bg-purple-500',
+    Done: 'bg-green-500',
+    Failed: 'bg-red-500',
+};
 
 export function ProjectDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { project, loading, error, refetch } = useProject(id ?? '');
+    const { features, loading: featuresLoading, error: featuresError, refetch: refetchFeatures } = useFeatures(id ?? '');
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [addModelDialogOpen, setAddModelDialogOpen] = useState(false);
+    const [createFeatureDialogOpen, setCreateFeatureDialogOpen] = useState(false);
 
     if (loading) {
         return (
@@ -140,10 +154,71 @@ export function ProjectDetailPage() {
                 <TabsContent value="features">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Features</CardTitle>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Features</CardTitle>
+                                <Button onClick={() => setCreateFeatureDialogOpen(true)}>
+                                    New Feature
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-muted-foreground text-sm">No features yet.</p>
+                            {featuresError ? (
+                                <p className="text-sm text-destructive">{featuresError.message}</p>
+                            ) : featuresLoading ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Tasks</TableHead>
+                                            <TableHead>Updated</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {[1, 2, 3].map((item) => (
+                                            <TableRow key={item}>
+                                                <TableCell><Skeleton className="h-4 w-64" /></TableCell>
+                                                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : features && features.length > 0 ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Tasks</TableHead>
+                                            <TableHead>Updated</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {features.map((feature) => (
+                                            <TableRow
+                                                key={feature.id ?? ''}
+                                                className="cursor-pointer hover:bg-muted/50"
+                                                onClick={() => feature.id && navigate(`/features/${feature.id}`)}
+                                            >
+                                                <TableCell className="font-medium">{feature.title}</TableCell>
+                                                <TableCell>
+                                                    <Badge className={STATUS_COLORS[feature.status ?? ''] || 'bg-gray-500'}>
+                                                        {feature.status}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>{feature.tasks?.length || 0}</TableCell>
+                                                <TableCell>
+                                                    {feature.updatedAt ? new Date(feature.updatedAt).toLocaleDateString() : '-'}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : (
+                                <p className="text-muted-foreground text-sm">No features yet.</p>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -193,6 +268,17 @@ export function ProjectDetailPage() {
                 onOpenChange={setAddModelDialogOpen}
                 projectId={id ?? ''}
                 onSuccess={() => refetch()}
+            />
+            <CreateFeatureDialog
+                open={createFeatureDialogOpen}
+                onOpenChange={setCreateFeatureDialogOpen}
+                projectId={id ?? ''}
+                onSuccess={(featureId) => {
+                    refetchFeatures();
+                    if (featureId) {
+                        navigate(`/features/${featureId}`);
+                    }
+                }}
             />
         </div>
     );
