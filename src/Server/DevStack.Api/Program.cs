@@ -4,6 +4,7 @@ using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Services;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Features;
+using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.Epics;
 using DevStack.Infrastructure.ModelConfigurations;
@@ -67,9 +68,13 @@ builder.Services.AddTransient<IUpdateProjectHandler, UpdateProjectHandler>();
 builder.Services.AddTransient<IDeleteProjectHandler, DeleteProjectHandler>();
 builder.Services.AddTransient<IGetProjectByIdHandler, GetProjectByIdHandler>();
 builder.Services.AddTransient<ICreateFeatureHandler, CreateFeatureHandler>();
-builder.Services.AddTransient<IUpdateFeatureHandler, UpdateFeatureHandler>();
-builder.Services.AddTransient<ITransitionFeatureStatusHandler, TransitionFeatureStatusHandler>();
-builder.Services.AddTransient<IDeleteFeatureHandler, DeleteFeatureHandler>();
+    builder.Services.AddTransient<IUpdateFeatureHandler, UpdateFeatureHandler>();
+    builder.Services.AddTransient<ITransitionFeatureStatusHandler, TransitionFeatureStatusHandler>();
+    builder.Services.AddTransient<IDeleteFeatureHandler, DeleteFeatureHandler>();
+    builder.Services.AddTransient<ICreateDefectHandler, CreateDefectHandler>();
+    builder.Services.AddTransient<IUpdateDefectHandler, UpdateDefectHandler>();
+    builder.Services.AddTransient<ITransitionDefectStatusHandler, TransitionDefectStatusHandler>();
+    builder.Services.AddTransient<IDeleteDefectHandler, DeleteDefectHandler>();
 var limitFeatureStatusTransitions = builder.Configuration
     .GetSection("FeatureManagement")
     .GetValue<bool>("LimitFeatureStatusTransitions");
