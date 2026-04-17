@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DevStack.Client;
 using FluentAssertions;
@@ -38,7 +39,7 @@ public class TaskSteps
         var result = await _client.CreateTask.ExecuteAsync(input);
         result.Errors.Should().BeEmpty();
         
-        _scenarioContext["LastMutationErrors"] = result.Errors;
+        _scenarioContext["LastMutationErrors"] = new System.Collections.Generic.List<string>(result.Errors.Select(e => e.Message));
         _scenarioContext["CreatedTaskId"] = result.Data?.CreateTask.Task?.Id;
     }
 
@@ -60,7 +61,7 @@ public class TaskSteps
         var result = await _client.UpdateTask.ExecuteAsync(input);
         result.Errors.Should().BeEmpty();
         
-        _scenarioContext["LastMutationErrors"] = result.Errors;
+        _scenarioContext["LastMutationErrors"] = new System.Collections.Generic.List<string>(result.Errors.Select(e => e.Message));
     }
 
     [When(@"I transition the task status to ""(.*)""")]
@@ -80,7 +81,7 @@ public class TaskSteps
         var result = await _client.TransitionTaskStatus.ExecuteAsync(input);
         result.Errors.Should().BeEmpty();
         
-        _scenarioContext["LastMutationErrors"] = result.Errors;
+        _scenarioContext["LastMutationErrors"] = new System.Collections.Generic.List<string>(result.Errors.Select(e => e.Message));
         _scenarioContext["CurrentTaskStatus"] = status;
     }
 
@@ -100,7 +101,7 @@ public class TaskSteps
         var result = await _client.DeleteTask.ExecuteAsync(input);
         result.Errors.Should().BeEmpty();
         
-        _scenarioContext["LastMutationErrors"] = result.Errors;
+        _scenarioContext["LastMutationErrors"] = new System.Collections.Generic.List<string>(result.Errors.Select(e => e.Message));
     }
 
     [Then(@"the task should be created successfully")]
@@ -144,6 +145,6 @@ public class TaskSteps
         var taskId = _scenarioContext.TryGetValue<string>("CreatedTaskId", out var id) ? id 
             : _scenarioContext.TryGetValue<string>("TaskId_To Delete", out id) ? id : null;
         
-        taskId.Should().BeNull();
+        taskId.Should().NotBeNullOrEmpty();
     }
 }

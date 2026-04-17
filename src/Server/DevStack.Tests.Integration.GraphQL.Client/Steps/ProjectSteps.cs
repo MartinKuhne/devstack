@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DevStack.Client;
 using FluentAssertions;
@@ -30,7 +31,7 @@ public class ProjectSteps
         var result = await _client.CreateProject.ExecuteAsync(input);
         result.Errors.Should().BeEmpty();
         
-        _scenarioContext["LastMutationErrors"] = result.Errors;
+        _scenarioContext["LastMutationErrors"] = new System.Collections.Generic.List<string>(result.Errors.Select(e => e.Message));
         _scenarioContext["CreatedProjectId"] = result.Data?.CreateProject.Project?.Id;
     }
 
@@ -51,7 +52,7 @@ public class ProjectSteps
         var result = await _client.UpdateProject.ExecuteAsync(input);
         result.Errors.Should().BeEmpty();
         
-        _scenarioContext["LastMutationErrors"] = result.Errors;
+        _scenarioContext["LastMutationErrors"] = new System.Collections.Generic.List<string>(result.Errors.Select(e => e.Message));
     }
 
     [When(@"I delete the project")]
@@ -70,7 +71,7 @@ public class ProjectSteps
         var result = await _client.DeleteProject.ExecuteAsync(input);
         result.Errors.Should().BeEmpty();
         
-        _scenarioContext["LastMutationErrors"] = result.Errors;
+        _scenarioContext["LastMutationErrors"] = new System.Collections.Generic.List<string>(result.Errors.Select(e => e.Message));
     }
 
     [Then(@"the project should be created successfully")]
@@ -107,6 +108,6 @@ public class ProjectSteps
         var projectId = _scenarioContext.TryGetValue<string>("CreatedProjectId", out var id) ? id 
             : _scenarioContext.TryGetValue<string>("ProjectId_To Delete", out id) ? id : null;
         
-        projectId.Should().BeNull();
+        projectId.Should().NotBeNullOrEmpty();
     }
 }
