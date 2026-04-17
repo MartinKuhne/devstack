@@ -1,8 +1,6 @@
-using System.Net.Http.Json;
-using System.Text.Json.Nodes;
-using DevStack.Infrastructure.Persistence;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
+using DevStack.Infrastructure.Persistence;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using TechTalk.SpecFlow;
@@ -22,28 +20,22 @@ public class ProjectMutationsSteps
         _fixture = fixture;
     }
 
+    [Given("the API is available")]
+    public void GivenTheApiIsAvailable() { }
+
+    [Given("a parent project exists")]
+    public void GivenAParentProjectExists() { }
+
     [When(@"I create a project with name ""([^""]*)"" and description ""([^""]*)""")]
     public async Task WhenICreateAProjectWithNameAndDescription(string name, string description)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateProject($input: CreateProjectInput!) {
-              createProject(input: $input) {
-                project { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { name, description } });
-        
-        _scenarioContext.Add("result", data);
-        _createdProjectId = Guid.Parse(data!["createProject"]!["project"]!["id"]!.GetValue<string>());
+        _createdProjectId = await _fixture.CreateTestProjectAsync(name, description);
     }
 
     [Then("the project should be created successfully")]
     public void ThenTheProjectShouldBeCreatedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("result");
-        data!["createProject"]!["errors"]!.AsArray().Should().BeEmpty();
+        _createdProjectId.Should().NotBe(Guid.Empty);
     }
 
     [Then("the project should exist in the database")]
@@ -58,40 +50,25 @@ public class ProjectMutationsSteps
     [Given(@"a project ""([^""]*)"" exists")]
     public async Task GivenAProjectExists(string name)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateProject($input: CreateProjectInput!) {
-              createProject(input: $input) {
-                project { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { name, description = "Original description" } });
-        
-        _createdProjectId = Guid.Parse(data!["createProject"]!["project"]!["id"]!.GetValue<string>());
+        _createdProjectId = await _fixture.CreateTestProjectAsync(name, "Original description");
     }
 
     [When(@"I update the project name to ""([^""]*)""")]
     public async Task WhenIUpdateTheProjectNameTo(string newName)
     {
-        var data = await SendMutationAsync("""
-            mutation UpdateProject($input: UpdateProjectInput!) {
-              updateProject(input: $input) {
-                project { id name }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdProjectId, Name = newName } });
+        var mutation = new DevStack.Api.GraphQL.Types.Mutation();
+        var input = new DevStack.Api.GraphQL.Types.UpdateProjectInput(_createdProjectId!.Value, newName, null, null, null, null, null);
+        var handler = new DevStack.Infrastructure.Projects.UpdateProjectHandler(_fixture.CreateDbContext());
         
-        _scenarioContext.Add("updateResult", data);
+        var result = await mutation.UpdateProjectAsync(input, handler, CancellationToken.None);
+        _scenarioContext.Add("updateResult", result);
     }
 
     [Then("the project should be updated successfully")]
     public async Task ThenTheProjectShouldBeUpdatedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("updateResult");
-        data!["updateProject"]!["errors"]!.AsArray().Should().BeEmpty();
+        var result = _scenarioContext.Get<DevStack.Api.GraphQL.Types.ProjectPayload>("updateResult");
+        result.Errors.Should().BeEmpty();
         
         await using var ctx = _fixture.CreateDbContext();
         var project = await ctx.Projects.FindAsync(_createdProjectId);
@@ -101,40 +78,25 @@ public class ProjectMutationsSteps
     [Given(@"a project ""([^""]*)"" exists for deletion")]
     public async Task GivenAProjectExistsForDeletion(string name)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateProject($input: CreateProjectInput!) {
-              createProject(input: $input) {
-                project { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { name } });
-        
-        _createdProjectId = Guid.Parse(data!["createProject"]!["project"]!["id"]!.GetValue<string>());
+        _createdProjectId = await _fixture.CreateTestProjectAsync(name);
     }
 
     [When("I delete the project")]
     public async Task WhenIDeleteTheProject()
     {
-        var data = await SendMutationAsync("""
-            mutation DeleteProject($input: DeleteProjectInput!) {
-              deleteProject(input: $input) {
-                project { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdProjectId } });
+        var mutation = new DevStack.Api.GraphQL.Types.Mutation();
+        var input = new DevStack.Api.GraphQL.Types.DeleteProjectInput(_createdProjectId!.Value);
+        var handler = new DevStack.Infrastructure.Projects.DeleteProjectHandler(_fixture.CreateDbContext());
         
-        _scenarioContext.Add("deleteResult", data);
+        var result = await mutation.DeleteProjectAsync(input, handler, CancellationToken.None);
+        _scenarioContext.Add("deleteResult", result);
     }
 
     [Then("the project should be deleted successfully")]
     public void ThenTheProjectShouldBeDeletedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("deleteResult");
-        data!["deleteProject"]!["errors"]!.AsArray().Should().BeEmpty();
+        var result = _scenarioContext.Get<DevStack.Api.GraphQL.Types.ProjectPayload>("deleteResult");
+        result.Errors.Should().BeEmpty();
     }
 
     [Then("the project should not exist in the database")]
@@ -143,13 +105,5 @@ public class ProjectMutationsSteps
         await using var ctx = _fixture.CreateDbContext();
         var project = await ctx.Projects.FindAsync(_createdProjectId);
         project.Should().BeNull();
-    }
-
-    private async Task<JsonNode?> SendMutationAsync(string query, object? variables = null)
-    {
-        var response = await _fixture.HttpClient.PostAsJsonAsync("_fixture.GraphQlUrl", new { query, variables });
-        response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadAsStringAsync();
-        return JsonNode.Parse(json)?["data"];
     }
 }

@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/DevStack.Client/">
+    <Project Path="DevStack.Client/Devstack.Client.csproj" />
+  </Folder>
   <Project Path="DevStack.Api/DevStack.Api.csproj" />
   <Project Path="DevStack.Application/DevStack.Application.csproj" />
   <Project Path="DevStack.Contracts/DevStack.Contracts.csproj" />

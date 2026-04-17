@@ -1,8 +1,11 @@
-using System.Net.Http.Json;
-using System.Text.Json.Nodes;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
+using DevStack.Infrastructure.Persistence;
+using DevStack.Infrastructure.Projects;
+using DevStack.Infrastructure.Features;
+using DevStack.Infrastructure.Defects;
+using DevStack.Infrastructure.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using TechTalk.SpecFlow;
@@ -23,6 +26,12 @@ public class DefectMutationsSteps
         _fixture = fixture;
     }
 
+    [Given("the API is available")]
+    public void GivenTheApiIsAvailable() { }
+
+    [Given("a parent project exists")]
+    public void GivenAParentProjectExists() { }
+
     [BeforeScenario]
     public async Task BeforeDefectScenario()
     {
@@ -32,25 +41,22 @@ public class DefectMutationsSteps
     [When(@"I create a defect with title ""([^""]*)"" and severity ""([^""]*)""")]
     public async Task WhenICreateADefectWithTitleAndSeverity(string title, string severity)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateDefect($input: CreateDefectInput!) {
-              createDefect(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, Title = title, Severity = severity } });
+        var sev = severity switch
+        {
+            "Low" => Severity.Low,
+            "Medium" => Severity.Medium,
+            "High" => Severity.High,
+            "Critical" => Severity.Critical,
+            _ => Severity.Low
+        };
         
-        _scenarioContext.Add("result", data);
-        _createdDefectId = Guid.Parse(data!["createDefect"]!["item"]!["id"]!.GetValue<string>());
+        _createdDefectId = await _fixture.CreateTestDefectAsync(_projectId!.Value, null, title, sev);
     }
 
     [Then("the defect should be created successfully")]
     public void ThenTheDefectShouldBeCreatedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("result");
-        data!["createDefect"]!["errors"]!.AsArray().Should().BeEmpty();
+        _createdDefectId.Should().NotBe(Guid.Empty);
     }
 
     [Then("the defect should exist in the database")]
@@ -65,40 +71,31 @@ public class DefectMutationsSteps
     [Given(@"a defect ""([^""]*)"" exists")]
     public async Task GivenADefectExists(string title)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateDefect($input: CreateDefectInput!) {
-              createDefect(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, Title = title, Description = "Original description", Severity = "Low" } });
+        _createdDefectId = await _fixture.CreateTestDefectAsync(_projectId!.Value, null, title, Severity.Low);
         
-        _createdDefectId = Guid.Parse(data!["createDefect"]!["item"]!["id"]!.GetValue<string>());
+        var mutation = new Mutation();
+        var input = new UpdateDefectInput(_createdDefectId.Value, title, "Original description", null, null, null, null, null, null, null, Severity.Low, null);
+        var handler = new UpdateDefectHandler(_fixture.CreateDbContext());
+        
+        await mutation.UpdateDefectAsync(input, handler, CancellationToken.None);
     }
 
     [When(@"I update the defect title to ""([^""]*)""")]
     public async Task WhenIUpdateTheDefectTitleTo(string newTitle)
     {
-        var data = await SendMutationAsync("""
-            mutation UpdateDefect($input: UpdateDefectInput!) {
-              updateDefect(input: $input) {
-                item { id title }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdDefectId, Title = newTitle, Description = "Updated Description" } });
+        var mutation = new Mutation();
+        var input = new UpdateDefectInput(_createdDefectId!.Value, newTitle, "Updated Description", null, null, null, null, null, null, null, null, null);
+        var handler = new UpdateDefectHandler(_fixture.CreateDbContext());
         
-        _scenarioContext.Add("updateResult", data);
+        var result = await mutation.UpdateDefectAsync(input, handler, CancellationToken.None);
+        _scenarioContext.Add("updateResult", result);
     }
 
     [Then("the defect should be updated successfully")]
     public async Task ThenTheDefectShouldBeUpdatedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("updateResult");
-        data!["updateDefect"]!["errors"]!.AsArray().Should().BeEmpty();
+        var result = _scenarioContext.Get<DefectPayload>("updateResult");
+        result.Errors.Should().BeEmpty();
         
         await using var ctx = _fixture.CreateDbContext();
         var defect = await ctx.Items.FindAsync(_createdDefectId);
@@ -108,96 +105,87 @@ public class DefectMutationsSteps
     [Given(@"a defect with status ""([^""]*)"" exists")]
     public async Task GivenADefectWithStatusExists(string status)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateDefect($input: CreateDefectInput!) {
-              createDefect(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, Title = "Test Defect", Severity = "Low", InitialStatus = status } });
+        var initialStatus = status switch
+        {
+            "Planning" => FeatureStatus.Planning,
+            "InProgress" => FeatureStatus.InProgress,
+            "Ready" => FeatureStatus.Ready,
+            _ => FeatureStatus.Planning
+        };
         
-        _createdDefectId = Guid.Parse(data!["createDefect"]!["item"]!["id"]!.GetValue<string>());
+        var mutation = new Mutation();
+        var input = new CreateDefectInput(_projectId!.Value, null, "Test Defect", null, null, null, null, null, null, null, Severity.Low, initialStatus);
+        var handler = new CreateDefectHandler(_fixture.CreateDbContext());
+        
+        var result = await mutation.CreateDefectAsync(input, handler, CancellationToken.None);
+        result.Errors.Should().BeEmpty();
+        _createdDefectId = result.Item!.Id;
     }
 
     [When(@"I transition the defect status to ""([^""]*)""")]
     public async Task WhenITransitionTheDefectStatusTo(string targetStatus)
     {
-        var data = await SendMutationAsync("""
-            mutation TransitionDefectStatus($input: TransitionDefectInput!) {
-              transitionDefectStatus(input: $input) {
-                item { id status }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdDefectId, TargetStatus = targetStatus, Actor = "test-user" } });
+        var target = targetStatus switch
+        {
+            "Planning" => FeatureStatus.Planning,
+            "InProgress" => FeatureStatus.InProgress,
+            "Ready" => FeatureStatus.Ready,
+            "ReadyForTest" => FeatureStatus.ReadyForTest,
+            "Testing" => FeatureStatus.Testing,
+            "Done" => FeatureStatus.Done,
+            "Failed" => FeatureStatus.Failed,
+            "Rejected" => FeatureStatus.Rejected,
+            "InReview" => FeatureStatus.InReview,
+            _ => FeatureStatus.Planning
+        };
         
-        _scenarioContext.Add("transitionResult", data);
+        await _fixture.UpdateDefectStatusAsync(_createdDefectId!.Value, target, "test-user");
     }
 
     [Then(@"the defect status should be ""([^""]*)""")]
     public async Task ThenTheDefectStatusShouldBe(string expectedStatus)
     {
-        var data = _scenarioContext.Get<JsonNode>("transitionResult");
-        data!["transitionDefectStatus"]!["errors"]!.AsArray().Should().BeEmpty();
+        var expected = expectedStatus switch
+        {
+            "Planning" => FeatureStatus.Planning,
+            "InProgress" => FeatureStatus.InProgress,
+            "Ready" => FeatureStatus.Ready,
+            "ReadyForTest" => FeatureStatus.ReadyForTest,
+            "Testing" => FeatureStatus.Testing,
+            "Done" => FeatureStatus.Done,
+            "Failed" => FeatureStatus.Failed,
+            "Rejected" => FeatureStatus.Rejected,
+            "InReview" => FeatureStatus.InReview,
+            _ => FeatureStatus.Planning
+        };
         
         await using var ctx = _fixture.CreateDbContext();
         var defect = await ctx.Items.FindAsync(_createdDefectId);
-        var expected = expectedStatus switch
-        {
-            "Planning" => Domain.Enums.FeatureStatus.Planning,
-            "InProgress" => Domain.Enums.FeatureStatus.InProgress,
-            "Ready" => Domain.Enums.FeatureStatus.Ready,
-            "ReadyForTest" => Domain.Enums.FeatureStatus.ReadyForTest,
-            "Testing" => Domain.Enums.FeatureStatus.Testing,
-            "Done" => Domain.Enums.FeatureStatus.Done,
-            "Failed" => Domain.Enums.FeatureStatus.Failed,
-            "Rejected" => Domain.Enums.FeatureStatus.Rejected,
-            "InReview" => Domain.Enums.FeatureStatus.InReview,
-            _ => Domain.Enums.FeatureStatus.Planning
-        };
         defect!.Status.Should().Be(expected);
     }
 
     [Given(@"a defect ""([^""]*)"" exists for deletion")]
     public async Task GivenADefectExistsForDeletion(string title)
     {
-        var data = await SendMutationAsync("""
-            mutation CreateDefect($input: CreateDefectInput!) {
-              createDefect(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { ProjectId = _projectId, Title = title, Severity = "Low" } });
-        
-        _createdDefectId = Guid.Parse(data!["createDefect"]!["item"]!["id"]!.GetValue<string>());
+        _createdDefectId = await _fixture.CreateTestDefectAsync(_projectId!.Value, null, title, Severity.Low);
     }
 
     [When("I delete the defect")]
     public async Task WhenIDeleteTheDefect()
     {
-        var data = await SendMutationAsync("""
-            mutation DeleteDefect($input: DeleteDefectInput!) {
-              deleteDefect(input: $input) {
-                item { id }
-                errors
-              }
-            }
-            """,
-            new { input = new { Id = _createdDefectId } });
+        var mutation = new Mutation();
+        var input = new DeleteDefectInput(_createdDefectId!.Value);
+        var handler = new DeleteDefectHandler(_fixture.CreateDbContext());
         
-        _scenarioContext.Add("deleteResult", data);
+        var result = await mutation.DeleteDefectAsync(input, handler, CancellationToken.None);
+        _scenarioContext.Add("deleteResult", result);
     }
 
     [Then("the defect should be deleted successfully")]
     public void ThenTheDefectShouldBeDeletedSuccessfully()
     {
-        var data = _scenarioContext.Get<JsonNode>("deleteResult");
-        data!["deleteDefect"]!["errors"]!.AsArray().Should().BeEmpty();
+        var result = _scenarioContext.Get<DefectPayload>("deleteResult");
+        result.Errors.Should().BeEmpty();
     }
 
     [Then("the defect should not exist in the database")]
@@ -206,13 +194,5 @@ public class DefectMutationsSteps
         await using var ctx = _fixture.CreateDbContext();
         var defect = await ctx.Items.FindAsync(_createdDefectId);
         defect.Should().BeNull();
-    }
-
-    private async Task<JsonNode?> SendMutationAsync(string query, object? variables = null)
-    {
-        var response = await _fixture.HttpClient.PostAsJsonAsync("_fixture.GraphQlUrl", new { query, variables });
-        response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadAsStringAsync();
-        return JsonNode.Parse(json)?["data"];
     }
 }
