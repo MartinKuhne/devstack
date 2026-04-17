@@ -23,7 +23,7 @@ public readonly struct TransitionResult<T>
     public static TransitionResult<T> Failure(IReadOnlyList<string> errors) => new(default!, errors);
 }
 
-public sealed class FeatureStatusTransitionService
+public sealed class FeatureStatusTransitionService(bool limitFeatureStatusTransitions = false)
 {
     private readonly List<DomainEvent> _domainEvents = new();
 
@@ -68,7 +68,8 @@ public sealed class FeatureStatusTransitionService
             return TransitionResult<Unit>.Failure(errors);
 
         // Check if transition is allowed
-        if (!_allowedTransitions.TryGetValue(workItem.Status, out var allowedTargets) || !allowedTargets!.Contains(targetStatus))
+        if (limitFeatureStatusTransitions &&
+            (!_allowedTransitions.TryGetValue(workItem.Status, out var allowedTargets) || !allowedTargets.Contains(targetStatus)))
         {
             errors.Add($"Transition from {workItem.Status} to {targetStatus} is not allowed.");
             return TransitionResult<Unit>.Failure(errors);

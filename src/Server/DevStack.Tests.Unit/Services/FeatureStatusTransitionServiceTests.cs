@@ -10,6 +10,7 @@ namespace DevStack.Tests.Unit.Services;
 public class FeatureStatusTransitionServiceTests
 {
     private readonly FeatureStatusTransitionService _service = new();
+    private readonly FeatureStatusTransitionService _limitedService = new(limitFeatureStatusTransitions: true);
 
     [Fact]
     public void Transition_Successfully_Changes_Status()
@@ -95,7 +96,7 @@ public class FeatureStatusTransitionServiceTests
     [InlineData(FeatureStatus.Done, FeatureStatus.Planning)] // Done cannot go back to Planning
     [InlineData(FeatureStatus.Planning, FeatureStatus.Done)] // Cannot skip intermediate states
     [InlineData(FeatureStatus.Testing, FeatureStatus.Planning)] // Invalid transition
-    public void Disallowed_Transitions_Fail(FeatureStatus source, FeatureStatus target)
+    public void Disallowed_Transitions_Fail_When_Limit_Flag_Enabled(FeatureStatus source, FeatureStatus target)
     {
         // Arrange
         var feature = new Feature
@@ -107,12 +108,37 @@ public class FeatureStatusTransitionServiceTests
         };
 
         // Act
-        var result = _service.Transition(feature, target, "actor");
+        var result = _limitedService.Transition(feature, target, "actor");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().NotBeEmpty();
         feature.Status.Should().Be(source); // Status unchanged
+    }
+
+    [Theory]
+    [InlineData(FeatureStatus.Done, FeatureStatus.Planning)]
+    [InlineData(FeatureStatus.Planning, FeatureStatus.Done)]
+    [InlineData(FeatureStatus.Testing, FeatureStatus.Planning)]
+    public void Disallowed_Transitions_Succeed_When_Limit_Flag_Disabled(FeatureStatus source, FeatureStatus target)
+    {
+        // Arrange
+        var feature = new Feature
+        {
+            Id = Guid.NewGuid(),
+            Status = source,
+            Title = "Test Feature",
+            ProjectId = Guid.NewGuid(),
+            Result = "result",
+            Errors = "errors"
+        };
+
+        // Act
+        var result = _service.Transition(feature, target, "actor");
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        feature.Status.Should().Be(target);
     }
 
     [Fact]
