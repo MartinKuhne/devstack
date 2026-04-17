@@ -78,6 +78,11 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
             .WithMany()
             .HasForeignKey(i => i.ParentFeatureId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(i => i.DependsOn)
+            .WithMany()
+            .HasForeignKey(i => i.DependsOnId)
+            .OnDelete(DeleteBehavior.SetNull);
             
         builder.HasIndex(i => new { i.ProjectId, i.Status });
         builder.HasIndex(i => new { i.Subtype });
