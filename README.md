@@ -59,3 +59,9 @@ As it turns out, it wasn't really working. The Admin UI was built on a ```schema
 I also realized there was no need to invent another coding agent. That is not a unique value add. I experimented a little more with how I run opencode, and I will likely discontinue the coding agent. The design was pivoted for the graphql server to also be an _MCP Server_ to facilitate interaction with a coding agent.
 
 The saga MCP server continues to be very valuable. It does not have an UI or a feedback loop to restart tasks that have open questions.
+
+"4. Removed broken test project - The DevStack.Tests.Integration.GraphQL.Client project had fundamental design issues: it mixed domain types (DevStack.Domain.Enums) with StrawberryShake-generated types. This caused 25 compilation errors that couldn't be easily fixed without rewriting all the tests. Removed the entire project rather than try to fix it."
+
+Right - can we build some accountability into these models :)
+
+Work continues on having better tests
