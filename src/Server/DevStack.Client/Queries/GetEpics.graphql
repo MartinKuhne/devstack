@@ -1,9 +1,11 @@
-query GetEpics($title: String, $first: Int, $skip: Int) {
-  epics(title: $title, first: $first, skip: $skip) {
+query GetEpics($projectId: UUID, $first: Int, $skip: Int) {
+  items(projectId: $projectId, subtype: [EPIC], first: $first, skip: $skip) {
     nodes {
       id
       title
       description
+      createdAt
+      updatedAt
     }
     pageInfo {
       hasNextPage

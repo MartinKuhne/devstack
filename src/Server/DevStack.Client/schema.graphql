@@ -173,6 +173,7 @@ enum ItemSubtype {
   DEFECT
   MAINTENANCE
   ENABLER
+  EPIC
 }
 
 type EpicPayload {
@@ -387,16 +388,15 @@ type Query {
   projectById(id: UUID!): Project
   projects(first: Int! = 50 skip: Int): ProjectConnection!
   items(projectId: UUID epicId: UUID status: [FeatureStatus!] subtype: [ItemSubtype!] createdAfter: DateTime createdBefore: DateTime first: Int! = 50 skip: Int): ItemConnection!
-  featureById(id: UUID!): Item @deprecated(reason: "Use GetItemById instead")
+  getItemById(id: UUID!): Item
+  featureById(id: UUID!): Item @deprecated(reason: "Use getItemById instead")
   features(projectId: UUID status: [FeatureStatus!] first: Int! = 50 skip: Int): ItemConnection! @deprecated(reason: "Use GetItems instead")
   defects(projectId: UUID status: [FeatureStatus!] first: Int! = 50 skip: Int): ItemConnection! @deprecated(reason: "Use GetItems with subtype filter instead")
-  defectById(id: UUID!): Item @deprecated(reason: "Use GetItemById instead")
+  defectById(id: UUID!): Item @deprecated(reason: "Use getItemById instead")
   tasks(itemId: UUID status: [TaskStatus!] createdAfter: DateTime createdBefore: DateTime first: Int! = 50 skip: Int): TaskConnection!
   taskById(id: UUID!): AgentTask
   modelConfigurations: [ModelConfiguration!]!
   auditEvents(entityId: UUID! take: Int! = 50): [AuditEvent!]!
-  epics(title: String first: Int! = 50 skip: Int): EpicConnection!
-  epicById(id: UUID!): Epic
   validStatusTransitions(itemId: UUID!): [FeatureStatus!]!
   dashboardSummary: DashboardSummary!
 }
