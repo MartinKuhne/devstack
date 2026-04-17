@@ -178,6 +178,7 @@ public class DevStackTools(
 
    [McpServerTool, Description("Create a new task")]
     public async Task<string> CreateTask(
+        Guid projectId,
         Guid featureId,
         string title,
         string? deliverable = null,
@@ -189,7 +190,7 @@ public class DevStackTools(
         CancellationToken cancellationToken = default)
     {
         var id = await createTaskHandler.Handle(
-            new CreateTaskCommand(featureId, title, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating),
+            new CreateTaskCommand(projectId, featureId, title, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating),
             CancellationToken.None);
         
         return $"Task created with ID: {id}";
@@ -419,12 +420,13 @@ public class DevStackTools(
 
     [McpServerTool, Description("Create a new epic")]
     public async Task<string> CreateEpic(
+        Guid projectId,
         string title,
         string? description = null,
         CancellationToken cancellationToken = default)
     {
         var id = await createEpicHandler.Handle(
-            new CreateEpicCommand(title, description),
+            new CreateEpicCommand(projectId, title, description),
             CancellationToken.None);
         
         return $"Epic created with ID: {id}";

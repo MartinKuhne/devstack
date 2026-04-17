@@ -3,7 +3,7 @@ using DevStack.Infrastructure.Persistence;
 
 namespace DevStack.Infrastructure.Epics;
 
-public record CreateEpicCommand(string Title, string? Description);
+public record CreateEpicCommand(Guid ProjectId, string Title, string? Description);
 
 public record UpdateEpicCommand(Guid Id, string? Title, string? Description);
 
@@ -40,6 +40,7 @@ public class CreateEpicHandler : ICreateEpicHandler
 
         var epic = new Epic
         {
+            ProjectId = request.ProjectId,
             Title = request.Title!,
             Description = request.Description,
             CreatedAt = DateTime.UtcNow,

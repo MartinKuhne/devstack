@@ -100,6 +100,7 @@ public class QueryTests : IAsyncLifetime
         var task1 = new AgentTask
         {
             Id = Guid.NewGuid(),
+            ProjectId = projectId,
             FeatureId = feature1.Id,
             Title = "Task 1",
             Status = DevStack.Domain.Enums.TaskStatus.Planning,
@@ -111,6 +112,7 @@ public class QueryTests : IAsyncLifetime
         var task2 = new AgentTask
         {
             Id = Guid.NewGuid(),
+            ProjectId = projectId,
             FeatureId = feature1.Id,
             Title = "Task 2",
             Status = DevStack.Domain.Enums.TaskStatus.Code,
@@ -122,6 +124,7 @@ public class QueryTests : IAsyncLifetime
         var task3 = new AgentTask
         {
             Id = Guid.NewGuid(),
+            ProjectId = projectId,
             FeatureId = feature2.Id,
             Title = "Task 3",
             Status = DevStack.Domain.Enums.TaskStatus.Failed,

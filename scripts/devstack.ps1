@@ -199,7 +199,7 @@ function Invoke-AgentBatch {
         $prompt = & $BuildPrompt $item
         Write-Host $prompt
 
-        $npxArgs = @("opencode", "run", $prompt)
+        $npxArgs = @("opencode", "run", ($prompt -replace "`r`n|`n|`r", " "))
         if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
         & npx @npxArgs
 
@@ -228,7 +228,6 @@ Propose a fix (if feasible within 5 minutes of research).
 Defect ID: $($item.id)
 Use the update_defect tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), rootCause, openQuestions.
 If there are no OpenQuestions, use the update_defect tool to change the state to Ready. If there are open questions, change the state to InReview.
-
 "@
     }
 }

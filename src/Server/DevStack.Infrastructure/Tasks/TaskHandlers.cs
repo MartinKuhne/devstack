@@ -7,6 +7,7 @@ using TaskStatus = DevStack.Domain.Enums.TaskStatus;
 namespace DevStack.Infrastructure.Tasks;
 
 public record CreateTaskCommand(
+    Guid ProjectId,
     Guid FeatureId,
     string Title,
     string? Deliverable,
@@ -65,6 +66,7 @@ public class CreateTaskHandler : ICreateTaskHandler
 
         var task = new global::DevStack.Domain.Entities.AgentTask
         {
+            ProjectId = request.ProjectId,
             FeatureId = request.FeatureId,
             Title = request.Title,
             Deliverable = request.Deliverable,
