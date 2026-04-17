@@ -70,10 +70,11 @@ public class DevStackTools(
         string? testPlan = null,
         string? deploymentPlan = null,
         string? openQuestions = null,
-        FeatureStatus? initialStatus = null)
+        FeatureStatus? initialStatus = null,
+        Guid? dependsOnId = null)
     {
         var id = await createFeatureHandler.Handle(
-            new CreateFeatureCommand(projectId, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, initialStatus),
+            new CreateFeatureCommand(projectId, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, initialStatus, dependsOnId),
             CancellationToken.None);
         
         return $"Item created with ID: {id}";
@@ -90,10 +91,11 @@ public class DevStackTools(
         string? performanceImpact = null,
         string? testPlan = null,
         string? deploymentPlan = null,
-        string? openQuestions = null)
+        string? openQuestions = null,
+        Guid? dependsOnId = null)
     {
         await updateFeatureHandler.Handle(
-            new UpdateFeatureCommand(id, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions),
+            new UpdateFeatureCommand(id, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, dependsOnId),
             CancellationToken.None);
         
         return $"Item {id} updated successfully";
@@ -336,10 +338,11 @@ public class DevStackTools(
         Guid projectId,
         string title,
         string? description = null,
+        Guid? dependsOnId = null,
         CancellationToken cancellationToken = default)
     {
         var id = await createEpicHandler.Handle(
-            new CreateEpicCommand(projectId, title, description),
+            new CreateEpicCommand(projectId, title, description, dependsOnId),
             CancellationToken.None);
         
         return $"Epic created with ID: {id}";
@@ -350,10 +353,11 @@ public class DevStackTools(
         Guid id,
         string? title = null,
         string? description = null,
+        Guid? dependsOnId = null,
         CancellationToken cancellationToken = default)
     {
         await updateEpicHandler.Handle(
-            new UpdateEpicCommand(id, title, description),
+            new UpdateEpicCommand(id, title, description, dependsOnId),
             CancellationToken.None);
         
         return $"Epic {id} updated successfully";

@@ -54,6 +54,8 @@ public class ItemType : ObjectType<Item>
         descriptor.Field("epic").Resolve(ctx => ctx.Parent<Item>().Epic).Type<EpicType>();
         descriptor.Field("tasks").Type<ListType<TaskType>>().Resolve(ctx => ctx.Parent<Item>().Tasks);
         descriptor.Field("parentFeature").Resolve(ctx => ctx.Parent<Item>().ParentFeature).Type(typeof(ItemType));
+        descriptor.Field("dependsOnId").Resolve(ctx => ctx.Parent<Item>().DependsOnId).Type(typeof(IdType));
+        descriptor.Field("dependsOn").Resolve(ctx => ctx.Parent<Item>().DependsOn).Type(typeof(ItemType));
         descriptor.Field("validStatusTransitions")
             .Type<ListType<EnumType<FeatureStatus>>>()
             .Resolve(async ctx =>
@@ -109,6 +111,8 @@ public class FeatureType : ObjectType<Item>
         
         descriptor.Field("epic").Resolve(ctx => ctx.Parent<Item>().Epic).Type<EpicType>();
         descriptor.Field("tasks").Type<ListType<TaskType>>().Resolve(ctx => ctx.Parent<Item>().Tasks);
+        descriptor.Field("dependsOnId").Resolve(ctx => ctx.Parent<Item>().DependsOnId).Type(typeof(IdType));
+        descriptor.Field("dependsOn").Resolve(ctx => ctx.Parent<Item>().DependsOn).Type(typeof(ItemType));
         descriptor.Field("validStatusTransitions")
             .Type<ListType<EnumType<FeatureStatus>>>()
             .Resolve(async ctx =>

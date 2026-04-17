@@ -77,7 +77,8 @@ public class FeatureMutationTests : IAsyncLifetime
             TestPlan: null,
             DeploymentPlan: null,
             OpenQuestions: null,
-            InitialStatus: null);
+            InitialStatus: null,
+            DependsOnId: null);
 
         var result = await mutation.CreateFeatureAsync(
             input,
@@ -93,7 +94,7 @@ public class FeatureMutationTests : IAsyncLifetime
     public async Task CreateFeature_Fails_When_Title_Is_Empty()
     {
         var mutation = new Mutation();
-        var input = new CreateFeatureInput(
+      var input = new CreateFeatureInput(
             ProjectId: _projectId,
             Title: "",
             Description: null,
@@ -104,7 +105,8 @@ public class FeatureMutationTests : IAsyncLifetime
             TestPlan: null,
             DeploymentPlan: null,
             OpenQuestions: null,
-            InitialStatus: null);
+            InitialStatus: null,
+            DependsOnId: null);
 
         var result = await mutation.CreateFeatureAsync(
             input,
@@ -144,7 +146,8 @@ public class FeatureMutationTests : IAsyncLifetime
             PerformanceImpact: null,
             TestPlan: null,
             DeploymentPlan: null,
-            OpenQuestions: null);
+            OpenQuestions: null,
+            DependsOnId: null);
 
         var result = await mutation.UpdateFeatureAsync(
             input,
@@ -169,7 +172,8 @@ public class FeatureMutationTests : IAsyncLifetime
             PerformanceImpact: null,
             TestPlan: null,
             DeploymentPlan: null,
-            OpenQuestions: null);
+            OpenQuestions: null,
+            DependsOnId: null);
 
         var result = await mutation.UpdateFeatureAsync(
             input,
