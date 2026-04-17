@@ -32,8 +32,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
         .Enrich.FromLogContext()
         .Enrich.WithMachineName()
-        .Destructure.With(new SensitiveDataDestructuringPolicy())
-        .WriteTo.Console();
+        .Destructure.With(new SensitiveDataDestructuringPolicy());
 });
 
 builder.Host.UseWolverine();
