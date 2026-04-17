@@ -20,7 +20,7 @@ public class TaskStatusTransitionServiceTests
             Id = Guid.NewGuid(),
             Status = TaskStatus.Planning,
             Title = "Test Task",
-            FeatureId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ComplexityRating = 5
         };
 
@@ -41,7 +41,7 @@ public class TaskStatusTransitionServiceTests
             Id = Guid.NewGuid(),
             Status = TaskStatus.Planning,
             Title = "Test Task",
-            FeatureId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ComplexityRating = 5
         };
 
@@ -76,7 +76,7 @@ public class TaskStatusTransitionServiceTests
             Id = Guid.NewGuid(),
             Status = source,
             Title = "Test Task",
-            FeatureId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ComplexityRating = 5
         };
 
@@ -108,7 +108,7 @@ public class TaskStatusTransitionServiceTests
             Id = Guid.NewGuid(),
             Status = source,
             Title = "Test Task",
-            FeatureId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ComplexityRating = 5
         };
 
@@ -141,7 +141,7 @@ public class TaskStatusTransitionServiceTests
             Id = Guid.NewGuid(),
             Status = TaskStatus.Planning,
             Title = "Test Task",
-            FeatureId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ComplexityRating = 5
         };
 
@@ -162,7 +162,7 @@ public class TaskStatusTransitionServiceTests
             Id = Guid.NewGuid(),
             Status = TaskStatus.Testing,
             Title = "Test Task",
-            FeatureId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ComplexityRating = 5,
             Result = null // No result
         };
@@ -184,7 +184,7 @@ public class TaskStatusTransitionServiceTests
             Id = Guid.NewGuid(),
             Status = TaskStatus.Testing,
             Title = "Test Task",
-            FeatureId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ComplexityRating = 5,
             Result = null // No result
         };
@@ -206,7 +206,7 @@ public class TaskStatusTransitionServiceTests
             Id = Guid.NewGuid(),
             Status = TaskStatus.Ready,
             Title = "Test Task",
-            FeatureId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ComplexityRating = 5,
             RequiredFollowUps = null,
             Result = null
@@ -229,7 +229,7 @@ public class TaskStatusTransitionServiceTests
             Id = Guid.NewGuid(),
             Status = TaskStatus.Planning,
             Title = "Test Task",
-            FeatureId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ComplexityRating = 5,
             UpdatedAt = DateTime.UtcNow.AddMinutes(-5)
         };
