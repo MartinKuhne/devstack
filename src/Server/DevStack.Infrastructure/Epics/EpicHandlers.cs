@@ -1,4 +1,5 @@
 using DevStack.Domain.Entities;
+using DevStack.Domain.Enums;
 using DevStack.Infrastructure.Persistence;
 
 namespace DevStack.Infrastructure.Epics;
@@ -30,7 +31,7 @@ public class CreateEpicHandler : ICreateEpicHandler
         _dbContext = dbContext;
     }
 
-    public async Task<Guid> Handle(CreateEpicCommand request, CancellationToken cancellationToken)
+    public async global::System.Threading.Tasks.Task<Guid> Handle(CreateEpicCommand request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Title))
             throw new ArgumentException("Title is required", nameof(request.Title));
@@ -38,19 +39,21 @@ public class CreateEpicHandler : ICreateEpicHandler
         if (request.Title.Length > 200)
             throw new ArgumentException("Title must be 200 characters or less", nameof(request.Title));
 
-        var epic = new Epic
+        var item = new Item
         {
             ProjectId = request.ProjectId,
+            Subtype = ItemSubtype.Epic,
             Title = request.Title!,
             Description = request.Description,
+            Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        _dbContext.Epics.Add(epic);
+        _dbContext.Items.Add(item);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return epic.Id;
+        return item.Id;
     }
 }
 
@@ -63,16 +66,16 @@ public class UpdateEpicHandler : IUpdateEpicHandler
         _dbContext = dbContext;
     }
 
-    public async Task Handle(UpdateEpicCommand request, CancellationToken cancellationToken)
+    public async global::System.Threading.Tasks.Task Handle(UpdateEpicCommand request, CancellationToken cancellationToken)
     {
-        var epic = await _dbContext.Epics.FindAsync([request.Id], cancellationToken);
-        if (epic == null)
-            throw new InvalidOperationException($"Epic with ID {request.Id} not found.");
+        var item = await _dbContext.Items.FindAsync([request.Id], cancellationToken);
+        if (item == null)
+            throw new InvalidOperationException($"Item with ID {request.Id} not found.");
 
-        if (!string.IsNullOrEmpty(request.Title)) epic.Title = request.Title;
-        if (request.Description is not null) epic.Description = request.Description;
+        if (!string.IsNullOrEmpty(request.Title)) item.Title = request.Title;
+        if (request.Description is not null) item.Description = request.Description;
 
-        epic.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -87,13 +90,13 @@ public class DeleteEpicHandler : IDeleteEpicHandler
         _dbContext = dbContext;
     }
 
-    public async Task Handle(DeleteEpicCommand request, CancellationToken cancellationToken)
+    public async global::System.Threading.Tasks.Task Handle(DeleteEpicCommand request, CancellationToken cancellationToken)
     {
-        var epic = await _dbContext.Epics.FindAsync([request.Id], cancellationToken);
-        if (epic == null)
-            throw new InvalidOperationException($"Epic with ID {request.Id} not found.");
+        var item = await _dbContext.Items.FindAsync([request.Id], cancellationToken);
+        if (item == null)
+            throw new InvalidOperationException($"Item with ID {request.Id} not found.");
 
-        _dbContext.Epics.Remove(epic);
+        _dbContext.Items.Remove(item);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }
