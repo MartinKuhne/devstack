@@ -91,6 +91,8 @@ export function EditDefectDialog({ open, onOpenChange, defect, onSuccess }: Edit
                         testPlan: null,
                         deploymentPlan: null,
                         openQuestions: null,
+                        severity: data.severity,
+                        rootCause: null,
                     },
                 },
             });

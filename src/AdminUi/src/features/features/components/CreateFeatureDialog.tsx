@@ -72,7 +72,7 @@ export function CreateFeatureDialog({ open, onOpenChange, projectId, onSuccess }
             }
 
             reset();
-            onSuccess?.(payload?.feature?.id ?? '');
+            onSuccess?.(payload?.item?.id ?? '');
             onOpenChange(false);
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Failed to create feature');

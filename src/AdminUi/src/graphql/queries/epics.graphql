@@ -1,5 +1,5 @@
 query GetEpics($title: String) {
-    epics(title: $title) {
+    items(subtype: [EPIC], first: 50, skip: null) {
         nodes {
             id
             title
@@ -7,11 +7,17 @@ query GetEpics($title: String) {
             createdAt
             updatedAt
         }
+        pageInfo {
+            hasNextPage
+            hasPreviousPage
+            totalCount
+        }
+        totalCount
     }
 }
 
 query GetEpicById($id: UUID!) {
-    epicById(id: $id) {
+    getItemById(id: $id) {
         id
         title
         description

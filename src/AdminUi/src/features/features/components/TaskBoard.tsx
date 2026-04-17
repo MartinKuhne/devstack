@@ -117,10 +117,10 @@ export function TaskBoard({ tasks, featureId, onTaskClick, onTasksChange }: Task
                 ))}
             </div>
 
-            <CreateTaskDialog
+            <            CreateTaskDialog
                 open={isCreateDialogOpen}
                 onOpenChange={setIsCreateDialogOpen}
-                featureId={featureId}
+                itemId={featureId}
                 onSuccess={handleCreateSuccess}
             />
 

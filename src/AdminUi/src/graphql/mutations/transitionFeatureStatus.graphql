@@ -1,6 +1,6 @@
 mutation TransitionFeatureStatus($input: TransitionFeatureInput!) {
     transitionFeatureStatus(input: $input) {
-        feature {
+        item {
             id
             status
             validStatusTransitions

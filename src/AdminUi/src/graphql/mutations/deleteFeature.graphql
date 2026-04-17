@@ -1,6 +1,6 @@
 mutation DeleteFeature($input: DeleteFeatureInput!) {
     deleteFeature(input: $input) {
-        feature {
+        item {
             id
         }
         errors

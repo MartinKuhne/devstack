@@ -1,6 +1,6 @@
 mutation CreateFeature($input: CreateFeatureInput!) {
     createFeature(input: $input) {
-        feature {
+        item {
             id
             title
             description
