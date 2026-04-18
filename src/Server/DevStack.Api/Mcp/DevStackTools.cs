@@ -70,11 +70,10 @@ public class DevStackTools(
         string? testPlan = null,
         string? deploymentPlan = null,
         string? openQuestions = null,
-        FeatureStatus? initialStatus = null,
         Guid? dependsOnId = null)
     {
         var id = await createFeatureHandler.Handle(
-            new CreateFeatureCommand(projectId, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, initialStatus, dependsOnId),
+            new CreateFeatureCommand(projectId, title, description, acceptanceCriteria, plan, securityImpact, performanceImpact, testPlan, deploymentPlan, openQuestions, FeatureStatus.Ready, dependsOnId),
             CancellationToken.None);
         
         return $"Item created with ID: {id}";
@@ -128,7 +127,7 @@ public class DevStackTools(
         CancellationToken cancellationToken = default)
     {
         var id = await createTaskHandler.Handle(
-            new CreateTaskCommand(projectId, featureId, title, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating),
+            new CreateTaskCommand(projectId, featureId, title, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating, FeatureStatus.Ready),
             CancellationToken.None);
         
         return $"Task created with ID: {id}";
@@ -295,19 +294,6 @@ public class DevStackTools(
         return validTargets;
     }
 
-    [McpServerTool, Description("Get dashboard summary statistics")]
-    public object GetDashboardSummary()
-    {
-        return new
-        {
-            ProjectsInFlight = dbContext.Projects.Count(),
-            FeaturesInReview = dbContext.Items.Count(f => f.Status == FeatureStatus.InReview),
-            FeaturesFailed = dbContext.Items.Count(f => f.Status == FeatureStatus.Failed),
-            TasksInProgress = dbContext.Tasks.Count(t => t.Status == DevStack.Domain.Enums.TaskStatus.Code),
-            TasksFailed = dbContext.Tasks.Count(t => t.Status == DevStack.Domain.Enums.TaskStatus.Failed)
-        };
-    }
-
     [McpServerTool, Description("Get an epic by ID")]
     public DevStack.Domain.Entities.Item? GetEpicById(Guid id)
     {
@@ -342,7 +328,7 @@ public class DevStackTools(
         CancellationToken cancellationToken = default)
     {
         var id = await createEpicHandler.Handle(
-            new CreateEpicCommand(projectId, title, description, dependsOnId),
+            new CreateEpicCommand(projectId, title, description, FeatureStatus.Ready),
             CancellationToken.None);
         
         return $"Epic created with ID: {id}";
@@ -357,7 +343,7 @@ public class DevStackTools(
         CancellationToken cancellationToken = default)
     {
         await updateEpicHandler.Handle(
-            new UpdateEpicCommand(id, title, description, dependsOnId),
+            new UpdateEpicCommand(id, title, description),
             CancellationToken.None);
         
         return $"Epic {id} updated successfully";
