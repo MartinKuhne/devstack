@@ -1,0 +1,11 @@
+mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
+    transitionAgentTaskStatus(input: $input) {
+        task {
+            id
+            title
+            status
+            updatedAt
+        }
+        errors
+    }
+}

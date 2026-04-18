@@ -14,6 +14,8 @@ const TaskListPage = lazy(() => import('./features/features/pages/TaskListPage')
 const SettingsPage = lazy(() => import('./features/features/pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
 const EpicListPage = lazy(() => import('./features/epics/pages/EpicListPage').then(module => ({ default: module.EpicListPage })));
 const DeliverableListPage = lazy(() => import('./features/deliverables/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
+const AgentTaskListPage = lazy(() => import('./features/agentTasks/pages/AgentTaskListPage').then(module => ({ default: module.AgentTaskListPage })));
+const AgentTaskDetailPage = lazy(() => import('./features/agentTasks/pages/AgentTaskDetailPage').then(module => ({ default: module.AgentTaskDetailPage })));
 
 function LoadingFallback() {
     return (
@@ -82,6 +84,16 @@ function App() {
                         <Route path="deliverables" element={
                             <Suspense fallback={<LoadingFallback />}>
                                 <DeliverableListPage />
+                            </Suspense>
+                        } />
+                        <Route path="agent-tasks" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <AgentTaskListPage />
+                            </Suspense>
+                        } />
+                        <Route path="agent-tasks/:id" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <AgentTaskDetailPage />
                             </Suspense>
                         } />
                     </Route>

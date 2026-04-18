@@ -1073,6 +1073,13 @@ export const WorkflowType = {
 } as const;
 
 export type WorkflowType = typeof WorkflowType[keyof typeof WorkflowType];
+export type CreateAgentTaskMutationVariables = Exact<{
+  input: CreateAgentTaskInput;
+}>;
+
+
+export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null, commitHash: string | null, createdAt: any | null, updatedAt: any | null } | null } };
+
 export type CreateDefectMutationVariables = Exact<{
   input: CreateDefectInput;
 }>;
@@ -1129,6 +1136,13 @@ export type CreateWorkflowRunMutationVariables = Exact<{
 
 export type CreateWorkflowRunMutation = { __typename?: 'Mutation', createWorkflowRun: { __typename?: 'WorkflowRunPayload', errors: Array<string>, workflowRun: { __typename?: 'WorkflowRun', id: string | null, projectId: string | null, featureId: any | null, taskId: string | null, workflowType: WorkflowType | null, status: WorkflowRunStatus | null, startedAt: any | null, createdAt: any | null } | null } };
 
+export type DeleteAgentTaskMutationVariables = Exact<{
+  input: DeleteAgentTaskInput;
+}>;
+
+
+export type DeleteAgentTaskMutation = { __typename?: 'Mutation', deleteAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null } | null } };
+
 export type DeleteDefectMutationVariables = Exact<{
   input: DeleteDefectInput;
 }>;
@@ -1171,6 +1185,13 @@ export type DeleteTaskMutationVariables = Exact<{
 
 export type DeleteTaskMutation = { __typename?: 'Mutation', deleteTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null } | null } };
 
+export type TransitionAgentTaskStatusMutationVariables = Exact<{
+  input: TransitionAgentTaskInput;
+}>;
+
+
+export type TransitionAgentTaskStatusMutation = { __typename?: 'Mutation', transitionAgentTaskStatus: { __typename?: 'AgentTaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null, updatedAt: any | null } | null } };
+
 export type TransitionDefectStatusMutationVariables = Exact<{
   input: TransitionDefectInput;
 }>;
@@ -1198,6 +1219,13 @@ export type TransitionTaskStatusMutationVariables = Exact<{
 
 
 export type TransitionTaskStatusMutation = { __typename?: 'Mutation', transitionTaskStatus: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, status: AgentTaskStatus | null } | null } };
+
+export type UpdateAgentTaskMutationVariables = Exact<{
+  input: UpdateAgentTaskInput;
+}>;
+
+
+export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null, commitHash: string | null, createdAt: any | null, updatedAt: any | null } | null } };
 
 export type UpdateDefectMutationVariables = Exact<{
   input: UpdateDefectInput;
@@ -1247,6 +1275,21 @@ export type UpdateTaskMutationVariables = Exact<{
 
 
 export type UpdateTaskMutation = { __typename?: 'Mutation', updateTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, featureId: any, updatedAt: any | null } | null } };
+
+export type GetAgentTaskByIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetAgentTaskByIdQuery = { __typename?: 'Query', agentTaskById: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null, commitHash: string | null, errors: string | null, createdAt: any | null, updatedAt: any | null, item: { __typename?: 'Item', id: string | null, title: string | null } | null, dependsOnAgentTask: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null } | null> | null } | null };
+
+export type GetAgentTasksQueryVariables = Exact<{
+  itemId: InputMaybe<Scalars['UUID']['input']>;
+  status: InputMaybe<Array<AgentTaskStatus> | AgentTaskStatus>;
+}>;
+
+
+export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks: { __typename?: 'TaskConnection', nodes: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, status: AgentTaskStatus | null, itemId: string | null, complexityRating: number | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null, commitHash: string | null, createdAt: any | null, updatedAt: any | null }> } };
 
 export type GetDashboardSummaryQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1344,6 +1387,58 @@ export type GetTasksQueryVariables = Exact<{
 export type GetTasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', nodes: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, createdAt: any | null, updatedAt: any | null }> } };
 
 
+export const CreateAgentTaskDocument = gql`
+    mutation CreateAgentTask($input: CreateAgentTaskInput!) {
+  createAgentTask(input: $input) {
+    task {
+      id
+      title
+      deliverable
+      acceptanceCriteria
+      risks
+      requiredFollowUps
+      complexityRating
+      result
+      status
+      itemId
+      promptTokens
+      completionTokens
+      executionDurationInSeconds
+      model
+      commitHash
+      createdAt
+      updatedAt
+    }
+    errors
+  }
+}
+    `;
+export type CreateAgentTaskMutationFn = Apollo.MutationFunction<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>;
+
+/**
+ * __useCreateAgentTaskMutation__
+ *
+ * To run a mutation, you first call `useCreateAgentTaskMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateAgentTaskMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createAgentTaskMutation, { data, loading, error }] = useCreateAgentTaskMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateAgentTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>(CreateAgentTaskDocument, options);
+      }
+export type CreateAgentTaskMutationHookResult = ReturnType<typeof useCreateAgentTaskMutation>;
+export type CreateAgentTaskMutationResult = Apollo.MutationResult<CreateAgentTaskMutation>;
+export type CreateAgentTaskMutationOptions = Apollo.BaseMutationOptions<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>;
 export const CreateDefectDocument = gql`
     mutation CreateDefect($input: CreateDefectInput!) {
   createDefect(input: $input) {
@@ -1691,6 +1786,42 @@ export function useCreateWorkflowRunMutation(baseOptions?: ApolloReactHooks.Muta
 export type CreateWorkflowRunMutationHookResult = ReturnType<typeof useCreateWorkflowRunMutation>;
 export type CreateWorkflowRunMutationResult = Apollo.MutationResult<CreateWorkflowRunMutation>;
 export type CreateWorkflowRunMutationOptions = Apollo.BaseMutationOptions<CreateWorkflowRunMutation, CreateWorkflowRunMutationVariables>;
+export const DeleteAgentTaskDocument = gql`
+    mutation DeleteAgentTask($input: DeleteAgentTaskInput!) {
+  deleteAgentTask(input: $input) {
+    task {
+      id
+    }
+    errors
+  }
+}
+    `;
+export type DeleteAgentTaskMutationFn = Apollo.MutationFunction<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>;
+
+/**
+ * __useDeleteAgentTaskMutation__
+ *
+ * To run a mutation, you first call `useDeleteAgentTaskMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAgentTaskMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAgentTaskMutation, { data, loading, error }] = useDeleteAgentTaskMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDeleteAgentTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>(DeleteAgentTaskDocument, options);
+      }
+export type DeleteAgentTaskMutationHookResult = ReturnType<typeof useDeleteAgentTaskMutation>;
+export type DeleteAgentTaskMutationResult = Apollo.MutationResult<DeleteAgentTaskMutation>;
+export type DeleteAgentTaskMutationOptions = Apollo.BaseMutationOptions<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>;
 export const DeleteDefectDocument = gql`
     mutation DeleteDefect($input: DeleteDefectInput!) {
   deleteDefect(input: $input) {
@@ -1907,6 +2038,45 @@ export function useDeleteTaskMutation(baseOptions?: ApolloReactHooks.MutationHoo
 export type DeleteTaskMutationHookResult = ReturnType<typeof useDeleteTaskMutation>;
 export type DeleteTaskMutationResult = Apollo.MutationResult<DeleteTaskMutation>;
 export type DeleteTaskMutationOptions = Apollo.BaseMutationOptions<DeleteTaskMutation, DeleteTaskMutationVariables>;
+export const TransitionAgentTaskStatusDocument = gql`
+    mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
+  transitionAgentTaskStatus(input: $input) {
+    task {
+      id
+      title
+      status
+      updatedAt
+    }
+    errors
+  }
+}
+    `;
+export type TransitionAgentTaskStatusMutationFn = Apollo.MutationFunction<TransitionAgentTaskStatusMutation, TransitionAgentTaskStatusMutationVariables>;
+
+/**
+ * __useTransitionAgentTaskStatusMutation__
+ *
+ * To run a mutation, you first call `useTransitionAgentTaskStatusMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTransitionAgentTaskStatusMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [transitionAgentTaskStatusMutation, { data, loading, error }] = useTransitionAgentTaskStatusMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useTransitionAgentTaskStatusMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<TransitionAgentTaskStatusMutation, TransitionAgentTaskStatusMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<TransitionAgentTaskStatusMutation, TransitionAgentTaskStatusMutationVariables>(TransitionAgentTaskStatusDocument, options);
+      }
+export type TransitionAgentTaskStatusMutationHookResult = ReturnType<typeof useTransitionAgentTaskStatusMutation>;
+export type TransitionAgentTaskStatusMutationResult = Apollo.MutationResult<TransitionAgentTaskStatusMutation>;
+export type TransitionAgentTaskStatusMutationOptions = Apollo.BaseMutationOptions<TransitionAgentTaskStatusMutation, TransitionAgentTaskStatusMutationVariables>;
 export const TransitionDefectStatusDocument = gql`
     mutation TransitionDefectStatus($input: TransitionDefectInput!) {
   transitionDefectStatus(input: $input) {
@@ -2057,6 +2227,58 @@ export function useTransitionTaskStatusMutation(baseOptions?: ApolloReactHooks.M
 export type TransitionTaskStatusMutationHookResult = ReturnType<typeof useTransitionTaskStatusMutation>;
 export type TransitionTaskStatusMutationResult = Apollo.MutationResult<TransitionTaskStatusMutation>;
 export type TransitionTaskStatusMutationOptions = Apollo.BaseMutationOptions<TransitionTaskStatusMutation, TransitionTaskStatusMutationVariables>;
+export const UpdateAgentTaskDocument = gql`
+    mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
+  updateAgentTask(input: $input) {
+    task {
+      id
+      title
+      deliverable
+      acceptanceCriteria
+      risks
+      requiredFollowUps
+      complexityRating
+      result
+      status
+      itemId
+      promptTokens
+      completionTokens
+      executionDurationInSeconds
+      model
+      commitHash
+      createdAt
+      updatedAt
+    }
+    errors
+  }
+}
+    `;
+export type UpdateAgentTaskMutationFn = Apollo.MutationFunction<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>;
+
+/**
+ * __useUpdateAgentTaskMutation__
+ *
+ * To run a mutation, you first call `useUpdateAgentTaskMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAgentTaskMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAgentTaskMutation, { data, loading, error }] = useUpdateAgentTaskMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateAgentTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>(UpdateAgentTaskDocument, options);
+      }
+export type UpdateAgentTaskMutationHookResult = ReturnType<typeof useUpdateAgentTaskMutation>;
+export type UpdateAgentTaskMutationResult = Apollo.MutationResult<UpdateAgentTaskMutation>;
+export type UpdateAgentTaskMutationOptions = Apollo.BaseMutationOptions<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>;
 export const UpdateDefectDocument = gql`
     mutation UpdateDefect($input: UpdateDefectInput!) {
   updateDefect(input: $input) {
@@ -2360,6 +2582,132 @@ export function useUpdateTaskMutation(baseOptions?: ApolloReactHooks.MutationHoo
 export type UpdateTaskMutationHookResult = ReturnType<typeof useUpdateTaskMutation>;
 export type UpdateTaskMutationResult = Apollo.MutationResult<UpdateTaskMutation>;
 export type UpdateTaskMutationOptions = Apollo.BaseMutationOptions<UpdateTaskMutation, UpdateTaskMutationVariables>;
+export const GetAgentTaskByIdDocument = gql`
+    query GetAgentTaskById($id: UUID!) {
+  agentTaskById(id: $id) {
+    id
+    title
+    deliverable
+    acceptanceCriteria
+    risks
+    requiredFollowUps
+    complexityRating
+    result
+    status
+    itemId
+    item {
+      id
+      title
+    }
+    dependsOnAgentTask {
+      id
+      title
+    }
+    promptTokens
+    completionTokens
+    executionDurationInSeconds
+    model
+    commitHash
+    errors
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetAgentTaskByIdQuery__
+ *
+ * To run a query within a React component, call `useGetAgentTaskByIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAgentTaskByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAgentTaskByIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetAgentTaskByIdQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables> & ({ variables: GetAgentTaskByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>(GetAgentTaskByIdDocument, options);
+      }
+export function useGetAgentTaskByIdLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>(GetAgentTaskByIdDocument, options);
+        }
+// @ts-ignore
+export function useGetAgentTaskByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>;
+export function useGetAgentTaskByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTaskByIdQuery | undefined, GetAgentTaskByIdQueryVariables>;
+export function useGetAgentTaskByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>(GetAgentTaskByIdDocument, options);
+        }
+export type GetAgentTaskByIdQueryHookResult = ReturnType<typeof useGetAgentTaskByIdQuery>;
+export type GetAgentTaskByIdLazyQueryHookResult = ReturnType<typeof useGetAgentTaskByIdLazyQuery>;
+export type GetAgentTaskByIdSuspenseQueryHookResult = ReturnType<typeof useGetAgentTaskByIdSuspenseQuery>;
+export type GetAgentTaskByIdQueryResult = Apollo.QueryResult<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>;
+export const GetAgentTasksDocument = gql`
+    query GetAgentTasks($itemId: UUID, $status: [AgentTaskStatus!]) {
+  agentTasks(itemId: $itemId, status: $status) {
+    nodes {
+      id
+      title
+      deliverable
+      status
+      itemId
+      complexityRating
+      promptTokens
+      completionTokens
+      executionDurationInSeconds
+      model
+      commitHash
+      createdAt
+      updatedAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAgentTasksQuery__
+ *
+ * To run a query within a React component, call `useGetAgentTasksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAgentTasksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAgentTasksQuery({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *      status: // value for 'status'
+ *   },
+ * });
+ */
+export function useGetAgentTasksQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(GetAgentTasksDocument, options);
+      }
+export function useGetAgentTasksLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(GetAgentTasksDocument, options);
+        }
+// @ts-ignore
+export function useGetAgentTasksSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
+export function useGetAgentTasksSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTasksQuery | undefined, GetAgentTasksQueryVariables>;
+export function useGetAgentTasksSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(GetAgentTasksDocument, options);
+        }
+export type GetAgentTasksQueryHookResult = ReturnType<typeof useGetAgentTasksQuery>;
+export type GetAgentTasksLazyQueryHookResult = ReturnType<typeof useGetAgentTasksLazyQuery>;
+export type GetAgentTasksSuspenseQueryHookResult = ReturnType<typeof useGetAgentTasksSuspenseQuery>;
+export type GetAgentTasksQueryResult = Apollo.QueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
 export const GetDashboardSummaryDocument = gql`
     query GetDashboardSummary {
   dashboardSummary {
