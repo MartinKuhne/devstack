@@ -6,6 +6,7 @@ using TaskStatus = DevStack.Domain.Enums.TaskStatus;
 
 namespace DevStack.Domain.Services;
 
+[Obsolete("Use ItemStatusTransitionService with Item.Subtype=Task instead")]
 public sealed class TaskStatusTransitionService
 {
     private readonly List<DomainEvent> _domainEvents = new();

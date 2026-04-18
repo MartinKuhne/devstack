@@ -3,6 +3,7 @@ using HotChocolate.Types;
 
 namespace DevStack.Api.GraphQL.Types;
 
+[Obsolete("Use ItemConnection with Subtype=Task filter instead")]
 public class TaskConnection
 {
     public List<global::DevStack.Domain.Entities.AgentTask> Nodes { get; set; } = default!;

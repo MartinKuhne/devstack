@@ -537,9 +537,10 @@ public sealed class DevStackToolsSteps
     [When(@"I call devstack_createTask")]
     public async Task WhenICallDevstackCreateTask()
     {
+        var projectId = await GetOrCreateTestProjectIdAsync();
         var featureId = await GetOrCreateTestFeatureIdAsync();
         var title = _scenarioContext.GetString("TaskTitle") ?? "Test Task";
-        var request = new { featureId, title, deliverable = "Test deliverable" };
+        var request = new { projectId, itemId = featureId, title, deliverable = "Test deliverable" };
         _response = await _client.SendRequestAsync("devstack_createTask", request);
         _scenarioContext["Response"] = _response;
     }
@@ -698,8 +699,9 @@ public sealed class DevStackToolsSteps
     [When(@"I call devstack_createEpic")]
     public async Task WhenICallDevstackCreateEpic()
     {
+        var projectId = await GetOrCreateTestProjectIdAsync();
         var title = _scenarioContext.GetString("EpicTitle") ?? "Test Epic";
-        var request = new { title, description = "Test epic description" };
+        var request = new { projectId, title, description = "Test epic description" };
         _response = await _client.SendRequestAsync("devstack_createEpic", request);
         _scenarioContext["Response"] = _response;
     }
@@ -864,8 +866,9 @@ public sealed class DevStackToolsSteps
 
     private async Task<string> CreateTestTaskAsync()
     {
+        var projectId = await GetOrCreateTestProjectIdAsync();
         var featureId = await GetOrCreateTestFeatureIdAsync();
-        var request = new { featureId, title = $"Test Task {Guid.NewGuid()}", deliverable = "Auto-generated test task" };
+        var request = new { projectId, itemId = featureId, title = $"Test Task {Guid.NewGuid()}", deliverable = "Auto-generated test task" };
         var response = await _client.SendRequestAsync("devstack_createTask", request);
         var result = response.Result!.ToString()!;
         var jsonDoc = JsonDocument.Parse(result);
@@ -874,7 +877,8 @@ public sealed class DevStackToolsSteps
 
     private async Task<string> CreateTestEpicAsync()
     {
-        var request = new { title = $"Test Epic {Guid.NewGuid()}", description = "Auto-generated test epic" };
+        var projectId = await GetOrCreateTestProjectIdAsync();
+        var request = new { projectId, title = $"Test Epic {Guid.NewGuid()}", description = "Auto-generated test epic" };
         var response = await _client.SendRequestAsync("devstack_createEpic", request);
         var result = response.Result!.ToString()!;
         var jsonDoc = JsonDocument.Parse(result);

@@ -111,7 +111,7 @@ public record DeleteDefectInput(Guid Id);
 
 public record DefectPayload(Item? Item, List<string> Errors);
 
-[Obsolete("Use CreateTaskInput with ItemId parameter instead")]
+[Obsolete("Use CreateTaskInput with ItemType=Task instead")]
 public record CreateTaskInput_Old(
     Guid ProjectId,
     Guid FeatureId,
@@ -123,20 +123,24 @@ public record CreateTaskInput_Old(
     string? RequiredFollowUps,
     int ComplexityRating);
 
+[Obsolete("Use Item mutations with ItemType=Task filter instead")]
 public record CreateTaskInput(
     Guid ProjectId,
-    Guid ItemId,
     string Title,
+    string? Description,
     string? Deliverable,
     string? AcceptanceCriteria,
     string? Risks,
     string? Result,
     string? RequiredFollowUps,
-    int ComplexityRating);
+    int ComplexityRating,
+    FeatureStatus? InitialStatus);
 
+[Obsolete("Use Item mutations with ItemType=Task filter instead")]
 public record UpdateTaskInput(
     Guid Id,
     string? Title,
+    string? Description,
     string? Deliverable,
     string? AcceptanceCriteria,
     string? Risks,
@@ -144,33 +148,38 @@ public record UpdateTaskInput(
     string? RequiredFollowUps,
     int? ComplexityRating);
 
+[Obsolete("Use Item mutations with ItemType=Task filter instead")]
 public record TransitionTaskInput(
     Guid Id,
-    global::DevStack.Domain.Enums.TaskStatus TargetStatus,
+    FeatureStatus TargetStatus,
     string Actor);
 
+[Obsolete("Use Item mutations with ItemType=Task filter instead")]
 public record DeleteTaskInput(Guid Id);
 
-public record TaskPayload(global::DevStack.Domain.Entities.AgentTask? Task, List<string> Errors);
+[Obsolete("Use FeaturePayload with Item instead")]
+public record TaskPayload(Item? Item, List<string> Errors);
 
-public record CreateModelConfigurationInput(
+public record CreateLargeLanguageModelInput(
     string Url,
     string Model,
     string? ModelAlias,
     string ApiKey,
-    int MaxComplexity);
+    int MaxComplexity,
+    Guid ProjectId);
 
-public record UpdateModelConfigurationInput(
+public record UpdateLargeLanguageModelInput(
     Guid Id,
     string? Url,
     string? Model,
     string? ModelAlias,
     string? ApiKey,
-    int? MaxComplexity);
+    int? MaxComplexity,
+    Guid? ProjectId);
 
-public record DeleteModelConfigurationInput(Guid Id);
+public record DeleteLargeLanguageModelInput(Guid Id);
 
-public record ModelConfigurationPayload(ModelConfiguration? ModelConfiguration, List<string> Errors);
+public record LargeLanguageModelPayload(LargeLanguageModel? LargeLanguageModel, List<string> Errors);
 
 public record CreateWorkflowRunInput(
     Guid ProjectId,
@@ -334,7 +343,7 @@ public class Mutation
                 input.InitialStatus,
                 input.DependsOnId), cancellationToken);
             
-            var feature = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Feature };
+            var feature = new Item { Id = id, ItemType = Domain.Enums.ItemSubtype.Feature };
             return new FeaturePayload(feature, new List<string>());
         }
         catch (Exception ex)
@@ -472,7 +481,7 @@ public class Mutation
                 input.InitialStatus,
                 input.DependsOnId), cancellationToken);
             
-            var defect = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Defect };
+            var defect = new Item { Id = id, ItemType = Domain.Enums.ItemSubtype.Defect };
             return new DefectPayload(defect, new List<string>());
         }
         catch (Exception ex)
@@ -581,6 +590,7 @@ public class Mutation
         }
     }
 
+    [Obsolete("Use Item mutations with ItemType=Task filter instead")]
     public async Task<TaskPayload> CreateTaskAsync(
         CreateTaskInput input,
         [Service] ICreateTaskHandler handler,
@@ -601,17 +611,18 @@ public class Mutation
         {
             var id = await handler.Handle(new CreateTaskCommand(
                 input.ProjectId,
-                input.ItemId,
                 input.Title,
+                input.Description,
                 input.Deliverable,
                 input.AcceptanceCriteria,
                 input.Risks,
                 input.Result,
                 input.RequiredFollowUps,
                 input.ComplexityRating,
-                FeatureStatus.Planning), cancellationToken);
+                input.InitialStatus ?? FeatureStatus.Planning,
+                null), cancellationToken);
             
-            var task = new global::DevStack.Domain.Entities.AgentTask { Id = id };
+            var task = new Item { Id = id, ItemType = Domain.Enums.ItemSubtype.Task };
             return new TaskPayload(task, new List<string>());
         }
         catch (Exception ex)
@@ -620,6 +631,7 @@ public class Mutation
         }
     }
 
+    [Obsolete("Use Item mutations with ItemType=Task filter instead")]
     public async Task<TaskPayload> UpdateTaskAsync(
         UpdateTaskInput input,
         [Service] IUpdateTaskHandler handler,
@@ -632,6 +644,7 @@ public class Mutation
             await handler.Handle(new UpdateTaskCommand(
                 input.Id,
                 input.Title,
+                input.Description,
                 input.Deliverable,
                 input.AcceptanceCriteria,
                 input.Risks,
@@ -639,7 +652,7 @@ public class Mutation
                 input.RequiredFollowUps,
                 input.ComplexityRating), cancellationToken);
             
-            var task = new global::DevStack.Domain.Entities.AgentTask { Id = input.Id };
+            var task = new Item { Id = input.Id, ItemType = Domain.Enums.ItemSubtype.Task };
             return new TaskPayload(task, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
@@ -656,6 +669,7 @@ public class Mutation
         }
     }
 
+    [Obsolete("Use Item mutations with ItemType=Task filter instead")]
     public async Task<TaskPayload> TransitionTaskStatusAsync(
         TransitionTaskInput input,
         [Service] ITransitionTaskStatusHandler handler,
@@ -670,7 +684,7 @@ public class Mutation
                 input.TargetStatus,
                 input.Actor), cancellationToken);
 
-            var task = new global::DevStack.Domain.Entities.AgentTask { Id = input.Id };
+            var task = new Item { Id = input.Id, ItemType = Domain.Enums.ItemSubtype.Task };
             return new TaskPayload(task, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
@@ -691,6 +705,7 @@ public class Mutation
         }
     }
 
+    [Obsolete("Use Item mutations with ItemType=Task filter instead")]
     public async Task<TaskPayload> DeleteTaskAsync(
         DeleteTaskInput input,
         [Service] IDeleteTaskHandler handler,
@@ -702,7 +717,7 @@ public class Mutation
         {
             await handler.Handle(new DeleteTaskCommand(input.Id), cancellationToken);
             
-            var task = new global::DevStack.Domain.Entities.AgentTask { Id = input.Id };
+            var task = new Item { Id = input.Id, ItemType = Domain.Enums.ItemSubtype.Task };
             return new TaskPayload(task, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
@@ -715,9 +730,9 @@ public class Mutation
         }
     }
 
-    public async Task<ModelConfigurationPayload> CreateModelConfigurationAsync(
-        CreateModelConfigurationInput input,
-        [Service] ICreateModelConfigurationHandler handler,
+    public async Task<LargeLanguageModelPayload> CreateLargeLanguageModelAsync(
+        CreateLargeLanguageModelInput input,
+        [Service] ICreateLargeLanguageModelHandler handler,
         ISecretService secretService,
         CancellationToken cancellationToken)
     {
@@ -733,31 +748,32 @@ public class Mutation
             errors.Add("ApiKey is required");
 
         if (errors.Count > 0)
-            return new ModelConfigurationPayload(null, errors);
+            return new LargeLanguageModelPayload(null, errors);
 
         try
         {
             var encryptedApiKey = secretService.Encrypt(input.ApiKey);
 
-            var id = await handler.Handle(new CreateModelConfigurationCommand(
+            var id = await handler.Handle(new CreateLargeLanguageModelCommand(
                 input.Url,
                 input.Model,
                 input.ModelAlias,
                 encryptedApiKey,
-                input.MaxComplexity), cancellationToken);
+                input.MaxComplexity,
+                input.ProjectId), cancellationToken);
 
-            var modelConfiguration = new ModelConfiguration { Id = id };
-            return new ModelConfigurationPayload(modelConfiguration, new List<string>());
+            var model = new LargeLanguageModel { Id = id };
+            return new LargeLanguageModelPayload(model, new List<string>());
         }
         catch (Exception ex)
         {
-            return new ModelConfigurationPayload(null, [ex.Message]);
+            return new LargeLanguageModelPayload(null, [ex.Message]);
         }
     }
 
-    public async Task<ModelConfigurationPayload> UpdateModelConfigurationAsync(
-        UpdateModelConfigurationInput input,
-        [Service] IUpdateModelConfigurationHandler handler,
+    public async Task<LargeLanguageModelPayload> UpdateLargeLanguageModelAsync(
+        UpdateLargeLanguageModelInput input,
+        [Service] IUpdateLargeLanguageModelHandler handler,
         ISecretService secretService,
         CancellationToken cancellationToken)
     {
@@ -772,28 +788,29 @@ public class Mutation
                 encryptedApiKey = secretService.Encrypt(input.ApiKey);
             }
 
-            await handler.Handle(new UpdateModelConfigurationCommand(
+            await handler.Handle(new UpdateLargeLanguageModelCommand(
                 input.Id,
                 input.Url,
                 input.Model,
                 input.ModelAlias,
                 encryptedApiKey,
-                input.MaxComplexity), cancellationToken);
+                input.MaxComplexity,
+                input.ProjectId), cancellationToken);
 
-            var modelConfiguration = new ModelConfiguration { Id = input.Id };
-            return new ModelConfigurationPayload(modelConfiguration, new List<string>());
+            var model = new LargeLanguageModel { Id = input.Id };
+            return new LargeLanguageModelPayload(model, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return new ModelConfigurationPayload(null, ["NOT_FOUND: ModelConfiguration not found"]);
+            return new LargeLanguageModelPayload(null, ["NOT_FOUND: LargeLanguageModel not found"]);
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
         {
-            return new ModelConfigurationPayload(null, ["CONCURRENCY_CONFLICT: The ModelConfiguration has been modified by another process"]);
+            return new LargeLanguageModelPayload(null, ["CONCURRENCY_CONFLICT: The LargeLanguageModel has been modified by another process"]);
         }
         catch (Exception ex)
         {
-            return new ModelConfigurationPayload(null, [ex.Message]);
+            return new LargeLanguageModelPayload(null, [ex.Message]);
         }
     }
 
@@ -873,27 +890,27 @@ public class Mutation
         }
     }
 
-    public async Task<ModelConfigurationPayload> DeleteModelConfigurationAsync(
-        DeleteModelConfigurationInput input,
-        [Service] IDeleteModelConfigurationHandler handler,
+    public async Task<LargeLanguageModelPayload> DeleteLargeLanguageModelAsync(
+        DeleteLargeLanguageModelInput input,
+        [Service] IDeleteLargeLanguageModelHandler handler,
         CancellationToken cancellationToken)
     {
         var errors = new List<string>();
 
         try
         {
-            await handler.Handle(new DeleteModelConfigurationCommand(input.Id), cancellationToken);
+            await handler.Handle(new DeleteLargeLanguageModelCommand(input.Id), cancellationToken);
 
-            var modelConfiguration = new ModelConfiguration { Id = input.Id };
-            return new ModelConfigurationPayload(modelConfiguration, new List<string>());
+            var model = new LargeLanguageModel { Id = input.Id };
+            return new LargeLanguageModelPayload(model, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return new ModelConfigurationPayload(null, ["NOT_FOUND: ModelConfiguration not found"]);
+            return new LargeLanguageModelPayload(null, ["NOT_FOUND: LargeLanguageModel not found"]);
         }
         catch (Exception ex)
         {
-            return new ModelConfigurationPayload(null, [ex.Message]);
+            return new LargeLanguageModelPayload(null, [ex.Message]);
         }
     }
 
@@ -921,7 +938,7 @@ public class Mutation
                 input.Description,
                 FeatureStatus.Planning), cancellationToken);
             
-            var epic = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Epic };
+            var epic = new Item { Id = id, ItemType = Domain.Enums.ItemSubtype.Epic };
             return new EpicPayload(epic, new List<string>());
         }
         catch (Exception ex)

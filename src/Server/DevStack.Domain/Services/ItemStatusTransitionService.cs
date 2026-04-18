@@ -82,7 +82,7 @@ public sealed class ItemStatusTransitionService(bool limitFeatureStatusTransitio
         var errors = new List<string>();
 
         // Subtype-specific validation
-        switch (item.Subtype)
+        switch (item.ItemType)
         {
             case ItemSubtype.Feature:
                 errors.AddRange(ValidateFeatureConstraints(item, targetStatus));

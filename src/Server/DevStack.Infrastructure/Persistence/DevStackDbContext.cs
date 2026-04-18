@@ -11,19 +11,23 @@ public class DevStackDbContext : DbContext
     {
     }
 
-    public DbSet<Project> Projects { get; set; } = null!;
+public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<Item> Items { get; set; } = null!;
-    public DbSet<DevStack.Domain.Entities.AgentTask> Tasks { get; set; } = null!;
-    public DbSet<ModelConfiguration> ModelConfigurations { get; set; } = null!;
+    public DbSet<LargeLanguageModel> LargeLanguageModels { get; set; } = null!;
     public DbSet<WorkflowRun> WorkflowRuns { get; set; } = null!;
     public DbSet<AuditEvent> AuditEvents { get; set; } = null!;
-    public DbSet<Epic> Epics { get; set; } = null!;
 
     [Obsolete("Use Items with Subtype filter instead")]
-    public IQueryable<Item> Features => Items.Where(i => i.Subtype == Domain.Enums.ItemSubtype.Feature);
+    public IQueryable<Item> Features => Items.Where(i => i.ItemType == Domain.Enums.ItemSubtype.Feature);
 
     [Obsolete("Use Items with Subtype filter instead")]
-    public IQueryable<Item> Defects => Items.Where(i => i.Subtype == Domain.Enums.ItemSubtype.Defect);
+    public IQueryable<Item> Defects => Items.Where(i => i.ItemType == Domain.Enums.ItemSubtype.Defect);
+
+    [Obsolete("Use Items with Subtype filter instead")]
+    public IQueryable<Item> Epics => Items.Where(i => i.ItemType == Domain.Enums.ItemSubtype.Epic);
+
+    [Obsolete("Use Items with Subtype filter instead")]
+    public IQueryable<Item> Tasks => Items.Where(i => i.ItemType == Domain.Enums.ItemSubtype.Task);
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -41,22 +45,10 @@ public class DevStackDbContext : DbContext
         modelBuilder.Entity<Item>()
                     .HasIndex(f => f.Status);
                     
-        modelBuilder.Entity<DevStack.Domain.Entities.AgentTask>()
-                    .HasIndex(t => t.Status);
-                    
         modelBuilder.Entity<AuditEvent>()
                     .HasIndex(a => a.EntityId);
                     
         modelBuilder.Entity<Item>()
                     .HasIndex(f => new { f.ProjectId, f.Status });
-                    
-        modelBuilder.Entity<DevStack.Domain.Entities.AgentTask>()
-                    .HasIndex(t => new { t.ItemId, t.Status });
-
-        modelBuilder.Entity<Item>()
-                    .HasIndex(f => f.EpicId);
-
-        modelBuilder.Entity<Epic>()
-                    .HasIndex(e => e.Title);
     }
 }

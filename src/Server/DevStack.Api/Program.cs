@@ -83,9 +83,9 @@ builder.Services.AddTransient<ICreateTaskHandler, CreateTaskHandler>();
 builder.Services.AddTransient<IUpdateTaskHandler, UpdateTaskHandler>();
 builder.Services.AddTransient<ITransitionTaskStatusHandler, TransitionTaskStatusHandler>();
 builder.Services.AddTransient<IDeleteTaskHandler, DeleteTaskHandler>();
-builder.Services.AddTransient<ICreateModelConfigurationHandler, CreateModelConfigurationHandler>();
-builder.Services.AddTransient<IUpdateModelConfigurationHandler, UpdateModelConfigurationHandler>();
-builder.Services.AddTransient<IDeleteModelConfigurationHandler, DeleteModelConfigurationHandler>();
+builder.Services.AddTransient<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
+    builder.Services.AddTransient<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
+    builder.Services.AddTransient<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
 builder.Services.AddTransient<ICreateWorkflowRunHandler, CreateWorkflowRunHandler>();
 builder.Services.AddTransient<IUpdateWorkflowRunHandler, UpdateWorkflowRunHandler>();
 builder.Services.AddTransient<ICancelWorkflowRunHandler, CancelWorkflowRunHandler>();
@@ -129,19 +129,14 @@ builder.Services.AddGraphQLServer()
     .AddMutationType<Mutation>()
     .AddType<ProjectType>()
     .AddType<ItemType>()
-    .AddType<TaskType>()
-    .AddType<ModelConfigurationType>()
+    .AddType<LargeLanguageModelType>()
     .AddType<WorkflowRunType>()
     .AddType<AuditEventType>()
     .AddType<DashboardSummary>()
     .AddObjectType<ProjectConnection>()
     .AddObjectType<ItemConnection>()
-    .AddObjectType<TaskConnection>()
-    .AddObjectType<EpicConnection>()
     .AddObjectType<ProjectPageInfo>()
     .AddObjectType<ItemPageInfo>()
-    .AddObjectType<TaskPageInfo>()
-    .AddObjectType<EpicPageInfo>()
     .DisableIntrospection(false)
     .AddErrorFilter<GraphQLErrorFilter>();
 

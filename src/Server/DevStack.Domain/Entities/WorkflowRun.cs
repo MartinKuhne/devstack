@@ -41,6 +41,8 @@ public class WorkflowRun : Entity
     [Obsolete("Use Item instead")]
     [NotMapped]
     public virtual Item? Feature { get => Item; set => Item = value; }
+    [Obsolete("Use Item with Subtype=Task instead")]
+    [NotMapped]
     public virtual AgentTask? Task { get; set; }
 
     public WorkflowRun()

@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DevStack.Domain.Entities;
 
+[Obsolete("Use Item with Subtype=Epic instead")]
 public class Epic : Entity
 {
     [Required]

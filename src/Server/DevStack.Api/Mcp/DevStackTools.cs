@@ -116,8 +116,8 @@ public class DevStackTools(
    [McpServerTool, Description("Create a new task")]
     public async Task<string> CreateTask(
         Guid projectId,
-        Guid featureId,
         string title,
+        string? description = null,
         string? deliverable = null,
         string? acceptanceCriteria = null,
         string? risks = null,
@@ -127,7 +127,7 @@ public class DevStackTools(
         CancellationToken cancellationToken = default)
     {
         var id = await createTaskHandler.Handle(
-            new CreateTaskCommand(projectId, featureId, title, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating, FeatureStatus.Ready),
+            new CreateTaskCommand(projectId, title, description, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating, FeatureStatus.Ready, null),
             CancellationToken.None);
         
         return $"Task created with ID: {id}";
@@ -137,6 +137,7 @@ public class DevStackTools(
     public async Task<string> UpdateTask(
         Guid id,
         string? title = null,
+        string? description = null,
         string? deliverable = null,
         string? acceptanceCriteria = null,
         string? risks = null,
@@ -146,7 +147,7 @@ public class DevStackTools(
         CancellationToken cancellationToken = default)
     {
         await updateTaskHandler.Handle(
-            new UpdateTaskCommand(id, title, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating ?? 5),
+            new UpdateTaskCommand(id, title, description, deliverable, acceptanceCriteria, risks, result, requiredFollowUps, complexityRating),
             CancellationToken.None);
         
         return $"Task {id} updated successfully";
@@ -155,7 +156,7 @@ public class DevStackTools(
     [McpServerTool, Description("Transition a task to a new status")]
     public async Task<string> TransitionTaskStatus(
         Guid id,
-        DevStack.Domain.Enums.TaskStatus targetStatus,
+        FeatureStatus targetStatus,
         string actor,
         CancellationToken cancellationToken = default)
     {
@@ -224,18 +225,18 @@ public class DevStackTools(
     }
 
     [McpServerTool, Description("Get all tasks with optional filtering")]
-    public List<DevStack.Domain.Entities.AgentTask> GetTasks(
-        Guid? featureId = null,
-        List<DevStack.Domain.Enums.TaskStatus>? status = null,
+    public List<DevStack.Domain.Entities.Item> GetTasks(
+        Guid? projectId = null,
+        List<FeatureStatus>? status = null,
         DateTime? createdAfter = null,
         DateTime? createdBefore = null,
         int first = 50,
         int? skip = null)
     {
-        var query = dbContext.Tasks.AsQueryable();
-        if (featureId.HasValue)
+        var query = dbContext.Items.AsQueryable().Where(i => i.ItemType == ItemSubtype.Task);
+        if (projectId.HasValue)
         {
-            query = query.Where(t => t.ItemId == featureId.Value);
+            query = query.Where(t => t.ProjectId == projectId.Value);
         }
         if (status is not null && status.Count > 0)
         {
@@ -258,9 +259,9 @@ public class DevStackTools(
     }
 
     [McpServerTool, Description("Get a task by ID")]
-    public DevStack.Domain.Entities.AgentTask? GetTaskById(Guid id)
+    public DevStack.Domain.Entities.Item? GetTaskById(Guid id)
     {
-        return dbContext.Tasks.Find(id);
+        return dbContext.Items.FirstOrDefault(i => i.Id == id && i.ItemType == ItemSubtype.Task);
     }
 
     [McpServerTool, Description("Get valid status transitions for a feature")]
@@ -274,7 +275,7 @@ public class DevStackTools(
         var workItem = new DevStack.Domain.Entities.Item
         {
             Id = feature.Id,
-            Subtype = feature.Subtype,
+            ItemType = feature.ItemType,
             Status = feature.Status,
             Result = feature.Result,
             Errors = feature.Errors,
@@ -297,7 +298,7 @@ public class DevStackTools(
     [McpServerTool, Description("Get an epic by ID")]
     public DevStack.Domain.Entities.Item? GetEpicById(Guid id)
     {
-        return dbContext.Items.FirstOrDefault(i => i.Id == id && i.Subtype == ItemSubtype.Epic);
+        return dbContext.Items.FirstOrDefault(i => i.Id == id && i.ItemType == ItemSubtype.Epic);
     }
 
     [McpServerTool, Description("Get all epics with optional filtering")]
@@ -306,7 +307,7 @@ public class DevStackTools(
         int first = 50,
         int? skip = null)
     {
-        var query = dbContext.Items.AsQueryable().Where(e => e.Subtype == ItemSubtype.Epic);
+        var query = dbContext.Items.AsQueryable().Where(e => e.ItemType == ItemSubtype.Epic);
         if (!string.IsNullOrWhiteSpace(title))
         {
             query = query.Where(e => e.Title.Contains(title));

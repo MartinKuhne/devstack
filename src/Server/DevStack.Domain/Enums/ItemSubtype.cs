@@ -6,5 +6,6 @@ public enum ItemSubtype
     Defect,
     Maintenance,
     Enabler,
-    Epic
+    Epic,
+    Task
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using DevStack.Client;
 using FluentAssertions;
@@ -64,6 +65,7 @@ public class CommonSteps
         result.Errors.Should().BeEmpty();
 
         var createdFeatureId = result.Data!.CreateFeature.Item?.Id;
+        Console.WriteLine(JsonSerializer.Serialize(result.Data));
         createdFeatureId.Should().NotBeNullOrEmpty();
 
         _scenarioContext["ParentFeatureId"] = createdFeatureId;
