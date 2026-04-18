@@ -177,7 +177,7 @@ function Invoke-AgentBatch {
 
     $projectId = Get-CurrentProjectId
     $query     = Load-GraphQLFile $QueryFile
-    $result    = Invoke-GraphQL -Operation $query -Variables @{ projectId = $projectId }
+    $result    = Invoke-GraphQL -Operation $query -Variables @{ projectId = $projectId; first = 100 }
 
     if ($result.errors) {
         Write-Error "Failed to query ${plural}: $($result.errors -join ', ')"
@@ -224,7 +224,7 @@ function Invoke-EpicBatch {
 
     $projectId = Get-CurrentProjectId
     $query     = Load-GraphQLFile $QueryFile
-    $result    = Invoke-GraphQL -Operation $query
+    $result    = Invoke-GraphQL -Operation $query -Variables @{ projectId = $projectId; first = 100 }
 
     if ($result.errors) {
         Write-Error "Failed to query epics: $($result.errors -join ', ')"
