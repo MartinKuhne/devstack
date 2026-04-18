@@ -6,17 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateModelConfigurationMutation } from '@/generated/graphql';
 
-interface ModelConfigurationDialogProps {
+interface LargeLanguageModelDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess: () => void;
 }
 
-export function ModelConfigurationDialog({
+export function LargeLanguageModelDialog({
     open,
     onOpenChange,
     onSuccess,
-}: ModelConfigurationDialogProps) {
+}: LargeLanguageModelDialogProps) {
     const [model, setModel] = useState('');
     const [modelAlias, setModelAlias] = useState('');
     const [url, setUrl] = useState('');
@@ -107,7 +107,7 @@ export function ModelConfigurationDialog({
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Add Model Configuration</DialogTitle>
+                    <DialogTitle>Add Large Language Model</DialogTitle>
                     <DialogDescription>
                         Configure a new model endpoint for this project. API keys are encrypted server-side.
                     </DialogDescription>

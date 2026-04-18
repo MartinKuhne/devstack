@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useProject } from '@/features/projects/hooks/useProject';
 import { EditProjectDialog } from '@/features/projects/components/EditProjectDialog';
-import { ModelConfigurationList } from '@/features/modelConfigurations/components/ModelConfigurationList';
-import { ModelConfigurationDialog } from '@/features/modelConfigurations/components/ModelConfigurationDialog';
+import { LargeLanguageModelList } from '@/features/largeLanguageModels/components/LargeLanguageModelList';
+import { LargeLanguageModelDialog } from '@/features/largeLanguageModels/components/LargeLanguageModelDialog';
 import { GitHubConfigurationSection } from '@/features/projects/components/GitHubConfigurationSection';
 import { CreateFeatureDialog } from '@/features/features/components/CreateFeatureDialog';
 import { useFeatures } from '@/features/features/hooks/useFeatures';
@@ -235,7 +235,7 @@ export function ProjectDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="models">
-                    <ModelConfigurationList
+                    <LargeLanguageModelList
                         onAddModel={() => setAddModelDialogOpen(true)}
                     />
                 </TabsContent>
@@ -262,7 +262,7 @@ export function ProjectDetailPage() {
                     }
                 }}
             />
-            <ModelConfigurationDialog
+            <LargeLanguageModelDialog
                 open={addModelDialogOpen}
                 onOpenChange={setAddModelDialogOpen}
                 onSuccess={() => refetch()}
