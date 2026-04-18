@@ -3,6 +3,7 @@ using HotChocolate.Types;
 
 namespace DevStack.Api.GraphQL.Types;
 
+[Obsolete("Use ItemType with Subtype=Epic filter instead")]
 public class EpicType : ObjectType<Epic>
 {
     protected override void Configure(IObjectTypeDescriptor<Epic> descriptor)

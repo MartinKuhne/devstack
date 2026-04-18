@@ -47,7 +47,7 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.Property(i => i.Errors)
             .IsRequired(false);
 
-        builder.Property(i => i.Subtype)
+        builder.Property(i => i.ItemType)
             .IsRequired();
             
         builder.Property(i => i.ParentFeatureId)
@@ -59,32 +59,20 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.Property(i => i.RootCause)
             .IsRequired(false);
             
+        // Task-specific fields
+        builder.Property(i => i.Deliverable)
+            .IsRequired(false);
+            
+        builder.Property(i => i.Risks)
+            .IsRequired(false);
+            
+        builder.Property(i => i.ComplexityRating)
+            .IsRequired()
+            .HasDefaultValue(1);
+            
         builder.HasOne(i => i.Project)
             .WithMany(p => p.Items)
             .HasForeignKey(i => i.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
-            
-        builder.HasMany(i => i.Tasks)
-            .WithOne(t => t.Item)
-            .HasForeignKey(t => t.ItemId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(i => i.Epic)
-            .WithMany(e => e.Items)
-            .HasForeignKey(i => i.EpicId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(i => i.ParentFeature)
-            .WithMany()
-            .HasForeignKey(i => i.ParentFeatureId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(i => i.DependsOn)
-            .WithMany()
-            .HasForeignKey(i => i.DependsOnId)
-            .OnDelete(DeleteBehavior.SetNull);
-            
-        builder.HasIndex(i => new { i.ProjectId, i.Status });
-        builder.HasIndex(i => new { i.Subtype });
     }
 }

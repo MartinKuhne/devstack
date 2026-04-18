@@ -43,10 +43,5 @@ public class WorkflowRunConfiguration : IEntityTypeConfiguration<WorkflowRun>
             .WithMany()
             .HasForeignKey(w => w.ItemId)
             .OnDelete(DeleteBehavior.SetNull);
-            
-        builder.HasOne(w => w.Task)
-            .WithMany()
-            .HasForeignKey(w => w.TaskId)
-            .OnDelete(DeleteBehavior.SetNull);
     }
 }

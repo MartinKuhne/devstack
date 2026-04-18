@@ -42,7 +42,7 @@ public class CreateEpicHandler : ICreateEpicHandler
        var item = new Item
         {
             ProjectId = request.ProjectId,
-            Subtype = ItemSubtype.Epic,
+            ItemType = ItemSubtype.Epic,
             Title = request.Title!,
             Description = request.Description,
             Status = request.Status,

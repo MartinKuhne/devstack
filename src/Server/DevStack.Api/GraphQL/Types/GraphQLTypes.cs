@@ -15,6 +15,7 @@ public class ProjectType : ObjectType<Project>
         descriptor.Field(p => p.Description).Type<StringType>();
         descriptor.Field(p => p.Architecture).Type<StringType>();
         descriptor.Field(p => p.Memory).Type<StringType>();
+        descriptor.Field(p => p.Repository).Type<StringType>();
         descriptor.Field(p => p.GithubUrl).Type<StringType>();
         descriptor.Field("githubToken_Encrypted").Resolve(ctx => ctx.Parent<Project>().GithubToken_Encrypted).Type<StringType>();
         descriptor.Field(p => p.CreatedAt).Type<DateTimeType>();
@@ -31,8 +32,7 @@ public class ItemType : ObjectType<Item>
     {
         descriptor.Field(i => i.Id).Type<IdType>().ID();
         descriptor.Field(i => i.ProjectId).Type<IdType>();
-        descriptor.Field("epicId").Resolve(ctx => ctx.Parent<Item>().EpicId).Type(typeof(IdType));
-        descriptor.Field(i => i.Subtype).Type<EnumType<DevStack.Domain.Enums.ItemSubtype>>();
+        descriptor.Field(i => i.ItemType).Type<EnumType<DevStack.Domain.Enums.ItemSubtype>>();
         descriptor.Field(i => i.Title).Type<StringType>();
         descriptor.Field(i => i.Status).Type<EnumType<DevStack.Domain.Enums.FeatureStatus>>();
         descriptor.Field(i => i.Description).Type<StringType>();
@@ -51,99 +51,16 @@ public class ItemType : ObjectType<Item>
         descriptor.Field(i => i.Severity).Type<EnumType<Severity>>();
         descriptor.Field(i => i.RootCause).Type<StringType>();
         
-        descriptor.Field("epic").Resolve(ctx => ctx.Parent<Item>().Epic).Type<EpicType>();
-        descriptor.Field("tasks").Type<ListType<TaskType>>().Resolve(ctx => ctx.Parent<Item>().Tasks);
-        descriptor.Field("parentFeature").Resolve(ctx => ctx.Parent<Item>().ParentFeature).Type(typeof(ItemType));
-        descriptor.Field("dependsOnId").Resolve(ctx => ctx.Parent<Item>().DependsOnId).Type(typeof(IdType));
-        descriptor.Field("dependsOn").Resolve(ctx => ctx.Parent<Item>().DependsOn).Type(typeof(ItemType));
-        descriptor.Field("validStatusTransitions")
-            .Type<ListType<EnumType<FeatureStatus>>>()
-            .Resolve(async ctx =>
-            {
-                var dbContext = ctx.Service<DevStackDbContext>();
-                var item = ctx.Parent<Item>();
-                var service = new ItemStatusTransitionService();
-                var workItem = new Item
-                {
-                    Id = item.Id,
-                    Subtype = item.Subtype,
-                    Status = item.Status,
-                    Result = item.Result,
-                    Errors = item.Errors,
-                    OpenQuestions = item.OpenQuestions
-                };
-
-                var validTargets = new List<FeatureStatus>();
-                foreach (var targetStatus in Enum.GetValues<FeatureStatus>())
-                {
-                    var result = service.Transition(workItem, targetStatus, "query-validation");
-                    if (result.IsSuccess)
-                    {
-                        validTargets.Add(targetStatus);
-                    }
-                }
-                return validTargets;
-            });
-    }
-}
-
-public class FeatureType : ObjectType<Item>
-{
-    protected override void Configure(IObjectTypeDescriptor<Item> descriptor)
-    {
-        descriptor.Field(f => f.Id).Type<IdType>().ID();
-        descriptor.Field(f => f.ProjectId).Type<IdType>();
-        descriptor.Field("epicId").Resolve(ctx => ctx.Parent<Item>().EpicId).Type(typeof(IdType));
-        descriptor.Field(f => f.Title).Type<StringType>();
-        descriptor.Field(f => f.Status).Type<EnumType<DevStack.Domain.Enums.FeatureStatus>>();
-        descriptor.Field(f => f.Description).Type<StringType>();
-        descriptor.Field(f => f.AcceptanceCriteria).Type<StringType>();
-        descriptor.Field(f => f.Plan).Type<StringType>();
-        descriptor.Field(f => f.SecurityImpact).Type<StringType>();
-        descriptor.Field(f => f.PerformanceImpact).Type<StringType>();
-        descriptor.Field(f => f.TestPlan).Type<StringType>();
-        descriptor.Field(f => f.DeploymentPlan).Type<StringType>();
-        descriptor.Field(f => f.OpenQuestions).Type<StringType>();
-        descriptor.Field(f => f.Result).Type<StringType>();
-        descriptor.Field(f => f.Errors).Type<StringType>();
-        descriptor.Field(f => f.CreatedAt).Type<DateTimeType>();
-        descriptor.Field(f => f.UpdatedAt).Type<DateTimeType>();
+        // Task-specific fields
+        descriptor.Field("deliverable").Resolve(ctx => ctx.Parent<Item>().Deliverable).Type<StringType>();
+        descriptor.Field("risks").Resolve(ctx => ctx.Parent<Item>().Risks).Type<StringType>();
+        descriptor.Field("complexityRating").Resolve(ctx => ctx.Parent<Item>().ComplexityRating).Type<IntType>();
         
-        descriptor.Field("epic").Resolve(ctx => ctx.Parent<Item>().Epic).Type<EpicType>();
-        descriptor.Field("tasks").Type<ListType<TaskType>>().Resolve(ctx => ctx.Parent<Item>().Tasks);
         descriptor.Field("dependsOnId").Resolve(ctx => ctx.Parent<Item>().DependsOnId).Type(typeof(IdType));
-        descriptor.Field("dependsOn").Resolve(ctx => ctx.Parent<Item>().DependsOn).Type(typeof(ItemType));
-        descriptor.Field("validStatusTransitions")
-            .Type<ListType<EnumType<FeatureStatus>>>()
-            .Resolve(async ctx =>
-            {
-                var dbContext = ctx.Service<DevStackDbContext>();
-                var feature = ctx.Parent<Item>();
-                var service = new ItemStatusTransitionService();
-                var workItem = new Item
-                {
-                    Id = feature.Id,
-                    Subtype = feature.Subtype,
-                    Status = feature.Status,
-                    Result = feature.Result,
-                    Errors = feature.Errors,
-                    OpenQuestions = feature.OpenQuestions
-                };
-
-                var validTargets = new List<FeatureStatus>();
-                foreach (var targetStatus in Enum.GetValues<FeatureStatus>())
-                {
-                    var result = service.Transition(workItem, targetStatus, "query-validation");
-                    if (result.IsSuccess)
-                    {
-                        validTargets.Add(targetStatus);
-                    }
-                }
-                return validTargets;
-            });
     }
 }
 
+[Obsolete("Use ItemType with Subtype=Task filter instead")]
 public class TaskType : ObjectType<DevStack.Domain.Entities.AgentTask>
 {
     protected override void Configure(IObjectTypeDescriptor<DevStack.Domain.Entities.AgentTask> descriptor)
@@ -163,16 +80,17 @@ public class TaskType : ObjectType<DevStack.Domain.Entities.AgentTask>
     }
 }
 
-public class ModelConfigurationType : ObjectType<ModelConfiguration>
+public class LargeLanguageModelType : ObjectType<LargeLanguageModel>
 {
-    protected override void Configure(IObjectTypeDescriptor<ModelConfiguration> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<LargeLanguageModel> descriptor)
     {
         descriptor.Field(m => m.Id).Type<IdType>().ID();
         descriptor.Field(m => m.Url).Type<StringType>();
         descriptor.Field(m => m.Model).Type<StringType>();
         descriptor.Field(m => m.ModelAlias).Type<StringType>();
-        descriptor.Field(m => m.ApiKey_Encrypted).Type<StringType>();
+        descriptor.Field("apiKey_Encrypted").Resolve(ctx => ctx.Parent<LargeLanguageModel>().ApiKey_Encrypted).Type<StringType>();
         descriptor.Field(m => m.MaxComplexity).Type<IntType>();
+        descriptor.Field(m => m.ProjectId).Type<IdType>();
         descriptor.Field(m => m.CreatedAt).Type<DateTimeType>();
         descriptor.Field(m => m.UpdatedAt).Type<DateTimeType>();
     }

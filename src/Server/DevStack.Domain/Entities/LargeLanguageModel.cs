@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DevStack.Domain.Entities;
 
-public class ModelConfiguration : Entity
+public class LargeLanguageModel : Entity
 {
     [Required]
     [StringLength(500)]
@@ -22,11 +23,17 @@ public class ModelConfiguration : Entity
     [Required]
     public int MaxComplexity { get; set; }
 
+    [Required]
+    public Guid ProjectId { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
 
-    public ModelConfiguration()
+    [ForeignKey(nameof(ProjectId))]
+    public virtual Project? Project { get; set; }
+
+    public LargeLanguageModel()
     {
         Id = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;

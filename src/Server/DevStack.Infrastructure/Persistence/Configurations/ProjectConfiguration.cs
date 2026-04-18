@@ -21,12 +21,21 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .IsRequired(false);
             
         builder.Property(p => p.Memory)
-            .IsRequired(false);
+            .IsRequired();
+            
+        builder.Property(p => p.Repository)
+            .IsRequired()
+            .HasMaxLength(500);
             
         builder.Property(p => p.GithubUrl)
             .IsRequired(false);
             
         builder.Property(p => p.GithubToken_Encrypted)
             .IsRequired(false);
+            
+        builder.HasMany(p => p.Items)
+            .WithOne(i => i.Project)
+            .HasForeignKey(i => i.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

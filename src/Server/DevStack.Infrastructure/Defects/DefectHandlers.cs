@@ -74,7 +74,7 @@ public class CreateDefectHandler : ICreateDefectHandler
          var item = new Item
         {
             ProjectId = request.ProjectId,
-            Subtype = Domain.Enums.ItemSubtype.Defect,
+            ItemType = Domain.Enums.ItemSubtype.Defect,
             ParentFeatureId = request.ParentFeatureId,
             Title = request.Title,
             Description = request.Description,

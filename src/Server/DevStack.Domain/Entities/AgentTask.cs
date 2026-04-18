@@ -4,6 +4,7 @@ using DevStack.Domain.Enums;
 
 namespace DevStack.Domain.Entities;
 
+[Obsolete("Use Item with Subtype=Task instead")]
 public class AgentTask : Entity
 {
     [Required]
@@ -31,6 +32,20 @@ public class AgentTask : Entity
 
     [Required]
     public int ComplexityRating { get; set; } = 1;
+
+    public string? Errors { get; set; }
+
+    public string? CommitHash { get; set; }
+
+    public Guid? DependsOnAgentTask { get; set; }
+
+    public int? PromptTokens { get; set; }
+
+    public int? CompletionTokens { get; set; }
+
+    public double? ExecutionDurationInSeconds { get; set; }
+
+    public string? Model { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

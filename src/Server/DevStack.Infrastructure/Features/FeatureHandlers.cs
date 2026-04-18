@@ -70,7 +70,7 @@ public class CreateFeatureHandler : ICreateFeatureHandler
         var item = new Item
         {
             ProjectId = request.ProjectId,
-            Subtype = Domain.Enums.ItemSubtype.Feature,
+            ItemType = Domain.Enums.ItemSubtype.Feature,
             Title = request.Title,
             Description = request.Description,
             AcceptanceCriteria = request.AcceptanceCriteria,

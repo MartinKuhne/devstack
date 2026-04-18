@@ -16,6 +16,10 @@ public class Project : Entity
     [Required]
     public string Memory { get; set; } = string.Empty;
 
+    [Required]
+    [StringLength(500)]
+    public string Repository { get; set; } = string.Empty;
+
     public Uri? GithubUrl { get; set; }
 
     public string? GithubToken_Encrypted { get; set; }
@@ -26,7 +30,9 @@ public class Project : Entity
     [NotMapped]
     public virtual ICollection<Item> Features => Items;
 
-    public virtual ICollection<Epic> Epics { get; set; } = new List<Epic>();
+    [Obsolete("Use Items with Subtype=Epic instead")]
+    [NotMapped]
+    public virtual ICollection<Epic> Epics => new List<Epic>();
 
     public DateTime CreatedAt { get; set; }
 
