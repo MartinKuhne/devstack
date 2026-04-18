@@ -1,20 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useModelConfigurations } from '@/features/modelConfigurations/hooks/useModelConfigurations';
+import { useLargeLanguageModels } from '@/features/largeLanguageModels/hooks/useLargeLanguageModels';
 
-interface ModelConfigurationListProps {
+interface LargeLanguageModelListProps {
     onAddModel: () => void;
 }
 
-export function ModelConfigurationList({ onAddModel }: ModelConfigurationListProps) {
-    const { modelConfigurations, loading, error } = useModelConfigurations();
+export function LargeLanguageModelList({ onAddModel }: LargeLanguageModelListProps) {
+    const { largeLanguageModels, loading, error } = useLargeLanguageModels();
 
     if (loading) {
         return (
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Model Configurations</h3>
+                    <h3 className="text-lg font-semibold">Large Language Models</h3>
                     <Button onClick={onAddModel}>Add Model</Button>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -38,7 +38,7 @@ export function ModelConfigurationList({ onAddModel }: ModelConfigurationListPro
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-destructive">Error loading model configurations</CardTitle>
+                    <CardTitle className="text-destructive">Error loading large language models</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-destructive">{error.message}</p>
@@ -47,18 +47,18 @@ export function ModelConfigurationList({ onAddModel }: ModelConfigurationListPro
         );
     }
 
-    if (modelConfigurations.length === 0) {
+    if (largeLanguageModels.length === 0) {
         return (
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
-                        <CardTitle>Model Configurations</CardTitle>
+                        <CardTitle>Large Language Models</CardTitle>
                         <Button onClick={onAddModel}>Add Model</Button>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <p className="text-muted-foreground text-sm">
-                        No model configurations yet. Click &quot;Add Model&quot; to get started.
+                        No large language models yet. Click &quot;Add Model&quot; to get started.
                     </p>
                 </CardContent>
             </Card>
@@ -68,11 +68,11 @@ export function ModelConfigurationList({ onAddModel }: ModelConfigurationListPro
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Model Configurations</h3>
+                <h3 className="text-lg font-semibold">Large Language Models</h3>
                 <Button onClick={onAddModel}>Add Model</Button>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {modelConfigurations.map((config) => (
+                {largeLanguageModels.map((config: any) => (
                     <Card key={config.id}>
                         <CardHeader>
                             <CardTitle className="text-base">{config.modelAlias ?? config.model ?? ''}</CardTitle>

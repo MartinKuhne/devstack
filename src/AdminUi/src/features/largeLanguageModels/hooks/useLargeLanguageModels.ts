@@ -1,12 +1,12 @@
 import { useModelConfigurationsQuery } from '@/generated/graphql';
 
-export function useModelConfigurations() {
+export function useLargeLanguageModels() {
     const { data, loading, error, refetch } = useModelConfigurationsQuery({
         fetchPolicy: 'cache-and-network',
     });
 
     return {
-        modelConfigurations: data?.modelConfigurations ?? [],
+        largeLanguageModels: data?.modelConfigurations ?? [],
         loading,
         error,
         refetch,
