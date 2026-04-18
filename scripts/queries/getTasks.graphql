@@ -1,0 +1,19 @@
+query GetTasks($status: [TaskStatus!], $first: Int!) {
+  tasks(status: $status, first: $first) {
+    nodes {
+      id
+      title
+      status
+      deliverable
+      acceptanceCriteria
+      risks
+      itemId
+      projectId
+      item {
+        id
+        title
+        description
+      }
+    }
+  }
+}
