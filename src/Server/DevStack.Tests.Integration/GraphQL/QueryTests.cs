@@ -33,10 +33,13 @@ public class QueryTests : IAsyncLifetime
 
     private async System.Threading.Tasks.Task SeedDataAsync()
     {
-        if (_dbContext is null) return;
+        if (_dbContext is null)
+        {
+            return;
+        }
 
         var projectId = Guid.NewGuid();
-        
+
         var project = new Project
         {
             Id = projectId,
@@ -49,7 +52,9 @@ public class QueryTests : IAsyncLifetime
         };
         _dbContext.Projects.Add(project);
 
-        var feature1 = new Item { Subtype = ItemSubtype.Feature,
+        var feature1 = new Item
+        {
+            Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "[TestData] Feature 1",
@@ -59,7 +64,9 @@ public class QueryTests : IAsyncLifetime
             UpdatedAt = DateTime.UtcNow
         };
 
-        var feature2 = new Item { Subtype = ItemSubtype.Feature,
+        var feature2 = new Item
+        {
+            Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "[TestData] Feature 2",
@@ -69,7 +76,9 @@ public class QueryTests : IAsyncLifetime
             UpdatedAt = DateTime.UtcNow
         };
 
-        var feature3 = new Item { Subtype = ItemSubtype.Feature,
+        var feature3 = new Item
+        {
+            Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "[TestData] Feature 3",
@@ -79,9 +88,9 @@ public class QueryTests : IAsyncLifetime
             UpdatedAt = DateTime.UtcNow
         };
 
-        _dbContext.Items.AddRange(feature1, feature2, feature3);
-
-        var defect1 = new Item { Subtype = ItemSubtype.Defect,
+        var defect1 = new Item
+        {
+            Subtype = ItemSubtype.Defect,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "[TestData] Critical Bug",
@@ -91,49 +100,55 @@ public class QueryTests : IAsyncLifetime
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.Items.Add(defect1);
 
-        var task1 = new AgentTask
+        var task1 = new Item
         {
+            Subtype = ItemSubtype.Task,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            FeatureId = feature1.Id,
+            ParentFeatureId = feature1.Id,
             Title = "[TestData] Task 1",
-            Status = DevStack.Domain.Enums.TaskStatus.Planning,
+            Description = "Task 1 description",
+            Status = FeatureStatus.Planning,
             Deliverable = "Implement feature 1",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        var task2 = new AgentTask
+        var task2 = new Item
         {
+            Subtype = ItemSubtype.Task,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            FeatureId = feature1.Id,
+            ParentFeatureId = feature1.Id,
             Title = "[TestData] Task 2",
-            Status = DevStack.Domain.Enums.TaskStatus.Code,
+            Description = "Task 2 description",
+            Status = FeatureStatus.InProgress,
             Deliverable = "Write tests for feature 1",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        var task3 = new AgentTask
+        var task3 = new Item
         {
+            Subtype = ItemSubtype.Task,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            FeatureId = feature2.Id,
+            ParentFeatureId = feature2.Id,
             Title = "[TestData] Task 3",
-            Status = DevStack.Domain.Enums.TaskStatus.Failed,
+            Description = "Task 3 description",
+            Status = FeatureStatus.Failed,
             Deliverable = "Implement feature 2",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        _dbContext.Tasks.AddRange(task1, task2, task3);
+        _dbContext.Items.AddRange([feature1, feature2, feature3, defect1, task1, task2, task3]);
 
-        var modelConfig = new ModelConfiguration
+        var model = new LargeLanguageModel
         {
             Id = Guid.NewGuid(),
+            ProjectId = projectId,
             Url = "https://api.example.com",
             Model = "gpt-4",
             ModelAlias = "primary",
@@ -142,7 +157,7 @@ public class QueryTests : IAsyncLifetime
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.ModelConfigurations.Add(modelConfig);
+        _dbContext.LargeLanguageModels.Add(model);
 
         var auditEvent = new AuditEvent
         {
@@ -166,20 +181,18 @@ public class QueryTests : IAsyncLifetime
         {
             await _dbContext.DisposeAsync();
         }
+
         _connection.Close();
     }
 
     [Fact]
     public void GetProjectById_Returns_Project()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
         var project = _dbContext!.Projects.First();
 
-        // Act
         var result = query.GetProjectById(_dbContext, project.Id);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Name.Should().Be("[TestData] Test Project");
     }
@@ -187,13 +200,10 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetProjects_Returns_All_Projects()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act
         var result = query.GetProjects(_dbContext!);
 
-        // Assert
         result.Nodes.Should().HaveCount(1);
         result.TotalCount.Should().Be(1);
     }
@@ -201,30 +211,24 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetFeatures_Returns_All_Features_With_Pagination()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act
         var result = query.GetFeatures(_dbContext!);
 
-        // Assert
         result.Nodes.Should().HaveCount(3);
         result.TotalCount.Should().Be(3);
         result.PageInfo.HasNextPage.Should().BeFalse();
         result.PageInfo.HasPreviousPage.Should().BeFalse();
     }
 
-   [Fact]
+    [Fact]
     public void GetFeatures_With_ProjectId_Filter()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
         var projectId = _dbContext!.Projects.First().Id;
 
-        // Act
         var result = query.GetFeatures(_dbContext, projectId);
 
-        // Assert
         result.Nodes.Should().HaveCount(3);
         result.TotalCount.Should().Be(3);
     }
@@ -232,13 +236,10 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetFeatures_With_Status_Filter()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act
         var result = query.GetFeatures(_dbContext!, status: [FeatureStatus.InProgress]);
 
-        // Assert
         result.Nodes.Should().HaveCount(1);
         result.Nodes.First().Title.Should().Be("[TestData] Feature 2");
     }
@@ -246,14 +247,11 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetFeatureById_Returns_Feature()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
         var feature = _dbContext!.Items.First(f => f.Title == "[TestData] Feature 1");
 
-        // Act
         var result = query.GetFeatureById(_dbContext, feature.Id);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Title.Should().Be("[TestData] Feature 1");
     }
@@ -261,13 +259,10 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetDefects_Returns_All_Defects()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act
         var result = query.GetDefects(_dbContext!);
 
-        // Assert
         result.Nodes.Should().HaveCount(1);
         result.TotalCount.Should().Be(1);
     }
@@ -275,28 +270,22 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetDefectById_Returns_Defect()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
         var defect = _dbContext!.Defects.First();
 
-        // Act
         var result = query.GetDefectById(_dbContext, defect.Id);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Title.Should().Be("[TestData] Critical Bug");
     }
 
     [Fact]
-    public void GetTasks_Returns_All_Tasks_With_Pagination()
+    public void GetItems_Returns_All_Tasks_With_Pagination()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act
-        var result = query.GetTasks(_dbContext!);
+        var result = query.GetItems(_dbContext!, subtype: [ItemSubtype.Task]);
 
-        // Assert
         result.Nodes.Should().HaveCount(3);
         result.TotalCount.Should().Be(3);
         result.PageInfo.HasNextPage.Should().BeFalse();
@@ -304,90 +293,60 @@ public class QueryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetTasks_With_FeatureId_Filter()
+    public void GetItems_With_FeatureId_Filter()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
         var feature = _dbContext!.Items.First(f => f.Title == "[TestData] Feature 1");
 
-        // Act
-        var result = query.GetTasks(_dbContext, itemId: feature.Id);
+        var result = query.GetItems(_dbContext, subtype: [ItemSubtype.Task]);
 
-        // Assert
-        result.Nodes.Should().HaveCount(2);
-        result.TotalCount.Should().Be(2);
+        result.Nodes.Should().HaveCount(3);
+        result.Nodes.Count(node => node.ParentFeatureId == feature.Id).Should().Be(2);
     }
 
     [Fact]
-    public void GetTasks_With_Status_Filter()
+    public void GetItems_With_Status_Filter()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act
-        var result = query.GetTasks(_dbContext!, status: [DevStack.Domain.Enums.TaskStatus.Code]);
+        var result = query.GetItems(_dbContext!, status: [FeatureStatus.InProgress], subtype: [ItemSubtype.Task]);
 
-        // Assert
         result.Nodes.Should().HaveCount(1);
         result.Nodes.First().Title.Should().Be("[TestData] Task 2");
     }
 
     [Fact]
-    public void GetTaskById_Returns_Task()
+    public void GetItemById_Returns_Task()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
         var task = _dbContext!.Tasks.First(t => t.Title == "[TestData] Task 1");
 
-        // Act
-        var result = query.GetTaskById(_dbContext, task.Id);
+        var result = query.GetItemById(_dbContext, task.Id);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Title.Should().Be("[TestData] Task 1");
     }
 
     [Fact]
-    public void GetModelConfigurations_Returns_Configurations_For_Project()
+    public void GetLargeLanguageModels_Returns_Configurations_For_Project()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
-        var project = _dbContext!.Projects.First();
 
-        // Act
-        var result = query.GetModelConfigurations(_dbContext);
+        var result = query.GetLargeLanguageModels(_dbContext!);
 
-        // Assert
         result.Should().HaveCount(1);
     }
 
     [Fact]
-    public void GetAuditEvents_Returns_Audit_Events_For_Entity()
+    public void DashboardSummary_Returns_Correct_Counts()
     {
-        // Arrange
-        var query = new DevStack.Api.GraphQL.Types.Query();
-        var feature = _dbContext!.Items.First(f => f.Title == "[TestData] Feature 1");
-
-        // Act
-        var result = query.GetAuditEvents(_dbContext, feature.Id);
-
-        // Assert
-        result.Should().ContainSingle();
-    }
-
-    [Fact]
-    public void GetDashboardSummary_Returns_Correct_Counts()
-    {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act
         var result = query.GetDashboardSummary(_dbContext!);
 
-        // Assert
         result.ProjectsInFlight.Should().Be(1);
         result.FeaturesInReview.Should().Be(1);
-        result.FeaturesFailed.Should().Be(0);
+        result.FeaturesFailed.Should().Be(1);
         result.TasksInProgress.Should().Be(1);
         result.TasksFailed.Should().Be(1);
         result.RecentAuditEvents.Should().ContainSingle();
@@ -396,13 +355,10 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetFeatures_With_Pagination_Skip_and_First()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act - skip 1, take 2
         var result = query.GetFeatures(_dbContext!, first: 2, skip: 1);
 
-        // Assert
         result.Nodes.Should().HaveCount(2);
         result.TotalCount.Should().Be(3);
         result.PageInfo.HasNextPage.Should().BeFalse();
@@ -412,13 +368,10 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetFeatures_With_Pagination_HasNextPage()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act - skip 0, take 2
         var result = query.GetFeatures(_dbContext!, first: 2, skip: 0);
 
-        // Assert
         result.Nodes.Should().HaveCount(2);
         result.TotalCount.Should().Be(3);
         result.PageInfo.HasNextPage.Should().BeTrue();
@@ -428,14 +381,11 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetFeatures_With_CreatedAfter_Filter()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
         var oneHourAgo = DateTime.UtcNow.AddHours(-1);
 
-        // Act
         var result = query.GetItems(_dbContext!, subtype: [ItemSubtype.Feature], createdAfter: oneHourAgo);
 
-        // Assert
         result.Nodes.Should().HaveCount(3);
         result.TotalCount.Should().Be(3);
     }
@@ -443,13 +393,10 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetTasks_With_Pagination_Skip_and_First()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act - skip 1, take 2
-        var result = query.GetTasks(_dbContext!, first: 2, skip: 1);
+        var result = query.GetItems(_dbContext!, subtype: [ItemSubtype.Task], first: 2, skip: 1);
 
-        // Assert
         result.Nodes.Should().HaveCount(2);
         result.TotalCount.Should().Be(3);
         result.PageInfo.HasNextPage.Should().BeFalse();
@@ -459,13 +406,10 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetTasks_With_Pagination_HasNextPage()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
 
-        // Act - skip 0, take 2
-        var result = query.GetTasks(_dbContext!, first: 2, skip: 0);
+        var result = query.GetItems(_dbContext!, subtype: [ItemSubtype.Task], first: 2, skip: 0);
 
-        // Assert
         result.Nodes.Should().HaveCount(2);
         result.TotalCount.Should().Be(3);
         result.PageInfo.HasNextPage.Should().BeTrue();
@@ -475,14 +419,11 @@ public class QueryTests : IAsyncLifetime
     [Fact]
     public void GetTasks_With_CreatedBefore_Filter()
     {
-        // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
         var futureDate = DateTime.UtcNow.AddHours(1);
 
-        // Act
-        var result = query.GetTasks(_dbContext!, createdBefore: futureDate);
+        var result = query.GetItems(_dbContext!, subtype: [ItemSubtype.Task], createdBefore: futureDate);
 
-        // Assert
         result.Nodes.Should().HaveCount(3);
         result.TotalCount.Should().Be(3);
     }

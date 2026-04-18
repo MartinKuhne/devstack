@@ -130,10 +130,11 @@ public class ItemDefectSubtypeTests
     }
 
     [Fact]
-    public void Item_With_DefectSubtype_Has_ParentFeature_Nullable()
+    public void Item_With_DefectSubtype_Has_ParentFeature_Returns_Self()
     {
         var item = new Item { Subtype = ItemSubtype.Defect };
-        Assert.Null(item.ParentFeature);
+        Assert.NotNull(item.ParentFeature);
+        Assert.Same(item, item.ParentFeature);
     }
 
     [Fact]
