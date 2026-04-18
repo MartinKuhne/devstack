@@ -44,7 +44,7 @@ public class FeatureMutationTests : IAsyncLifetime
         var project = new Project
         {
             Id = _projectId,
-            Name = "Test Project",
+            Name = "[TestData] Test Project",
             Description = "A test project",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -68,7 +68,7 @@ public class FeatureMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         var input = new CreateFeatureInput(
             ProjectId: _projectId,
-            Title: "New Feature",
+            Title: "[TestData] New Feature",
             Description: "Test description",
             AcceptanceCriteria: null,
             Plan: null,
@@ -123,12 +123,12 @@ public class FeatureMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         
         var featureId = Guid.NewGuid();
-        var item = new Item
+var item = new Item
         {
             Id = featureId,
             ProjectId = _projectId,
             Subtype = ItemSubtype.Feature,
-            Title = "Original Title",
+            Title = "[TestData] Test Item",
             Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -138,7 +138,7 @@ public class FeatureMutationTests : IAsyncLifetime
 
         var input = new UpdateFeatureInput(
             Id: featureId,
-            Title: "Updated Title",
+            Title: "[TestData] Updated Title",
             Description: null,
             AcceptanceCriteria: null,
             Plan: null,
@@ -271,7 +271,7 @@ public class FeatureMutationTests : IAsyncLifetime
             Id = featureId,
             ProjectId = _projectId,
             Subtype = ItemSubtype.Feature,
-            Title = "To Delete",
+            Title = "[TestData] To Delete",
             Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

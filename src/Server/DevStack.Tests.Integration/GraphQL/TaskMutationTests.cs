@@ -48,7 +48,7 @@ public class TaskMutationTests : IAsyncLifetime
         var project = new Project
         {
             Id = _projectId,
-            Name = "Test Project",
+            Name = "[TestData] Test Project",
             Description = "A test project",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -59,7 +59,7 @@ public class TaskMutationTests : IAsyncLifetime
         {
             Id = _featureId,
             ProjectId = _projectId,
-            Title = "Test Feature",
+            Title = "[TestData] Test Feature",
             Status = (DevStack.Domain.Enums.FeatureStatus)(object)FeatureStatus.Planning,
             Subtype = ItemSubtype.Feature,
             CreatedAt = DateTime.UtcNow,
@@ -85,7 +85,7 @@ public class TaskMutationTests : IAsyncLifetime
         var input = new CreateTaskInput(
             ProjectId: _projectId,
             ItemId: _featureId,
-            Title: "New Task",
+            Title: "[TestData] New Task",
             Deliverable: "Implement feature",
             AcceptanceCriteria: "Tests pass",
             Risks: null,
@@ -134,7 +134,7 @@ public class TaskMutationTests : IAsyncLifetime
         var input = new CreateTaskInput(
             ProjectId: _projectId,
             ItemId: _featureId,
-            Title: "Invalid Task",
+            Title: "[TestData] Invalid Task",
             Deliverable: null,
             AcceptanceCriteria: null,
             Risks: null,
@@ -162,7 +162,7 @@ public class TaskMutationTests : IAsyncLifetime
             Id = taskId,
             ProjectId = _projectId,
             FeatureId = _featureId,
-            Title = "Original Title",
+            Title = "[TestData] Original Title",
             Status = TaskStatus.Planning,
             Deliverable = "Original deliverable",
             ComplexityRating = 3,
@@ -174,7 +174,7 @@ public class TaskMutationTests : IAsyncLifetime
 
         var input = new UpdateTaskInput(
             Id: taskId,
-            Title: "Updated Title",
+            Title: "[TestData] Updated Title",
             Deliverable: "Updated deliverable",
             AcceptanceCriteria: null,
             Risks: null,
@@ -225,7 +225,7 @@ public class TaskMutationTests : IAsyncLifetime
             Id = taskId,
             ProjectId = _projectId,
             FeatureId = _featureId,
-            Title = "Test Task",
+            Title = "[TestData] Test Task",
             Status = TaskStatus.Planning,
             Deliverable = "Test deliverable",
             ComplexityRating = 3,
@@ -268,7 +268,7 @@ public class TaskMutationTests : IAsyncLifetime
             Id = taskId,
             ProjectId = _projectId,
             FeatureId = _featureId,
-            Title = "To Delete",
+            Title = "[TestData] To Delete",
             Status = TaskStatus.Planning,
             Deliverable = "Test deliverable",
             ComplexityRating = 3,

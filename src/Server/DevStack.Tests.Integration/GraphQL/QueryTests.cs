@@ -40,7 +40,7 @@ public class QueryTests : IAsyncLifetime
         var project = new Project
         {
             Id = projectId,
-            Name = "Test Project",
+            Name = "[TestData] Test Project",
             Description = "A test project for integration tests",
             Architecture = "Clean Architecture",
             Memory = "4GB",
@@ -52,7 +52,7 @@ public class QueryTests : IAsyncLifetime
         var feature1 = new Item { Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            Title = "Feature 1",
+            Title = "[TestData] Feature 1",
             Description = "First test feature",
             Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
@@ -62,7 +62,7 @@ public class QueryTests : IAsyncLifetime
         var feature2 = new Item { Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            Title = "Feature 2",
+            Title = "[TestData] Feature 2",
             Description = "Second test feature",
             Status = FeatureStatus.InProgress,
             CreatedAt = DateTime.UtcNow,
@@ -72,7 +72,7 @@ public class QueryTests : IAsyncLifetime
         var feature3 = new Item { Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            Title = "Feature 3",
+            Title = "[TestData] Feature 3",
             Description = "Third test feature - in review",
             Status = FeatureStatus.InReview,
             CreatedAt = DateTime.UtcNow,
@@ -84,7 +84,7 @@ public class QueryTests : IAsyncLifetime
         var defect1 = new Item { Subtype = ItemSubtype.Defect,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            Title = "Critical Bug",
+            Title = "[TestData] Critical Bug",
             Description = "A critical bug in the system",
             Severity = Severity.Critical,
             Status = FeatureStatus.Planning,
@@ -98,7 +98,7 @@ public class QueryTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             FeatureId = feature1.Id,
-            Title = "Task 1",
+            Title = "[TestData] Task 1",
             Status = DevStack.Domain.Enums.TaskStatus.Planning,
             Deliverable = "Implement feature 1",
             CreatedAt = DateTime.UtcNow,
@@ -110,7 +110,7 @@ public class QueryTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             FeatureId = feature1.Id,
-            Title = "Task 2",
+            Title = "[TestData] Task 2",
             Status = DevStack.Domain.Enums.TaskStatus.Code,
             Deliverable = "Write tests for feature 1",
             CreatedAt = DateTime.UtcNow,
@@ -122,7 +122,7 @@ public class QueryTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             FeatureId = feature2.Id,
-            Title = "Task 3",
+            Title = "[TestData] Task 3",
             Status = DevStack.Domain.Enums.TaskStatus.Failed,
             Deliverable = "Implement feature 2",
             CreatedAt = DateTime.UtcNow,
@@ -181,7 +181,7 @@ public class QueryTests : IAsyncLifetime
 
         // Assert
         result.Should().NotBeNull();
-        result!.Name.Should().Be("Test Project");
+        result!.Name.Should().Be("[TestData] Test Project");
     }
 
     [Fact]
@@ -240,7 +240,7 @@ public class QueryTests : IAsyncLifetime
 
         // Assert
         result.Nodes.Should().HaveCount(1);
-        result.Nodes.First().Title.Should().Be("Feature 2");
+        result.Nodes.First().Title.Should().Be("[TestData] Feature 2");
     }
 
     [Fact]
@@ -248,14 +248,14 @@ public class QueryTests : IAsyncLifetime
     {
         // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
-        var feature = _dbContext!.Items.First(f => f.Title == "Feature 1");
+        var feature = _dbContext!.Items.First(f => f.Title == "[TestData] Feature 1");
 
         // Act
         var result = query.GetFeatureById(_dbContext, feature.Id);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Title.Should().Be("Feature 1");
+        result!.Title.Should().Be("[TestData] Feature 1");
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public class QueryTests : IAsyncLifetime
 
         // Assert
         result.Should().NotBeNull();
-        result!.Title.Should().Be("Critical Bug");
+        result!.Title.Should().Be("[TestData] Critical Bug");
     }
 
     [Fact]
@@ -308,7 +308,7 @@ public class QueryTests : IAsyncLifetime
     {
         // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
-        var feature = _dbContext!.Items.First(f => f.Title == "Feature 1");
+        var feature = _dbContext!.Items.First(f => f.Title == "[TestData] Feature 1");
 
         // Act
         var result = query.GetTasks(_dbContext, itemId: feature.Id);
@@ -329,7 +329,7 @@ public class QueryTests : IAsyncLifetime
 
         // Assert
         result.Nodes.Should().HaveCount(1);
-        result.Nodes.First().Title.Should().Be("Task 2");
+        result.Nodes.First().Title.Should().Be("[TestData] Task 2");
     }
 
     [Fact]
@@ -337,14 +337,14 @@ public class QueryTests : IAsyncLifetime
     {
         // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
-        var task = _dbContext!.Tasks.First(t => t.Title == "Task 1");
+        var task = _dbContext!.Tasks.First(t => t.Title == "[TestData] Task 1");
 
         // Act
         var result = query.GetTaskById(_dbContext, task.Id);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Title.Should().Be("Task 1");
+        result!.Title.Should().Be("[TestData] Task 1");
     }
 
     [Fact]
@@ -366,7 +366,7 @@ public class QueryTests : IAsyncLifetime
     {
         // Arrange
         var query = new DevStack.Api.GraphQL.Types.Query();
-        var feature = _dbContext!.Items.First(f => f.Title == "Feature 1");
+        var feature = _dbContext!.Items.First(f => f.Title == "[TestData] Feature 1");
 
         // Act
         var result = query.GetAuditEvents(_dbContext, feature.Id);
