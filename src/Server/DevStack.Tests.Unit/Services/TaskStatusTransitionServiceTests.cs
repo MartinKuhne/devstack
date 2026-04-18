@@ -1,9 +1,9 @@
 using DevStack.Domain.Entities;
+using DevStack.Domain.Enums;
 using DevStack.Domain.Events;
 using DevStack.Domain.Services;
 using FluentAssertions;
 using Xunit;
-using TaskStatus = DevStack.Domain.Enums.TaskStatus;
 
 namespace DevStack.Tests.Unit.Services;
 
@@ -18,18 +18,18 @@ public class TaskStatusTransitionServiceTests
         var task = new AgentTask
         {
             Id = Guid.NewGuid(),
-            Status = TaskStatus.Planning,
+            Status = AgentTaskStatus.Ready,
             Title = "Test Task",
             ItemId = Guid.NewGuid(),
             ComplexityRating = 5
         };
 
         // Act
-        var result = _service.Transition(task, TaskStatus.Ready, "user@test.com");
+        var result = _service.Transition(task, AgentTaskStatus.InProgress, "user@test.com");
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        task.Status.Should().Be(TaskStatus.Ready);
+        task.Status.Should().Be(AgentTaskStatus.InProgress);
     }
 
     [Fact]
@@ -39,36 +39,36 @@ public class TaskStatusTransitionServiceTests
         var task = new AgentTask
         {
             Id = Guid.NewGuid(),
-            Status = TaskStatus.Planning,
+            Status = AgentTaskStatus.Ready,
             Title = "Test Task",
             ItemId = Guid.NewGuid(),
             ComplexityRating = 5
         };
 
         // Act
-        var result = _service.Transition(task, TaskStatus.Ready, "user@test.com");
+        var result = _service.Transition(task, AgentTaskStatus.InProgress, "user@test.com");
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         _service.DomainEvents.Should().HaveCount(1);
-        var @event = _service.DomainEvents.First().Should().BeOfType<TaskStatusChangedEvent>().Subject;
+        var @event = _service.DomainEvents.First().Should().BeOfType<AgentTaskStatusChangedEvent>().Subject;
         @event.TaskId.Should().Be(task.Id);
-        @event.OldStatus.Should().Be(TaskStatus.Planning);
-        @event.NewStatus.Should().Be(TaskStatus.Ready);
+        @event.OldStatus.Should().Be(AgentTaskStatus.Ready);
+        @event.NewStatus.Should().Be(AgentTaskStatus.InProgress);
         @event.Actor.Should().Be("user@test.com");
     }
 
     [Theory]
-    [InlineData(TaskStatus.Planning, TaskStatus.Ready)]
-    [InlineData(TaskStatus.Planning, TaskStatus.Prepare)]
-    [InlineData(TaskStatus.Planning, TaskStatus.Rejected)]
-    [InlineData(TaskStatus.Ready, TaskStatus.Prepare)]
-    [InlineData(TaskStatus.Prepare, TaskStatus.Code)]
-    [InlineData(TaskStatus.Code, TaskStatus.Review)]
-    [InlineData(TaskStatus.Review, TaskStatus.ReadyForTest)]
-    [InlineData(TaskStatus.ReadyForTest, TaskStatus.Testing)]
-    [InlineData(TaskStatus.Testing, TaskStatus.Done)]
-   public void Allowed_Transitions_Work(TaskStatus source, TaskStatus target)
+    [InlineData(AgentTaskStatus.Ready, AgentTaskStatus.InProgress)]
+    [InlineData(AgentTaskStatus.Ready, AgentTaskStatus.Failed)]
+    [InlineData(AgentTaskStatus.Ready, AgentTaskStatus.Rejected)]
+    [InlineData(AgentTaskStatus.InProgress, AgentTaskStatus.NeedsReview)]
+    [InlineData(AgentTaskStatus.NeedsReview, AgentTaskStatus.InProgress)]
+    [InlineData(AgentTaskStatus.NeedsReview, AgentTaskStatus.Ready)]
+    [InlineData(AgentTaskStatus.NeedsReview, AgentTaskStatus.Done)]
+    [InlineData(AgentTaskStatus.Failed, AgentTaskStatus.Ready)]
+    [InlineData(AgentTaskStatus.Failed, AgentTaskStatus.InProgress)]
+   public void Allowed_Transitions_Work(AgentTaskStatus source, AgentTaskStatus target)
     {
         // Arrange
         var task = new AgentTask
@@ -81,9 +81,9 @@ public class TaskStatusTransitionServiceTests
         };
 
         // Set required fields based on target status
-        if (target == TaskStatus.Done || target == TaskStatus.Failed)
+        if (target == AgentTaskStatus.Done || target == AgentTaskStatus.Failed)
             task.Result = "Test result";
-        if (target == TaskStatus.Rejected)
+        if (target == AgentTaskStatus.Rejected)
         {
             task.RequiredFollowUps = "Test follow-ups";
         }
@@ -97,10 +97,10 @@ public class TaskStatusTransitionServiceTests
     }
 
     [Theory]
-    [InlineData(TaskStatus.Done, TaskStatus.Planning)] // Done is final state
-    [InlineData(TaskStatus.Planning, TaskStatus.Done)] // Cannot skip intermediate states
-    [InlineData(TaskStatus.Testing, TaskStatus.Planning)] // Invalid transition
-    public void Disallowed_Transitions_Fail(TaskStatus source, TaskStatus target)
+    [InlineData(AgentTaskStatus.Done, AgentTaskStatus.Ready)] // Done is final state
+    [InlineData(AgentTaskStatus.Ready, AgentTaskStatus.Done)] // Cannot skip intermediate states
+    [InlineData(AgentTaskStatus.NeedsReview, AgentTaskStatus.Rejected)] // Invalid transition
+    public void Disallowed_Transitions_Fail(AgentTaskStatus source, AgentTaskStatus target)
     {
         // Arrange
         var task = new AgentTask
@@ -125,7 +125,7 @@ public class TaskStatusTransitionServiceTests
     public void Transition_Fails_When_Task_Is_Null()
     {
         // Act
-        var result = _service.Transition(null!, TaskStatus.Ready, "actor");
+        var result = _service.Transition(null!, AgentTaskStatus.Ready, "actor");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -139,14 +139,14 @@ public class TaskStatusTransitionServiceTests
         var task = new AgentTask
         {
             Id = Guid.NewGuid(),
-            Status = TaskStatus.Planning,
+            Status = AgentTaskStatus.Ready,
             Title = "Test Task",
             ItemId = Guid.NewGuid(),
             ComplexityRating = 5
         };
 
         // Act
-        var result = _service.Transition(task, TaskStatus.Ready, "   ");
+        var result = _service.Transition(task, AgentTaskStatus.InProgress, "   ");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -160,7 +160,7 @@ public class TaskStatusTransitionServiceTests
         var task = new AgentTask
         {
             Id = Guid.NewGuid(),
-            Status = TaskStatus.Testing,
+            Status = AgentTaskStatus.NeedsReview,
             Title = "Test Task",
             ItemId = Guid.NewGuid(),
             ComplexityRating = 5,
@@ -168,7 +168,7 @@ public class TaskStatusTransitionServiceTests
         };
 
         // Act
-        var result = _service.Transition(task, TaskStatus.Done, "actor");
+        var result = _service.Transition(task, AgentTaskStatus.Done, "actor");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -182,7 +182,7 @@ public class TaskStatusTransitionServiceTests
         var task = new AgentTask
         {
             Id = Guid.NewGuid(),
-            Status = TaskStatus.Testing,
+            Status = AgentTaskStatus.InProgress,
             Title = "Test Task",
             ItemId = Guid.NewGuid(),
             ComplexityRating = 5,
@@ -190,7 +190,7 @@ public class TaskStatusTransitionServiceTests
         };
 
         // Act
-        var result = _service.Transition(task, TaskStatus.Failed, "actor");
+        var result = _service.Transition(task, AgentTaskStatus.Failed, "actor");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -204,7 +204,7 @@ public class TaskStatusTransitionServiceTests
         var task = new AgentTask
         {
             Id = Guid.NewGuid(),
-            Status = TaskStatus.Ready,
+            Status = AgentTaskStatus.Ready,
             Title = "Test Task",
             ItemId = Guid.NewGuid(),
             ComplexityRating = 5,
@@ -213,7 +213,7 @@ public class TaskStatusTransitionServiceTests
         };
 
         // Act
-        var result = _service.Transition(task, TaskStatus.Rejected, "actor");
+        var result = _service.Transition(task, AgentTaskStatus.Rejected, "actor");
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -227,7 +227,7 @@ public class TaskStatusTransitionServiceTests
         var task = new AgentTask
         {
             Id = Guid.NewGuid(),
-            Status = TaskStatus.Planning,
+            Status = AgentTaskStatus.Ready,
             Title = "Test Task",
             ItemId = Guid.NewGuid(),
             ComplexityRating = 5,
@@ -237,7 +237,7 @@ public class TaskStatusTransitionServiceTests
         var originalUpdatedAt = task.UpdatedAt;
 
         // Act
-        var result = _service.Transition(task, TaskStatus.Ready, "actor");
+        var result = _service.Transition(task, AgentTaskStatus.InProgress, "actor");
 
         // Assert
         result.IsSuccess.Should().BeTrue();

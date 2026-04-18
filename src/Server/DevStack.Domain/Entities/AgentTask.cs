@@ -18,7 +18,7 @@ public class AgentTask : Entity
     public string Title { get; set; } = string.Empty;
 
     [Required]
-    public global::DevStack.Domain.Enums.TaskStatus Status { get; set; }
+    public AgentTaskStatus Status { get; set; }
 
     public string? Deliverable { get; set; }
 

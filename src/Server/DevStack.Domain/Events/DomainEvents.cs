@@ -45,6 +45,7 @@ public sealed class FeatureStatusChangedEvent : DomainEvent
     public string Actor { get; }
 }
 
+[Obsolete("Use AgentTaskStatusChangedEvent instead")]
 public sealed class TaskStatusChangedEvent : DomainEvent
     {
         public TaskStatusChangedEvent(Guid taskId, global::DevStack.Domain.Enums.TaskStatus oldStatus, global::DevStack.Domain.Enums.TaskStatus newStatus, string actor)
@@ -58,5 +59,21 @@ public sealed class TaskStatusChangedEvent : DomainEvent
         public Guid TaskId { get; }
         public global::DevStack.Domain.Enums.TaskStatus OldStatus { get; }
         public global::DevStack.Domain.Enums.TaskStatus NewStatus { get; }
+        public string Actor { get; }
+    }
+
+public sealed class AgentTaskStatusChangedEvent : DomainEvent
+    {
+        public AgentTaskStatusChangedEvent(Guid taskId, AgentTaskStatus oldStatus, AgentTaskStatus newStatus, string actor)
+        {
+            TaskId = taskId;
+            OldStatus = oldStatus;
+            NewStatus = newStatus;
+            Actor = actor ?? string.Empty;
+        }
+
+        public Guid TaskId { get; }
+        public AgentTaskStatus OldStatus { get; }
+        public AgentTaskStatus NewStatus { get; }
         public string Actor { get; }
     }

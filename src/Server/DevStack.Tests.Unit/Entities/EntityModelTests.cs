@@ -155,7 +155,7 @@ public class AgentTaskTests
         Assert.NotEqual(Guid.Empty, task.Id);
         Assert.NotNull(task.Title);
         Assert.Equal(string.Empty, task.Title);
-        Assert.Equal(TaskStatus.Planning, task.Status);
+        Assert.Equal(global::DevStack.Domain.Enums.AgentTaskStatus.Ready, task.Status);
         Assert.Equal(1, task.ComplexityRating);
     }
 
