@@ -20,6 +20,8 @@ public class Epic : Entity
 
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 
+    public virtual ICollection<Deliverable> Deliverables { get; set; } = new List<Deliverable>();
+
     [Obsolete("Use Items instead")]
     [NotMapped]
     public virtual ICollection<Item> Features => Items;
