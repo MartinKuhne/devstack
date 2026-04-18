@@ -1,8 +1,10 @@
-query GetProjects($first: Int) {
+query GetProjects($first: Int!) {
   projects(first: $first) {
     nodes {
       id
       name
+      description
+      createdAt
     }
   }
 }
