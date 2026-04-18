@@ -47,7 +47,7 @@ public class ProjectMutationTests : IAsyncLifetime
     {
         var mutation = new Mutation();
         var input = new CreateProjectInput(
-            Name: "Test Project",
+            Name: "[TestData] Test Project",
             Description: "Test description",
             Architecture: "Microservices",
             Memory: "8GB",
@@ -132,7 +132,7 @@ public class ProjectMutationTests : IAsyncLifetime
     {
         var mutation = new Mutation();
         var input = new CreateProjectInput(
-            Name: "Minimal Project",
+            Name: "[TestData] Minimal Project",
             Description: null,
             Architecture: null,
             Memory: null,
@@ -156,7 +156,7 @@ public class ProjectMutationTests : IAsyncLifetime
         var project = new Project
         {
             Id = Guid.NewGuid(),
-            Name = "Original Name",
+            Name = "[TestData] Original Name",
             Description = "Original Description",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -167,7 +167,7 @@ public class ProjectMutationTests : IAsyncLifetime
 
         var updateInput = new UpdateProjectInput(
             Id: _projectId,
-            Name: "Updated Name",
+            Name: "[TestData] Updated Name",
             Description: "Updated Description",
             Architecture: "Serverless",
             Memory: "16GB",
@@ -184,7 +184,7 @@ public class ProjectMutationTests : IAsyncLifetime
 
         var updated = await _dbContext!.Projects.FindAsync(_projectId);
         updated.Should().NotBeNull();
-        updated!.Name.Should().Be("Updated Name");
+        updated!.Name.Should().Be("[TestData] Updated Name");
         updated.Description.Should().Be("Updated Description");
         updated.Architecture.Should().Be("Serverless");
         updated.Memory.Should().Be("16GB");
@@ -221,7 +221,7 @@ public class ProjectMutationTests : IAsyncLifetime
         var project = new Project
         {
             Id = Guid.NewGuid(),
-            Name = "To Delete",
+            Name = "[TestData] To Delete",
             Description = "Will be deleted",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

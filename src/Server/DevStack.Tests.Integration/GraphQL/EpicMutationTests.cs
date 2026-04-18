@@ -41,7 +41,7 @@ public class EpicMutationTests : IAsyncLifetime
         _dbContext!.Projects.Add(new Project
         {
             Id = _projectId,
-            Name = "Test Project",
+            Name = "[TestData] Test Project",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         });
@@ -63,7 +63,7 @@ public class EpicMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         var input = new CreateEpicInput(
             ProjectId: _projectId,
-            Title: "New Epic",
+            Title: "[TestData] New Epic",
             Description: "Test description",
             DependsOnId: null);
 
@@ -127,7 +127,7 @@ public class EpicMutationTests : IAsyncLifetime
             Id = epicId,
             ProjectId = _projectId,
             Subtype = ItemSubtype.Epic,
-            Title = "Original Title",
+            Title = "[TestData] Original Title",
             Description = "Original description",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -137,7 +137,7 @@ public class EpicMutationTests : IAsyncLifetime
 
         var input = new UpdateEpicInput(
             Id: epicId,
-            Title: "Updated Title",
+            Title: "[TestData] Updated Title",
             Description: "Updated description",
             DependsOnId: null);
 
@@ -150,7 +150,7 @@ public class EpicMutationTests : IAsyncLifetime
         result.Item.Should().NotBeNull();
         
         var updatedItem = await _dbContext.Items.FindAsync(epicId);
-        updatedItem!.Title.Should().Be("Updated Title");
+        updatedItem!.Title.Should().Be("[TestData] Updated Title");
         updatedItem.Description.Should().Be("Updated description");
     }
 
@@ -184,7 +184,7 @@ public class EpicMutationTests : IAsyncLifetime
             Id = epicId,
             ProjectId = _projectId,
             Subtype = ItemSubtype.Epic,
-            Title = "To Delete",
+            Title = "[TestData] To Delete",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

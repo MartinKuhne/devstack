@@ -2,6 +2,7 @@ using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
+using DevStack.Infrastructure.Persistence;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Features;
 using DevStack.Infrastructure.Defects;
@@ -10,6 +11,7 @@ using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Services;
 using DevStack.Infrastructure.WorkflowRuns;
 using DevStack.Infrastructure.Epics;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Api.GraphQL.Types;
 
@@ -193,6 +195,8 @@ public record UpdateEpicInput(Guid Id, string? Title, string? Description, Guid?
 public record DeleteEpicInput(Guid Id);
 
 public record EpicPayload(Item? Item, List<string> Errors);
+
+public record CleanupTestDataPayload(bool Success, string? Message);
 
 public class Mutation
 {
@@ -978,6 +982,23 @@ public class Mutation
         catch (Exception ex)
         {
             return new EpicPayload(null, [ex.Message]);
+        }
+    }
+
+    public async Task<CleanupTestDataPayload> CleanupTestDataAsync(
+        [Service] DevStackDbContext context,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await context.CleanupTestDataAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+            
+            return new CleanupTestDataPayload(true, "Test data cleaned up successfully");
+        }
+        catch (Exception ex)
+        {
+            return new CleanupTestDataPayload(false, ex.Message);
         }
     }
 }

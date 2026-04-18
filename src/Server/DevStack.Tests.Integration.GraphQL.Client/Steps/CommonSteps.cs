@@ -31,7 +31,7 @@ public class CommonSteps
     {
         var input = new CreateProjectInput
         {
-            Name = "Test Parent Project",
+            Name = "[TestData] Test Parent Project",
             Description = "Parent project for test scenarios"
         };
 
@@ -55,7 +55,7 @@ public class CommonSteps
         var input = new CreateFeatureInput
         {
             ProjectId = Guid.Parse(pid!),
-            Title = "Test Parent Feature",
+            Title = "[TestData] Test Parent Feature",
             Description = "Parent feature for test scenarios"
         };
 
@@ -75,7 +75,7 @@ public class CommonSteps
     {
         var input = new CreateProjectInput
         {
-            Name = projectName,
+            Name = $"[TestData] {projectName}",
             Description = $"Project for testing: {projectName}"
         };
 
@@ -98,7 +98,7 @@ public class CommonSteps
         var input = new CreateFeatureInput
         {
             ProjectId = Guid.Parse(pid!),
-            Title = featureTitle,
+            Title = $"[TestData] {featureTitle}",
             Description = $"Feature for testing: {featureTitle}"
         };
 
@@ -125,7 +125,7 @@ public class CommonSteps
         {
             ProjectId = Guid.Parse(projectId!),
             ItemId = Guid.Parse(featureId!),
-            Title = taskTitle,
+            Title = $"[TestData] {taskTitle}",
             ComplexityRating = 5
         };
 
@@ -149,7 +149,7 @@ public class CommonSteps
         {
             ProjectId = Guid.Parse(projectId!),
             ParentFeatureId = null,
-            Title = defectTitle,
+            Title = $"[TestData] {defectTitle}",
             Severity = Severity.High
         };
 
@@ -176,7 +176,7 @@ public class CommonSteps
         {
             ProjectId = Guid.Parse(projectId!),
             ItemId = Guid.Parse(featureId!),
-            Title = $"Task with status {status}",
+            Title = $"[TestData] Task with status {status}",
             ComplexityRating = 5
         };
 
@@ -213,7 +213,7 @@ public class CommonSteps
         var createInput = new CreateFeatureInput
         {
             ProjectId = Guid.Parse(projectId!),
-            Title = $"Feature with status {status}"
+            Title = $"[TestData] Feature with status {status}"
         };
 
         var createResult = await _client.CreateFeature.ExecuteAsync(createInput);
@@ -249,7 +249,7 @@ public class CommonSteps
         var createInput = new CreateDefectInput
         {
             ProjectId = Guid.Parse(projectId!),
-            Title = $"Defect with status {status}",
+            Title = $"[TestData] Defect with status {status}",
             Severity = Severity.High
         };
 

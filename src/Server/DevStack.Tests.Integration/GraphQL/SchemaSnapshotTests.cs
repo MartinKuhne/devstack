@@ -41,7 +41,7 @@ public class SchemaSnapshotTests : IAsyncLifetime
         var project = new Project
         {
             Id = projectId,
-            Name = "Test Project",
+            Name = "[TestData] Test Project",
             Description = "A test project for schema snapshot",
             Architecture = "Clean Architecture",
             Memory = "4GB",
@@ -53,7 +53,7 @@ public class SchemaSnapshotTests : IAsyncLifetime
         var feature = new Item { Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            Title = "Snapshot Feature",
+            Title = "[TestData] Snapshot Feature",
             Description = "Feature for schema testing",
             Status = FeatureStatus.Planning,
             CreatedAt = DateTime.UtcNow,
@@ -66,7 +66,7 @@ public class SchemaSnapshotTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             ItemId = feature.Id,
-            Title = "Snapshot Task",
+            Title = "[TestData] Snapshot Task",
             Status = DevStack.Domain.Enums.TaskStatus.Planning,
             Deliverable = "Test task",
             CreatedAt = DateTime.UtcNow,

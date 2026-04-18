@@ -43,7 +43,7 @@ public class EpicQueryTests : IAsyncLifetime
         _dbContext.Projects.Add(new Project
         {
             Id = projectId,
-            Name = "Test Project",
+            Name = "[TestData] Test Project",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         });
@@ -52,7 +52,7 @@ public class EpicQueryTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            Title = "Epic One",
+            Title = "[TestData] Epic One",
             Description = "First epic",
             Subtype = ItemSubtype.Epic,
             Status = FeatureStatus.Planning,
@@ -64,7 +64,7 @@ public class EpicQueryTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            Title = "Epic Two",
+            Title = "[TestData] Epic Two",
             Description = "Second epic",
             Subtype = ItemSubtype.Epic,
             Status = FeatureStatus.Planning,
@@ -76,7 +76,7 @@ public class EpicQueryTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            Title = "Testing Epic",
+            Title = "[TestData] Testing Epic",
             Description = "Epic about testing",
             Subtype = ItemSubtype.Epic,
             Status = FeatureStatus.Planning,

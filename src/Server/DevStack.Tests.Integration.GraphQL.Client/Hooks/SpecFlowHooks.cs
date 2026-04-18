@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using DevStack.Client;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +20,7 @@ public sealed class SpecFlowHooks
     private readonly IConfiguration _configuration;
     private IDevStackClient? _client;
     private IServiceProvider? _serviceProvider;
+    private HttpClient? _httpClient;
 
     private static readonly Lazy<IConfiguration> Configuration = new(() =>
     {
@@ -44,17 +48,52 @@ public sealed class SpecFlowHooks
 
         _serviceProvider = services.BuildServiceProvider();
         _client = _serviceProvider.GetRequiredService<IDevStackClient>();
+        _httpClient = new HttpClient { BaseAddress = new Uri(graphQlUrl) };
 
         _scenarioContext["GraphQLClient"] = _client;
         _scenarioContext["GraphQLUrl"] = graphQlUrl;
+        _scenarioContext["HttpClient"] = _httpClient;
+
+        CleanupTestDataAsync().Wait();
     }
 
     [AfterScenario]
     public void AfterScenario()
     {
+        CleanupTestDataAsync().Wait();
+
+        if (_httpClient is IDisposable httpDisposable)
+        {
+            httpDisposable.Dispose();
+        }
         if (_serviceProvider is IDisposable disposable)
         {
             disposable.Dispose();
+        }
+    }
+
+    private async Task CleanupTestDataAsync()
+    {
+        try
+        {
+            var mutation = @"
+                mutation CleanupTestData {
+                    cleanupTestData {
+                        success
+                        message
+                    }
+                }";
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(new { query = mutation }),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient!.PostAsync("", content);
+            response.EnsureSuccessStatusCode();
+        }
+        catch
+        {
         }
     }
 
