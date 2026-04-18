@@ -135,7 +135,7 @@ public class ProjectMutationTests : IAsyncLifetime
             Name: "[TestData] Minimal Project",
             Description: null,
             Architecture: null,
-            Memory: null,
+            Memory: "4GB",
             GithubUrl: null);
 
         var result = await mutation.CreateProjectAsync(

@@ -8,8 +8,7 @@ using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
-using FeatureStatus = DevStack.Client.FeatureStatus;
-using TaskStatus = DevStack.Domain.Enums.TaskStatus;
+using TaskStatus = DevStack.Domain.Enums.FeatureStatus;
 
 namespace DevStack.Tests.Integration.GraphQL;
 
@@ -19,7 +18,6 @@ public class TaskMutationTests : IAsyncLifetime
     private readonly SqliteConnection _connection;
     private readonly DbContextOptions<DevStackDbContext> _options;
     private Guid _projectId;
-    private Guid _featureId;
 
     public TaskMutationTests()
     {
@@ -40,11 +38,13 @@ public class TaskMutationTests : IAsyncLifetime
 
     private async System.Threading.Tasks.Task SeedDataAsync()
     {
-        if (_dbContext is null) return;
+        if (_dbContext is null)
+        {
+            return;
+        }
 
         _projectId = Guid.NewGuid();
-        _featureId = Guid.NewGuid();
-        
+
         var project = new Project
         {
             Id = _projectId,
@@ -53,19 +53,8 @@ public class TaskMutationTests : IAsyncLifetime
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.Projects.Add(project);
 
-        var item = new Item
-        {
-            Id = _featureId,
-            ProjectId = _projectId,
-            Title = "[TestData] Test Feature",
-            Status = (DevStack.Domain.Enums.FeatureStatus)(object)FeatureStatus.Planning,
-            Subtype = ItemSubtype.Feature,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-        _dbContext.Items.Add(item);
+        _dbContext.Projects.Add(project);
         await _dbContext.SaveChangesAsync();
     }
 
@@ -75,6 +64,7 @@ public class TaskMutationTests : IAsyncLifetime
         {
             await _dbContext.DisposeAsync();
         }
+
         _connection.Close();
     }
 
@@ -84,14 +74,15 @@ public class TaskMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         var input = new CreateTaskInput(
             ProjectId: _projectId,
-            ItemId: _featureId,
             Title: "[TestData] New Task",
+            Description: "Task description",
             Deliverable: "Implement feature",
             AcceptanceCriteria: "Tests pass",
             Risks: null,
             Result: null,
             RequiredFollowUps: null,
-            ComplexityRating: 5);
+            ComplexityRating: 5,
+            InitialStatus: FeatureStatus.Planning);
 
         var result = await mutation.CreateTaskAsync(
             input,
@@ -99,8 +90,8 @@ public class TaskMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Task.Should().NotBeNull();
-        result.Task!.Id.Should().NotBeEmpty();
+        result.Item.Should().NotBeNull();
+        result.Item!.Id.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -109,21 +100,22 @@ public class TaskMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         var input = new CreateTaskInput(
             ProjectId: _projectId,
-            ItemId: _featureId,
-            Title: "",
+            Title: string.Empty,
+            Description: null,
             Deliverable: null,
             AcceptanceCriteria: null,
             Risks: null,
             Result: null,
             RequiredFollowUps: null,
-            ComplexityRating: 5);
+            ComplexityRating: 5,
+            InitialStatus: FeatureStatus.Planning);
 
         var result = await mutation.CreateTaskAsync(
             input,
             new CreateTaskHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Task.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain("Title is required");
     }
 
@@ -133,21 +125,22 @@ public class TaskMutationTests : IAsyncLifetime
         var mutation = new Mutation();
         var input = new CreateTaskInput(
             ProjectId: _projectId,
-            ItemId: _featureId,
             Title: "[TestData] Invalid Task",
+            Description: null,
             Deliverable: null,
             AcceptanceCriteria: null,
             Risks: null,
             Result: null,
             RequiredFollowUps: null,
-            ComplexityRating: 15);
+            ComplexityRating: 15,
+            InitialStatus: FeatureStatus.Planning);
 
         var result = await mutation.CreateTaskAsync(
             input,
             new CreateTaskHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Task.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain("ComplexityRating must be between 1 and 10");
     }
 
@@ -155,26 +148,27 @@ public class TaskMutationTests : IAsyncLifetime
     public async Task UpdateTask_Succeeds_With_Valid_Input()
     {
         var mutation = new Mutation();
-        
+
         var taskId = Guid.NewGuid();
-        var task = new AgentTask
+        var task = new Item
         {
             Id = taskId,
             ProjectId = _projectId,
-            FeatureId = _featureId,
             Title = "[TestData] Original Title",
             Status = TaskStatus.Planning,
+            ItemType = ItemSubtype.Task,
             Deliverable = "Original deliverable",
             ComplexityRating = 3,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext!.Tasks.Add(task);
+        _dbContext!.Items.Add(task);
         await _dbContext.SaveChangesAsync();
 
         var input = new UpdateTaskInput(
             Id: taskId,
             Title: "[TestData] Updated Title",
+            Description: "Updated description",
             Deliverable: "Updated deliverable",
             AcceptanceCriteria: null,
             Risks: null,
@@ -188,7 +182,7 @@ public class TaskMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Task.Should().NotBeNull();
+        result.Item.Should().NotBeNull();
     }
 
     [Fact]
@@ -198,6 +192,7 @@ public class TaskMutationTests : IAsyncLifetime
         var input = new UpdateTaskInput(
             Id: Guid.NewGuid(),
             Title: "Updated Title",
+            Description: null,
             Deliverable: null,
             AcceptanceCriteria: null,
             Risks: null,
@@ -210,7 +205,7 @@ public class TaskMutationTests : IAsyncLifetime
             new UpdateTaskHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Task.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain(e => e.Contains("NOT_FOUND"));
     }
 
@@ -218,21 +213,21 @@ public class TaskMutationTests : IAsyncLifetime
     public async Task TransitionTaskStatus_Succeeds_For_Valid_Transition()
     {
         var mutation = new Mutation();
-        
+
         var taskId = Guid.NewGuid();
-        var task = new AgentTask
+        var task = new Item
         {
             Id = taskId,
             ProjectId = _projectId,
-            FeatureId = _featureId,
             Title = "[TestData] Test Task",
             Status = TaskStatus.Planning,
+            ItemType = ItemSubtype.Task,
             Deliverable = "Test deliverable",
             ComplexityRating = 3,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext!.Tasks.Add(task);
+        _dbContext!.Items.Add(task);
         await _dbContext.SaveChangesAsync();
 
         var input = new TransitionTaskInput(
@@ -246,11 +241,11 @@ public class TaskMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Task.Should().NotBeNull();
-        
-        var updatedTask = await _dbContext.Tasks.FindAsync(taskId);
+        result.Item.Should().NotBeNull();
+
+        var updatedTask = await _dbContext.Items.FindAsync(taskId);
         updatedTask!.Status.Should().Be(TaskStatus.Ready);
-        
+
         var auditEvent = await _dbContext.AuditEvents.FirstOrDefaultAsync();
         auditEvent.Should().NotBeNull();
         auditEvent!.EventType.Should().Be("StatusChanged");
@@ -261,21 +256,21 @@ public class TaskMutationTests : IAsyncLifetime
     public async Task DeleteTask_Succeeds_With_Valid_Id()
     {
         var mutation = new Mutation();
-        
+
         var taskId = Guid.NewGuid();
-        var task = new AgentTask
+        var task = new Item
         {
             Id = taskId,
             ProjectId = _projectId,
-            FeatureId = _featureId,
             Title = "[TestData] To Delete",
             Status = TaskStatus.Planning,
+            ItemType = ItemSubtype.Task,
             Deliverable = "Test deliverable",
             ComplexityRating = 3,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext!.Tasks.Add(task);
+        _dbContext!.Items.Add(task);
         await _dbContext.SaveChangesAsync();
 
         var input = new DeleteTaskInput(Id: taskId);
@@ -286,9 +281,9 @@ public class TaskMutationTests : IAsyncLifetime
             CancellationToken.None);
 
         result.Errors.Should().BeEmpty();
-        result.Task.Should().NotBeNull();
+        result.Item.Should().NotBeNull();
 
-        var deletedTask = await _dbContext.Tasks.FindAsync(taskId);
+        var deletedTask = await _dbContext.Items.FindAsync(taskId);
         deletedTask.Should().BeNull();
     }
 
@@ -303,7 +298,7 @@ public class TaskMutationTests : IAsyncLifetime
             new DeleteTaskHandler(_dbContext!),
             CancellationToken.None);
 
-        result.Task.Should().BeNull();
+        result.Item.Should().BeNull();
         result.Errors.Should().Contain(e => e.Contains("NOT_FOUND"));
     }
 }

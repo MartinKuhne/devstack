@@ -34,10 +34,13 @@ public class SchemaSnapshotTests : IAsyncLifetime
 
     private async System.Threading.Tasks.Task SeedDataAsync()
     {
-        if (_dbContext is null) return;
+        if (_dbContext is null)
+        {
+            return;
+        }
 
         var projectId = Guid.NewGuid();
-        
+
         var project = new Project
         {
             Id = projectId,
@@ -50,7 +53,9 @@ public class SchemaSnapshotTests : IAsyncLifetime
         };
         _dbContext.Projects.Add(project);
 
-        var feature = new Item { Subtype = ItemSubtype.Feature,
+        var feature = new Item
+        {
+            Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "[TestData] Snapshot Feature",
@@ -61,18 +66,20 @@ public class SchemaSnapshotTests : IAsyncLifetime
         };
         _dbContext.Items.Add(feature);
 
-        var task = new AgentTask
+        var task = new Item
         {
+            Subtype = ItemSubtype.Task,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            ItemId = feature.Id,
+            ParentFeatureId = feature.Id,
             Title = "[TestData] Snapshot Task",
-            Status = DevStack.Domain.Enums.TaskStatus.Planning,
+            Description = "Task for schema testing",
+            Status = FeatureStatus.Planning,
             Deliverable = "Test task",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.Tasks.Add(task);
+        _dbContext.Items.Add(task);
 
         await _dbContext.SaveChangesAsync();
     }
@@ -93,19 +100,19 @@ public class SchemaSnapshotTests : IAsyncLifetime
         var mutation = new Mutation();
 
         var features = query.GetFeatures(_dbContext!);
-        var tasks = query.GetTasks(_dbContext!);
+        var tasks = query.GetItems(_dbContext!, subtype: [ItemSubtype.Task]);
 
         features.Nodes.Should().HaveCount(1);
         tasks.Nodes.Should().HaveCount(1);
 
-        var input = new TransitionTaskInput(tasks.Nodes.First().Id, DevStack.Domain.Enums.TaskStatus.Code, "test@example.com");
+        var input = new TransitionTaskInput(tasks.Nodes.First().Id, FeatureStatus.InProgress, "test@example.com");
         var handler = new DevStack.Infrastructure.Tasks.TransitionTaskStatusHandler(_dbContext!);
         var result = await mutation.TransitionTaskStatusAsync(input, handler, default);
-        result.Task.Should().NotBeNull();
+        result.Item.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task DashboardSummary_Snapshot_Returns_Correct_Data()
+    public void DashboardSummary_Snapshot_Returns_Correct_Data()
     {
         var query = new Query();
 
@@ -125,11 +132,11 @@ public class SchemaSnapshotTests : IAsyncLifetime
         var mutation = new Mutation();
         var task = _dbContext!.Tasks.First();
 
-        var input = new TransitionTaskInput(task.Id, DevStack.Domain.Enums.TaskStatus.Code, "test@example.com");
+        var input = new TransitionTaskInput(task.Id, FeatureStatus.InProgress, "test@example.com");
         var handler = new DevStack.Infrastructure.Tasks.TransitionTaskStatusHandler(_dbContext);
         var result = await mutation.TransitionTaskStatusAsync(input, handler, default);
 
-        result.Task.Should().NotBeNull();
+        result.Item.Should().NotBeNull();
 
         var auditEvents = _dbContext.AuditEvents.ToList();
         auditEvents.Should().HaveCount(1);

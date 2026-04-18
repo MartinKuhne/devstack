@@ -100,7 +100,7 @@ public class EpicQueryTests : IAsyncLifetime
     [Fact]
     public void GetItemById_Returns_Epic_When_Exists()
     {
-        var epic = _dbContext!.Items.First(i => i.Subtype == ItemSubtype.Epic);
+        var epic = _dbContext!.Items.First(i => i.ItemType == ItemSubtype.Epic);
         var result = _query.GetItemById(_dbContext, epic.Id);
 
         result.Should().NotBeNull();
