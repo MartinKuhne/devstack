@@ -173,6 +173,7 @@ public class Query
 
 public TaskConnection GetTasks(
         [Service] DevStackDbContext dbContext,
+        Guid? projectId = null,
         Guid? itemId = null,
         List<global::DevStack.Domain.Enums.TaskStatus>? status = null,
         DateTime? createdAfter = null,
@@ -181,6 +182,10 @@ public TaskConnection GetTasks(
         int? skip = null)
     {
         var query = dbContext.Tasks.AsQueryable();
+        if (projectId.HasValue)
+        {
+            query = query.Where(t => t.ProjectId == projectId.Value);
+        }
         if (itemId.HasValue)
         {
             query = query.Where(t => t.ItemId == itemId.Value);
