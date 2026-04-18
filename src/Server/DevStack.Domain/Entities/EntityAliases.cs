@@ -19,3 +19,12 @@ public class Feature : Item
 public class Defect : Item
 {
 }
+
+/// <summary>
+/// Legacy type alias for backward compatibility during migration.
+/// Use LargeLanguageModel instead.
+/// </summary>
+[Obsolete("Use LargeLanguageModel instead")]
+public class ModelConfiguration : LargeLanguageModel
+{
+}

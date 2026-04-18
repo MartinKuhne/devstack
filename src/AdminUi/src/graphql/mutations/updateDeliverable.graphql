@@ -1,0 +1,10 @@
+mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
+    updateDeliverable(input: $input) {
+        deliverable {
+            id
+            title
+            status
+        }
+        errors
+    }
+}
