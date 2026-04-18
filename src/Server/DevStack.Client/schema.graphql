@@ -120,14 +120,7 @@ type ProjectPageInfo {
   totalCount: Int!
 }
 
-input UpdateModelConfigurationInput {
-  id: UUID!
-  url: String
-  model: String
-  modelAlias: String
-  apiKey: String
-  maxComplexity: Int
-}
+
 
 type ProjectPayload {
   project: Project
@@ -188,8 +181,7 @@ type Mutation {
   updateTask(input: UpdateTaskInput!): TaskPayload!
   transitionTaskStatus(input: TransitionTaskInput!): TaskPayload!
   deleteTask(input: DeleteTaskInput!): TaskPayload!
-  createModelConfiguration(input: CreateModelConfigurationInput!): ModelConfigurationPayload!
-  updateModelConfiguration(input: UpdateModelConfigurationInput!): ModelConfigurationPayload!
+ 
   createLargeLanguageModel(input: CreateLargeLanguageModelInput!): LargeLanguageModelPayload!
   updateLargeLanguageModel(input: UpdateLargeLanguageModelInput!): LargeLanguageModelPayload!
   deleteLargeLanguageModel(input: DeleteLargeLanguageModelInput!): LargeLanguageModelPayload!
@@ -326,10 +318,7 @@ input CreateEpicInput {
   description: String
 }
 
-type ModelConfigurationPayload {
-  modelConfiguration: ModelConfiguration
-  errors: [String!]!
-}
+
 
 type LargeLanguageModelPayload {
   largeLanguageModel: LargeLanguageModel
@@ -379,6 +368,11 @@ type ModelConfiguration {
   maxComplexity: Int
   createdAt: DateTime
   updatedAt: DateTime
+}
+
+type ModelConfigurationPayload {
+  modelConfiguration: ModelConfiguration
+  errors: [String!]!
 }
 
 type TaskConnection {
