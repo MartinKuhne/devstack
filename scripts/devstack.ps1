@@ -375,14 +375,14 @@ function Invoke-TaskBatch {
 
     $projectId = Get-CurrentProjectId
     $query     = Load-GraphQLFile "getTasks.graphql"
-    $result    = Invoke-GraphQL -Operation $query -Variables @{ status = @($StatusFilter); first = 100 }
+    $result    = Invoke-GraphQL -Operation $query -Variables @{ projectId = $projectId; first = 100 }
 
     if ($result.errors) {
         Write-Error "Failed to query tasks: $($result.errors -join ', ')"
         exit 1
     }
 
-    $items = $result.data.tasks.nodes | Where-Object { $_.projectId -eq $projectId }
+    $items = $result.data.tasks.nodes | Where-Object { $_.status -eq $StatusFilter }
 
     if (-not $items) {
         Write-Host "No tasks in $StatusFilter status found for project."
@@ -435,7 +435,7 @@ If there are open questions, use the transition_task_status tool to change the s
 }
 
 function Run-Tasks {
-    Invoke-TaskBatch -StatusFilter "READY" -BuildPrompt {
+    Invoke-TaskBatch -StatusFilter "PLANNING" -BuildPrompt {
         param($item)
         @"
 Implement the following task:

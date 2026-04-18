@@ -1,5 +1,5 @@
-query GetTasks($status: [TaskStatus!], $first: Int!) {
-  tasks(status: $status, first: $first) {
+query GetTasks($projectId: UUID!, $first: Int!) {
+  tasks(projectId: $projectId, first: $first) {
     nodes {
       id
       title
