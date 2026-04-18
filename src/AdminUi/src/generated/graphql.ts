@@ -25,9 +25,14 @@ export type Scalars = {
 export type AgentTask = {
   __typename?: 'AgentTask';
   acceptanceCriteria: Maybe<Scalars['String']['output']>;
+  commitHash: Maybe<Scalars['String']['output']>;
+  completionTokens: Maybe<Scalars['Int']['output']>;
   complexityRating: Maybe<Scalars['Int']['output']>;
   createdAt: Maybe<Scalars['DateTime']['output']>;
   deliverable: Maybe<Scalars['String']['output']>;
+  dependsOnAgentTask: Maybe<Array<Maybe<AgentTask>>>;
+  errors: Maybe<Scalars['String']['output']>;
+  executionDurationInSeconds: Maybe<Scalars['Int']['output']>;
   /** @deprecated Use Item instead */
   feature: Maybe<Item>;
   /** @deprecated Use ItemId and Item instead */
@@ -35,15 +40,33 @@ export type AgentTask = {
   id: Maybe<Scalars['ID']['output']>;
   item: Maybe<Item>;
   itemId: Maybe<Scalars['ID']['output']>;
+  model: Maybe<Scalars['String']['output']>;
   projectId: Scalars['UUID']['output'];
+  promptTokens: Maybe<Scalars['Int']['output']>;
   requiredFollowUps: Maybe<Scalars['String']['output']>;
   result: Maybe<Scalars['String']['output']>;
   risks: Maybe<Scalars['String']['output']>;
-  status: Maybe<TaskStatus>;
+  status: Maybe<AgentTaskStatus>;
   title: Maybe<Scalars['String']['output']>;
   updatedAt: Maybe<Scalars['DateTime']['output']>;
 };
 
+export type AgentTaskPayload = {
+  __typename?: 'AgentTaskPayload';
+  errors: Array<Scalars['String']['output']>;
+  task: Maybe<AgentTask>;
+};
+
+export const AgentTaskStatus = {
+  DONE: 'DONE',
+  FAILED: 'FAILED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  NEEDS_REVIEW: 'NEEDS_REVIEW',
+  READY: 'READY',
+  REJECTED: 'REJECTED'
+} as const;
+
+export type AgentTaskStatus = typeof AgentTaskStatus[keyof typeof AgentTaskStatus];
 export type AuditEvent = {
   __typename?: 'AuditEvent';
   actor: Maybe<Scalars['String']['output']>;
@@ -60,6 +83,18 @@ export type CancelWorkflowRunInput = {
   id: Scalars['UUID']['input'];
 };
 
+export type CreateAgentTaskInput = {
+  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
+  complexityRating: Scalars['Int']['input'];
+  deliverable: InputMaybe<Scalars['String']['input']>;
+  itemId: Scalars['UUID']['input'];
+  projectId: Scalars['UUID']['input'];
+  requiredFollowUps: InputMaybe<Scalars['String']['input']>;
+  result: InputMaybe<Scalars['String']['input']>;
+  risks: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
+};
+
 export type CreateDefectInput = {
   acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
   deploymentPlan: InputMaybe<Scalars['String']['input']>;
@@ -74,6 +109,22 @@ export type CreateDefectInput = {
   severity: InputMaybe<Severity>;
   testPlan: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
+};
+
+export type CreateDeliverableInput = {
+  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
+  deploymentPlan: InputMaybe<Scalars['String']['input']>;
+  description: InputMaybe<Scalars['String']['input']>;
+  epicId: InputMaybe<Scalars['UUID']['input']>;
+  initialStatus: InputMaybe<DeliverableStatus>;
+  openQuestions: InputMaybe<Scalars['String']['input']>;
+  performanceImpact: InputMaybe<Scalars['String']['input']>;
+  plan: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['UUID']['input'];
+  securityImpact: InputMaybe<Scalars['String']['input']>;
+  testPlan: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
+  type: DeliverableType;
 };
 
 export type CreateEpicInput = {
@@ -94,6 +145,15 @@ export type CreateFeatureInput = {
   securityImpact: InputMaybe<Scalars['String']['input']>;
   testPlan: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
+};
+
+export type CreateLargeLanguageModelInput = {
+  apiKey: Scalars['String']['input'];
+  maxComplexity: Scalars['Int']['input'];
+  model: Scalars['String']['input'];
+  modelAlias: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['UUID']['input'];
+  url: Scalars['String']['input'];
 };
 
 export type CreateModelConfigurationInput = {
@@ -148,7 +208,15 @@ export type DefectPayload = {
   item: Maybe<Item>;
 };
 
+export type DeleteAgentTaskInput = {
+  id: Scalars['UUID']['input'];
+};
+
 export type DeleteDefectInput = {
+  id: Scalars['UUID']['input'];
+};
+
+export type DeleteDeliverableInput = {
   id: Scalars['UUID']['input'];
 };
 
@@ -157,6 +225,10 @@ export type DeleteEpicInput = {
 };
 
 export type DeleteFeatureInput = {
+  id: Scalars['UUID']['input'];
+};
+
+export type DeleteLargeLanguageModelInput = {
   id: Scalars['UUID']['input'];
 };
 
@@ -172,6 +244,62 @@ export type DeleteTaskInput = {
   id: Scalars['UUID']['input'];
 };
 
+export type Deliverable = {
+  __typename?: 'Deliverable';
+  acceptanceCriteria: Maybe<Scalars['String']['output']>;
+  createdAt: Maybe<Scalars['DateTime']['output']>;
+  deliverableType: DeliverableType;
+  deploymentPlan: Maybe<Scalars['String']['output']>;
+  description: Maybe<Scalars['String']['output']>;
+  epic: Maybe<Epic>;
+  epicId: Maybe<Scalars['ID']['output']>;
+  errors: Maybe<Scalars['String']['output']>;
+  id: Maybe<Scalars['ID']['output']>;
+  openQuestions: Maybe<Scalars['String']['output']>;
+  parentDeliverable: Maybe<Deliverable>;
+  parentDeliverableId: Maybe<Scalars['ID']['output']>;
+  performanceImpact: Maybe<Scalars['String']['output']>;
+  plan: Maybe<Scalars['String']['output']>;
+  project: Maybe<Project>;
+  projectId: Maybe<Scalars['ID']['output']>;
+  result: Maybe<Scalars['String']['output']>;
+  rootCause: Maybe<Scalars['String']['output']>;
+  securityImpact: Maybe<Scalars['String']['output']>;
+  severity: Maybe<Severity>;
+  status: Maybe<DeliverableStatus>;
+  tasks: Maybe<Array<Maybe<AgentTask>>>;
+  testPlan: Maybe<Scalars['String']['output']>;
+  title: Maybe<Scalars['String']['output']>;
+  type: Maybe<DeliverableType>;
+  updatedAt: Maybe<Scalars['DateTime']['output']>;
+  validStatusTransitions: Maybe<Array<Maybe<DeliverableStatus>>>;
+};
+
+export type DeliverablePayload = {
+  __typename?: 'DeliverablePayload';
+  deliverable: Maybe<Deliverable>;
+  errors: Array<Scalars['String']['output']>;
+};
+
+export const DeliverableStatus = {
+  DONE: 'DONE',
+  DRAFT: 'DRAFT',
+  FAILED: 'FAILED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  NEEDS_REVIEW: 'NEEDS_REVIEW',
+  PLANNING: 'PLANNING',
+  READY: 'READY',
+  REJECTED: 'REJECTED'
+} as const;
+
+export type DeliverableStatus = typeof DeliverableStatus[keyof typeof DeliverableStatus];
+export const DeliverableType = {
+  DEFECT: 'DEFECT',
+  FEATURE: 'FEATURE',
+  MAINTENANCE: 'MAINTENANCE'
+} as const;
+
+export type DeliverableType = typeof DeliverableType[keyof typeof DeliverableType];
 export type Epic = {
   __typename?: 'Epic';
   createdAt: Maybe<Scalars['DateTime']['output']>;
@@ -279,6 +407,26 @@ export const ItemSubtype = {
 } as const;
 
 export type ItemSubtype = typeof ItemSubtype[keyof typeof ItemSubtype];
+export type LargeLanguageModel = {
+  __typename?: 'LargeLanguageModel';
+  apiKey_Encrypted: Maybe<Scalars['String']['output']>;
+  createdAt: Maybe<Scalars['DateTime']['output']>;
+  id: Maybe<Scalars['ID']['output']>;
+  maxComplexity: Maybe<Scalars['Int']['output']>;
+  model: Maybe<Scalars['String']['output']>;
+  modelAlias: Maybe<Scalars['String']['output']>;
+  project: Maybe<Project>;
+  projectId: Maybe<Scalars['ID']['output']>;
+  updatedAt: Maybe<Scalars['DateTime']['output']>;
+  url: Maybe<Scalars['String']['output']>;
+};
+
+export type LargeLanguageModelPayload = {
+  __typename?: 'LargeLanguageModelPayload';
+  errors: Array<Scalars['String']['output']>;
+  largeLanguageModel: Maybe<LargeLanguageModel>;
+};
+
 export type ModelConfiguration = {
   __typename?: 'ModelConfiguration';
   apiKey_Encrypted: Maybe<Scalars['String']['output']>;
@@ -300,25 +448,36 @@ export type ModelConfigurationPayload = {
 export type Mutation = {
   __typename?: 'Mutation';
   cancelWorkflowRun: WorkflowRunPayload;
+  createAgentTask: AgentTaskPayload;
   createDefect: DefectPayload;
+  createDeliverable: DeliverablePayload;
   createEpic: EpicPayload;
   createFeature: FeaturePayload;
+  createLargeLanguageModel: LargeLanguageModelPayload;
   createModelConfiguration: ModelConfigurationPayload;
   createProject: ProjectPayload;
   createTask: TaskPayload;
   createWorkflowRun: WorkflowRunPayload;
+  deleteAgentTask: AgentTaskPayload;
   deleteDefect: DefectPayload;
+  deleteDeliverable: DeliverablePayload;
   deleteEpic: EpicPayload;
   deleteFeature: FeaturePayload;
+  deleteLargeLanguageModel: LargeLanguageModelPayload;
   deleteModelConfiguration: ModelConfigurationPayload;
   deleteProject: ProjectPayload;
   deleteTask: TaskPayload;
+  transitionAgentTaskStatus: AgentTaskPayload;
   transitionDefectStatus: DefectPayload;
+  transitionDeliverableStatus: DeliverablePayload;
   transitionFeatureStatus: FeaturePayload;
   transitionTaskStatus: TaskPayload;
+  updateAgentTask: AgentTaskPayload;
   updateDefect: DefectPayload;
+  updateDeliverable: DeliverablePayload;
   updateEpic: EpicPayload;
   updateFeature: FeaturePayload;
+  updateLargeLanguageModel: LargeLanguageModelPayload;
   updateModelConfiguration: ModelConfigurationPayload;
   updateProject: ProjectPayload;
   updateTask: TaskPayload;
@@ -331,8 +490,18 @@ export type MutationcancelWorkflowRunArgs = {
 };
 
 
+export type MutationcreateAgentTaskArgs = {
+  input: CreateAgentTaskInput;
+};
+
+
 export type MutationcreateDefectArgs = {
   input: CreateDefectInput;
+};
+
+
+export type MutationcreateDeliverableArgs = {
+  input: CreateDeliverableInput;
 };
 
 
@@ -343,6 +512,11 @@ export type MutationcreateEpicArgs = {
 
 export type MutationcreateFeatureArgs = {
   input: CreateFeatureInput;
+};
+
+
+export type MutationcreateLargeLanguageModelArgs = {
+  input: CreateLargeLanguageModelInput;
 };
 
 
@@ -366,8 +540,18 @@ export type MutationcreateWorkflowRunArgs = {
 };
 
 
+export type MutationdeleteAgentTaskArgs = {
+  input: DeleteAgentTaskInput;
+};
+
+
 export type MutationdeleteDefectArgs = {
   input: DeleteDefectInput;
+};
+
+
+export type MutationdeleteDeliverableArgs = {
+  input: DeleteDeliverableInput;
 };
 
 
@@ -378,6 +562,11 @@ export type MutationdeleteEpicArgs = {
 
 export type MutationdeleteFeatureArgs = {
   input: DeleteFeatureInput;
+};
+
+
+export type MutationdeleteLargeLanguageModelArgs = {
+  input: DeleteLargeLanguageModelInput;
 };
 
 
@@ -396,8 +585,18 @@ export type MutationdeleteTaskArgs = {
 };
 
 
+export type MutationtransitionAgentTaskStatusArgs = {
+  input: TransitionAgentTaskInput;
+};
+
+
 export type MutationtransitionDefectStatusArgs = {
   input: TransitionDefectInput;
+};
+
+
+export type MutationtransitionDeliverableStatusArgs = {
+  input: TransitionDeliverableInput;
 };
 
 
@@ -411,8 +610,18 @@ export type MutationtransitionTaskStatusArgs = {
 };
 
 
+export type MutationupdateAgentTaskArgs = {
+  input: UpdateAgentTaskInput;
+};
+
+
 export type MutationupdateDefectArgs = {
   input: UpdateDefectInput;
+};
+
+
+export type MutationupdateDeliverableArgs = {
+  input: UpdateDeliverableInput;
 };
 
 
@@ -423,6 +632,11 @@ export type MutationupdateEpicArgs = {
 
 export type MutationupdateFeatureArgs = {
   input: UpdateFeatureInput;
+};
+
+
+export type MutationupdateLargeLanguageModelArgs = {
+  input: UpdateLargeLanguageModelInput;
 };
 
 
@@ -449,16 +663,19 @@ export type Project = {
   __typename?: 'Project';
   architecture: Maybe<Scalars['String']['output']>;
   createdAt: Maybe<Scalars['DateTime']['output']>;
+  deliverables: Maybe<Array<Maybe<Deliverable>>>;
   description: Maybe<Scalars['String']['output']>;
   epics: Array<Epic>;
-  /** @deprecated Use items field instead */
+  /** @deprecated Use items instead */
   features: Maybe<Array<Maybe<Item>>>;
   githubToken_Encrypted: Maybe<Scalars['String']['output']>;
   githubUrl: Maybe<Scalars['String']['output']>;
   id: Maybe<Scalars['ID']['output']>;
   items: Maybe<Array<Maybe<Item>>>;
+  llms: Array<LargeLanguageModel>;
   memory: Maybe<Scalars['String']['output']>;
   name: Maybe<Scalars['String']['output']>;
+  repository: Maybe<Scalars['String']['output']>;
   updatedAt: Maybe<Scalars['DateTime']['output']>;
 };
 
@@ -484,24 +701,45 @@ export type ProjectPayload = {
 
 export type Query = {
   __typename?: 'Query';
+  agentTaskById: Maybe<AgentTask>;
+  agentTasks: TaskConnection;
   auditEvents: Array<AuditEvent>;
   dashboardSummary: DashboardSummary;
   /** @deprecated Use getItemById instead */
   defectById: Maybe<Item>;
   /** @deprecated Use GetItems with subtype filter instead */
   defects: ItemConnection;
+  deliverableById: Maybe<Deliverable>;
   /** @deprecated Use getItemById instead */
   featureById: Maybe<Item>;
   /** @deprecated Use GetItems instead */
   features: ItemConnection;
   getItemById: Maybe<Item>;
+  itemById: Maybe<Item>;
   items: ItemConnection;
+  largeLanguageModels: Array<LargeLanguageModel>;
   modelConfigurations: Array<ModelConfiguration>;
   projectById: Maybe<Project>;
   projects: ProjectConnection;
   taskById: Maybe<AgentTask>;
   tasks: TaskConnection;
+  validDeliverableStatusTransitions: Array<DeliverableStatus>;
   validStatusTransitions: Array<FeatureStatus>;
+};
+
+
+export type QueryagentTaskByIdArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryagentTasksArgs = {
+  createdAfter: InputMaybe<Scalars['DateTime']['input']>;
+  createdBefore: InputMaybe<Scalars['DateTime']['input']>;
+  first?: Scalars['Int']['input'];
+  itemId: InputMaybe<Scalars['UUID']['input']>;
+  skip: InputMaybe<Scalars['Int']['input']>;
+  status: InputMaybe<Array<AgentTaskStatus>>;
 };
 
 
@@ -524,6 +762,11 @@ export type QuerydefectsArgs = {
 };
 
 
+export type QuerydeliverableByIdArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
 export type QueryfeatureByIdArgs = {
   id: Scalars['UUID']['input'];
 };
@@ -542,6 +785,11 @@ export type QuerygetItemByIdArgs = {
 };
 
 
+export type QueryitemByIdArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
 export type QueryitemsArgs = {
   createdAfter: InputMaybe<Scalars['DateTime']['input']>;
   createdBefore: InputMaybe<Scalars['DateTime']['input']>;
@@ -551,6 +799,11 @@ export type QueryitemsArgs = {
   skip: InputMaybe<Scalars['Int']['input']>;
   status: InputMaybe<Array<FeatureStatus>>;
   subtype: InputMaybe<Array<ItemSubtype>>;
+};
+
+
+export type QuerylargeLanguageModelsArgs = {
+  projectId: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
@@ -577,6 +830,11 @@ export type QuerytasksArgs = {
   itemId: InputMaybe<Scalars['UUID']['input']>;
   skip: InputMaybe<Scalars['Int']['input']>;
   status: InputMaybe<Array<TaskStatus>>;
+};
+
+
+export type QueryvalidDeliverableStatusTransitionsArgs = {
+  deliverableId: Scalars['UUID']['input'];
 };
 
 
@@ -627,10 +885,22 @@ export const TaskStatus = {
 } as const;
 
 export type TaskStatus = typeof TaskStatus[keyof typeof TaskStatus];
+export type TransitionAgentTaskInput = {
+  actor: Scalars['String']['input'];
+  id: Scalars['UUID']['input'];
+  targetStatus: AgentTaskStatus;
+};
+
 export type TransitionDefectInput = {
   actor: Scalars['String']['input'];
   id: Scalars['UUID']['input'];
   targetStatus: FeatureStatus;
+};
+
+export type TransitionDeliverableInput = {
+  actor: Scalars['String']['input'];
+  id: Scalars['UUID']['input'];
+  targetStatus: DeliverableStatus;
 };
 
 export type TransitionFeatureInput = {
@@ -645,6 +915,23 @@ export type TransitionTaskInput = {
   targetStatus: TaskStatus;
 };
 
+export type UpdateAgentTaskInput = {
+  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
+  commitHash: InputMaybe<Scalars['String']['input']>;
+  completionTokens: InputMaybe<Scalars['Int']['input']>;
+  complexityRating: InputMaybe<Scalars['Int']['input']>;
+  deliverable: InputMaybe<Scalars['String']['input']>;
+  errors: InputMaybe<Scalars['String']['input']>;
+  executionDurationInSeconds: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['UUID']['input'];
+  model: InputMaybe<Scalars['String']['input']>;
+  promptTokens: InputMaybe<Scalars['Int']['input']>;
+  requiredFollowUps: InputMaybe<Scalars['String']['input']>;
+  result: InputMaybe<Scalars['String']['input']>;
+  risks: InputMaybe<Scalars['String']['input']>;
+  title: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpdateDefectInput = {
   acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
   deploymentPlan: InputMaybe<Scalars['String']['input']>;
@@ -656,6 +943,21 @@ export type UpdateDefectInput = {
   rootCause: InputMaybe<Scalars['String']['input']>;
   securityImpact: InputMaybe<Scalars['String']['input']>;
   severity: InputMaybe<Severity>;
+  testPlan: InputMaybe<Scalars['String']['input']>;
+  title: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateDeliverableInput = {
+  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
+  deploymentPlan: InputMaybe<Scalars['String']['input']>;
+  description: InputMaybe<Scalars['String']['input']>;
+  errors: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  openQuestions: InputMaybe<Scalars['String']['input']>;
+  performanceImpact: InputMaybe<Scalars['String']['input']>;
+  plan: InputMaybe<Scalars['String']['input']>;
+  result: InputMaybe<Scalars['String']['input']>;
+  securityImpact: InputMaybe<Scalars['String']['input']>;
   testPlan: InputMaybe<Scalars['String']['input']>;
   title: InputMaybe<Scalars['String']['input']>;
 };
@@ -677,6 +979,15 @@ export type UpdateFeatureInput = {
   securityImpact: InputMaybe<Scalars['String']['input']>;
   testPlan: InputMaybe<Scalars['String']['input']>;
   title: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateLargeLanguageModelInput = {
+  apiKey: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  maxComplexity: InputMaybe<Scalars['Int']['input']>;
+  model: InputMaybe<Scalars['String']['input']>;
+  modelAlias: InputMaybe<Scalars['String']['input']>;
+  url: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateModelConfigurationInput = {
@@ -769,6 +1080,13 @@ export type CreateDefectMutationVariables = Exact<{
 
 export type CreateDefectMutation = { __typename?: 'Mutation', createDefect: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null } | null } };
 
+export type CreateDeliverableMutationVariables = Exact<{
+  input: CreateDeliverableInput;
+}>;
+
+
+export type CreateDeliverableMutation = { __typename?: 'Mutation', createDeliverable: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable: { __typename?: 'Deliverable', id: string | null, title: string | null, status: DeliverableStatus | null } | null } };
+
 export type CreateEpicMutationVariables = Exact<{
   input: CreateEpicInput;
 }>;
@@ -802,7 +1120,7 @@ export type CreateTaskMutationVariables = Exact<{
 }>;
 
 
-export type CreateTaskMutation = { __typename?: 'Mutation', createTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, featureId: any, createdAt: any | null, updatedAt: any | null } | null } };
+export type CreateTaskMutation = { __typename?: 'Mutation', createTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, featureId: any, createdAt: any | null, updatedAt: any | null } | null } };
 
 export type CreateWorkflowRunMutationVariables = Exact<{
   input: CreateWorkflowRunInput;
@@ -860,6 +1178,13 @@ export type TransitionDefectStatusMutationVariables = Exact<{
 
 export type TransitionDefectStatusMutation = { __typename?: 'Mutation', transitionDefectStatus: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, status: FeatureStatus | null } | null } };
 
+export type TransitionDeliverableStatusMutationVariables = Exact<{
+  input: TransitionDeliverableInput;
+}>;
+
+
+export type TransitionDeliverableStatusMutation = { __typename?: 'Mutation', transitionDeliverableStatus: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable: { __typename?: 'Deliverable', id: string | null, status: DeliverableStatus | null, validStatusTransitions: Array<DeliverableStatus | null> | null } | null } };
+
 export type TransitionFeatureStatusMutationVariables = Exact<{
   input: TransitionFeatureInput;
 }>;
@@ -872,7 +1197,7 @@ export type TransitionTaskStatusMutationVariables = Exact<{
 }>;
 
 
-export type TransitionTaskStatusMutation = { __typename?: 'Mutation', transitionTaskStatus: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, status: TaskStatus | null } | null } };
+export type TransitionTaskStatusMutation = { __typename?: 'Mutation', transitionTaskStatus: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, status: AgentTaskStatus | null } | null } };
 
 export type UpdateDefectMutationVariables = Exact<{
   input: UpdateDefectInput;
@@ -880,6 +1205,13 @@ export type UpdateDefectMutationVariables = Exact<{
 
 
 export type UpdateDefectMutation = { __typename?: 'Mutation', updateDefect: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, updatedAt: any | null } | null } };
+
+export type UpdateDeliverableMutationVariables = Exact<{
+  input: UpdateDeliverableInput;
+}>;
+
+
+export type UpdateDeliverableMutation = { __typename?: 'Mutation', updateDeliverable: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable: { __typename?: 'Deliverable', id: string | null, title: string | null, status: DeliverableStatus | null } | null } };
 
 export type UpdateEpicMutationVariables = Exact<{
   input: UpdateEpicInput;
@@ -914,7 +1246,7 @@ export type UpdateTaskMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTaskMutation = { __typename?: 'Mutation', updateTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, featureId: any, updatedAt: any | null } | null } };
+export type UpdateTaskMutation = { __typename?: 'Mutation', updateTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, featureId: any, updatedAt: any | null } | null } };
 
 export type GetDashboardSummaryQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -932,6 +1264,23 @@ export type GetDefectByIdQueryVariables = Exact<{
 
 
 export type GetDefectByIdQuery = { __typename?: 'Query', defectById: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null } | null };
+
+export type GetDeliverablesQueryVariables = Exact<{
+  projectId: InputMaybe<Scalars['UUID']['input']>;
+  epicId: InputMaybe<Scalars['UUID']['input']>;
+  status: InputMaybe<Array<FeatureStatus> | FeatureStatus>;
+  type: InputMaybe<Array<ItemSubtype> | ItemSubtype>;
+}>;
+
+
+export type GetDeliverablesQuery = { __typename?: 'Query', items: { __typename?: 'ItemConnection', nodes: Array<{ __typename?: 'Item', id: string | null, title: string | null, description: string | null, status: FeatureStatus | null, subtype: ItemSubtype | null, projectId: string | null, epicId: string | null, createdAt: any | null, updatedAt: any | null }> } };
+
+export type GetDeliverableByIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetDeliverableByIdQuery = { __typename?: 'Query', getItemById: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, status: FeatureStatus | null, subtype: ItemSubtype | null, projectId: string | null, epicId: string | null, parentFeatureId: string | null, severity: Severity | null, rootCause: string | null, createdAt: any | null, updatedAt: any | null, validStatusTransitions: Array<FeatureStatus | null> | null } | null };
 
 export type GetEpicsQueryVariables = Exact<{
   title: InputMaybe<Scalars['String']['input']>;
@@ -952,7 +1301,7 @@ export type GetFeatureByIdQueryVariables = Exact<{
 }>;
 
 
-export type GetFeatureByIdQuery = { __typename?: 'Query', featureById: { __typename?: 'Item', id: string | null, title: string | null, status: FeatureStatus | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, createdAt: any | null, updatedAt: any | null, validStatusTransitions: Array<FeatureStatus | null> | null, tasks: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, status: TaskStatus | null } | null> | null } | null };
+export type GetFeatureByIdQuery = { __typename?: 'Query', featureById: { __typename?: 'Item', id: string | null, title: string | null, status: FeatureStatus | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, createdAt: any | null, updatedAt: any | null, validStatusTransitions: Array<FeatureStatus | null> | null, tasks: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null } | null> | null } | null };
 
 export type GetFeaturesQueryVariables = Exact<{
   projectId: InputMaybe<Scalars['UUID']['input']>;
@@ -984,7 +1333,7 @@ export type GetTaskByIdQueryVariables = Exact<{
 }>;
 
 
-export type GetTaskByIdQuery = { __typename?: 'Query', taskById: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, itemId: string | null, createdAt: any | null, updatedAt: any | null } | null };
+export type GetTaskByIdQuery = { __typename?: 'Query', taskById: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, createdAt: any | null, updatedAt: any | null } | null };
 
 export type GetTasksQueryVariables = Exact<{
   itemId: InputMaybe<Scalars['UUID']['input']>;
@@ -992,7 +1341,7 @@ export type GetTasksQueryVariables = Exact<{
 }>;
 
 
-export type GetTasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', nodes: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: TaskStatus | null, itemId: string | null, createdAt: any | null, updatedAt: any | null }> } };
+export type GetTasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', nodes: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, createdAt: any | null, updatedAt: any | null }> } };
 
 
 export const CreateDefectDocument = gql`
@@ -1045,6 +1394,44 @@ export function useCreateDefectMutation(baseOptions?: ApolloReactHooks.MutationH
 export type CreateDefectMutationHookResult = ReturnType<typeof useCreateDefectMutation>;
 export type CreateDefectMutationResult = Apollo.MutationResult<CreateDefectMutation>;
 export type CreateDefectMutationOptions = Apollo.BaseMutationOptions<CreateDefectMutation, CreateDefectMutationVariables>;
+export const CreateDeliverableDocument = gql`
+    mutation CreateDeliverable($input: CreateDeliverableInput!) {
+  createDeliverable(input: $input) {
+    deliverable {
+      id
+      title
+      status
+    }
+    errors
+  }
+}
+    `;
+export type CreateDeliverableMutationFn = Apollo.MutationFunction<CreateDeliverableMutation, CreateDeliverableMutationVariables>;
+
+/**
+ * __useCreateDeliverableMutation__
+ *
+ * To run a mutation, you first call `useCreateDeliverableMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateDeliverableMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createDeliverableMutation, { data, loading, error }] = useCreateDeliverableMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateDeliverableMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateDeliverableMutation, CreateDeliverableMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<CreateDeliverableMutation, CreateDeliverableMutationVariables>(CreateDeliverableDocument, options);
+      }
+export type CreateDeliverableMutationHookResult = ReturnType<typeof useCreateDeliverableMutation>;
+export type CreateDeliverableMutationResult = Apollo.MutationResult<CreateDeliverableMutation>;
+export type CreateDeliverableMutationOptions = Apollo.BaseMutationOptions<CreateDeliverableMutation, CreateDeliverableMutationVariables>;
 export const CreateEpicDocument = gql`
     mutation CreateEpic($input: CreateEpicInput!) {
   createEpic(input: $input) {
@@ -1557,6 +1944,44 @@ export function useTransitionDefectStatusMutation(baseOptions?: ApolloReactHooks
 export type TransitionDefectStatusMutationHookResult = ReturnType<typeof useTransitionDefectStatusMutation>;
 export type TransitionDefectStatusMutationResult = Apollo.MutationResult<TransitionDefectStatusMutation>;
 export type TransitionDefectStatusMutationOptions = Apollo.BaseMutationOptions<TransitionDefectStatusMutation, TransitionDefectStatusMutationVariables>;
+export const TransitionDeliverableStatusDocument = gql`
+    mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) {
+  transitionDeliverableStatus(input: $input) {
+    deliverable {
+      id
+      status
+      validStatusTransitions
+    }
+    errors
+  }
+}
+    `;
+export type TransitionDeliverableStatusMutationFn = Apollo.MutationFunction<TransitionDeliverableStatusMutation, TransitionDeliverableStatusMutationVariables>;
+
+/**
+ * __useTransitionDeliverableStatusMutation__
+ *
+ * To run a mutation, you first call `useTransitionDeliverableStatusMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTransitionDeliverableStatusMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [transitionDeliverableStatusMutation, { data, loading, error }] = useTransitionDeliverableStatusMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useTransitionDeliverableStatusMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<TransitionDeliverableStatusMutation, TransitionDeliverableStatusMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<TransitionDeliverableStatusMutation, TransitionDeliverableStatusMutationVariables>(TransitionDeliverableStatusDocument, options);
+      }
+export type TransitionDeliverableStatusMutationHookResult = ReturnType<typeof useTransitionDeliverableStatusMutation>;
+export type TransitionDeliverableStatusMutationResult = Apollo.MutationResult<TransitionDeliverableStatusMutation>;
+export type TransitionDeliverableStatusMutationOptions = Apollo.BaseMutationOptions<TransitionDeliverableStatusMutation, TransitionDeliverableStatusMutationVariables>;
 export const TransitionFeatureStatusDocument = gql`
     mutation TransitionFeatureStatus($input: TransitionFeatureInput!) {
   transitionFeatureStatus(input: $input) {
@@ -1681,6 +2106,44 @@ export function useUpdateDefectMutation(baseOptions?: ApolloReactHooks.MutationH
 export type UpdateDefectMutationHookResult = ReturnType<typeof useUpdateDefectMutation>;
 export type UpdateDefectMutationResult = Apollo.MutationResult<UpdateDefectMutation>;
 export type UpdateDefectMutationOptions = Apollo.BaseMutationOptions<UpdateDefectMutation, UpdateDefectMutationVariables>;
+export const UpdateDeliverableDocument = gql`
+    mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
+  updateDeliverable(input: $input) {
+    deliverable {
+      id
+      title
+      status
+    }
+    errors
+  }
+}
+    `;
+export type UpdateDeliverableMutationFn = Apollo.MutationFunction<UpdateDeliverableMutation, UpdateDeliverableMutationVariables>;
+
+/**
+ * __useUpdateDeliverableMutation__
+ *
+ * To run a mutation, you first call `useUpdateDeliverableMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateDeliverableMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateDeliverableMutation, { data, loading, error }] = useUpdateDeliverableMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateDeliverableMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateDeliverableMutation, UpdateDeliverableMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateDeliverableMutation, UpdateDeliverableMutationVariables>(UpdateDeliverableDocument, options);
+      }
+export type UpdateDeliverableMutationHookResult = ReturnType<typeof useUpdateDeliverableMutation>;
+export type UpdateDeliverableMutationResult = Apollo.MutationResult<UpdateDeliverableMutation>;
+export type UpdateDeliverableMutationOptions = Apollo.BaseMutationOptions<UpdateDeliverableMutation, UpdateDeliverableMutationVariables>;
 export const UpdateEpicDocument = gql`
     mutation UpdateEpic($input: UpdateEpicInput!) {
   updateEpic(input: $input) {
@@ -2063,6 +2526,126 @@ export type GetDefectByIdQueryHookResult = ReturnType<typeof useGetDefectByIdQue
 export type GetDefectByIdLazyQueryHookResult = ReturnType<typeof useGetDefectByIdLazyQuery>;
 export type GetDefectByIdSuspenseQueryHookResult = ReturnType<typeof useGetDefectByIdSuspenseQuery>;
 export type GetDefectByIdQueryResult = Apollo.QueryResult<GetDefectByIdQuery, GetDefectByIdQueryVariables>;
+export const GetDeliverablesDocument = gql`
+    query GetDeliverables($projectId: UUID, $epicId: UUID, $status: [FeatureStatus!], $type: [ItemSubtype!]) {
+  items(projectId: $projectId, epicId: $epicId, status: $status, subtype: $type) {
+    nodes {
+      id
+      title
+      description
+      status
+      subtype
+      projectId
+      epicId
+      createdAt
+      updatedAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetDeliverablesQuery__
+ *
+ * To run a query within a React component, call `useGetDeliverablesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeliverablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeliverablesQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      epicId: // value for 'epicId'
+ *      status: // value for 'status'
+ *      type: // value for 'type'
+ *   },
+ * });
+ */
+export function useGetDeliverablesQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(GetDeliverablesDocument, options);
+      }
+export function useGetDeliverablesLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(GetDeliverablesDocument, options);
+        }
+// @ts-ignore
+export function useGetDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverablesQuery, GetDeliverablesQueryVariables>;
+export function useGetDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverablesQuery | undefined, GetDeliverablesQueryVariables>;
+export function useGetDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(GetDeliverablesDocument, options);
+        }
+export type GetDeliverablesQueryHookResult = ReturnType<typeof useGetDeliverablesQuery>;
+export type GetDeliverablesLazyQueryHookResult = ReturnType<typeof useGetDeliverablesLazyQuery>;
+export type GetDeliverablesSuspenseQueryHookResult = ReturnType<typeof useGetDeliverablesSuspenseQuery>;
+export type GetDeliverablesQueryResult = Apollo.QueryResult<GetDeliverablesQuery, GetDeliverablesQueryVariables>;
+export const GetDeliverableByIdDocument = gql`
+    query GetDeliverableById($id: UUID!) {
+  getItemById(id: $id) {
+    id
+    title
+    description
+    acceptanceCriteria
+    plan
+    securityImpact
+    performanceImpact
+    testPlan
+    deploymentPlan
+    openQuestions
+    result
+    errors
+    status
+    subtype
+    projectId
+    epicId
+    parentFeatureId
+    severity
+    rootCause
+    createdAt
+    updatedAt
+    validStatusTransitions
+  }
+}
+    `;
+
+/**
+ * __useGetDeliverableByIdQuery__
+ *
+ * To run a query within a React component, call `useGetDeliverableByIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeliverableByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeliverableByIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetDeliverableByIdQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables> & ({ variables: GetDeliverableByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>(GetDeliverableByIdDocument, options);
+      }
+export function useGetDeliverableByIdLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>(GetDeliverableByIdDocument, options);
+        }
+// @ts-ignore
+export function useGetDeliverableByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>;
+export function useGetDeliverableByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverableByIdQuery | undefined, GetDeliverableByIdQueryVariables>;
+export function useGetDeliverableByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>(GetDeliverableByIdDocument, options);
+        }
+export type GetDeliverableByIdQueryHookResult = ReturnType<typeof useGetDeliverableByIdQuery>;
+export type GetDeliverableByIdLazyQueryHookResult = ReturnType<typeof useGetDeliverableByIdLazyQuery>;
+export type GetDeliverableByIdSuspenseQueryHookResult = ReturnType<typeof useGetDeliverableByIdSuspenseQuery>;
+export type GetDeliverableByIdQueryResult = Apollo.QueryResult<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>;
 export const GetEpicsDocument = gql`
     query GetEpics($title: String) {
   items(subtype: [EPIC], first: 50, skip: null) {

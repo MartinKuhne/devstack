@@ -1,0 +1,42 @@
+query GetDeliverables($projectId: UUID, $epicId: UUID, $status: [FeatureStatus!], $type: [ItemSubtype!]) {
+    items(projectId: $projectId, epicId: $epicId, status: $status, subtype: $type) {
+        nodes {
+            id
+            title
+            description
+            status
+            subtype
+            projectId
+            epicId
+            createdAt
+            updatedAt
+        }
+    }
+}
+
+query GetDeliverableById($id: UUID!) {
+    getItemById(id: $id) {
+        id
+        title
+        description
+        acceptanceCriteria
+        plan
+        securityImpact
+        performanceImpact
+        testPlan
+        deploymentPlan
+        openQuestions
+        result
+        errors
+        status
+        subtype
+        projectId
+        epicId
+        parentFeatureId
+        severity
+        rootCause
+        createdAt
+        updatedAt
+        validStatusTransitions
+    }
+}

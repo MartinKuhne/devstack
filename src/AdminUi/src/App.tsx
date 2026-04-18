@@ -13,6 +13,7 @@ const DefectDetailPage = lazy(() => import('./features/defects/pages/DefectDetai
 const TaskListPage = lazy(() => import('./features/features/pages/TaskListPage').then(module => ({ default: module.TaskListPage })));
 const SettingsPage = lazy(() => import('./features/features/pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
 const EpicListPage = lazy(() => import('./features/epics/pages/EpicListPage').then(module => ({ default: module.EpicListPage })));
+const DeliverableListPage = lazy(() => import('./features/deliverables/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
 
 function LoadingFallback() {
     return (
@@ -76,6 +77,11 @@ function App() {
                         <Route path="epics" element={
                             <Suspense fallback={<LoadingFallback />}>
                                 <EpicListPage />
+                            </Suspense>
+                        } />
+                        <Route path="deliverables" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <DeliverableListPage />
                             </Suspense>
                         } />
                     </Route>

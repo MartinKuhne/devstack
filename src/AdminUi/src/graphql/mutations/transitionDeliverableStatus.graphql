@@ -1,0 +1,10 @@
+mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) {
+    transitionDeliverableStatus(input: $input) {
+        deliverable {
+            id
+            status
+            validStatusTransitions
+        }
+        errors
+    }
+}
