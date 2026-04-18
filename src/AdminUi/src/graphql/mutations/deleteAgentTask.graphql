@@ -1,0 +1,8 @@
+mutation DeleteAgentTask($input: DeleteAgentTaskInput!) {
+    deleteAgentTask(input: $input) {
+        task {
+            id
+        }
+        errors
+    }
+}

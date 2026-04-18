@@ -1,0 +1,24 @@
+mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
+    updateAgentTask(input: $input) {
+        task {
+            id
+            title
+            deliverable
+            acceptanceCriteria
+            risks
+            requiredFollowUps
+            complexityRating
+            result
+            status
+            itemId
+            promptTokens
+            completionTokens
+            executionDurationInSeconds
+            model
+            commitHash
+            createdAt
+            updatedAt
+        }
+        errors
+    }
+}
