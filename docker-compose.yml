@@ -33,7 +33,7 @@ services:
   api:
     build:
       context: ./src/Server
-      dockerfile: Dockerfile
+      dockerfile: DevStack.Api/Dockerfile
     container_name: devstack-api
     environment:
       ASPNETCORE_ENVIRONMENT: Production
@@ -48,8 +48,7 @@ services:
   mcp:
     build:
       context: ./src/Server
-      dockerfile: Dockerfile
-      target: mcp
+      dockerfile: DevStack.Mcp/Dockerfile
     container_name: devstack-mcp
     environment:
       ASPNETCORE_ENVIRONMENT: Production
