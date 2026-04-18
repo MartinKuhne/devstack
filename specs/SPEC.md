@@ -8,7 +8,7 @@ Create a framework to drive coding agents for continuous execution to make full 
 
 - Graphql server holding the data model
 - Admin UI for a user to configure projects and add features, monitor execution
-- A long running process to plan and execute tasks
+- A driver component to plan and execute tasks
 
 # Graphql server
 
@@ -20,40 +20,31 @@ Integration tests are required for graphql to exercise all known mutations and t
 - Project
   - Name
   - Description
-  - Architecture
-  - Memory (everyting an AI agent needs to know about the project)
-  - Github URL
-  - Github token
-- BacklogItem / 1:n relation to Project
+  - Repository
+- Deliverable / 1:n relation to Project
   - Title
-  - Status (Planning, Ready, InProgress, ReadyForTest, Testing, Done, Failed, Rejected, InReview)
-  - Type (Feature, Defect, Requirement, Idea)
-  - Description
-  - Acceptance criteria
-  - Plan
-  - Security impact
-  - Performance impact  
-  - Test plan
-  - Deployment plan
-  - Open questions
-  - Result
-  - Errors
-- DevTask / 1:n relation to Feature
+  - Status (Draft, Planning, Ready, InProgress, Done, Failed, Rejected, NeedsReview)
+  - Type (Feature, Defect, Maintenance)
+  - Acceptance criteria (optional)
+  - Security impact (optional)
+  - Performance impact (optional)
+  - Test plan (optional)
+  - Deployment plan (optional)
+  - Open questions (optional)
+- AgentTask / 1:n relation to Deliverable
   - Title
-  - Status (Planning, Ready, Prepare, Code, Review, ReadyForTest, Testing, Done, Failed, Rejected, InReview)
+  - Status (Ready, InProgress, Done, Failed, Rejected, NeedsReview)
   - Deliverable
-  - Acceptance criteria
-  - Risks
-  - Result
-  - Errors
-  - CommitHash
-  - Required follow ups
+  - Result (optional)
+  - Errors (optional)
+  - CommitHash (optional)
   - Complexity rating (1 to 10)
-  - PromptTokens
-  - CompletionTokens
-  - ExecutionDurationInSeconds
-  - Model (the model that executed the task)
-- Model
+  - DependsOnDevTask (optional)
+  - PromptTokens (optional)
+  - CompletionTokens (optional)
+  - ExecutionDurationInSeconds (optional)
+  - Model (the model that executed the task) (optional)
+- LargeLanguageModel / 1:n relation to Project
   - Url
   - Model
   - ModelAlias
