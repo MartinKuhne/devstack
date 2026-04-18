@@ -1,8 +1,8 @@
 #nullable disable
 
 using DevStack.Domain.Entities;
+using DevStack.Domain.Enums;
 using DevStack.Domain.Events;
-using TaskStatus = DevStack.Domain.Enums.TaskStatus;
 
 namespace DevStack.Domain.Services;
 
@@ -13,22 +13,17 @@ public sealed class TaskStatusTransitionService
 
     public IReadOnlyList<DomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
-    private static readonly Dictionary<TaskStatus, List<TaskStatus>> _allowedTransitions = new()
+    private static readonly Dictionary<AgentTaskStatus, List<AgentTaskStatus>> _allowedTransitions = new()
     {
-        { TaskStatus.Planning, new() { TaskStatus.Ready, TaskStatus.Prepare, TaskStatus.Rejected } },
-        { TaskStatus.Ready, new() { TaskStatus.Prepare, TaskStatus.Failed, TaskStatus.Rejected } },
-        { TaskStatus.Prepare, new() { TaskStatus.Code, TaskStatus.Ready, TaskStatus.Rejected } },
-        { TaskStatus.Code, new() { TaskStatus.Review, TaskStatus.Prepare, TaskStatus.Failed, TaskStatus.Rejected } },
-        { TaskStatus.Review, new() { TaskStatus.Code, TaskStatus.ReadyForTest, TaskStatus.Rejected } },
-        { TaskStatus.ReadyForTest, new() { TaskStatus.Testing, TaskStatus.Code } },
-        { TaskStatus.Testing, new() { TaskStatus.Done, TaskStatus.Failed, TaskStatus.Code, TaskStatus.Review } },
-        { TaskStatus.Done, new() { } },
-        { TaskStatus.Failed, new() { TaskStatus.Ready, TaskStatus.Prepare, TaskStatus.Code, TaskStatus.Review, TaskStatus.Rejected } },
-        { TaskStatus.Rejected, new() { TaskStatus.Planning, TaskStatus.Ready } },
-        { TaskStatus.InReview, new() { TaskStatus.ReadyForTest, TaskStatus.Testing, TaskStatus.Code, TaskStatus.Review, TaskStatus.Rejected } }
+        { AgentTaskStatus.Ready, new() { AgentTaskStatus.InProgress, AgentTaskStatus.Failed, AgentTaskStatus.Rejected } },
+        { AgentTaskStatus.InProgress, new() { AgentTaskStatus.NeedsReview, AgentTaskStatus.Failed, AgentTaskStatus.Rejected } },
+        { AgentTaskStatus.NeedsReview, new() { AgentTaskStatus.InProgress, AgentTaskStatus.Ready, AgentTaskStatus.Rejected, AgentTaskStatus.Done } },
+        { AgentTaskStatus.Done, new() { } },
+        { AgentTaskStatus.Failed, new() { AgentTaskStatus.Ready, AgentTaskStatus.InProgress, AgentTaskStatus.Rejected } },
+        { AgentTaskStatus.Rejected, new() { AgentTaskStatus.Ready } }
     };
 
-    public TransitionResult<Unit> Transition(AgentTask task, TaskStatus targetStatus, string actor)
+    public TransitionResult<Unit> Transition(AgentTask task, AgentTaskStatus targetStatus, string actor)
     {
         var errors = new List<string>();
 
@@ -64,28 +59,28 @@ public sealed class TaskStatusTransitionService
         task.Status = targetStatus;
         task.UpdatedAt = DateTime.UtcNow;
 
-        _domainEvents.Add(new TaskStatusChangedEvent(task.Id, oldStatus, targetStatus, actor));
+        _domainEvents.Add(new AgentTaskStatusChangedEvent(task.Id, oldStatus, targetStatus, actor));
 
         return TransitionResult<Unit>.Success(Unit.Value);
     }
 
-    private List<string> ValidateConstraints(AgentTask task, TaskStatus targetStatus)
+    private List<string> ValidateConstraints(AgentTask task, AgentTaskStatus targetStatus)
     {
         var errors = new List<string>();
 
         switch (targetStatus)
         {
-            case TaskStatus.Done:
+            case AgentTaskStatus.Done:
                 if (string.IsNullOrWhiteSpace(task.Result))
                     errors.Add("A result must be provided before marking a task as Done.");
                 break;
 
-            case TaskStatus.Failed:
+            case AgentTaskStatus.Failed:
                 if (string.IsNullOrWhiteSpace(task.Result))
                     errors.Add("Results/errors must be documented when a task fails.");
                 break;
 
-            case TaskStatus.Rejected:
+            case AgentTaskStatus.Rejected:
                 if (string.IsNullOrWhiteSpace(task.RequiredFollowUps) && string.IsNullOrWhiteSpace(task.Result))
                     errors.Add("A reason must be provided when rejecting a task (use RequiredFollowUps or Result).");
                 break;
