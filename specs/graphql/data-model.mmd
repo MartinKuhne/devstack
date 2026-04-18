@@ -1,0 +1,51 @@
+erDiagram
+
+    Project {
+        string Name
+        string Description
+        string Repository
+    }
+
+    Deliverable {
+        string Title
+        string Status "Draft | Planning | Ready | InProgress | Done | Failed | Rejected | NeedsReview"
+        string Type "Feature | Defect | Maintenance"
+        string Description
+        string AcceptanceCriteria "optional"
+        string AgentFeedback "optional"
+        string ExecutionPlan "optional"
+        string SecurityImpact "optional"
+        string PerformanceImpact "optional"
+        string TestPlan "optional"
+        string DeploymentPlan "optional"
+        string Blocking "optional"
+    }
+
+    AgentTask {
+        string Title
+        string Status "Ready | InProgress | Done | Failed | Rejected | NeedsReview"
+        string DeliverableId
+        string Result "optional"
+        string Errors "optional"
+        string CommitHash "optional"
+        int ComplexityRating
+        string DependsOnDevTask "optional"
+        int PromptTokens "optional"
+        int CompletionTokens "optional"
+        int ExecutionDurationInSeconds "optional"
+        string Model "optional"
+    }
+
+    LargeLanguageModel {
+        string Url
+        string Model
+        string ModelAlias
+        string ApiKey
+        int MaxComplexity
+        int MaxConcurrency
+    }
+
+    %% Relationships
+    Project ||--o{ Deliverable : "has many"
+    Deliverable ||--o{ AgentTask : "has many"
+    
