@@ -608,7 +608,8 @@ public class Mutation
                 input.Risks,
                 input.Result,
                 input.RequiredFollowUps,
-                input.ComplexityRating), cancellationToken);
+                input.ComplexityRating,
+                FeatureStatus.Planning), cancellationToken);
             
             var task = new global::DevStack.Domain.Entities.AgentTask { Id = id };
             return new TaskPayload(task, new List<string>());
@@ -918,7 +919,7 @@ public class Mutation
                 input.ProjectId,
                 input.Title,
                 input.Description,
-                input.DependsOnId), cancellationToken);
+                FeatureStatus.Planning), cancellationToken);
             
             var epic = new Item { Id = id, Subtype = Domain.Enums.ItemSubtype.Epic };
             return new EpicPayload(epic, new List<string>());
@@ -941,8 +942,7 @@ public class Mutation
             await handler.Handle(new UpdateEpicCommand(
                 input.Id,
                 input.Title,
-                input.Description,
-                input.DependsOnId), cancellationToken);
+                input.Description), cancellationToken);
 
             var epic = new Item { Id = input.Id };
             return new EpicPayload(epic, new List<string>());

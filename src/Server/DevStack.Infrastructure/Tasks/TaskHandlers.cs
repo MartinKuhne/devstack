@@ -15,7 +15,8 @@ public record CreateTaskCommand(
     string? Risks,
     string? Result,
     string? RequiredFollowUps,
-    int ComplexityRating);
+    int ComplexityRating,
+    FeatureStatus Status);
 
 public record UpdateTaskCommand(
     Guid Id,

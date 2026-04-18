@@ -4,9 +4,9 @@ using DevStack.Infrastructure.Persistence;
 
 namespace DevStack.Infrastructure.Epics;
 
-public record CreateEpicCommand(Guid ProjectId, string Title, string? Description, Guid? DependsOnId);
+public record CreateEpicCommand(Guid ProjectId, string Title, string? Description, FeatureStatus Status);
 
-public record UpdateEpicCommand(Guid Id, string? Title, string? Description, Guid? DependsOnId);
+public record UpdateEpicCommand(Guid Id, string? Title, string? Description);
 
 public record DeleteEpicCommand(Guid Id);
 
@@ -45,8 +45,7 @@ public class CreateEpicHandler : ICreateEpicHandler
             Subtype = ItemSubtype.Epic,
             Title = request.Title!,
             Description = request.Description,
-            Status = FeatureStatus.Planning,
-            DependsOnId = request.DependsOnId,
+            Status = request.Status,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -75,7 +74,6 @@ public class UpdateEpicHandler : IUpdateEpicHandler
 
        if (!string.IsNullOrEmpty(request.Title)) item.Title = request.Title;
         if (request.Description is not null) item.Description = request.Description;
-        if (request.DependsOnId is not null) item.DependsOnId = request.DependsOnId;
 
         item.UpdatedAt = DateTime.UtcNow;
 
