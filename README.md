@@ -5,6 +5,14 @@ I realized I needed a framework to analyze requirements, break them down into sc
 
 And, to be fair, a vibe coding project to do more vibe coding? What could go wrong?
 
+If you are bored of my musings, head over to the [instructions](HOWTO.md).
+
+# Key learnings
+- Spec is everything. It is very easy to generate a lot of code from a detailed spec. It is much harder to make changes to existing code. At times it may be easier to revise the spec and to throw away the code. Invest in spec engineering (not covered by this tool at this time)
+- Prompts are everything. AI is not intelligent and there is no intrinsic motivation. You don't (usually) have to ask a software engineer to write tests. Don't take anything for granted for AI work. It sometimes will but if you want to be sure provide instructions.
+- AI likes to succeed at all cost. It will delete code that is considered problematic or completely ignore specific instructions.
+- If the semantics of the library that the AI is using have changed, the AI will assume it knows what to do but it will be wrong and it may take a long time to recover. That's the most frequent hallucination I have seen.
+
 # Dream
 
 The dream is to have a visual tool where the user enters their requirements, and a set of agents divide up the work then perform the work without a lot of intervention. Tasks can be held in planning if there are open questions.
@@ -22,6 +30,41 @@ The project can't build itself unfortunately (maybe it will be able to improve i
 - refactor: bulk edits, not sure how to get opencode to use this more (@myuon/refactor-mcp@latest)
 
 The ```build.ps1``` script runs opencode in a loop with a prompt to work on the next task
+
+# Coding flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant AdminUI as Admin UI<br/>(localhost:8087)
+    participant PS as devstack.ps1
+    participant GQL as GraphQL Server<br/>(/graphql)
+    participant MCP as MCP Server<br/>(/mcp)
+    participant Agent as Coding Agent<br/>(opencode)
+    participant DB as Database
+
+    User->>AdminUI: Create/edit features, tasks, defects
+    AdminUI->>GQL: GraphQL mutations & queries
+    GQL->>DB: Read / write
+
+    User->>PS: ./devstack.ps1 run
+    PS->>GQL: Query items by project & status
+    GQL->>DB: Read
+    GQL-->>PS: Features / defects / tasks
+    loop For each item
+        PS->>Agent: npx opencode run <prompt>
+        Agent->>MCP: MCP tool calls<br/>(update_task, create_task,<br/>transition_task_status, …)
+        MCP->>DB: Read / write
+        MCP-->>Agent: Result
+        Agent-->>PS: Exit
+    end
+
+    User->>AdminUI: Review results & status updates
+    AdminUI->>GQL: Query updated items
+    GQL->>DB: Read
+    GQL-->>AdminUI: Updated state
+```
+
 
 # Models
 
