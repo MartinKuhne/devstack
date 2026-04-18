@@ -26,15 +26,27 @@ public class Project : Entity
 
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 
-    public virtual ICollection<Deliverable> Deliverables { get; set; } = new List<Deliverable>();
+    public virtual ICollection<LargeLanguageModel> LargeLanguageModels { get; set; } = new List<LargeLanguageModel>();
 
     [Obsolete("Use Items instead")]
     [NotMapped]
-    public virtual ICollection<Item> Features => Items;
+    public virtual ICollection<Deliverable> Deliverables => new List<Deliverable>();
 
-    [Obsolete("Use Items with Subtype=Epic instead")]
+    [Obsolete("Use Items instead")]
+    [NotMapped]
+    public virtual ICollection<Item> Features => new List<Item>();
+
+    [Obsolete("Use Items with ItemType=Epic instead")]
     [NotMapped]
     public virtual ICollection<Epic> Epics => new List<Epic>();
+
+    [Obsolete("Use Items with ItemType=Defect instead")]
+    [NotMapped]
+    public virtual ICollection<Defect> Defects => new List<Defect>();
+
+    [Obsolete("Use AgentTasks with Item navigation instead")]
+    [NotMapped]
+    public virtual ICollection<AgentTask> AgentTasks => new List<AgentTask>();
 
     public DateTime CreatedAt { get; set; }
 
