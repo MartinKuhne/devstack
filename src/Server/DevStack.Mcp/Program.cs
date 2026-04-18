@@ -1,22 +1,16 @@
-using DevStack.Api.GraphQL;
-using Microsoft.FeatureManagement;
-using DevStack.Api.GraphQL.Types;
-using DevStack.Domain.Services;
+using DevStack.Mcp.Middlewares;
+using DevStack.Mcp.Logging;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Features;
 using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.Epics;
+using DevStack.Domain.Services;
 using DevStack.Infrastructure.WorkflowRuns;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Persistence;
-using DevStack.Infrastructure.Services;
-using DevStack.Api.Logging;
-using DevStack.Api.Middlewares;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
-using Wolverine;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -27,14 +21,12 @@ builder.Host.UseSerilog((context, services, configuration) =>
     configuration
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
-        .Enrich.WithProperty("Application", "DevStack")
+        .Enrich.WithProperty("Application", "DevStack.Mcp")
         .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
         .Enrich.FromLogContext()
         .Enrich.WithMachineName()
         .Destructure.With(new SensitiveDataDestructuringPolicy());
 });
-
-builder.Host.UseWolverine();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -42,20 +34,6 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.WriteIndented = true;
     });
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
-
-builder.Services.AddHealthChecks()
-    .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
-    .AddCheck("ready", () => HealthCheckResult.Healthy(), tags: ["ready"]);
 
 builder.Services.AddRouting();
 
@@ -90,11 +68,12 @@ builder.Services.AddTransient<IUpdateWorkflowRunHandler, UpdateWorkflowRunHandle
 builder.Services.AddTransient<ICancelWorkflowRunHandler, CancelWorkflowRunHandler>();
 builder.Services.AddTransient<ICreateEpicHandler, CreateEpicHandler>();
 builder.Services.AddTransient<IUpdateEpicHandler, UpdateEpicHandler>();
+builder.Services.AddScoped<DevStack.Mcp.DevStackTools>();
 
 var secretKey = builder.Configuration["DEVSTACK_SECRET_KEY"] 
     ?? Environment.GetEnvironmentVariable("DEVSTACK_SECRET_KEY") 
     ?? throw new InvalidOperationException("DEVSTACK_SECRET_KEY must be set");
-builder.Services.AddSingleton<ISecretService>(new AesSecretService(secretKey));
+builder.Services.AddSingleton<DevStack.Infrastructure.Services.ISecretService>(new DevStack.Infrastructure.Services.AesSecretService(secretKey));
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
@@ -122,23 +101,21 @@ builder.Services.AddOpenTelemetry()
         }
     });
 
-builder.Services.AddGraphQLServer()
-    .AddQueryType<Query>()
-    .AddMutationType<Mutation>()
-    .AddType<ProjectType>()
-    .AddType<ItemType>()
-    .AddType<LargeLanguageModelType>()
-    .AddType<WorkflowRunType>()
-    .AddType<AuditEventType>()
-    .AddType<DashboardSummary>()
-    .AddObjectType<ProjectConnection>()
-    .AddObjectType<ItemConnection>()
-    .AddObjectType<ProjectPageInfo>()
-    .AddObjectType<ItemPageInfo>()
-    .DisableIntrospection(false)
-    .AddErrorFilter<GraphQLErrorFilter>();
+var useCustomMcpHandler = builder.Configuration
+    .GetSection("FeatureManagement")
+    .GetValue<bool>("UseCustomMcpHandler");
 
-builder.Services.AddFeatureManagement();
+if (useCustomMcpHandler)
+{
+    builder.Services.AddScoped<DevStack.Mcp.IMcpMethodHandler, DevStack.Mcp.McpMethodHandler>();
+    builder.Services.AddScoped<DevStack.Mcp.JsonRpcMcpEndpointHandler>();
+}
+else
+{
+    builder.Services.AddMcpServer()
+        .WithHttpTransport(options => options.Stateless = true)
+        .WithTools<DevStack.Mcp.DevStackTools>();
+}
 
 var app = builder.Build();
 
@@ -170,37 +147,25 @@ app.UseSerilogRequestLogging(options =>
 app.UseRouting();
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.UseCors("AllowAll");
 
 app.MapGet("/", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }))
-    .WithName("Ping")
-    .WithTags("Health");
+    .WithName("Ping");
 
-app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+if (useCustomMcpHandler)
 {
-    Predicate = check => check.Tags.Contains("live"),
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(
-            new { status = report.Status.ToString(), timestamp = DateTime.UtcNow },
-            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
-    }
-}).WithTags("Health");
+    app.MapPost("/mcp", async (HttpContext context, DevStack.Mcp.JsonRpcMcpEndpointHandler handler) =>
+        await handler.HandleMcpRequestAsync(context))
+        .WithName("MCP_JsonRpc")
+        .Produces(StatusCodes.Status200OK);
 
-app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    app.MapGet("/mcp", DevStack.Mcp.JsonRpcMcpEndpointHandler.HandleSseStreamAsync)
+        .WithName("MCP_SSE")
+        .ExcludeFromDescription();
+}
+else
 {
-    Predicate = check => check.Tags.Contains("ready"),
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(
-            new { status = report.Status.ToString(), timestamp = DateTime.UtcNow },
-            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
-    }
-}).WithTags("Health");
-
-app.MapGraphQL("/graphql");
+    app.MapMcp("/mcp");
+}
 
 app.Run();
 

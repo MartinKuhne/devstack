@@ -1,15 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace DevStack.Api.Mcp;
+namespace DevStack.Mcp;
 
-/// <summary>
-/// JSON-RPC 2.0 message types per https://www.jsonrpc.org/specification
-/// </summary>
-
-/// <summary>
-/// JSON-RPC 2.0 Request object
-/// </summary>
 public record JsonRpcRequest
 {
     [JsonPropertyName("jsonrpc")]
@@ -27,9 +20,6 @@ public record JsonRpcRequest
     public JsonElement? Id { get; set; }
 };
 
-/// <summary>
-/// JSON-RPC 2.0 Response object
-/// </summary>
 public record JsonRpcResponse
 {
     [JsonPropertyName("jsonrpc")]
@@ -48,9 +38,6 @@ public record JsonRpcResponse
     public JsonElement? Id { get; set; }
 };
 
-/// <summary>
-/// JSON-RPC 2.0 Error object
-/// </summary>
 public record JsonRpcError
 {
     [JsonPropertyName("code")]
@@ -64,9 +51,6 @@ public record JsonRpcError
     public object? Data { get; set; }
 };
 
-/// <summary>
-/// JSON-RPC 2.0 Error codes per specification
-/// </summary>
 public static class JsonRpcErrorCode
 {
     public const int ParseError = -32700;

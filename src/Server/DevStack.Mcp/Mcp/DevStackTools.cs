@@ -3,14 +3,13 @@ using DevStack.Infrastructure.Features;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.Services;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using DevStack.Domain.Services;
 using DevStack.Infrastructure.Epics;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
-using Microsoft.EntityFrameworkCore;
 
-namespace DevStack.Api.Mcp;
+namespace DevStack.Mcp;
 
 [McpServerToolType]
 public class DevStackTools(

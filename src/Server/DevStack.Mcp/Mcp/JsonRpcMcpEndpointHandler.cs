@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace DevStack.Api.Mcp;
+namespace DevStack.Mcp;
 
 public class JsonRpcMcpEndpointHandler
 {
@@ -10,7 +10,6 @@ public class JsonRpcMcpEndpointHandler
     private readonly ILogger<JsonRpcMcpEndpointHandler> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    // Session tracking for Mcp-Session-Id (Streamable HTTP spec 2025-03-26)
     private static readonly ConcurrentDictionary<string, DateTime> _sessions = new();
 
     public JsonRpcMcpEndpointHandler(
@@ -31,7 +30,6 @@ public class JsonRpcMcpEndpointHandler
     {
         try
         {
-            // Streamable HTTP spec requires Accept: application/json, text/event-stream
             var accept = context.Request.Headers.Accept.ToString();
             if (!string.IsNullOrEmpty(accept) && !accept.Contains("application/json") && !accept.Contains("*/*"))
             {
@@ -100,8 +98,6 @@ public class JsonRpcMcpEndpointHandler
                 return;
             }
 
-            // Per JSON-RPC 2.0 and MCP Streamable HTTP spec: notifications have no id.
-            // The server MUST NOT send a response — return 202 Accepted.
             if (request.Id == null)
             {
                 _logger.LogInformation("Received MCP notification: {Method}", request.Method);
@@ -135,18 +131,15 @@ public class JsonRpcMcpEndpointHandler
         }
     }
 
-    // SSE stream for server-initiated messages (GET /mcp per Streamable HTTP spec 2025-03-26)
     public static async Task HandleSseStreamAsync(HttpContext context)
     {
         context.Response.ContentType = "text/event-stream";
         context.Response.Headers["Cache-Control"] = "no-cache";
         context.Response.Headers["X-Accel-Buffering"] = "no";
 
-        // Send initial keep-alive comment so the client knows the stream is open
         await context.Response.WriteAsync(": connected\n\n");
         await context.Response.Body.FlushAsync();
 
-        // Hold the connection open until the client disconnects
         var tcs = new TaskCompletionSource();
         context.RequestAborted.Register(() => tcs.TrySetResult());
         await tcs.Task;
@@ -156,7 +149,6 @@ public class JsonRpcMcpEndpointHandler
     {
         if (isInitialize)
         {
-            // Issue a session ID per Streamable HTTP spec so clients can resume sessions
             var sessionId = Guid.NewGuid().ToString();
             _sessions[sessionId] = DateTime.UtcNow;
             context.Response.Headers["Mcp-Session-Id"] = sessionId;

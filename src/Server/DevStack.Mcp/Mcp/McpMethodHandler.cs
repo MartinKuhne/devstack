@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 using DevStack.Domain.Enums;
 using ModelContextProtocol.Server;
 
-namespace DevStack.Api.Mcp;
+namespace DevStack.Mcp;
 
 public interface IMcpMethodHandler
 {
@@ -213,7 +213,6 @@ public class McpMethodHandler : IMcpMethodHandler
             return null;
         }
         
-        // Convert entity results to simple objects
         return ConvertResult(result);
     }
 
@@ -221,7 +220,6 @@ public class McpMethodHandler : IMcpMethodHandler
     {
         if (result == null) return null;
         
-        // Handle collections
         if (result is System.Collections.IEnumerable enumerable and not string)
         {
             var list = new List<object?>();
