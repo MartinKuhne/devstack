@@ -1,5 +1,5 @@
-query GetDefects($projectId: UUID!) {
-  defects(projectId: $projectId, first: 200) {
+query GetDefects($projectId: UUID!, $first: Int!) {
+  defects(projectId: $projectId, first: $first) {
     nodes {
       id
       title
@@ -7,10 +7,8 @@ query GetDefects($projectId: UUID!) {
       description
       acceptanceCriteria
       plan
-      dependsOn {
-        id
-        status
-      }
+      featureSubtype
+      epicId
     }
   }
 }

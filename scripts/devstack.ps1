@@ -184,7 +184,7 @@ function Invoke-AgentBatch {
         exit 1
     }
 
-    $items = $result.data.$DataPath.nodes | Where-Object { $_.status -eq $StatusFilter -and ($_.dependsOn -eq $null -or $_.dependsOn.status -eq 'Done') }
+    $items = $result.data.$DataPath.nodes | Where-Object { $_.status -eq $StatusFilter }
 
     if (-not $items) {
         Write-Host "No $plural in $StatusFilter status found for project."
@@ -231,7 +231,7 @@ function Invoke-EpicBatch {
         exit 1
     }
 
-    $items = $result.data.$DataPath.nodes | Where-Object { $_.projectId -eq $projectId -and ($_.dependsOn -eq $null -or $_.dependsOn.status -eq 'Done') }
+    $items = $result.data.$DataPath.nodes | Where-Object { $_.projectId -eq $projectId }
 
     if (-not $items) {
         Write-Host "No epics found for project."
