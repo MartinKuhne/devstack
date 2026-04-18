@@ -329,7 +329,7 @@ Use the update_defect tool to change the state to Done. If the operation was not
 }
 
 function Plan-Features {
-    Invoke-AgentBatch -EntityType "feature" -QueryFile "getFeatures.graphql" -DataPath "features" -StatusFilter "Planned" -BuildPrompt {
+    Invoke-AgentBatch -EntityType "feature" -QueryFile "getFeatures.graphql" -DataPath "features" -StatusFilter "PLANNING" -BuildPrompt {
         param($item)
         @"
 Analyze the requirements for this feature. Break down the work into tasks that can be executed by an AI code agent in less than 20 minutes. Identify dependencies and risks.
@@ -341,14 +341,15 @@ AcceptanceCriteria: $($item.acceptanceCriteria)
 
 Propose an implementation plan.
 Use the update_feature tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), openQuestions.
+Use the create_task tool to create the individual steps needed to accomplish the task
 Feature ID: $($item.id)
-If there are no OpenQuestions, use the update_feature tool to change the state to Analysis. If there are open questions, change the state to InReview.
+If there are no OpenQuestions, use the update_feature tool to change the state to READY. If there are open questions, change the state to InReview.
 "@
     }
 }
 
 function Run-Features {
-    Invoke-AgentBatch -EntityType "feature" -QueryFile "getFeatures.graphql" -DataPath "features" -StatusFilter "Analysis" -BuildPrompt {
+    Invoke-AgentBatch -EntityType "feature" -QueryFile "getFeatures.graphql" -DataPath "features" -StatusFilter "READY" -BuildPrompt {
         param($item)
         @"
 Implement this feature: $($item.description)
@@ -364,6 +365,98 @@ Use the update_feature tool to change the state to Passed. If the operation was 
     }
 }
 
+function Invoke-TaskBatch {
+    param(
+        [string]      $StatusFilter,
+        [scriptblock] $BuildPrompt
+    )
+
+    Write-Host "Processing tasks in $StatusFilter status..."
+
+    $projectId = Get-CurrentProjectId
+    $query     = Load-GraphQLFile "getTasks.graphql"
+    $result    = Invoke-GraphQL -Operation $query -Variables @{ status = @($StatusFilter); first = 100 }
+
+    if ($result.errors) {
+        Write-Error "Failed to query tasks: $($result.errors -join ', ')"
+        exit 1
+    }
+
+    $items = $result.data.tasks.nodes | Where-Object { $_.projectId -eq $projectId }
+
+    if (-not $items) {
+        Write-Host "No tasks in $StatusFilter status found for project."
+        return
+    }
+
+    Write-Host "Found $($items.Count) task(s) in $StatusFilter status."
+
+    foreach ($item in $items) {
+        Write-Host "`nProcessing Task: $($item.title) (ID: $($item.id))"
+
+        $prompt = & $BuildPrompt $item
+        Write-Host $prompt
+
+        $npxArgs = @("opencode", "run", ($prompt -replace "`r`n|`n|`r", " "))
+        if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
+        & npx @npxArgs
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Opencode returned non-zero exit code for Task $($item.id)"
+        }
+
+        Start-Sleep -Seconds 2
+    }
+
+    Write-Host "`nAll tasks processed."
+}
+
+function Plan-Tasks {
+    Invoke-TaskBatch -StatusFilter "PLANNING" -BuildPrompt {
+        param($item)
+        @"
+Analyze the requirements for this task and prepare it for implementation.
+
+Task: $($item.title)
+Deliverable: $($item.deliverable)
+AcceptanceCriteria: $($item.acceptanceCriteria)
+Risks: $($item.risks)
+
+Parent Item: $($item.item.title)
+Parent Description: $($item.item.description)
+
+Task ID: $($item.id)
+Review the codebase to understand the relevant areas. Identify any open questions or blockers.
+Use the update_task tool to update the risks and acceptanceCriteria if needed.
+If the task is clear and ready to implement, use the transition_task_status tool to change the state to READY.
+If there are open questions, use the transition_task_status tool to change the state to IN_REVIEW.
+"@
+    }
+}
+
+function Run-Tasks {
+    Invoke-TaskBatch -StatusFilter "READY" -BuildPrompt {
+        param($item)
+        @"
+Implement the following task:
+
+Task: $($item.title)
+Deliverable: $($item.deliverable)
+AcceptanceCriteria: $($item.acceptanceCriteria)
+Risks: $($item.risks)
+
+Parent Item: $($item.item.title)
+Parent Description: $($item.item.description)
+
+Task ID: $($item.id)
+Quality gates must pass.
+Commit the changes.
+Use the update_task tool to record the result.
+Use the transition_task_status tool to change the state to DONE if successful, or FAILED if not.
+"@
+    }
+}
+
 switch ($Command) {
     "init" { Initialize-Project }
     "run"  {
@@ -371,7 +464,9 @@ switch ($Command) {
         Run-Defects
         Plan-Features
         Run-Features
-        Plan-Epics
-        Run-Epics
+#        Plan-Tasks
+        Run-Tasks
+#        Plan-Epics
+#        Run-Epics
     }
 }
