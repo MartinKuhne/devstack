@@ -42,6 +42,8 @@ public class Deliverable
 
     public string? Blocking { get; set; }
 
+    public virtual ICollection<AgentTask> AgentTasks { get; set; } = new List<AgentTask>();
+
     public Deliverable()
     {
     }

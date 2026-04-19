@@ -13,6 +13,7 @@ public class ProjectType : ObjectType<Project>
         descriptor.Field(p => p.Description).Type<StringType>();
         descriptor.Field(p => p.Repository).Type<StringType>();
         descriptor.Field(p => p.LargeLanguageModels).Type<ListType<LargeLanguageModelType>>();
+        descriptor.Field(p => p.Deliverables).Type<ListType<DeliverableObject>>();
     }
 }
 
@@ -34,6 +35,7 @@ public class DeliverableObject : ObjectType<Deliverable>
         descriptor.Field(d => d.TestPlan).Type<StringType>();
         descriptor.Field(d => d.DeploymentPlan).Type<StringType>();
         descriptor.Field(d => d.Blocking).Type<StringType>();
+        descriptor.Field(d => d.AgentTasks).Type<ListType<AgentTaskType>>();
     }
 }
 

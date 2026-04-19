@@ -23,7 +23,12 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             
         builder.HasMany(p => p.LargeLanguageModels)
             .WithOne()
-            .HasForeignKey(m => m.Id)
+            .HasForeignKey(m => m.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(p => p.Deliverables)
+            .WithOne(d => d.Project)
+            .HasForeignKey(d => d.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
