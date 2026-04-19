@@ -1,23 +1,33 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LargeLanguageModelDialog } from './LargeLanguageModelDialog';
 import { vi, beforeEach } from 'vitest';
-import { useCreateModelConfigurationMutation } from '@/generated/graphql';
 
-// Mock the GraphQL mutation hook
+// Mock the GraphQL mutation hooks
 vi.mock('@/generated/graphql', () => ({
     useCreateModelConfigurationMutation: vi.fn(),
+    useUpdateModelConfigurationMutation: vi.fn(),
+    useDeleteModelConfigurationMutation: vi.fn(),
 }));
+
+const getMockedGraphqlHooks = async () => {
+    const m = await import('@/generated/graphql');
+    return {
+        useCreateModelConfigurationMutation: m.useCreateModelConfigurationMutation as ReturnType<typeof vi.fn>,
+        useUpdateModelConfigurationMutation: m.useUpdateModelConfigurationMutation as ReturnType<typeof vi.fn>,
+        useDeleteModelConfigurationMutation: m.useDeleteModelConfigurationMutation as ReturnType<typeof vi.fn>,
+    };
+};
 
 describe('LargeLanguageModelDialog', () => {
     const mockOnSuccess = vi.fn();
     const mockOnOpenChange = vi.fn();
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
-        (useCreateModelConfigurationMutation as any).mockReturnValue([
-            vi.fn(),
-            { loading: false },
-        ]);
+        const hooks = await getMockedGraphqlHooks();
+        hooks.useCreateModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useUpdateModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useDeleteModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
     });
 
     it('should render form with correct labels', () => {

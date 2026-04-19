@@ -11,7 +11,7 @@ export function useDeliverableCounts() {
     const deliverablesPlanning = items.filter(item => item.status === 'PLANNING').length;
     const deliverablesReady = items.filter(item => item.status === 'READY').length;
     const deliverablesInProgress = items.filter(item => item.status === 'IN_PROGRESS').length;
-    const deliverablesNeedsReview = items.filter(item => item.status === 'IN_REVIEW').length;
+    const deliverablesNeedsReview = items.filter(item => String(item.status) === 'NEEDS_REVIEW').length;
 
     return {
         deliverablesPlanning,
