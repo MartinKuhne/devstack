@@ -31,5 +31,10 @@ public class LargeLanguageModelConfiguration : IEntityTypeConfiguration<LargeLan
 
         builder.Property(llm => llm.MaxConcurrency)
             .HasDefaultValue(0);
+
+        builder.HasOne(llm => llm.Project)
+            .WithMany(p => p.LargeLanguageModels)
+            .HasForeignKey(llm => llm.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -62,31 +62,31 @@ public record DeleteDeliverableInput(Guid Id);
 
 public record DeliverablePayload(Deliverable? Deliverable, List<string> Errors);
 
-public record CreateAgentTaskInput(
-    Guid DeliverableId,
-    string Title,
-    int ComplexityRating,
-    string? Result,
-    string? Errors,
-    string? CommitHash,
-    string? DependsOnDevTask,
-    int? PromptTokens,
-    int? CompletionTokens,
-    double? ExecutionDurationInSeconds,
-    string? Model);
+  public record CreateAgentTaskInput(
+     Guid DeliverableId,
+     string Title,
+     int ComplexityRating,
+     string? Result,
+     string? Errors,
+     string? CommitHash,
+     string? DependsOnDevTask,
+     int? PromptTokens,
+     int? CompletionTokens,
+     int? ExecutionDurationInSeconds,
+     string? Model);
 
-public record UpdateAgentTaskInput(
-    Guid Id,
-    string? Title,
-    string? Result,
-    string? Errors,
-    string? CommitHash,
-    string? DependsOnDevTask,
-    int? ComplexityRating,
-    int? PromptTokens,
-    int? CompletionTokens,
-    double? ExecutionDurationInSeconds,
-    string? Model);
+ public record UpdateAgentTaskInput(
+     Guid Id,
+     string? Title,
+     string? Result,
+     string? Errors,
+     string? CommitHash,
+     string? DependsOnDevTask,
+     int? ComplexityRating,
+     int? PromptTokens,
+     int? CompletionTokens,
+     int? ExecutionDurationInSeconds,
+     string? Model);
 
 public record TransitionAgentTaskInput(
     Guid Id,
@@ -97,7 +97,8 @@ public record DeleteAgentTaskInput(Guid Id);
 
 public record AgentTaskPayload(AgentTask? AgentTask, List<string> Errors);
 
-public record CreateLargeLanguageModelInput(
+ public record CreateLargeLanguageModelInput(
+    Guid ProjectId,
     string Url,
     string Model,
     string? ModelAlias,
@@ -492,6 +493,7 @@ public class Mutation
             var encryptedApiKey = secretService.Encrypt(input.ApiKey);
 
             var id = await handler.Handle(new CreateLargeLanguageModelCommand(
+                input.ProjectId,
                 input.Url,
                 input.Model,
                 input.ModelAlias,

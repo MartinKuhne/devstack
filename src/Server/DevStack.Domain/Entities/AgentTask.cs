@@ -35,7 +35,7 @@ public class AgentTask
 
     public int? CompletionTokens { get; set; }
 
-    public double? ExecutionDurationInSeconds { get; set; }
+    public int? ExecutionDurationInSeconds { get; set; }
 
     public string? Model { get; set; }
 

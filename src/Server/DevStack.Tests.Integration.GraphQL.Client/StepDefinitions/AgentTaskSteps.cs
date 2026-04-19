@@ -67,7 +67,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { deliverableId, title, complexityRating, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (double?)null, model = (string?)null } },
+            variables = new { input = new { deliverableId, title, complexityRating, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
             operationName = "CreateAgentTask"
         };
 
@@ -97,7 +97,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { deliverableId, title, complexityRating, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (double?)null, model = (string?)null } },
+            variables = new { input = new { deliverableId, title, complexityRating, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
             operationName = "CreateAgentTask"
         };
 
@@ -137,7 +137,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { id = taskId, title, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (double?)null, model = (string?)null } },
+            variables = new { input = new { id = taskId, title, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
             operationName = "UpdateAgentTask"
         };
 
