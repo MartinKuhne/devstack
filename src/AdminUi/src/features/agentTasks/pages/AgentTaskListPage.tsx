@@ -24,11 +24,10 @@ export function AgentTaskListPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     
     const statusFilter = searchParams.get('status') as AgentTaskStatus | undefined;
-    const itemIdFilter = searchParams.get('itemId') || undefined;
     const searchFilter = searchParams.get('search') || undefined;
     
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
-    const { agentTasks, loading, error } = useAgentTasks(itemIdFilter, statusFilter ? [statusFilter] : undefined);
+    const { agentTasks, loading, error } = useAgentTasks(undefined, statusFilter ? [statusFilter] : undefined);
 
     const handleStatusChange = useCallback((value: string) => {
         const newParams = new URLSearchParams(searchParams);

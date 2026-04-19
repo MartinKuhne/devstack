@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useLargeLanguageModels } from '@/features/largeLanguageModels/hooks/useLargeLanguageModels';
+import { LargeLanguageModelDialog } from './LargeLanguageModelDialog';
 
 interface LargeLanguageModelListProps {
     onAddModel: () => void;
@@ -10,16 +13,34 @@ interface LargeLanguageModelListProps {
 
 export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageModelListProps) {
     const { largeLanguageModels, loading, error } = useLargeLanguageModels();
+    const [editingModel, setEditingModel] = useState<{
+        id: string;
+        model: string;
+        modelAlias?: string;
+        url: string;
+        apiKey?: string;
+        maxComplexity: number;
+    } | null>(null);
+
+    const handleEdit = (model: { id: string | null; model: string | null; modelAlias: string | null; url: string | null; maxComplexity: number | null }) => {
+        setEditingModel({
+            id: model.id ?? '',
+            model: model.model ?? '',
+            url: model.url ?? '',
+            maxComplexity: model.maxComplexity ?? 0,
+        });
+    };
+
+    const handleCloseDialog = () => {
+        setEditingModel(null);
+    };
 
     if (loading) {
         return (
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">Large Language Models</h3>
-                    <Button onClick={() => {
-                        onAddModel();
-                        onRefetch?.();
-                    }}>Add Model</Button>
+                    <Button onClick={onAddModel}>Add Model</Button>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {[1, 2, 3].map((i) => (
@@ -51,66 +72,81 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         );
     }
 
-    if (largeLanguageModels.length === 0) {
-        return (
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle>Large Language Models</CardTitle>
-                        <Button onClick={() => {
-                        onAddModel();
-                        onRefetch?.();
-                    }}>Add Model</Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground text-sm">
-                        No large language models yet. Click &quot;Add Model&quot; to get started.
-                    </p>
-                </CardContent>
-            </Card>
-        );
-    }
-
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Large Language Models</h3>
-                <Button onClick={() => {
-                    onAddModel();
+                <Button onClick={onAddModel}>Add Model</Button>
+            </div>
+            {largeLanguageModels.length === 0 ? (
+                <Card>
+                    <CardContent className="pt-6">
+                        <p className="text-muted-foreground text-sm">
+                            No large language models yet. Click &quot;Add Model&quot; to get started.
+                        </p>
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {largeLanguageModels.map((config) => (
+                        <Card key={config.id}>
+                            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                                <CardTitle className="text-base">{config.modelAlias ?? config.model ?? ''}</CardTitle>
+                                <div className="flex gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => handleEdit(config)}
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-destructive hover:text-destructive"
+                                        onClick={() => handleEdit(config)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="space-y-1">
+                                    <p className="text-xs text-muted-foreground">Model</p>
+                                    <p className="text-sm font-medium">{config.model}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-muted-foreground">URL</p>
+                                    <p className="text-sm truncate" title={config.url ?? ''}>
+                                        {config.url}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-muted-foreground">Max Complexity</p>
+                                    <Badge variant={getComplexityVariant(config.maxComplexity ?? 0)}>
+                                        {config.maxComplexity}
+                                    </Badge>
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                    Updated: {new Date(config.updatedAt).toLocaleDateString()}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+            <LargeLanguageModelDialog
+                open={!!editingModel}
+                onOpenChange={(open) => {
+                    if (!open) handleCloseDialog();
+                }}
+                onSuccess={() => {
                     onRefetch?.();
-                }}>Add Model</Button>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {largeLanguageModels.map((config: any) => (
-                    <Card key={config.id}>
-                        <CardHeader>
-                            <CardTitle className="text-base">{config.modelAlias ?? config.model ?? ''}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="space-y-1">
-                                <p className="text-xs text-muted-foreground">Model</p>
-                                <p className="text-sm font-medium">{config.model}</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-xs text-muted-foreground">URL</p>
-                                <p className="text-sm truncate" title={config.url ?? ''}>
-                                    {config.url}
-                                </p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-xs text-muted-foreground">Max Complexity</p>
-                                <Badge variant={getComplexityVariant(config.maxComplexity ?? 0)}>
-                                    {config.maxComplexity}
-                                </Badge>
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                                Updated: {new Date(config.updatedAt).toLocaleDateString()}
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+                    handleCloseDialog();
+                }}
+                model={editingModel}
+            />
         </div>
     );
 }

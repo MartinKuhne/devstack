@@ -2,6 +2,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDeliverable } from '../hooks/useDeliverable';
 import { EditDeliverableDialog } from '../components/EditDeliverableDialog';
@@ -15,6 +17,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'react-toastify';
+import { useAgentTasksByDeliverable } from '@/features/agentTasks/hooks/useAgentTasksByDeliverable';
+import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
 
 const STATUS_COLORS: Record<string, string> = {
     DRAFT: 'bg-gray-500',
@@ -31,9 +35,11 @@ export function DeliverableDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { deliverable, loading, error, refetch } = useDeliverable(id ?? '');
+    const { agentTasks, loading: agentTasksLoading, error: agentTasksError, refetch: refetchAgentTasks } = useAgentTasksByDeliverable(id ?? '');
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
     const [transitionDeliverableStatus, { loading: transitionLoading }] = useTransitionDeliverableStatusMutation();
     const [selectedStatus, setSelectedStatus] = useState('');
+    const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);
 
     if (loading) {
         return (
@@ -163,6 +169,7 @@ export function DeliverableDetailPage() {
                 <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="details">Details</TabsTrigger>
+                    <TabsTrigger value="agent-tasks">Agent Tasks</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
@@ -294,6 +301,82 @@ export function DeliverableDetailPage() {
                         </Card>
                     )}
                 </TabsContent>
+
+                <TabsContent value="agent-tasks">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Agent Tasks</CardTitle>
+                                <Button onClick={() => setCreateAgentTaskDialogOpen(true)}>
+                                    New Agent Task
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {agentTasksError ? (
+                                <p className="text-sm text-destructive">{agentTasksError.message}</p>
+                            ) : agentTasksLoading ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Model</TableHead>
+                                            <TableHead>Updated</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {[1, 2, 3].map((item) => (
+                                            <TableRow key={item}>
+                                                <TableCell><Skeleton className="h-4 w-64" /></TableCell>
+                                                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : agentTasks && agentTasks.length > 0 ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Model</TableHead>
+                                            <TableHead>Tokens</TableHead>
+                                            <TableHead>Updated</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {agentTasks.map((task) => (
+                                            <TableRow
+                                                key={task.id ?? ''}
+                                                className="cursor-pointer hover:bg-muted/50"
+                                                onClick={() => task.id && navigate(`/agent-tasks/${task.id}`)}
+                                            >
+                                                <TableCell className="font-medium">{task.title}</TableCell>
+                                                <TableCell>
+                                                    <Badge className={STATUS_COLORS[task.status ?? ''] || 'bg-gray-500'}>
+                                                        {task.status}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>{task.model || '-'}</TableCell>
+                                                <TableCell>
+                                                    {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {task.updatedAt ? new Date(task.updatedAt).toLocaleDateString() : '-'}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : (
+                                <p className="text-muted-foreground text-sm">No agent tasks for this deliverable.</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
             </Tabs>
 
             <EditDeliverableDialog
@@ -312,6 +395,16 @@ export function DeliverableDetailPage() {
                     blocking: deliverable.openQuestions,
                 }}
                 onSuccess={() => refetch()}
+            />
+            <CreateAgentTaskDialog
+                open={createAgentTaskDialogOpen}
+                onOpenChange={setCreateAgentTaskDialogOpen}
+                projectId={deliverable.projectId ?? ''}
+                itemId={id ?? ''}
+                onSuccess={() => {
+                    refetchAgentTasks();
+                    refetch();
+                }}
             />
         </div>
     );
