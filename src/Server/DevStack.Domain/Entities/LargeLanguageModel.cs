@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DevStack.Domain.Entities;
 
-public class LargeLanguageModel : Entity
+public class LargeLanguageModel
 {
+    public Guid Id { get; set; } = Guid.NewGuid();
+
     [Required]
     [StringLength(500)]
     public string Url { get; set; } = string.Empty;
@@ -18,27 +19,14 @@ public class LargeLanguageModel : Entity
 
     [Required]
     [StringLength(1000)]
-    public string ApiKey_Encrypted { get; set; } = string.Empty;
+    public string ApiKey { get; set; } = string.Empty;
 
     [Required]
     public int MaxComplexity { get; set; }
 
     public int MaxConcurrency { get; set; }
 
-    [Required]
-    public Guid ProjectId { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
-    [ForeignKey(nameof(ProjectId))]
-    public virtual Project? Project { get; set; }
-
     public LargeLanguageModel()
     {
-        Id = Guid.NewGuid();
-        CreatedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
     }
 }

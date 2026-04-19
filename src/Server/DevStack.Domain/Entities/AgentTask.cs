@@ -4,8 +4,10 @@ using DevStack.Domain.Enums;
 
 namespace DevStack.Domain.Entities;
 
-public class AgentTask : Entity
+public class AgentTask
 {
+    public Guid Id { get; set; } = Guid.NewGuid();
+
     [Required]
     public Guid ProjectId { get; set; }
 
@@ -37,10 +39,6 @@ public class AgentTask : Entity
 
     public string? Model { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
     [ForeignKey(nameof(DeliverableId))]
     public virtual Deliverable? Deliverable { get; set; }
 
@@ -49,9 +47,6 @@ public class AgentTask : Entity
 
     public AgentTask()
     {
-        Id = Guid.NewGuid();
-        CreatedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     public void SetComplexityRating(int rating)

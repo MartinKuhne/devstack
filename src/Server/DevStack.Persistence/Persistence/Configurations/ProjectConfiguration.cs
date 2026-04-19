@@ -17,25 +17,13 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.Description)
             .IsRequired(false);
             
-        builder.Property(p => p.Architecture)
-            .IsRequired(false);
-            
-        builder.Property(p => p.Memory)
-            .IsRequired();
-            
         builder.Property(p => p.Repository)
             .IsRequired()
             .HasMaxLength(500);
             
-        builder.Property(p => p.GithubUrl)
-            .IsRequired(false);
-            
-        builder.Property(p => p.GithubToken_Encrypted)
-            .IsRequired(false);
-            
-        builder.HasMany(p => p.Items)
-            .WithOne(i => i.Project)
-            .HasForeignKey(i => i.ProjectId)
+        builder.HasMany(p => p.LargeLanguageModels)
+            .WithOne()
+            .HasForeignKey(m => m.Id)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

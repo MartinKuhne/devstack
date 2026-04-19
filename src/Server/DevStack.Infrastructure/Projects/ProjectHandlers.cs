@@ -8,10 +8,7 @@ public record UpdateProjectCommand(
     Guid Id,
     string? Name,
     string? Description,
-    string? Architecture,
-    string? Memory,
-    string? GithubUrl,
-    string? GithubToken_Encrypted);
+    string? Repository);
 
 public record DeleteProjectCommand(Guid Id);
 
@@ -52,26 +49,7 @@ public class UpdateProjectHandler : IUpdateProjectHandler
         }
 
         if (request.Description is not null) project.Description = request.Description;
-        if (request.Architecture is not null) project.Architecture = request.Architecture;
-        if (request.Memory is not null) project.Memory = request.Memory;
-        
-        if (!string.IsNullOrEmpty(request.GithubUrl))
-        {
-            if (!Uri.TryCreate(request.GithubUrl, UriKind.Absolute, out var uri))
-                throw new ArgumentException("GitHub URL is not a valid URI", nameof(request.GithubUrl));
-            project.GithubUrl = uri;
-        }
-        else
-        {
-            project.GithubUrl = null;
-        }
-
-        if (request.GithubToken_Encrypted is not null)
-        {
-            project.GithubToken_Encrypted = request.GithubToken_Encrypted;
-        }
-
-        project.UpdatedAt = DateTime.UtcNow;
+        if (request.Repository is not null) project.Repository = request.Repository;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

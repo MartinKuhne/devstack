@@ -46,10 +46,7 @@ public class SchemaSnapshotTests : IAsyncLifetime
             Id = projectId,
             Name = "[TestData] Test Project",
             Description = "A test project for schema snapshot",
-            Architecture = "Clean Architecture",
-            Memory = "4GB",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            Repository = "https://github.com/test/repo"
         };
         _dbContext.Projects.Add(project);
 
@@ -58,10 +55,8 @@ public class SchemaSnapshotTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             ProjectId = projectId,
             Title = "[TestData] Test Deliverable",
-            Type = DeliverableType.Feature,
-            Status = DeliverableStatus.Planning,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            Type = DevStack.Domain.Enums.DeliverableType.Feature,
+            Status = DeliverableStatus.Planning
         };
         _dbContext.Deliverables.Add(deliverable);
 
@@ -72,9 +67,7 @@ public class SchemaSnapshotTests : IAsyncLifetime
             DeliverableId = deliverable.Id,
             Title = "[TestData] Test AgentTask",
             Status = AgentTaskStatus.Ready,
-            ComplexityRating = 5,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            ComplexityRating = 5
         };
         _dbContext.AgentTasks.Add(agentTask);
 
@@ -97,7 +90,6 @@ public class SchemaSnapshotTests : IAsyncLifetime
         var mutation = new Mutation();
 
         var projects = query.GetProjects(_dbContext!, first: 10);
-        var deliverables = query.GetItems(_dbContext!, subtype: null, first: 10);
 
         projects.Nodes.Should().HaveCount(1);
         projects.TotalCount.Should().Be(1);
@@ -108,7 +100,8 @@ public class SchemaSnapshotTests : IAsyncLifetime
                 "Test Deliverable",
                 "Feature",
                 "Test description",
-                null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                null,
                 DeliverableStatus.Planning),
             _dbContext!,
             default);
@@ -117,16 +110,12 @@ public class SchemaSnapshotTests : IAsyncLifetime
     }
 
     [Fact]
-    public void DashboardSummary_Snapshot_Returns_Correct_Data()
+    public void LargeLanguageModels_Query_Returns_Empty()
     {
         var query = new Query();
 
-        var summary = query.GetDashboardSummary(_dbContext!);
+        var models = query.GetLargeLanguageModels(_dbContext!);
 
-        summary.ProjectsInFlight.Should().Be(1);
-        summary.FeaturesInReview.Should().Be(0);
-        summary.FeaturesFailed.Should().Be(0);
-        summary.TasksInProgress.Should().Be(0);
-        summary.TasksFailed.Should().Be(0);
+        models.Should().BeEmpty();
     }
 }

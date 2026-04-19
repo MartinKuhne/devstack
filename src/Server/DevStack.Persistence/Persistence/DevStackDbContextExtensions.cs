@@ -1,5 +1,4 @@
 using DevStack.Domain.Entities;
-using DevStack.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Persistence;
@@ -12,7 +11,8 @@ public static class DevStackDbContextExtensions
         this DevStackDbContext context,
         CancellationToken cancellationToken = default)
     {
-        await CleanupItemsAsync(context, cancellationToken);
+        await CleanupDeliverablesAsync(context, cancellationToken);
+        await CleanupAgentTasksAsync(context, cancellationToken);
         await CleanupProjectsAsync(context, cancellationToken);
         await CleanupLargeLanguageModelsAsync(context, cancellationToken);
     }
@@ -32,22 +32,32 @@ public static class DevStackDbContextExtensions
         }
     }
 
-    private static async Task CleanupItemsAsync(
+    private static async Task CleanupDeliverablesAsync(
         DevStackDbContext context,
         CancellationToken cancellationToken)
     {
-        var items = await context.Items.ToListAsync(cancellationToken);
+        var deliverables = await context.Deliverables
+            .Where(d => d.Title.Contains(TestDataMarker))
+            .ToListAsync(cancellationToken);
 
-        foreach (var item in items)
+        if (deliverables.Any())
         {
-            if (ShouldDeleteEntity(nameof(Item), item.Id, context))
-            {
-                context.Items.Remove(item);
-            }
+            context.Deliverables.RemoveRange(deliverables);
+            await context.SaveChangesAsync(cancellationToken);
         }
+    }
 
-        if (items.Any())
+    private static async Task CleanupAgentTasksAsync(
+        DevStackDbContext context,
+        CancellationToken cancellationToken)
+    {
+        var tasks = await context.AgentTasks
+            .Where(t => t.Title.Contains(TestDataMarker))
+            .ToListAsync(cancellationToken);
+
+        if (tasks.Any())
         {
+            context.AgentTasks.RemoveRange(tasks);
             await context.SaveChangesAsync(cancellationToken);
         }
     }
@@ -65,25 +75,5 @@ public static class DevStackDbContextExtensions
             context.Projects.RemoveRange(projects);
             await context.SaveChangesAsync(cancellationToken);
         }
-    }
-
-    private static bool ShouldDeleteEntity(string entityType, Guid entityId, DevStackDbContext context)
-    {
-        return entityType switch
-        {
-            "AgentTask" => context.Items.Any(i => i.Id == entityId && i.ItemType == ItemSubtype.Task && i.Title.Contains(TestDataMarker)),
-            nameof(Item) => context.Items.Any(i => i.Id == entityId && i.Title.Contains(TestDataMarker)),
-            "Feature" => context.Items.Any(i => i.Id == entityId && i.ItemType == ItemSubtype.Feature && i.Title.Contains(TestDataMarker)),
-            "Defect" => context.Items.Any(i => i.Id == entityId && i.ItemType == ItemSubtype.Defect && i.Title.Contains(TestDataMarker)),
-            "Task" => context.Items.Any(i => i.Id == entityId && i.ItemType == ItemSubtype.Task && i.Title.Contains(TestDataMarker)),
-            nameof(Project) => context.Projects.Any(p => p.Id == entityId && p.Name.Contains(TestDataMarker)),
-            _ => false
-        };
-    }
-
-    private static bool ShouldDeleteProject(Guid projectId, DevStackDbContext context)
-    {
-        var project = context.Projects.Find(projectId);
-        return project != null && project.Name.Contains(TestDataMarker);
     }
 }

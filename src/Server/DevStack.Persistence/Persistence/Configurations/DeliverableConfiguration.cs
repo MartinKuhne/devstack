@@ -26,7 +26,10 @@ public class DeliverableConfiguration : IEntityTypeConfiguration<Deliverable>
         builder.Property(d => d.AcceptanceCriteria)
             .IsRequired(false);
 
-        builder.Property(d => d.Plan)
+        builder.Property(d => d.ExecutionPlan)
+            .IsRequired(false);
+
+        builder.Property(d => d.AgentFeedback)
             .IsRequired(false);
 
         builder.Property(d => d.SecurityImpact)
@@ -41,16 +44,7 @@ public class DeliverableConfiguration : IEntityTypeConfiguration<Deliverable>
         builder.Property(d => d.DeploymentPlan)
             .IsRequired(false);
 
-        builder.Property(d => d.Result)
-            .IsRequired(false);
-
-        builder.Property(d => d.Errors)
-            .IsRequired(false);
-
-        builder.Property(d => d.Severity)
-            .IsRequired(false);
-
-        builder.Property(d => d.RootCause)
+        builder.Property(d => d.Blocking)
             .IsRequired(false);
 
         builder.HasOne(d => d.Project)

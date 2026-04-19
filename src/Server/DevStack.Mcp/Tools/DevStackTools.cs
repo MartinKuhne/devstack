@@ -61,9 +61,7 @@ public class DevStackTools
                 Title = title,
                 Description = description,
                 Type = DeliverableType.Feature,
-                Status = DeliverableStatus.Planning,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                Status = DeliverableStatus.Planning
             };
 
             _dbContext.Deliverables.Add(deliverable);
@@ -93,7 +91,6 @@ public class DevStackTools
 
             if (title is not null) deliverable.Title = title;
             if (description is not null) deliverable.Description = description;
-            deliverable.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 
@@ -156,9 +153,7 @@ public class DevStackTools
                 DeliverableId = deliverableId,
                 Title = title,
                 ComplexityRating = complexityRating,
-                Status = AgentTaskStatus.Ready,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                Status = AgentTaskStatus.Ready
             };
 
             _dbContext.AgentTasks.Add(agentTask);
@@ -188,7 +183,6 @@ public class DevStackTools
 
             if (title is not null) agentTask.Title = title;
             if (result is not null) agentTask.Result = result;
-            agentTask.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 

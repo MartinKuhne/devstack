@@ -39,7 +39,6 @@ public class AgentTaskStatusTransitionService
             return TransitionResult<Unit>.Failure(constraints);
 
         task.Status = targetStatus;
-        task.UpdatedAt = DateTime.UtcNow;
 
         return TransitionResult<Unit>.Success(Unit.Value);
     }
