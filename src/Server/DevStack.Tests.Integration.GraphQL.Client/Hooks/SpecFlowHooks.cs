@@ -110,4 +110,11 @@ public sealed class SpecFlowHooks
             ? url
             : throw new InvalidOperationException("GraphQL URL not configured.");
     }
+
+    public static HttpClient GetHttpClient(ScenarioContext context)
+    {
+        return context.TryGetValue<HttpClient>("HttpClient", out var httpClient)
+            ? httpClient
+            : throw new InvalidOperationException("HttpClient not initialized. Ensure BeforeScenario hook has run.");
+    }
 }
