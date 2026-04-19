@@ -1,4 +1,4 @@
-import { Search, Brain, LayoutDashboard, Folder, User, Settings } from 'lucide-react';
+import { Search, Brain, LayoutDashboard, Folder, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,8 +23,6 @@ const navigationItems = [
     { label: 'Dashboard', to: '/', icon: LayoutDashboard },
     { label: 'Projects', to: '/projects', icon: Folder },
     { label: 'Large Language Models', to: '/models', icon: Brain },
-    { label: 'Deliverables', to: '/deliverables', icon: Folder },
-    { label: 'Agent Tasks', to: '/agent-tasks', icon: Brain },
 ];
 
 function Logo() {
@@ -100,13 +98,6 @@ function UserMenu() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link to="/settings">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
-                    </Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Log out</DropdownMenuItem>
             </DropdownMenuContent>

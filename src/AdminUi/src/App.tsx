@@ -4,15 +4,8 @@ import { AppShell } from './components/AppShell';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
-const ProjectListPage = lazy(() => import('./features/features/pages/ProjectListPage').then(module => ({ default: module.ProjectListPage })));
+const ProjectListPage = lazy(() => import('./features/projects/pages/ProjectListPage').then(module => ({ default: module.ProjectListPage })));
 const ProjectDetailPage = lazy(() => import('./features/projects/pages/ProjectDetailPage').then(module => ({ default: module.ProjectDetailPage })));
-const FeatureListPage = lazy(() => import('./features/features/pages/FeatureListPage').then(module => ({ default: module.FeatureListPage })));
-const FeatureDetailPage = lazy(() => import('./features/features/pages/FeatureDetailPage').then(module => ({ default: module.FeatureDetailPage })));
-const DefectListPage = lazy(() => import('./features/features/pages/DefectListPage').then(module => ({ default: module.DefectListPage })));
-const DefectDetailPage = lazy(() => import('./features/defects/pages/DefectDetailPage').then(module => ({ default: module.DefectDetailPage })));
-const TaskListPage = lazy(() => import('./features/features/pages/TaskListPage').then(module => ({ default: module.TaskListPage })));
-const SettingsPage = lazy(() => import('./features/features/pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
-const EpicListPage = lazy(() => import('./features/epics/pages/EpicListPage').then(module => ({ default: module.EpicListPage })));
 const DeliverableListPage = lazy(() => import('./features/deliverables/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
 const AgentTaskListPage = lazy(() => import('./features/agentTasks/pages/AgentTaskListPage').then(module => ({ default: module.AgentTaskListPage })));
 const AgentTaskDetailPage = lazy(() => import('./features/agentTasks/pages/AgentTaskDetailPage').then(module => ({ default: module.AgentTaskDetailPage })));
@@ -46,41 +39,6 @@ function App() {
                         <Route path="projects/:id" element={
                             <Suspense fallback={<LoadingFallback />}>
                                 <ProjectDetailPage />
-                            </Suspense>
-                        } />
-                        <Route path="features" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <FeatureListPage />
-                            </Suspense>
-                        } />
-                        <Route path="features/:id" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <FeatureDetailPage />
-                            </Suspense>
-                        } />
-                        <Route path="defects" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <DefectListPage />
-                            </Suspense>
-                        } />
-                        <Route path="defects/:id" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <DefectDetailPage />
-                            </Suspense>
-                        } />
-                        <Route path="tasks" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <TaskListPage />
-                            </Suspense>
-                        } />
-                        <Route path="settings" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <SettingsPage />
-                            </Suspense>
-                        } />
-                        <Route path="epics" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <EpicListPage />
                             </Suspense>
                         } />
                         <Route path="deliverables" element={
