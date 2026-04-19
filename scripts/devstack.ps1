@@ -260,90 +260,41 @@ function Invoke-EpicBatch {
     Write-Host "`nAll epics processed."
 }
 
-function Plan-Epics {
-    Invoke-EpicBatch -QueryFile "getEpics.graphql" -DataPath "epics" -BuildPrompt {
-        param($item)
-        @"
-Analyze the requirements for this epic. Break down the work into tasks that can be executed by an AI code agent in less than 20 minutes. Identify dependencies and risks.
+function Plan-Spec {
+    $projectId = Get-CurrentProjectId
 
-Description: $($item.description)
-
-Propose an implementation plan.
-Epic ID: $($item.id)
-Project ID: $($item.projectId)
+    $prompt = @"
+You are a software architect. Review the specifications under /specs and compare with the current implementation.
+Create high level deliverables to implement the specification where the current implementation does not match, and use the create_deliverable tool
+to create a record for these changes. Be specific about the implementation details and technology choices. If there are no open questions,
+create the deliverable in the ready state. If there are open questions, create the deliverable in the NeedsReview state.
+Project ID: $projectId
 "@
+
+    $npxArgs = @("opencode", "run", ($prompt -replace "`r`n|`n|`r", " "))
+    if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
+    & npx @npxArgs
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Opencode returned non-zero exit code for Plan-Spec"
     }
 }
 
-function Run-Epics {
-    Invoke-EpicBatch -QueryFile "getEpics.graphql" -DataPath "epics" -BuildPrompt {
-        param($item)
-        @"
-Implement this epic: $($item.description)
-
-Epic ID: $($item.id)
-Project ID: $($item.projectId)
-
-Quality gates must pass.
-Commit the changes.
-"@
-    }
-}
-
-function Plan-Defects {
-    Invoke-AgentBatch -EntityType "defect" -QueryFile "getDefects.graphql" -DataPath "defects" -StatusFilter "Planning" -BuildPrompt {
-        param($item)
-        @"
-Investigate the root cause for the failure for the following issue:
-$($item.description)
-
-Plan: $($item.plan)
-AcceptanceCriteria: $($item.acceptanceCriteria)
-
-Reproduce it, collect logs/traces and metrics, identify the failing component and code path.
-Propose a fix (if feasible within 5 minutes of research).
-Defect ID: $($item.id)
-Use the update_defect tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), rootCause, openQuestions.
-If there are no OpenQuestions, use the update_defect tool to change the state to Ready. If there are open questions, change the state to InReview.
-"@
-    }
-}
-
-function Run-Defects {
-    Invoke-AgentBatch -EntityType "defect" -QueryFile "getDefects.graphql" -DataPath "defects" -StatusFilter "Ready" -BuildPrompt {
-        param($item)
-        @"
-Correct the following problem: 
-$($item.description)
-
-RootCause: $($item.rootCause)
-Plan: $($item.plan)
-AcceptanceCriteria: $($item.acceptanceCriteria)
-
-Quality gates must pass.
-Commit the changes.
-Defect ID: $($item.id)
-Use the update_defect tool to change the state to Done. If the operation was not successful, change the status to InReview instead.
-"@
-    }
-}
-
-function Plan-Features {
+function Plan-Deliverables {
     Invoke-AgentBatch -EntityType "feature" -QueryFile "getFeatures.graphql" -DataPath "features" -StatusFilter "PLANNING" -BuildPrompt {
         param($item)
         @"
-Analyze the requirements for this feature. Break down the work into tasks that can be executed by an AI code agent in less than 20 minutes. Identify dependencies and risks.
+Analyze the requirements for this Deliverable. Break down the work into tasks that can be executed by an AI code agent in less than 20 minutes.
+Identify dependencies and risks.
 
 $($item.description)
-
-Plan: $($item.plan)
 AcceptanceCriteria: $($item.acceptanceCriteria)
 
 Propose an implementation plan.
-Use the update_feature tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), openQuestions.
+Use the update_deliverable tool to update the plan, securityImpact (if relevant), performanceImpact (if relevant), testPlan, deploymentPlan (if relevant), openQuestions.
 Use the create_task tool to create the individual steps needed to accomplish the task
 Feature ID: $($item.id)
-If there are no OpenQuestions, use the update_feature tool to change the state to READY. If there are open questions, change the state to InReview.
+If there are no OpenQuestions, use the devstack tool to change the state to READY. If there are open questions, change the state to NeedsReview.
 "@
     }
 }
@@ -435,7 +386,7 @@ If there are open questions, use the transition_task_status tool to change the s
 }
 
 function Run-Tasks {
-    Invoke-TaskBatch -StatusFilter "PLANNING" -BuildPrompt {
+    Invoke-TaskBatch -StatusFilter "READY" -BuildPrompt {
         param($item)
         @"
 Implement the following task:
@@ -460,13 +411,8 @@ Use the transition_task_status tool to change the state to DONE if successful, o
 switch ($Command) {
     "init" { Initialize-Project }
     "run"  {
-        Plan-Defects
-        Run-Defects
-        Plan-Features
-        Run-Features
-#        Plan-Tasks
+        Plan-Spec
+        Plan-Deliverables
         Run-Tasks
-#        Plan-Epics
-#        Run-Epics
     }
 }

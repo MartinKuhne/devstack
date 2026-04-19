@@ -90,42 +90,9 @@ public class LargeLanguageModelType : ObjectType<LargeLanguageModel>
         descriptor.Field(m => m.ModelAlias).Type<StringType>();
         descriptor.Field("apiKey_Encrypted").Resolve(ctx => ctx.Parent<LargeLanguageModel>().ApiKey_Encrypted).Type<StringType>();
         descriptor.Field(m => m.MaxComplexity).Type<IntType>();
+        descriptor.Field(m => m.MaxConcurrency).Type<IntType>();
         descriptor.Field(m => m.ProjectId).Type<IdType>();
         descriptor.Field(m => m.CreatedAt).Type<DateTimeType>();
         descriptor.Field(m => m.UpdatedAt).Type<DateTimeType>();
-    }
-}
-
-public class WorkflowRunType : ObjectType<WorkflowRun>
-{
-    protected override void Configure(IObjectTypeDescriptor<WorkflowRun> descriptor)
-    {
-        descriptor.Field(w => w.Id).Type<IdType>().ID();
-        descriptor.Field(w => w.ProjectId).Type<IdType>();
-        descriptor.Field(w => w.ItemId).Type<IdType>();
-        descriptor.Field(w => w.TaskId).Type<IdType>();
-        descriptor.Field(w => w.WorkflowType).Type<EnumType<WorkflowType>>();
-        descriptor.Field(w => w.Status).Type<EnumType<WorkflowRunStatus>>();
-        descriptor.Field(w => w.StartedAt).Type<DateTimeType>();
-        descriptor.Field(w => w.CompletedAt).Type<DateTimeType>();
-        descriptor.Field(w => w.ErrorMessage).Type<StringType>();
-        descriptor.Field(w => w.InputPayload).Type<StringType>();
-        descriptor.Field(w => w.OutputPayload).Type<StringType>();
-        descriptor.Field(w => w.CreatedAt).Type<DateTimeType>();
-    }
-}
-
-public class AuditEventType : ObjectType<AuditEvent>
-{
-    protected override void Configure(IObjectTypeDescriptor<AuditEvent> descriptor)
-    {
-        descriptor.Field(a => a.Id).Type<IdType>().ID();
-        descriptor.Field(a => a.EntityType).Type<StringType>();
-        descriptor.Field(a => a.EntityId).Type<IdType>();
-        descriptor.Field(a => a.EventType).Type<StringType>();
-        descriptor.Field(a => a.OldValue).Type<StringType>();
-        descriptor.Field(a => a.NewValue).Type<StringType>();
-        descriptor.Field(a => a.Actor).Type<StringType>();
-        descriptor.Field(a => a.OccurredAt).Type<DateTimeType>();
     }
 }

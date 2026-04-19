@@ -23,6 +23,8 @@ public class LargeLanguageModel : Entity
     [Required]
     public int MaxComplexity { get; set; }
 
+    public int MaxConcurrency { get; set; }
+
     [Required]
     public Guid ProjectId { get; set; }
 

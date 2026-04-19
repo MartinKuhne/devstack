@@ -22,26 +22,30 @@ const server = setupServer(
       return HttpResponse.json({
         data: {
           dashboardSummary: {
-            totalProjects: 5,
-            totalFeatures: 10,
-            totalTasks: 25,
-            activeWorkflows: 2,
-            recentActivity: [],
+            projectsInFlight: 5,
+            featuresInReview: 10,
+            featuresFailed: 2,
+            tasksInProgress: 25,
+            tasksFailed: 3,
+            recentAuditEvents: [],
           },
         },
       });
     }
 
     if (typeof body.query === 'string' && body.query.includes('createProject')) {
-      const variables = body.variables as Record<string, string | undefined>;
+      const variables = body.variables as Record<string, { name?: string; description?: string } | undefined>;
+      const input = variables.input as { name?: string; description?: string } | undefined;
       return HttpResponse.json({
         data: {
           createProject: {
-            id: 'proj-1',
-            name: variables.name ?? '',
-            description: variables.description,
-            status: 'active',
-            createdAt: new Date().toISOString(),
+            project: {
+              id: 'proj-1',
+              name: input?.name ?? '',
+              description: input?.description,
+              createdAt: new Date().toISOString(),
+            },
+            errors: [],
           },
         },
       });
@@ -77,14 +81,13 @@ describe('API Client', () => {
 
   it('should get dashboard summary', async () => {
     const summary = await apiClient.getDashboardSummary();
-    expect(summary.totalProjects).toBe(5);
-    expect(summary.totalFeatures).toBe(10);
+    expect(summary.projectsInFlight).toBe(5);
+    expect(summary.featuresInReview).toBe(10);
   });
 
   it('should create a project', async () => {
     const project = await apiClient.createProject('Test Project', 'Test description');
     expect(project.id).toBe('proj-1');
     expect(project.name).toBe('Test Project');
-    expect(project.status).toBe('active');
   });
 });

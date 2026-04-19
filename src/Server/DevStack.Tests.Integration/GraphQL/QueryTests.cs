@@ -159,19 +159,6 @@ public class QueryTests : IAsyncLifetime
         };
         _dbContext.LargeLanguageModels.Add(model);
 
-        var auditEvent = new AuditEvent
-        {
-            Id = Guid.NewGuid(),
-            EntityType = nameof(Feature),
-            EntityId = feature1.Id,
-            EventType = "StatusChanged",
-            OldValue = "Planning",
-            NewValue = "InProgress",
-            Actor = "test@example.com",
-            OccurredAt = DateTime.UtcNow
-        };
-        _dbContext.AuditEvents.Add(auditEvent);
-
         await _dbContext.SaveChangesAsync();
     }
 
@@ -349,7 +336,6 @@ public class QueryTests : IAsyncLifetime
         result.FeaturesFailed.Should().Be(1);
         result.TasksInProgress.Should().Be(1);
         result.TasksFailed.Should().Be(1);
-        result.RecentAuditEvents.Should().ContainSingle();
     }
 
     [Fact]

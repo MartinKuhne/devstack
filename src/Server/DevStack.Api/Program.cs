@@ -6,8 +6,6 @@ using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.Features;
 using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Tasks;
-using DevStack.Infrastructure.Epics;
-using DevStack.Infrastructure.WorkflowRuns;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Persistence;
 using DevStack.Infrastructure.Services;
@@ -85,11 +83,6 @@ builder.Services.AddTransient<IDeleteTaskHandler, DeleteTaskHandler>();
 builder.Services.AddTransient<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
 builder.Services.AddTransient<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
 builder.Services.AddTransient<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
-builder.Services.AddTransient<ICreateWorkflowRunHandler, CreateWorkflowRunHandler>();
-builder.Services.AddTransient<IUpdateWorkflowRunHandler, UpdateWorkflowRunHandler>();
-builder.Services.AddTransient<ICancelWorkflowRunHandler, CancelWorkflowRunHandler>();
-builder.Services.AddTransient<ICreateEpicHandler, CreateEpicHandler>();
-builder.Services.AddTransient<IUpdateEpicHandler, UpdateEpicHandler>();
 
 var secretKey = builder.Configuration["DEVSTACK_SECRET_KEY"] 
     ?? Environment.GetEnvironmentVariable("DEVSTACK_SECRET_KEY") 
@@ -128,8 +121,6 @@ builder.Services.AddGraphQLServer()
     .AddType<ProjectType>()
     .AddType<ItemType>()
     .AddType<LargeLanguageModelType>()
-    .AddType<WorkflowRunType>()
-    .AddType<AuditEventType>()
     .AddType<DashboardSummary>()
     .AddObjectType<ProjectConnection>()
     .AddObjectType<ItemConnection>()

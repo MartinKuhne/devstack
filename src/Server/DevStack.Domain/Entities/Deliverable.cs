@@ -12,13 +12,6 @@ public class Deliverable : Entity
     [ForeignKey(nameof(ProjectId))]
     public virtual Project? Project { get; set; }
 
-    public Guid? EpicId { get; set; }
-
-#pragma warning disable CS0618
-    [ForeignKey(nameof(EpicId))]
-    public virtual Epic? Epic { get; set; }
-#pragma warning restore CS0618
-
     [Required]
     public DeliverableType Type { get; set; }
 

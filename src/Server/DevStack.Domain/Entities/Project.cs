@@ -36,10 +36,6 @@ public class Project : Entity
     [NotMapped]
     public virtual ICollection<Item> Features => new List<Item>();
 
-    [Obsolete("Use Items with ItemType=Epic instead")]
-    [NotMapped]
-    public virtual ICollection<Epic> Epics => new List<Epic>();
-
     [Obsolete("Use Items with ItemType=Defect instead")]
     [NotMapped]
     public virtual ICollection<Defect> Defects => new List<Defect>();
