@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 namespace DevStack.Infrastructure.ModelConfigurations;
 
 public record CreateLargeLanguageModelCommand(
-    Guid ProjectId,
     string Url,
     string Model,
     string? ModelAlias,
@@ -50,7 +49,6 @@ public class CreateLargeLanguageModelHandler : ICreateLargeLanguageModelHandler
     {
         var model = new LargeLanguageModel
         {
-            ProjectId = request.ProjectId,
             Url = request.Url,
             Model = request.Model,
             ModelAlias = request.ModelAlias,

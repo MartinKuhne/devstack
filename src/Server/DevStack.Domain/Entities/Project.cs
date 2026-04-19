@@ -16,8 +16,6 @@ public class Project
     [StringLength(500)]
     public string Repository { get; set; } = string.Empty;
 
-    public virtual ICollection<LargeLanguageModel> LargeLanguageModels { get; set; } = new List<LargeLanguageModel>();
-
     public virtual ICollection<Deliverable> Deliverables { get; set; } = new List<Deliverable>();
 
     public Project()

@@ -1,17 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DevStack.Domain.Entities;
 
 public class LargeLanguageModel
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-
-    [Required]
-    public Guid ProjectId { get; set; }
-
-    [ForeignKey(nameof(ProjectId))]
-    public virtual Project? Project { get; set; }
 
     [Required]
     [StringLength(500)]

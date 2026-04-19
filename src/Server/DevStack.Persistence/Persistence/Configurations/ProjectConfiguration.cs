@@ -20,11 +20,6 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.Repository)
             .IsRequired()
             .HasMaxLength(500);
-            
-        builder.HasMany(p => p.LargeLanguageModels)
-            .WithOne()
-            .HasForeignKey(m => m.ProjectId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(p => p.Deliverables)
             .WithOne(d => d.Project)

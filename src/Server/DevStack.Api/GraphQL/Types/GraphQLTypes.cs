@@ -12,7 +12,6 @@ public class ProjectType : ObjectType<Project>
         descriptor.Field(p => p.Name).Type<StringType>();
         descriptor.Field(p => p.Description).Type<StringType>();
         descriptor.Field(p => p.Repository).Type<StringType>();
-        descriptor.Field(p => p.LargeLanguageModels).Type<ListType<LargeLanguageModelType>>();
         descriptor.Field(p => p.Deliverables).Type<ListType<DeliverableObject>>();
     }
 }
@@ -65,7 +64,6 @@ public class LargeLanguageModelType : ObjectType<LargeLanguageModel>
     protected override void Configure(IObjectTypeDescriptor<LargeLanguageModel> descriptor)
     {
         descriptor.Field(m => m.Id).Type<IdType>().ID();
-        descriptor.Field(m => m.ProjectId).Type<IdType>();
         descriptor.Field(m => m.Url).Type<StringType>();
         descriptor.Field(m => m.Model).Type<StringType>();
         descriptor.Field(m => m.ModelAlias).Type<StringType>();

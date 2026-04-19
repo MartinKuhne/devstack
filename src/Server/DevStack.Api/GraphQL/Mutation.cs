@@ -5,7 +5,7 @@ using DevStack.Domain.Services;
 using DevStack.Persistence;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.ModelConfigurations;
-using DevStack.Infrastructure.Services;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Api.GraphQL.Types;
@@ -98,7 +98,6 @@ public record DeleteAgentTaskInput(Guid Id);
 public record AgentTaskPayload(AgentTask? AgentTask, List<string> Errors);
 
  public record CreateLargeLanguageModelInput(
-    Guid ProjectId,
     string Url,
     string Model,
     string? ModelAlias,
@@ -471,7 +470,6 @@ public class Mutation
     public async Task<LargeLanguageModelPayload> CreateLargeLanguageModelAsync(
         CreateLargeLanguageModelInput input,
         [Service] ICreateLargeLanguageModelHandler handler,
-        ISecretService secretService,
         CancellationToken cancellationToken)
     {
         var errors = new List<string>();
@@ -490,14 +488,11 @@ public class Mutation
 
         try
         {
-            var encryptedApiKey = secretService.Encrypt(input.ApiKey);
-
             var id = await handler.Handle(new CreateLargeLanguageModelCommand(
-                input.ProjectId,
                 input.Url,
                 input.Model,
                 input.ModelAlias,
-                encryptedApiKey,
+                input.ApiKey,
                 input.MaxComplexity,
                 input.MaxConcurrency ?? 0), cancellationToken);
 
@@ -513,25 +508,18 @@ public class Mutation
     public async Task<LargeLanguageModelPayload> UpdateLargeLanguageModelAsync(
         UpdateLargeLanguageModelInput input,
         [Service] IUpdateLargeLanguageModelHandler handler,
-        ISecretService secretService,
         CancellationToken cancellationToken)
     {
         var errors = new List<string>();
 
         try
         {
-            string? encryptedApiKey = null;
-            if (input.ApiKey is not null)
-            {
-                encryptedApiKey = secretService.Encrypt(input.ApiKey);
-            }
-
             await handler.Handle(new UpdateLargeLanguageModelCommand(
                 input.Id,
                 input.Url,
                 input.Model,
                 input.ModelAlias,
-                encryptedApiKey,
+                input.ApiKey,
                 input.MaxComplexity,
                 input.MaxConcurrency), cancellationToken);
 
