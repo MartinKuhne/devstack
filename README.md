@@ -7,6 +7,16 @@ And, to be fair, a vibe coding project to do more vibe coding? What could go wro
 
 If you are bored of my musings, head over to the [instructions](HOWTO.md).
 
+# Iteration 3
+
+When I started this out, I might have assumed we are writing code for human consumption and modification, and I modeled a human-centric, incremental workflow. That's not wrong, but also not entirely right. In a greenfield project, the specification is the the source of truth, the code is disposable, and if the code is not correct, we need to revise the specification until we get the intended results.
+
+I ran such prompts for a night, and it has seen some success. The agent made incremental changes that closed gaps between the specification and the implementation. I had substantially revised and simplified the data model and made the user interface specification more clear, so that was a good test. However, the code agent considers the entire source code as the truth, and it's been difficult to get it to just implement the specification. At some point it found a stale schema.graphql with the tests and proceeded to change the server to match that schema (despite the instructions to consider the spec the source of truth). Furthermore, no prompt has been successful to get it to write verifiably correct, tested code.
+
+Qwen/Qwen3.6-35B-A3B has been a real delight. It runs at twice the speed of Qwen/Qwen3.5-122B-A10B with comparable results.
+
+The "Please make the code so it matches the spec" approach is very token intensive. I go through 250m prompt and 1m generated tokens a day. For now I brought the codebase memory mcp back, maybe that will speed up the analysis stage. My head is full of ideas for a better workflow but I also want to reach a stage where the project is fully functional. 
+
 # Key learnings
 - Spec is everything. It is very easy to generate a lot of code from a detailed spec. It is much harder to make changes to existing code. At times it may be easier to revise the spec and to throw away the code. Invest in spec engineering (not covered by this tool at this time)
 - Prompts are everything. AI is not intelligent and there is no intrinsic motivation. You don't (usually) have to ask a software engineer to write tests. Don't take anything for granted for AI work. It sometimes will but if you want to be sure provide instructions.
