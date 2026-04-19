@@ -48,6 +48,30 @@ public class Query
         return dbContext.LargeLanguageModels.ToList();
     }
 
+    public List<LargeLanguageModel> GetLargeLanguageModelsByProjectId([Service] DevStackDbContext dbContext, Guid projectId)
+    {
+        return dbContext.LargeLanguageModels
+            .Where(m => m.ProjectId == projectId)
+            .OrderBy(m => m.Id)
+            .ToList();
+    }
+
+    public List<Deliverable> GetDeliverablesByProjectId([Service] DevStackDbContext dbContext, Guid projectId)
+    {
+        return dbContext.Deliverables
+            .Where(d => d.ProjectId == projectId)
+            .OrderBy(d => d.Id)
+            .ToList();
+    }
+
+    public List<AgentTask> GetAgentTasksByDeliverableId([Service] DevStackDbContext dbContext, Guid deliverableId)
+    {
+        return dbContext.AgentTasks
+            .Where(t => t.DeliverableId == deliverableId)
+            .OrderBy(t => t.Id)
+            .ToList();
+    }
+
     public Deliverable? GetDeliverableById([Service] DevStackDbContext dbContext, Guid id)
     {
         return dbContext.Deliverables.Find(id);
@@ -63,8 +87,15 @@ public class Query
         return dbContext.AgentTasks.Find(id);
     }
 
-    public List<AgentTask> GetAgentTasks([Service] DevStackDbContext dbContext)
+    public List<AgentTask> GetAgentTasks(
+        [Service] DevStackDbContext dbContext,
+        Guid? itemId = null)
     {
-        return dbContext.AgentTasks.OrderBy(t => t.Id).ToList();
+        var query = dbContext.AgentTasks.AsQueryable();
+        if (itemId.HasValue)
+        {
+            query = query.Where(t => t.ProjectId == itemId.Value);
+        }
+        return query.OrderBy(t => t.Id).ToList();
     }
 }

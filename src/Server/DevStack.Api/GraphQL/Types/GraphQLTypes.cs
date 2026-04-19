@@ -53,7 +53,7 @@ public class AgentTaskType : ObjectType<AgentTask>
         descriptor.Field(t => t.DependsOnDevTask).Type<StringType>();
         descriptor.Field(t => t.PromptTokens).Type<IntType>();
         descriptor.Field(t => t.CompletionTokens).Type<IntType>();
-        descriptor.Field(t => t.ExecutionDurationInSeconds).Type<FloatType>();
+        descriptor.Field(t => t.ExecutionDurationInSeconds).Type<IntType>();
         descriptor.Field(t => t.Model).Type<StringType>();
     }
 }
@@ -63,6 +63,7 @@ public class LargeLanguageModelType : ObjectType<LargeLanguageModel>
     protected override void Configure(IObjectTypeDescriptor<LargeLanguageModel> descriptor)
     {
         descriptor.Field(m => m.Id).Type<IdType>().ID();
+        descriptor.Field(m => m.ProjectId).Type<IdType>();
         descriptor.Field(m => m.Url).Type<StringType>();
         descriptor.Field(m => m.Model).Type<StringType>();
         descriptor.Field(m => m.ModelAlias).Type<StringType>();
