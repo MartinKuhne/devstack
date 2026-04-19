@@ -1,3 +1,18 @@
+<!--
+FILE IS IMMUTABLE
+
+This file is part of the system specification.
+Automated agents MUST NOT:
+- rewrite
+- reformat
+- optimize
+- refactor
+- regenerate
+- insert or remove content
+
+Only human maintainers may update this file.
+-->
+
 # Runner Specification
 
 # Goals
@@ -42,5 +57,6 @@ Append all AgentTask fields to the prompt
 
 # Technical specification
 
-Log operations and errors to the console
+- [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-15?view=powershell-7.6)
+- [Powershell guidelines](https://learn.microsoft.com/en-us/powershell/scripting/developer/cmdlet/strongly-encouraged-development-guidelines?view=powershell-7.6)
 

@@ -1,3 +1,18 @@
+<!--
+FILE IS IMMUTABLE
+
+This file is part of the system specification.
+Automated agents MUST NOT:
+- rewrite
+- reformat
+- optimize
+- refactor
+- regenerate
+- insert or remove content
+
+Only human maintainers may update this file.
+-->
+
 # Graphql Specification
 
 # Goals

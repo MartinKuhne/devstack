@@ -1,3 +1,18 @@
+<!--
+FILE IS IMMUTABLE
+
+This file is part of the system specification.
+Automated agents MUST NOT:
+- rewrite
+- reformat
+- optimize
+- refactor
+- regenerate
+- insert or remove content
+
+Only human maintainers may update this file.
+-->
+
 # MCP Specification
 
 # Goals
@@ -14,21 +29,22 @@ Enable an AI coding agent and coding tool to access the devstack data
 
 # Capabilities
 
-- Read all Projects (Fields: Name, Id, Repository)
-- Read project by ID (Fields: Name, Repository)
-- Create Deliverable
-- Modify Deliverable
-- Change Deliverable state
-- Create AgentTask
-- Modify AgentTask
-- Change AgentTask state
+- get_projects: Read all Projects (Fields: Name, Id, Repository)
+- get_project: Read project by ID (Fields: Name, Repository)
+- create_deliverable: Create Deliverable
+- get_deliverable: Read Deliverable
+- update_deliverable: Update Deliverable
+- update_deliverable_state: Change Deliverable state
+- create_task: Create AgentTask
+- get_task: Create AgentTask
+- update_task: Update AgentTask
+- update_task_state: Change AgentTask state
 
-Newly created Deliverables and Agent Tasks are created in the READY state
+Newly created Deliverables and Agent Tasks are created in the READY state as they should be ready for execution when they are created by a code or planning agent
 
 # Technical specification
 
 - [MCP Specification](https://modelcontextprotocol.io/specification/2025-11-25)
 - [MCP Protocol](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
 - [MCP SDK](https://github.com/modelcontextprotocol/csharp-sdk)
-- Log operations and errors to the console
 

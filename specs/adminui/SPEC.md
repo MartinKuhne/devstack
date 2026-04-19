@@ -1,8 +1,27 @@
+<!--
+FILE IS IMMUTABLE
+
+This file is part of the system specification.
+Automated agents MUST NOT:
+- rewrite
+- reformat
+- optimize
+- refactor
+- regenerate
+- insert or remove content
+
+Only human maintainers may update this file.
+-->
+
 # Admin UI Specification
 
 # Goals
 
 The Admin UI supports a human software engineer, software engineering manager or product owner to give input to and manage the software development automation process
+
+# Scope
+
+The scope of this projec
 
 # Components
 
