@@ -137,17 +137,17 @@ public sealed class DeliverableSteps
 
     private string MapStatus(string status)
     {
-        var upper = status.ToUpperInvariant();
-        return upper switch
+        var lower = status.ToLowerInvariant();
+        return lower switch
         {
-            "PLANNING" or "Planning" => "PLANNING",
-            "READY" or "Ready" => "READY",
-            "INPROGRESS" or "Inprogress" or "In Progress" => "IN_PROGRESS",
-            "DONE" or "Done" => "DONE",
-            "FAILED" or "Failed" => "FAILED",
-            "REJECTED" or "Rejected" => "REJECTED",
-            "NEEDSREVIEW" or "Needsreview" or "Needs Review" => "NEEDS_REVIEW",
-            "DRAFT" or "Draft" => "DRAFT",
+            "planning" => "PLANNING",
+            "ready" => "READY",
+            "inprogress" or "in progress" => "IN_PROGRESS",
+            "done" => "DONE",
+            "failed" => "FAILED",
+            "rejected" => "REJECTED",
+            "needsreview" or "needs review" => "NEEDS_REVIEW",
+            "draft" => "DRAFT",
             _ => "PLANNING"
         };
     }
@@ -173,45 +173,6 @@ public sealed class DeliverableSteps
                     agentFeedback = (string?)null,
                     executionPlan = (string?)null,
                     securityImpact = (string?)null,
-                    performanceImpact = (string?)null,
-                    testPlan = (string?)null,
-                    deploymentPlan = (string?)null,
-                    blocking = (string?)null,
-                    initialStatus = "PLANNING"
-                }
-            },
-            operationName = "CreateDeliverable"
-        };
-
-        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
-        var content = response.Content.ReadAsStringAsync().Result;
-        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var deliverableId = result.GetProperty("data").GetProperty("createDeliverable").GetProperty("deliverable").GetProperty("id").ToString();
-        _scenarioContext["DeliverableId"] = deliverableId;
-        _scenarioContext["Response"] = result;
-    }
-
-    [When(@"I create a (?:feature|deliverable|defect) with title ""(.*)"" and severity ""(.*)""")]
-    public void WhenICreateADeliverableWithSeverity(string title, string severity)
-    {
-        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        var type = ResolveDeliverableType(title);
-        _scenarioContext["DeliverableTitle"] = title;
-        var mutation = new
-        {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors } }",
-            variables = new
-            {
-                input = new
-                {
-                    projectId,
-                    title,
-                    type = type.ToString(),
-                    description = (string?)null,
-                    acceptanceCriteria = (string?)null,
-                    agentFeedback = (string?)null,
-                    executionPlan = (string?)null,
-                    securityImpact = severity,
                     performanceImpact = (string?)null,
                     testPlan = (string?)null,
                     deploymentPlan = (string?)null,

@@ -9,7 +9,7 @@ Feature: Defect Mutations
 
   @create
   Scenario: Create a new defect
-    When I create a defect with title "Test Defect" and severity "High"
+    When I create a defect with title "Test Defect" and description "Defect description"
     Then the defect should be created successfully
     And the defect should exist in the database
 
