@@ -1,0 +1,1 @@
+Plan the implementation of Deliverables in the Planning state. Create AgentTasks that can be completed by an AI agent in less than 20 minutes. Indicate the complexity of the task. If architecture and/or technology choices are ambiguous, do not create AgentTasks, instead change the Deliverable status to NeedsReview.
