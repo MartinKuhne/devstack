@@ -18,6 +18,12 @@ public sealed class DeliverableStatusTransitionService(bool limitStatusTransitio
         { DeliverableStatus.NeedsReview, new() { DeliverableStatus.Done, DeliverableStatus.InProgress, DeliverableStatus.Rejected } }
     };
 
+     public IReadOnlyList<string> GetValidTransitions(Deliverable deliverable)
+    {
+        var allowed = _allowedTransitions.GetValueOrDefault(deliverable.Status, []);
+        return allowed.Select(s => s.ToString()).ToList();
+    }
+
     public TransitionResult<Unit> Transition(Deliverable deliverable, DeliverableStatus targetStatus, string actor)
     {
         var errors = new List<string>();

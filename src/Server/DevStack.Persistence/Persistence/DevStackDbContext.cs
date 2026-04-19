@@ -14,6 +14,7 @@ public class DevStackDbContext : DbContext
     public DbSet<Deliverable> Deliverables { get; set; } = null!;
     public DbSet<AgentTask> AgentTasks { get; set; } = null!;
     public DbSet<LargeLanguageModel> LargeLanguageModels { get; set; } = null!;
+    public DbSet<Epic> Epics { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
