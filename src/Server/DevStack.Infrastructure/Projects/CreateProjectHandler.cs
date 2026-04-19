@@ -32,7 +32,7 @@ public class CreateProjectHandler : ICreateProjectHandler
         var project = new Project
         {
             Name = request.Name!,
-            Description = request.Description,
+            Description = request.Description ?? string.Empty,
             Repository = request.Repository ?? string.Empty
         };
 

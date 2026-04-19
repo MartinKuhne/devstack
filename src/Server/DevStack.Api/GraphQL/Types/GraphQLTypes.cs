@@ -12,7 +12,6 @@ public class ProjectType : ObjectType<Project>
         descriptor.Field(p => p.Name).Type<StringType>();
         descriptor.Field(p => p.Description).Type<StringType>();
         descriptor.Field(p => p.Repository).Type<StringType>();
-        descriptor.Field(p => p.Deliverables).Type<ListType<DeliverableObject>>();
     }
 }
 
@@ -43,7 +42,6 @@ public class AgentTaskType : ObjectType<AgentTask>
     protected override void Configure(IObjectTypeDescriptor<AgentTask> descriptor)
     {
         descriptor.Field(t => t.Id).Type<IdType>().ID();
-        descriptor.Field(t => t.ProjectId).Type<IdType>();
         descriptor.Field(t => t.DeliverableId).Type<IdType>();
         descriptor.Field(t => t.Title).Type<StringType>();
         descriptor.Field(t => t.Status).Type<EnumType<AgentTaskStatus>>();

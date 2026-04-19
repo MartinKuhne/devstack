@@ -51,7 +51,7 @@ public class CreateLargeLanguageModelHandler : ICreateLargeLanguageModelHandler
         {
             Url = request.Url,
             Model = request.Model,
-            ModelAlias = request.ModelAlias,
+            ModelAlias = request.ModelAlias ?? string.Empty,
             ApiKey = request.ApiKey,
             MaxComplexity = request.MaxComplexity,
             MaxConcurrency = request.MaxConcurrency
