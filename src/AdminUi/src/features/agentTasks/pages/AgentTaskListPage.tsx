@@ -31,7 +31,7 @@ export function AgentTaskListPage() {
     const searchFilter = searchParams.get('search') || undefined;
     
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
-    const { agentTasks, loading, error } = useAgentTasks(undefined, statusFilter ? [statusFilter] : undefined);
+    const { agentTasks, loading, error, refetch } = useAgentTasks(undefined, statusFilter ? [statusFilter] : undefined);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this agent task?')) return;
@@ -45,7 +45,7 @@ export function AgentTaskListPage() {
                 toast.error(result.data.deleteAgentTask.errors.join(', '));
             } else {
                 toast.success('Agent task deleted successfully');
-                // refetch would need to be added to useAgentTasks hook
+                refetch();
             }
         } catch {
             toast.error('Failed to delete agent task');

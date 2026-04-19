@@ -1,5 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
-import { Menu, LayoutDashboard, Folder, Brain } from 'lucide-react';
+import { Menu, LayoutDashboard, Folder, Brain, CheckSquare, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
@@ -35,6 +35,18 @@ function SidebarContent() {
                 <Button variant="ghost" className="w-full justify-start">
                     <Brain className="mr-2 h-4 w-4" />
                     Large Language Models
+                </Button>
+            </Link>
+            <Link to="/deliverables">
+                <Button variant="ghost" className="w-full justify-start">
+                    <CheckSquare className="mr-2 h-4 w-4" />
+                    Deliverables
+                </Button>
+            </Link>
+            <Link to="/agent-tasks">
+                <Button variant="ghost" className="w-full justify-start">
+                    <ListTodo className="mr-2 h-4 w-4" />
+                    Agent Tasks
                 </Button>
             </Link>
         </nav>

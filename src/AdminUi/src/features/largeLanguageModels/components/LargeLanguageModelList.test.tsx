@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { LargeLanguageModelList } from './LargeLanguageModelList';
 import { vi, beforeEach } from 'vitest';
-import { useLargeLanguageModels } from '../hooks/useLargeLanguageModels';
 
 // Mock the hook
 vi.mock('../hooks/useLargeLanguageModels', () => ({
@@ -12,11 +11,37 @@ vi.mock('../hooks/useLargeLanguageModels', () => ({
     }),
 }));
 
+// Mock the GraphQL mutation hooks used by LargeLanguageModelList and LargeLanguageModelDialog
+vi.mock(import('@/generated/graphql'), async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+        ...actual,
+        useDeleteModelConfigurationMutation: vi.fn(),
+        useCreateModelConfigurationMutation: vi.fn(),
+        useUpdateModelConfigurationMutation: vi.fn(),
+    };
+});
+
+const getMockedGraphqlHooks = async () => {
+    const m = await import('@/generated/graphql');
+    return {
+        useDeleteModelConfigurationMutation: m.useDeleteModelConfigurationMutation as ViFnMock,
+        useCreateModelConfigurationMutation: m.useCreateModelConfigurationMutation as ViFnMock,
+        useUpdateModelConfigurationMutation: m.useUpdateModelConfigurationMutation as ViFnMock,
+    };
+};
+
+type ViFnMock = ReturnType<typeof vi.fn>;
+
 describe('LargeLanguageModelList', () => {
     const mockOnAddModel = vi.fn();
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
+        const hooks = await getMockedGraphqlHooks();
+        hooks.useDeleteModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useCreateModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useUpdateModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
     });
 
     it('should render empty state when no configurations exist', () => {
