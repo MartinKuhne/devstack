@@ -1,11 +1,11 @@
 using TechTalk.SpecFlow;
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.Json;
 using DevStack.Tests.Integration.MCP.Client;
 using Testcontainers.PostgreSql;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using Npgsql;
 using DevStack.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +19,7 @@ public sealed class SpecFlowHooks
     private IMcpJsonRpcClient? _mcpClient;
     private HttpClient? _httpClient;
     private static PostgreSqlContainer? _postgresContainer;
-    private static Process? _mcpProcess;
+    private static IContainer? _mcpContainer;
     private static readonly object _lock = new();
     private static int _containerRefCount = 0;
     private static Guid _seededProjectId = Guid.Empty;
@@ -41,18 +41,60 @@ public sealed class SpecFlowHooks
             }
 
             _containerRefCount = 1;
-            _postgresContainer = new PostgreSqlBuilder()
-                .WithImage("postgres:17-alpine")
-                .WithDatabase("devstack")
-                .WithUsername("devstack")
-                .WithPassword("devstack_password_123")
-                .Build();
-
-            _postgresContainer.StartAsync().Wait(TimeSpan.FromSeconds(60));
-
-            var connectionString = _postgresContainer.GetConnectionString();
-            SeedDatabase(connectionString);
+            InitializePostgresContainer();
+            InitializeMcpContainer();
         }
+    }
+
+    private static void InitializePostgresContainer()
+    {
+        _postgresContainer = new PostgreSqlBuilder()
+            .WithImage("postgres:17-alpine")
+            .WithDatabase("devstack")
+            .WithUsername("devstack")
+            .WithPassword("devstack_password_123")
+            .Build();
+
+        _postgresContainer.StartAsync().Wait(TimeSpan.FromSeconds(60));
+
+        var connectionString = _postgresContainer.GetConnectionString();
+        SeedDatabase(connectionString);
+    }
+
+    private static void InitializeMcpContainer()
+    {
+        var testProjectDir = AppContext.BaseDirectory;
+        for (var i = 0; i < 10 && testProjectDir.Contains("DevStack.Tests.Integration.MCP"); i++)
+        {
+            testProjectDir = Path.GetDirectoryName(testProjectDir) ?? Directory.GetParent(testProjectDir)?.FullName ?? "";
+        }
+
+        var serverDir = Path.Combine(testProjectDir, "Server");
+        var mcpDockerfilePath = Path.Combine(serverDir, "DevStack.Mcp", "Dockerfile");
+        var dockerBuildContext = serverDir;
+
+        if (!File.Exists(mcpDockerfilePath))
+        {
+            throw new FileNotFoundException(
+                $"MCP Dockerfile not found at {mcpDockerfilePath}. Ensure the project structure is correct.");
+        }
+
+        var mcpImage = new ImageFromDockerfileBuilder()
+            .WithName("devstack-mcp:test")
+            .WithContextDirectory(dockerBuildContext)
+            .WithDockerfile("DevStack.Mcp/Dockerfile")
+            .Build();
+
+        var mcpContainer = new ContainerBuilder()
+            .WithImage(mcpImage)
+            .WithPortBinding(8080)
+            .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
+            .WithEnvironment("ConnectionStrings__DefaultConnection", _postgresContainer!.GetConnectionString())
+            .WithEnvironment("DEVSTACK_SECRET_KEY", "test-secret-key-for-mcp-integration-tests")
+            .Build();
+
+        mcpContainer.StartAsync().Wait(TimeSpan.FromSeconds(120));
+        _mcpContainer = mcpContainer;
     }
 
     private static void SeedDatabase(string connectionString)
@@ -104,16 +146,16 @@ public sealed class SpecFlowHooks
                 return;
             }
 
-            if (_mcpProcess != null && !_mcpProcess.HasExited)
+            if (_mcpContainer != null)
             {
-                _mcpProcess.Kill(true);
-                _mcpProcess.WaitForExit(TimeSpan.FromSeconds(10));
-                _mcpProcess.Dispose();
-                _mcpProcess = null;
+                _mcpContainer.StopAsync().Wait(TimeSpan.FromSeconds(30));
+                _mcpContainer.DisposeAsync().GetAwaiter().GetResult();
+                _mcpContainer = null;
             }
 
             if (_postgresContainer != null)
             {
+                _postgresContainer.StopAsync().Wait(TimeSpan.FromSeconds(30));
                 _postgresContainer.DisposeAsync().GetAwaiter().GetResult();
                 _postgresContainer = null;
             }
@@ -130,23 +172,32 @@ public sealed class SpecFlowHooks
 
         var connectionString = _postgresContainer.GetConnectionString();
 
-        var services = new ServiceCollection();
+        ushort? mcpPort = null;
+        if (_mcpContainer is not null)
+        {
+            mcpPort = _mcpContainer.GetMappedPublicPort(8080);
+        }
 
-  var port = 8887;
-        _httpClient = new HttpClient
+        var port = mcpPort ?? 8887;
+
+        var httpClient = new HttpClient
         {
             BaseAddress = new Uri($"http://localhost:{port}")
         };
-        _httpClient.DefaultRequestHeaders.Accept.Clear();
-        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
 
-        services.AddSingleton(_httpClient);
+        var services = new ServiceCollection();
+        services.AddSingleton(httpClient);
         services.AddSingleton<IMcpJsonRpcClient>(sp =>
-            new McpJsonRpcClient(_httpClient, $"http://localhost:{port}/mcp"));
+            new McpJsonRpcClient(httpClient, $"http://localhost:{port}/mcp"));
 
         var provider = services.BuildServiceProvider();
-        _mcpClient = provider.GetRequiredService<IMcpJsonRpcClient>();
+        var mcpClient = provider.GetRequiredService<IMcpJsonRpcClient>();
+
+        _httpClient = httpClient;
+        _mcpClient = mcpClient;
 
         _scenarioContext["McpClient"] = _mcpClient;
         _scenarioContext["HttpClient"] = _httpClient;
@@ -154,8 +205,9 @@ public sealed class SpecFlowHooks
         _scenarioContext["McpPort"] = port;
         _scenarioContext["ProjectId"] = _seededProjectId.ToString();
         Console.WriteLine($"[MCP] Seeded ProjectId: {_seededProjectId}");
+        Console.WriteLine($"[MCP] Port: {port}");
 
-        StartMcpServer(connectionString, port);
+        WaitForMcpServerReady(port, TimeSpan.FromSeconds(90));
     }
 
     [AfterScenario]
@@ -164,83 +216,6 @@ public sealed class SpecFlowHooks
         _httpClient?.Dispose();
         _httpClient = null;
         _mcpClient = null;
-    }
-
-    private static void StartMcpServer(string connectionString, int port)
-    {
-        lock (_lock)
-        {
-            bool processIsRunning = false;
-            try
-            {
-                if (_mcpProcess != null && !_mcpProcess.HasExited)
-                {
-                    processIsRunning = true;
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                // Process object is stale, reset it
-                _mcpProcess?.Dispose();
-                _mcpProcess = null;
-            }
-
-            if (processIsRunning)
-            {
-                return;
-            }
-
-           var mcpProjectPath = Path.Combine(
-                AppContext.BaseDirectory,
-                "..", "..", "..", "..", "..", "Server", "DevStack.Mcp",
-                "DevStack.Mcp.csproj");
-
-            mcpProjectPath = Path.GetFullPath(mcpProjectPath);
-
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = "C:\\Program Files\\dotnet\\dotnet.exe",
-                Arguments = $"run --no-build --project \"{mcpProjectPath}\" -- --urls http://localhost:{port}",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                WorkingDirectory = Path.GetDirectoryName(mcpProjectPath),
-                Environment =
-                {
-                    ["ASPNETCORE_ENVIRONMENT"] = "Development",
-                    ["ConnectionStrings__DefaultConnection"] = connectionString,
-                    ["DEVSTACK_SECRET_KEY"] = "test-secret-key-for-mcp-integration-tests"
-                }
-            };
-            Console.WriteLine($"[MCP] Connection string: {connectionString}");
-
-            _mcpProcess = new Process { StartInfo = startInfo };
-            _mcpProcess.OutputDataReceived += (s, e) => Console.WriteLine($"[MCP OUT] {e.Data}");
-            _mcpProcess.ErrorDataReceived += (s, e) => Console.WriteLine($"[MCP ERR] {e.Data}");
-            _mcpProcess.EnableRaisingEvents = true;
-            _mcpProcess.Exited += (s, e) => Console.WriteLine($"[MCP EXIT] Process exited with code {_mcpProcess.ExitCode}");
-            _mcpProcess.Start();
-
-            Console.WriteLine($"[MCP] Process started with PID: {_mcpProcess.Id}");
-
-           try
-            {
-                WaitForMcpServerReady(port, TimeSpan.FromSeconds(60));
-                Thread.Sleep(2000);
-            }
-            catch (TimeoutException)
-            {
-                Console.WriteLine($"[MCP] Server failed to start. Checking process status...");
-                if (_mcpProcess != null && !_mcpProcess.HasExited)
-                {
-                    _mcpProcess.Kill(true);
-                    _mcpProcess.WaitForExit(TimeSpan.FromSeconds(10));
-                }
-                _mcpProcess?.Dispose();
-                _mcpProcess = null;
-                throw;
-            }
-        }
     }
 
     private static void WaitForMcpServerReady(int port, TimeSpan timeout)
@@ -270,15 +245,6 @@ public sealed class SpecFlowHooks
         }
 
         throw new TimeoutException($"MCP server did not become ready within {timeout.TotalSeconds} seconds on port {port}");
-    }
-
-    private static int GetAvailablePort()
-    {
-        using var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
-        listener.Start();
-        var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
-        listener.Stop();
-        return port;
     }
 
     public static IMcpJsonRpcClient GetMcpClient(ScenarioContext context)
