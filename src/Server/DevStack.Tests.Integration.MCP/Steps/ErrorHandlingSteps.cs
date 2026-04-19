@@ -201,7 +201,11 @@ public sealed class ErrorHandlingSteps
             var httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
             var responseContent = await httpResponse.Content.ReadAsStringAsync();
             
-            _response = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(responseContent)?.FirstOrDefault();
+            var responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(responseContent);
+            if (responses != null && responses.Length > 0)
+            {
+                _scenarioContext["BatchResponses"] = responses;
+            }
         }
 
         _scenarioContext["Response"] = _response;
@@ -210,24 +214,47 @@ public sealed class ErrorHandlingSteps
     [Then(@"the response should contain (\d+) responses")]
     public void ThenTheResponseShouldContainResponses(int expectedCount)
     {
-        var result = _response!.Result!.ToString()!;
-        var responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
-        responses!.Length.Should().Be(expectedCount);
+        if (_scenarioContext.TryGetValue<JsonRpcResponse[]>("BatchResponses", out var responses))
+        {
+            responses!.Length.Should().Be(expectedCount);
+        }
+        else
+        {
+            var result = _response!.Result!.ToString()!;
+            responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
+            responses!.Length.Should().Be(expectedCount);
+        }
     }
 
     [Then(@"each response should have the correct id")]
     public void ThenEachResponseShouldHaveTheCorrectId()
     {
-        var result = _response!.Result!.ToString()!;
-        var responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
+        JsonRpcResponse[]? responses = null;
+        if (_scenarioContext.TryGetValue<JsonRpcResponse[]>("BatchResponses", out var batchResponses))
+        {
+            responses = batchResponses;
+        }
+        else if (_response?.Result != null)
+        {
+            var result = _response.Result.ToString()!;
+            responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
+        }
         responses!.Should().NotBeEmpty();
     }
 
     [Then(@"the invalid request response should contain error")]
     public void ThenTheInvalidRequestResponseShouldContainError()
     {
-        var result = _response!.Result!.ToString()!;
-        var responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
+        JsonRpcResponse[]? responses = null;
+        if (_scenarioContext.TryGetValue<JsonRpcResponse[]>("BatchResponses", out var batchResponses))
+        {
+            responses = batchResponses;
+        }
+        else if (_response?.Result != null)
+        {
+            var result = _response.Result.ToString()!;
+            responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
+        }
         responses!.Any(r => r.Error != null).Should().BeTrue();
     }
 

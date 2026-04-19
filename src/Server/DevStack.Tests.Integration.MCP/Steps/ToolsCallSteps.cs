@@ -56,11 +56,12 @@ public sealed class ToolsCallSteps
         _response!.Result.Should().NotBeNull();
     }
 
-   [Then(@"the response should contain an error")]
-    public void ThenTheResponseShouldContainAnError()
+    [Then(@"the response should contain an error with code (-?\d+)")]
+    public void ThenTheResponseShouldContainAnErrorWithCode(int expectedCode)
     {
         _response.Should().NotBeNull();
         _response!.Error.Should().NotBeNull();
+        _response!.Error!.Code.Should().Be(expectedCode);
     }
 
     [Then(@"the error code should be (-?\d+)")]
