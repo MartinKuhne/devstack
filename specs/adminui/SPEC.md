@@ -7,10 +7,8 @@ The Admin UI supports a human software engineer, software engineering manager or
 # Components
 
 - A docker container hosting a web interface
-- Integration tests for the admin UI (prefer gherkin and playwright)
+- Integration tests for the admin UI (run with ```npm run test:e2e```)
   - The integration tests MUST run and MUST PASS do not make excuses about pre existing failures
-
-Prefer react, tailwind, shadcn/ui
 
 # Capabilities
 
@@ -58,7 +56,16 @@ App
 
 # Technical specification
 
-- Log operations and errors to the console
+- [React](https://react.dev/reference/react)
+- [Tailwind](https://tailwindcss.com/plus/ui-blocks/documentation/elements)
 - [ShadCN](https://ui.shadcn.com/docs)
 - [ShadCN Theming](https://ui.shadcn.com/docs/theming)
 - [ShadCN Components](https://ui.shadcn.com/docs/components)
+- [Playwright](https://playwright.dev/docs/writing-tests)
+
+# Preferred libraries
+- react
+- tailwind
+- shadcn/ui
+- gherkin
+- playwright
