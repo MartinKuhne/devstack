@@ -1,6 +1,7 @@
 using DevStack.Api.GraphQL;
 using Microsoft.FeatureManagement;
 using DevStack.Api.GraphQL.Types;
+using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.ModelConfigurations;
@@ -100,7 +101,8 @@ builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddType<ProjectType>()
-    .AddType<DeliverableType>()
+    .AddType<DeliverableObject>()
+    .AddEnumType<DeliverableType>()
     .AddType<AgentTaskType>()
     .AddType<LargeLanguageModelType>()
     .AddObjectType<ProjectConnection>()

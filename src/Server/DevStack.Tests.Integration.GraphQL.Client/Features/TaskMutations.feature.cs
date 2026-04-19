@@ -222,13 +222,13 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 25
-    testRunner.Given("a task with status \"Todo\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.Given("a task with status \"Ready\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 26
-    testRunner.When("I transition the task status to \"Done\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I transition the task status to \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 27
-    testRunner.Then("the task status should be \"Done\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Then("the task status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
