@@ -13,18 +13,13 @@ namespace DevStack.Api.GraphQL.Types;
 public record CreateProjectInput(
     string Name,
     string? Description,
-    string? Architecture,
-    string? Memory,
-    string? GithubUrl);
+    string? Repository);
 
 public record UpdateProjectInput(
     Guid Id,
     string? Name,
     string? Description,
-    string? Architecture,
-    string? Memory,
-    string? GithubUrl,
-    string? GithubToken_Encrypted);
+    string? Repository);
 
 public record DeleteProjectInput(Guid Id);
 
@@ -56,9 +51,7 @@ public record UpdateDeliverableInput(
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    string? Blocking,
-    string? Result,
-    string? Errors);
+    string? Blocking);
 
 public record TransitionDeliverableInput(
     Guid Id,
@@ -77,7 +70,7 @@ public record CreateAgentTaskInput(
     string? Result,
     string? Errors,
     string? CommitHash,
-    string? DependsOnAgentTask,
+    string? DependsOnDevTask,
     int? PromptTokens,
     int? CompletionTokens,
     double? ExecutionDurationInSeconds,
@@ -89,7 +82,7 @@ public record UpdateAgentTaskInput(
     string? Result,
     string? Errors,
     string? CommitHash,
-    string? DependsOnAgentTask,
+    string? DependsOnDevTask,
     int? ComplexityRating,
     int? PromptTokens,
     int? CompletionTokens,
@@ -111,7 +104,7 @@ public record CreateLargeLanguageModelInput(
     string? ModelAlias,
     string ApiKey,
     int MaxComplexity,
-    Guid ProjectId);
+    int? MaxConcurrency);
 
 public record UpdateLargeLanguageModelInput(
     Guid Id,
@@ -120,7 +113,7 @@ public record UpdateLargeLanguageModelInput(
     string? ModelAlias,
     string? ApiKey,
     int? MaxComplexity,
-    Guid? ProjectId);
+    int? MaxConcurrency);
 
 public record DeleteLargeLanguageModelInput(Guid Id);
 
@@ -151,9 +144,7 @@ public class Mutation
             var id = await handler.Handle(new DevStack.Infrastructure.Projects.CreateProjectCommand(
                 input.Name,
                 input.Description,
-                input.Architecture,
-                input.Memory,
-                input.GithubUrl), cancellationToken);
+                input.Repository), cancellationToken);
 
             var project = new Project { Id = id };
             return new ProjectPayload(project, new List<string>());
@@ -183,10 +174,7 @@ public class Mutation
                 input.Id,
                 input.Name,
                 input.Description,
-                input.Architecture,
-                input.Memory,
-                input.GithubUrl,
-                input.GithubToken_Encrypted), cancellationToken);
+                input.Repository), cancellationToken);
 
             var project = new Project { Id = input.Id };
             return new ProjectPayload(project, new List<string>());
@@ -238,21 +226,23 @@ public class Mutation
 
         try
         {
+            var deliverableType = (DevStack.Domain.Enums.DeliverableType)Enum.Parse(typeof(DevStack.Domain.Enums.DeliverableType), input.Type, ignoreCase: true);
+
             var deliverable = new Deliverable
             {
                 ProjectId = input.ProjectId,
                 Title = input.Title,
-                Type = Enum.Parse<DeliverableType>(input.Type, ignoreCase: true),
+                Type = deliverableType,
                 Description = input.Description,
                 AcceptanceCriteria = input.AcceptanceCriteria,
-                Plan = input.ExecutionPlan,
+                ExecutionPlan = input.ExecutionPlan,
+                AgentFeedback = input.AgentFeedback,
                 SecurityImpact = input.SecurityImpact,
                 PerformanceImpact = input.PerformanceImpact,
                 TestPlan = input.TestPlan,
                 DeploymentPlan = input.DeploymentPlan,
-                Status = input.InitialStatus ?? DeliverableStatus.Planning,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                Blocking = input.Blocking,
+                Status = input.InitialStatus ?? DeliverableStatus.Planning
             };
 
             dbContext.Deliverables.Add(deliverable);
@@ -280,14 +270,13 @@ public class Mutation
             if (input.Title is not null) deliverable.Title = input.Title;
             if (input.Description is not null) deliverable.Description = input.Description;
             if (input.AcceptanceCriteria is not null) deliverable.AcceptanceCriteria = input.AcceptanceCriteria;
-            if (input.ExecutionPlan is not null) deliverable.Plan = input.ExecutionPlan;
+            if (input.ExecutionPlan is not null) deliverable.ExecutionPlan = input.ExecutionPlan;
+            if (input.AgentFeedback is not null) deliverable.AgentFeedback = input.AgentFeedback;
             if (input.SecurityImpact is not null) deliverable.SecurityImpact = input.SecurityImpact;
             if (input.PerformanceImpact is not null) deliverable.PerformanceImpact = input.PerformanceImpact;
             if (input.TestPlan is not null) deliverable.TestPlan = input.TestPlan;
             if (input.DeploymentPlan is not null) deliverable.DeploymentPlan = input.DeploymentPlan;
-            if (input.Result is not null) deliverable.Result = input.Result;
-            if (input.Errors is not null) deliverable.Errors = input.Errors;
-            deliverable.UpdatedAt = DateTime.UtcNow;
+            if (input.Blocking is not null) deliverable.Blocking = input.Blocking;
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -379,14 +368,12 @@ public class Mutation
                 Result = input.Result,
                 Errors = input.Errors,
                 CommitHash = input.CommitHash,
-                DependsOnDevTask = input.DependsOnAgentTask,
+                DependsOnDevTask = input.DependsOnDevTask,
                 PromptTokens = input.PromptTokens,
                 CompletionTokens = input.CompletionTokens,
                 ExecutionDurationInSeconds = input.ExecutionDurationInSeconds,
                 Model = input.Model,
-                Status = AgentTaskStatus.Ready,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                Status = AgentTaskStatus.Ready
             };
 
             dbContext.AgentTasks.Add(agentTask);
@@ -415,13 +402,12 @@ public class Mutation
             if (input.Result is not null) agentTask.Result = input.Result;
             if (input.Errors is not null) agentTask.Errors = input.Errors;
             if (input.CommitHash is not null) agentTask.CommitHash = input.CommitHash;
-            if (input.DependsOnAgentTask is not null) agentTask.DependsOnDevTask = input.DependsOnAgentTask;
+            if (input.DependsOnDevTask is not null) agentTask.DependsOnDevTask = input.DependsOnDevTask;
             if (input.ComplexityRating.HasValue) agentTask.ComplexityRating = input.ComplexityRating.Value;
             if (input.PromptTokens.HasValue) agentTask.PromptTokens = input.PromptTokens;
             if (input.CompletionTokens.HasValue) agentTask.CompletionTokens = input.CompletionTokens;
             if (input.ExecutionDurationInSeconds.HasValue) agentTask.ExecutionDurationInSeconds = input.ExecutionDurationInSeconds;
             if (input.Model is not null) agentTask.Model = input.Model;
-            agentTask.UpdatedAt = DateTime.UtcNow;
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -512,7 +498,7 @@ public class Mutation
                 input.ModelAlias,
                 encryptedApiKey,
                 input.MaxComplexity,
-                input.ProjectId), cancellationToken);
+                input.MaxConcurrency ?? 0), cancellationToken);
 
             var model = new LargeLanguageModel { Id = id };
             return new LargeLanguageModelPayload(model, new List<string>());
@@ -546,7 +532,7 @@ public class Mutation
                 input.ModelAlias,
                 encryptedApiKey,
                 input.MaxComplexity,
-                input.ProjectId), cancellationToken);
+                input.MaxConcurrency), cancellationToken);
 
             var model = new LargeLanguageModel { Id = input.Id };
             return new LargeLanguageModelPayload(model, new List<string>());

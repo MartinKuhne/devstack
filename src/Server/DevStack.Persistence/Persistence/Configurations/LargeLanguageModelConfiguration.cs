@@ -22,19 +22,14 @@ public class LargeLanguageModelConfiguration : IEntityTypeConfiguration<LargeLan
             .IsRequired(false)
             .HasMaxLength(100);
 
-        builder.Property(llm => llm.ApiKey_Encrypted)
+        builder.Property(llm => llm.ApiKey)
             .IsRequired()
             .HasMaxLength(1000);
 
         builder.Property(llm => llm.MaxComplexity)
             .IsRequired();
 
-        builder.Property(llm => llm.ProjectId)
-            .IsRequired();
-
-        builder.HasOne(llm => llm.Project)
-            .WithMany()
-            .HasForeignKey(llm => llm.ProjectId)
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(llm => llm.MaxConcurrency)
+            .HasDefaultValue(0);
     }
 }

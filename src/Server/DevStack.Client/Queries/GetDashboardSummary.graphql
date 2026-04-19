@@ -1,9 +1,0 @@
-query GetDashboardSummary {
-  dashboardSummary {
-    projectsInFlight
-    featuresInReview
-    featuresFailed
-    tasksInProgress
-    tasksFailed
-  }
-}

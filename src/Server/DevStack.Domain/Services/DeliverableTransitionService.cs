@@ -8,7 +8,7 @@ public sealed class DeliverableStatusTransitionService(bool limitStatusTransitio
 {
     private static readonly Dictionary<DeliverableStatus, List<DeliverableStatus>> _allowedTransitions = new()
     {
-        { DeliverableStatus.Draft, new() { DeliverableStatus.Ready, DeliverableStatus.Planning } },
+        { DeliverableStatus.Draft, new() { DeliverableStatus.Planning } },
         { DeliverableStatus.Planning, new() { DeliverableStatus.Ready, DeliverableStatus.InProgress, DeliverableStatus.Rejected } },
         { DeliverableStatus.Ready, new() { DeliverableStatus.InProgress, DeliverableStatus.Failed, DeliverableStatus.Rejected } },
         { DeliverableStatus.InProgress, new() { DeliverableStatus.Done, DeliverableStatus.Failed, DeliverableStatus.Rejected, DeliverableStatus.NeedsReview } },
@@ -46,27 +46,7 @@ public sealed class DeliverableStatusTransitionService(bool limitStatusTransitio
             return TransitionResult<Unit>.Failure(errors);
         }
 
-        switch (targetStatus)
-        {
-            case DeliverableStatus.Done:
-                if (string.IsNullOrWhiteSpace(deliverable.Result))
-                    errors.Add("A result must be provided before marking a deliverable as Done.");
-                break;
-            case DeliverableStatus.Failed:
-                if (string.IsNullOrWhiteSpace(deliverable.Errors))
-                    errors.Add("Errors must be documented when a deliverable fails.");
-                break;
-            case DeliverableStatus.Rejected:
-                if (string.IsNullOrWhiteSpace(deliverable.Errors))
-                    errors.Add("Errors must be documented when rejecting a deliverable.");
-                break;
-        }
-
-        if (errors.Count > 0)
-            return TransitionResult<Unit>.Failure(errors);
-
         deliverable.Status = targetStatus;
-        deliverable.UpdatedAt = DateTime.UtcNow;
 
         return TransitionResult<Unit>.Success(Unit.Value);
     }

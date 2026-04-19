@@ -6,19 +6,14 @@ schema {
 input CreateProjectInput {
   name: String!
   description: String
-  architecture: String
-  memory: String
-  githubUrl: String
+  repository: String
 }
 
 input UpdateProjectInput {
   id: UUID!
   name: String
   description: String
-  architecture: String
-  memory: String
-  githubUrl: String
-  githubToken_Encrypted: String
+  repository: String
 }
 
 input DeleteProjectInput {
@@ -53,8 +48,6 @@ input UpdateDeliverableInput {
   testPlan: String
   deploymentPlan: String
   blocking: String
-  result: String
-  errors: String
 }
 
 input TransitionDeliverableInput {
@@ -107,7 +100,6 @@ input DeleteAgentTaskInput {
 }
 
 input CreateLargeLanguageModelInput {
-  projectId: UUID!
   url: String!
   model: String!
   modelAlias: String
@@ -131,12 +123,6 @@ input DeleteLargeLanguageModelInput {
 }
 
 type ProjectPageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  totalCount: Int!
-}
-
-type ItemPageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   totalCount: Int!
@@ -168,33 +154,12 @@ type ProjectConnection {
   totalCount: Int!
 }
 
-type ItemConnection {
-  nodes: [Item!]!
-  pageInfo: ItemPageInfo!
-  totalCount: Int!
-}
-
-type DashboardSummary {
-  projectsInFlight: Int!
-  featuresInReview: Int!
-  featuresFailed: Int!
-  tasksInProgress: Int!
-  tasksFailed: Int!
-}
-
 type Project {
   id: ID
   name: String
   description: String
-  architecture: String
-  memory: String
   repository: String
-  githubUrl: String
-  githubToken_Encrypted: String
-  createdAt: DateTime
-  updatedAt: DateTime
-  items: [Item]
-  llms: [LargeLanguageModel!]!
+  largeLanguageModels: [LargeLanguageModel!]!
 }
 
 type Deliverable {
@@ -205,21 +170,13 @@ type Deliverable {
   status: DeliverableStatus
   description: String
   acceptanceCriteria: String
-  agentFeedback: String
   executionPlan: String
+  agentFeedback: String
   securityImpact: String
   performanceImpact: String
   testPlan: String
   deploymentPlan: String
   blocking: String
-  result: String
-  errors: String
-  createdAt: DateTime
-  updatedAt: DateTime
-  severity: Severity
-  rootCause: String
-  tasks: [AgentTask]
-  project: Project
 }
 
 type AgentTask {
@@ -237,49 +194,16 @@ type AgentTask {
   completionTokens: Int
   executionDurationInSeconds: Float
   model: String
-  createdAt: DateTime
-  updatedAt: DateTime
-  deliverable: Deliverable
-  project: Project
-}
-
-type Item {
-  id: ID
-  projectId: ID
-  subtype: ItemSubtype!
-  title: String
-  status: FeatureStatus
-  description: String
-  acceptanceCriteria: String
-  plan: String
-  securityImpact: String
-  performanceImpact: String
-  testPlan: String
-  deploymentPlan: String
-  openQuestions: String
-  result: String
-  errors: String
-  createdAt: DateTime
-  updatedAt: DateTime
-  parentFeatureId: ID
-  severity: Severity
-  rootCause: String
-  dependsOnId: ID
-  project: Project
 }
 
 type LargeLanguageModel {
   id: ID
-  projectId: ID
   url: String
   model: String
   modelAlias: String
-  apiKey_Encrypted: String
+  apiKey: String
   maxComplexity: Int
   maxConcurrency: Int
-  createdAt: DateTime
-  updatedAt: DateTime
-  project: Project
 }
 
 enum DeliverableType {
@@ -308,44 +232,14 @@ enum AgentTaskStatus {
   NEEDS_REVIEW
 }
 
-enum FeatureStatus {
-  PLANNING
-  READY
-  IN_PROGRESS
-  READY_FOR_TEST
-  TESTING
-  DONE
-  FAILED
-  REJECTED
-  IN_REVIEW
-}
-
-enum ItemSubtype {
-  FEATURE
-  DEFECT
-  MAINTENANCE
-  ENABLER
-  TASK
-}
-
-enum Severity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
 scalar DateTime
 scalar UUID
 
 type Query {
   projectById(id: UUID!): Project
   projects(first: Int! = 50, skip: Int): ProjectConnection!
-  items(projectId: UUID, status: [FeatureStatus!], subtype: [ItemSubtype!], createdAfter: DateTime, createdBefore: DateTime, first: Int! = 50, skip: Int): ItemConnection!
-  getItemById(id: UUID!): Item
   largeLanguageModelById(id: UUID!): LargeLanguageModel
-  largeLanguageModels(projectId: UUID): [LargeLanguageModel!]!
-  dashboardSummary: DashboardSummary!
+  largeLanguageModels: [LargeLanguageModel!]!
 }
 
 type Mutation {

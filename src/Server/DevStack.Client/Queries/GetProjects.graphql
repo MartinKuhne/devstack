@@ -3,9 +3,7 @@ query GetProjects($first: Int, $skip: Int) {
     nodes {
       id
       name
-      description
-      createdAt
-      updatedAt
+      repository
     }
     pageInfo {
       hasNextPage

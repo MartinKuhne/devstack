@@ -1,6 +1,4 @@
 using DevStack.Domain.Entities;
-using DevStack.Domain.Enums;
-using DevStack.Domain.Services;
 using DevStack.Persistence;
 using HotChocolate.Types;
 
@@ -20,7 +18,7 @@ public class Query
     {
         var query = dbContext.Projects.AsQueryable();
         var totalCount = query.Count();
-        query = query.OrderBy(p => p.CreatedAt);
+        query = query.OrderBy(p => p.Id);
         if (skip.HasValue)
         {
             query = query.Skip(skip.Value);
@@ -40,186 +38,13 @@ public class Query
         };
     }
 
-    public ItemConnection GetItems(
-        [Service] DevStackDbContext dbContext,
-        Guid? projectId = null,
-        List<FeatureStatus>? status = null,
-        List<ItemSubtype>? subtype = null,
-        DateTime? createdAfter = null,
-        DateTime? createdBefore = null,
-        int first = 50,
-        int? skip = null)
-    {
-        var query = dbContext.Items.AsQueryable();
-        if (projectId.HasValue)
-        {
-            query = query.Where(f => f.ProjectId == projectId.Value);
-        }
-        if (status is not null && status.Count > 0)
-        {
-            query = query.Where(f => status.Contains(f.Status));
-        }
-        if (subtype is not null && subtype.Count > 0)
-        {
-            query = query.Where(f => subtype.Contains(f.ItemType));
-        }
-        if (createdAfter.HasValue)
-        {
-            query = query.Where(f => f.CreatedAt >= createdAfter.Value);
-        }
-        if (createdBefore.HasValue)
-        {
-            query = query.Where(f => f.CreatedAt <= createdBefore.Value);
-        }
-
-        var totalCount = query.Count();
-        query = query.OrderBy(f => f.CreatedAt);
-        if (skip.HasValue)
-        {
-            query = query.Skip(skip.Value);
-        }
-        var nodes = query.Take(first).ToList();
-
-        return new ItemConnection
-        {
-            Nodes = nodes,
-            PageInfo = new ItemPageInfo
-            {
-                HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
-                HasPreviousPage = skip > 0,
-                TotalCount = totalCount
-            },
-            TotalCount = totalCount
-        };
-    }
-
-    public Item? GetItemById([Service] DevStackDbContext dbContext, Guid id)
-    {
-        return dbContext.Items.Find(id);
-    }
-
-    [Obsolete("Use GetItemById instead")]
-    public Item? GetFeatureById([Service] DevStackDbContext dbContext, Guid id)
-    {
-        var item = dbContext.Items.Find(id);
-        if (item == null || item.ItemType != Domain.Enums.ItemSubtype.Feature)
-            return null;
-        return item;
-    }
-
-    [Obsolete("Use GetItems instead")]
-    public ItemConnection GetFeatures(
-        [Service] DevStackDbContext dbContext,
-        Guid? projectId = null,
-        List<FeatureStatus>? status = null,
-        int first = 50,
-        int? skip = null)
-    {
-        return GetItems(dbContext, projectId, status, [Domain.Enums.ItemSubtype.Feature], null, null, first, skip);
-    }
-
-    [Obsolete("Use GetItems with subtype filter instead")]
-    public ItemConnection GetDefects(
-        [Service] DevStackDbContext dbContext,
-        Guid? projectId = null,
-        List<FeatureStatus>? status = null,
-        int first = 50,
-        int? skip = null)
-    {
-        var query = dbContext.Items.Where(i => i.ItemType == Domain.Enums.ItemSubtype.Defect);
-        if (projectId.HasValue)
-        {
-            query = query.Where(i => i.ProjectId == projectId.Value);
-        }
-        if (status is not null && status.Count > 0)
-        {
-            query = query.Where(i => status.Contains(i.Status));
-        }
-
-        var totalCount = query.Count();
-        query = query.OrderBy(i => i.CreatedAt);
-        if (skip.HasValue)
-        {
-            query = query.Skip(skip.Value);
-        }
-        var nodes = query.Take(first).ToList();
-
-        return new ItemConnection
-        {
-            Nodes = nodes,
-            PageInfo = new ItemPageInfo
-            {
-                HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
-                HasPreviousPage = skip > 0,
-                TotalCount = totalCount
-            },
-            TotalCount = totalCount
-        };
-    }
-
-    [Obsolete("Use GetItemById instead")]
-    public Item? GetDefectById([Service] DevStackDbContext dbContext, Guid id)
-    {
-        var item = dbContext.Items.Find(id);
-        if (item == null || item.ItemType != Domain.Enums.ItemSubtype.Defect)
-            return null;
-        return item;
-    }
-
-public List<FeatureStatus> GetValidStatusTransitions([Service] DevStackDbContext dbContext, Guid itemId)
-    {
-        var item = dbContext.Items.Find(itemId);
-        if (item == null)
-            return new List<FeatureStatus>();
-
-        var service = new ItemStatusTransitionService();
-        var workItem = new Item
-        {
-            Id = item.Id,
-            ItemType = item.ItemType,
-            Status = item.Status,
-            Result = item.Result,
-            Errors = item.Errors,
-            OpenQuestions = item.OpenQuestions
-        };
-
-        var validTargets = new List<FeatureStatus>();
-        foreach (var targetStatus in Enum.GetValues<FeatureStatus>())
-        {
-            var result = service.Transition(workItem, targetStatus, "query-validation");
-            if (result.IsSuccess)
-            {
-                validTargets.Add(targetStatus);
-            }
-        }
-
-        return validTargets;
-    }
-
-    public DashboardSummary GetDashboardSummary([Service] DevStackDbContext dbContext)
-    {
-        return new DashboardSummary
-        {
-            ProjectsInFlight = dbContext.Projects.Count(),
-            FeaturesInReview = dbContext.Items.Count(f => f.Status == FeatureStatus.InReview),
-            FeaturesFailed = dbContext.Items.Count(f => f.Status == FeatureStatus.Failed),
-            TasksInProgress = dbContext.Items.Count(t => t.ItemType == ItemSubtype.Task && t.Status == FeatureStatus.InProgress),
-            TasksFailed = dbContext.Items.Count(t => t.ItemType == ItemSubtype.Task && t.Status == FeatureStatus.Failed)
-        };
-    }
-
     public LargeLanguageModel? GetLargeLanguageModelById([Service] DevStackDbContext dbContext, Guid id)
     {
         return dbContext.LargeLanguageModels.Find(id);
     }
 
-    public List<LargeLanguageModel> GetLargeLanguageModels([Service] DevStackDbContext dbContext, Guid? projectId = null)
+    public List<LargeLanguageModel> GetLargeLanguageModels([Service] DevStackDbContext dbContext)
     {
-        var query = dbContext.LargeLanguageModels.AsQueryable();
-        if (projectId.HasValue)
-        {
-            query = query.Where(m => m.ProjectId == projectId.Value);
-        }
-        return query.ToList();
+        return dbContext.LargeLanguageModels.ToList();
     }
 }

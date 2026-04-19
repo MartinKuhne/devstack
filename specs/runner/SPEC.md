@@ -24,6 +24,9 @@ Run a loop executing the following prompts with opencode. Sample code:
 
 Prompt: Compare the specification under ```specs/**``` with the actual implementation and create Deliverables and AgentTasks to change the implementation to match the specification. Create Deliverables and AgentTaks in the Ready state when the architecture and technoloy choices
 are unambiguous. Create just a Deliverable in state NeedsReview if there are open questions or architecture and/or technology choices are ambigous.
+The spec is the source of truth and the code must be changed accordingly.
+
+If there are multiple folders under ```specs/**```, instead run the prompt once for the contents of each folder. For example, the prompt would start with: Compare the specification under ```specs/graphql/**```
 
 ## Planning phase
 

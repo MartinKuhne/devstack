@@ -61,10 +61,6 @@ builder.Services.AddTransient<ICreateProjectHandler, CreateProjectHandler>();
 builder.Services.AddTransient<IUpdateProjectHandler, UpdateProjectHandler>();
 builder.Services.AddTransient<IDeleteProjectHandler, DeleteProjectHandler>();
 builder.Services.AddTransient<IGetProjectByIdHandler, GetProjectByIdHandler>();
-var limitFeatureStatusTransitions = builder.Configuration
-    .GetSection("FeatureManagement")
-    .GetValue<bool>("LimitFeatureStatusTransitions");
-builder.Services.AddTransient<ItemStatusTransitionService>(_ => new ItemStatusTransitionService(limitFeatureStatusTransitions));
 builder.Services.AddTransient<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
 builder.Services.AddTransient<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
 builder.Services.AddTransient<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
@@ -104,13 +100,11 @@ builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddType<ProjectType>()
-    .AddType<ItemType>()
+    .AddType<DeliverableType>()
+    .AddType<AgentTaskType>()
     .AddType<LargeLanguageModelType>()
-    .AddType<DashboardSummary>()
     .AddObjectType<ProjectConnection>()
-    .AddObjectType<ItemConnection>()
     .AddObjectType<ProjectPageInfo>()
-    .AddObjectType<ItemPageInfo>()
     .DisableIntrospection(false)
     .AddErrorFilter<GraphQLErrorFilter>();
 

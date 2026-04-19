@@ -4,8 +4,10 @@ using DevStack.Domain.Enums;
 
 namespace DevStack.Domain.Entities;
 
-public class Deliverable : Entity
+public class Deliverable
 {
+    public Guid Id { get; set; } = Guid.NewGuid();
+
     [Required]
     public Guid ProjectId { get; set; }
 
@@ -26,7 +28,9 @@ public class Deliverable : Entity
 
     public string? AcceptanceCriteria { get; set; }
 
-    public string? Plan { get; set; }
+    public string? ExecutionPlan { get; set; }
+
+    public string? AgentFeedback { get; set; }
 
     public string? SecurityImpact { get; set; }
 
@@ -36,26 +40,9 @@ public class Deliverable : Entity
 
     public string? DeploymentPlan { get; set; }
 
-    public string? OpenQuestions { get; set; }
-
-    public string? Result { get; set; }
-
-    public string? Errors { get; set; }
-
-    [Required]
-    public DateTime CreatedAt { get; set; }
-
-    [Required]
-    public DateTime UpdatedAt { get; set; }
-
-    public Severity? Severity { get; set; }
-
-    public string? RootCause { get; set; }
+    public string? Blocking { get; set; }
 
     public Deliverable()
     {
-        Id = Guid.NewGuid();
-        CreatedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
     }
 }

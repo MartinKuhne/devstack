@@ -3,10 +3,6 @@ query GetProjectById($id: UUID!) {
     id
     name
     description
-    architecture
-    memory
-    githubUrl
-    createdAt
-    updatedAt
+    repository
   }
 }

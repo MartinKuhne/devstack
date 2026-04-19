@@ -10,7 +10,7 @@ public record CreateLargeLanguageModelCommand(
     string? ModelAlias,
     string ApiKey,
     int MaxComplexity,
-    Guid ProjectId);
+    int MaxConcurrency);
 
 public record UpdateLargeLanguageModelCommand(
     Guid Id,
@@ -19,7 +19,7 @@ public record UpdateLargeLanguageModelCommand(
     string? ModelAlias,
     string? ApiKey,
     int? MaxComplexity,
-    Guid? ProjectId);
+    int? MaxConcurrency);
 
 public record DeleteLargeLanguageModelCommand(Guid Id);
 
@@ -52,11 +52,9 @@ public class CreateLargeLanguageModelHandler : ICreateLargeLanguageModelHandler
             Url = request.Url,
             Model = request.Model,
             ModelAlias = request.ModelAlias,
-            ApiKey_Encrypted = request.ApiKey,
+            ApiKey = request.ApiKey,
             MaxComplexity = request.MaxComplexity,
-            ProjectId = request.ProjectId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            MaxConcurrency = request.MaxConcurrency
         };
 
         _dbContext.LargeLanguageModels.Add(model);
@@ -84,11 +82,9 @@ public class UpdateLargeLanguageModelHandler : IUpdateLargeLanguageModelHandler
         if (!string.IsNullOrEmpty(request.Url)) model.Url = request.Url;
         if (!string.IsNullOrEmpty(request.Model)) model.Model = request.Model;
         if (request.ModelAlias is not null) model.ModelAlias = request.ModelAlias;
-        if (request.ApiKey is not null) model.ApiKey_Encrypted = request.ApiKey;
+        if (request.ApiKey is not null) model.ApiKey = request.ApiKey;
         if (request.MaxComplexity.HasValue) model.MaxComplexity = request.MaxComplexity.Value;
-        if (request.ProjectId.HasValue) model.ProjectId = request.ProjectId.Value;
-
-        model.UpdatedAt = DateTime.UtcNow;
+        if (request.MaxConcurrency.HasValue) model.MaxConcurrency = request.MaxConcurrency.Value;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

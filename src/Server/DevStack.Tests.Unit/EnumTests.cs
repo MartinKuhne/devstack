@@ -1,5 +1,4 @@
 using DevStack.Domain.Enums;
-using TaskStatus = DevStack.Domain.Enums.TaskStatus;
 using Xunit;
 
 namespace DevStack.Tests.Unit.Enums;
@@ -7,34 +6,27 @@ namespace DevStack.Tests.Unit.Enums;
 public class EnumTests
 {
     [Fact]
-    public void FeatureStatus_Enums_Are_Defined()
+    public void DeliverableStatus_Enums_Are_Defined()
     {
-        Assert.Equal(9, Enum.GetValues<FeatureStatus>().Length);
-        Assert.Contains(FeatureStatus.Planning, Enum.GetValues<FeatureStatus>());
-        Assert.Contains(FeatureStatus.Done, Enum.GetValues<FeatureStatus>());
+        Assert.Equal(8, Enum.GetValues<DeliverableStatus>().Length);
+        Assert.Contains(DeliverableStatus.Draft, Enum.GetValues<DeliverableStatus>());
+        Assert.Contains(DeliverableStatus.Done, Enum.GetValues<DeliverableStatus>());
     }
 
     [Fact]
-    public void TaskStatus_Enums_Are_Defined()
+    public void DeliverableType_Enums_Are_Defined()
     {
-        Assert.Equal(11, Enum.GetValues<TaskStatus>().Length);
-        Assert.Contains(TaskStatus.Planning, Enum.GetValues<TaskStatus>());
-        Assert.Contains(TaskStatus.Done, Enum.GetValues<TaskStatus>());
+        Assert.Equal(3, Enum.GetValues<DeliverableType>().Length);
+        Assert.Contains(DeliverableType.Feature, Enum.GetValues<DeliverableType>());
+        Assert.Contains(DeliverableType.Defect, Enum.GetValues<DeliverableType>());
+        Assert.Contains(DeliverableType.Maintenance, Enum.GetValues<DeliverableType>());
     }
 
     [Fact]
-    public void WorkflowType_Enums_Are_Defined()
+    public void AgentTaskStatus_Enums_Are_Defined()
     {
-        Assert.Equal(5, Enum.GetValues<WorkflowType>().Length);
-        Assert.Contains(WorkflowType.Planner, Enum.GetValues<WorkflowType>());
-        Assert.Contains(WorkflowType.Architect, Enum.GetValues<WorkflowType>());
-    }
-
-    [Fact]
-    public void WorkflowRunStatus_Enums_Are_Defined()
-    {
-        Assert.Equal(5, Enum.GetValues<WorkflowRunStatus>().Length);
-        Assert.Contains(WorkflowRunStatus.Queued, Enum.GetValues<WorkflowRunStatus>());
-        Assert.Contains(WorkflowRunStatus.Failed, Enum.GetValues<WorkflowRunStatus>());
+        Assert.Equal(6, Enum.GetValues<AgentTaskStatus>().Length);
+        Assert.Contains(AgentTaskStatus.Ready, Enum.GetValues<AgentTaskStatus>());
+        Assert.Contains(AgentTaskStatus.Done, Enum.GetValues<AgentTaskStatus>());
     }
 }
