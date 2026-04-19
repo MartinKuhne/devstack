@@ -9,6 +9,7 @@ Enable an AI coding agent and coding tool to access the devstack data
 - Model Context Protocol Server, Containerized, .net with Postgress access though shared DbContext with GraphQL
 - Integration tests, using JSON RPC wire protocol with no knowledge of the MCP server process, and using Testcontainers for .NET
   - The integration tests MUST run and MUST PASS do not make excuses about pre existing failures
+  - (run with ```dotnet test src/server/```)
 
 # Capabilities
 
