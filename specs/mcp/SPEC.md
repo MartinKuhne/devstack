@@ -24,5 +24,7 @@ Newly created Deliverables and Agent Tasks are created in the READY state
 
 # Technical specification
 
-Log operations and errors to the console
+- [MCP Specification](https://modelcontextprotocol.io/specification/2025-11-25)
+- [MCP SDK](https://github.com/modelcontextprotocol/csharp-sdk)
+- Log operations and errors to the console
 
