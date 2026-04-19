@@ -47,4 +47,4 @@ Newly created Deliverables and Agent Tasks are created in the READY state as the
 - [MCP Specification](https://modelcontextprotocol.io/specification/2025-11-25)
 - [MCP Protocol](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
 - [MCP SDK](https://github.com/modelcontextprotocol/csharp-sdk)
-
+- [TestContainers](https://dotnet.testcontainers.org/)

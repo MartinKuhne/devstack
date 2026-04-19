@@ -39,6 +39,7 @@ I can create, read, update and delete the entities in the [entity relationship d
 - Log operations and errors to the console
 - [GraphQL Specification](https://spec.graphql.org/September2025/)
 - [Gherkin](https://cucumber.io/docs/gherkin/reference)
+- [TestContainers](https://dotnet.testcontainers.org/)
 
 # Non goals
 - No authentication
