@@ -48,8 +48,13 @@ public class DeliverableConfiguration : IEntityTypeConfiguration<Deliverable>
             .IsRequired(false);
 
         builder.HasOne(d => d.Project)
-            .WithMany()
+            .WithMany(p => p.Deliverables)
             .HasForeignKey(d => d.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(d => d.AgentTasks)
+            .WithOne(t => t.Deliverable)
+            .HasForeignKey(t => t.DeliverableId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

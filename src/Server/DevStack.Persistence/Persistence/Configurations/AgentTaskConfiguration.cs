@@ -45,11 +45,6 @@ public class AgentTaskConfiguration : IEntityTypeConfiguration<AgentTask>
         builder.Property(t => t.Model)
             .IsRequired(false);
 
-        builder.HasOne(t => t.Deliverable)
-            .WithMany()
-            .HasForeignKey(t => t.DeliverableId)
-            .OnDelete(DeleteBehavior.Cascade);
-
         builder.HasOne(t => t.Project)
             .WithMany()
             .HasForeignKey(t => t.ProjectId)

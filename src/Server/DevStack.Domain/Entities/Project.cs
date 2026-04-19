@@ -18,6 +18,8 @@ public class Project
 
     public virtual ICollection<LargeLanguageModel> LargeLanguageModels { get; set; } = new List<LargeLanguageModel>();
 
+    public virtual ICollection<Deliverable> Deliverables { get; set; } = new List<Deliverable>();
+
     public Project()
     {
     }
