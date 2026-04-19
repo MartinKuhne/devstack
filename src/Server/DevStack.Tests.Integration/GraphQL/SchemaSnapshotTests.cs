@@ -1,7 +1,7 @@
 using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -53,33 +53,30 @@ public class SchemaSnapshotTests : IAsyncLifetime
         };
         _dbContext.Projects.Add(project);
 
-        var feature = new Item
+        var deliverable = new Deliverable
         {
-            Subtype = ItemSubtype.Feature,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            Title = "[TestData] Snapshot Feature",
-            Description = "Feature for schema testing",
-            Status = FeatureStatus.Planning,
+            Title = "[TestData] Test Deliverable",
+            Type = DeliverableType.Feature,
+            Status = DeliverableStatus.Planning,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.Items.Add(feature);
+        _dbContext.Deliverables.Add(deliverable);
 
-        var task = new Item
+        var agentTask = new AgentTask
         {
-            Subtype = ItemSubtype.Task,
             Id = Guid.NewGuid(),
             ProjectId = projectId,
-            ParentFeatureId = feature.Id,
-            Title = "[TestData] Snapshot Task",
-            Description = "Task for schema testing",
-            Status = FeatureStatus.Planning,
-            Deliverable = "Test task",
+            DeliverableId = deliverable.Id,
+            Title = "[TestData] Test AgentTask",
+            Status = AgentTaskStatus.Ready,
+            ComplexityRating = 5,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.Items.Add(task);
+        _dbContext.AgentTasks.Add(agentTask);
 
         await _dbContext.SaveChangesAsync();
     }
@@ -99,16 +96,24 @@ public class SchemaSnapshotTests : IAsyncLifetime
         var query = new Query();
         var mutation = new Mutation();
 
-        var features = query.GetFeatures(_dbContext!);
-        var tasks = query.GetItems(_dbContext!, subtype: [ItemSubtype.Task]);
+        var projects = query.GetProjects(_dbContext!, first: 10);
+        var deliverables = query.GetItems(_dbContext!, subtype: null, first: 10);
 
-        features.Nodes.Should().HaveCount(1);
-        tasks.Nodes.Should().HaveCount(1);
+        projects.Nodes.Should().HaveCount(1);
+        projects.TotalCount.Should().Be(1);
 
-        var input = new TransitionTaskInput(tasks.Nodes.First().Id, FeatureStatus.InProgress, "test@example.com");
-        var handler = new DevStack.Infrastructure.Tasks.TransitionTaskStatusHandler(_dbContext!);
-        var result = await mutation.TransitionTaskStatusAsync(input, handler, default);
-        result.Item.Should().NotBeNull();
+        var deliverablePayload = await mutation.CreateDeliverableAsync(
+            new CreateDeliverableInput(
+                projects.Nodes[0].Id,
+                "Test Deliverable",
+                "Feature",
+                "Test description",
+                null, null, null, null, null, null, null, null,
+                DeliverableStatus.Planning),
+            _dbContext!,
+            default);
+        deliverablePayload.Deliverable.Should().NotBeNull();
+        deliverablePayload.Deliverable!.Title.Should().Be("Test Deliverable");
     }
 
     [Fact]

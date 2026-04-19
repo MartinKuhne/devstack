@@ -1,0 +1,73 @@
+#nullable disable
+using DevStack.Domain.Entities;
+using DevStack.Domain.Enums;
+
+namespace DevStack.Domain.Services;
+
+public sealed class DeliverableStatusTransitionService(bool limitStatusTransitions = false)
+{
+    private static readonly Dictionary<DeliverableStatus, List<DeliverableStatus>> _allowedTransitions = new()
+    {
+        { DeliverableStatus.Draft, new() { DeliverableStatus.Ready, DeliverableStatus.Planning } },
+        { DeliverableStatus.Planning, new() { DeliverableStatus.Ready, DeliverableStatus.InProgress, DeliverableStatus.Rejected } },
+        { DeliverableStatus.Ready, new() { DeliverableStatus.InProgress, DeliverableStatus.Failed, DeliverableStatus.Rejected } },
+        { DeliverableStatus.InProgress, new() { DeliverableStatus.Done, DeliverableStatus.Failed, DeliverableStatus.Rejected, DeliverableStatus.NeedsReview } },
+        { DeliverableStatus.Done, new() { DeliverableStatus.InProgress, DeliverableStatus.Rejected } },
+        { DeliverableStatus.Failed, new() { DeliverableStatus.Ready, DeliverableStatus.InProgress, DeliverableStatus.Rejected } },
+        { DeliverableStatus.Rejected, new() { DeliverableStatus.Planning, DeliverableStatus.Ready } },
+        { DeliverableStatus.NeedsReview, new() { DeliverableStatus.Done, DeliverableStatus.InProgress, DeliverableStatus.Rejected } }
+    };
+
+    public TransitionResult<Unit> Transition(Deliverable deliverable, DeliverableStatus targetStatus, string actor)
+    {
+        var errors = new List<string>();
+
+        if (deliverable == null)
+            errors.Add("Deliverable cannot be null.");
+
+        if (string.IsNullOrWhiteSpace(actor))
+            errors.Add("Actor (operator or workflow name) is required.");
+
+        if (errors.Count > 0)
+            return TransitionResult<Unit>.Failure(errors);
+
+        var currentStatus = deliverable.Status;
+        var allowed = _allowedTransitions.GetValueOrDefault(currentStatus, []);
+
+        if (limitStatusTransitions && !allowed.Contains(targetStatus))
+        {
+            errors.Add($"Cannot transition from {currentStatus} to {targetStatus}. Allowed transitions: {string.Join(", ", allowed)}");
+            return TransitionResult<Unit>.Failure(errors);
+        }
+
+        if (!allowed.Contains(targetStatus))
+        {
+            errors.Add($"Cannot transition from {currentStatus} to {targetStatus}. Allowed transitions: {string.Join(", ", allowed)}");
+            return TransitionResult<Unit>.Failure(errors);
+        }
+
+        switch (targetStatus)
+        {
+            case DeliverableStatus.Done:
+                if (string.IsNullOrWhiteSpace(deliverable.Result))
+                    errors.Add("A result must be provided before marking a deliverable as Done.");
+                break;
+            case DeliverableStatus.Failed:
+                if (string.IsNullOrWhiteSpace(deliverable.Errors))
+                    errors.Add("Errors must be documented when a deliverable fails.");
+                break;
+            case DeliverableStatus.Rejected:
+                if (string.IsNullOrWhiteSpace(deliverable.Errors))
+                    errors.Add("Errors must be documented when rejecting a deliverable.");
+                break;
+        }
+
+        if (errors.Count > 0)
+            return TransitionResult<Unit>.Failure(errors);
+
+        deliverable.Status = targetStatus;
+        deliverable.UpdatedAt = DateTime.UtcNow;
+
+        return TransitionResult<Unit>.Success(Unit.Value);
+    }
+}

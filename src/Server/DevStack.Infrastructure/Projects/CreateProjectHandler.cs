@@ -1,5 +1,5 @@
 using DevStack.Domain.Entities;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.Projects;
 

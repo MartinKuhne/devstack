@@ -1,6 +1,5 @@
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
-using TaskStatus = DevStack.Domain.Enums.TaskStatus;
 using Xunit;
 
 namespace DevStack.Tests.Unit.Entities;
@@ -46,12 +45,12 @@ public class ProjectTests
     }
 }
 
-public class ModelConfigurationTests
+public class LargeLanguageModelTests
 {
     [Fact]
-    public void ModelConfiguration_Creation_Sets_Default_Values()
+    public void LargeLanguageModel_Creation_Sets_Default_Values()
     {
-        var config = new ModelConfiguration();
+        var config = new LargeLanguageModel();
         
         Assert.NotEqual(Guid.Empty, config.Id);
         Assert.NotNull(config.Url);
@@ -64,9 +63,9 @@ public class ModelConfigurationTests
     }
 
     [Fact]
-    public void ModelConfiguration_Has_Required_Fields()
+    public void LargeLanguageModel_Has_Required_Fields()
     {
-       var config = new ModelConfiguration();
+       var config = new LargeLanguageModel();
         
         Assert.NotNull(config.Url);
         Assert.NotNull(config.Model);
@@ -74,9 +73,9 @@ public class ModelConfigurationTests
     }
 
     [Fact]
-    public void ModelConfiguration_ModelAlias_Is_Nullable()
+    public void LargeLanguageModel_ModelAlias_Is_Nullable()
     {
-        var config = new ModelConfiguration();
+        var config = new LargeLanguageModel();
         Assert.Null(config.ModelAlias);
     }
 }
@@ -92,7 +91,6 @@ public class ItemTests
         Assert.NotNull(item.Title);
        Assert.Equal(string.Empty, item.Title);
         Assert.Equal(FeatureStatus.Planning, item.Status);
-        Assert.NotNull(item.Tasks);
     }
 
     [Fact]
@@ -127,21 +125,6 @@ public class ItemDefectSubtypeTests
     {
         var item = new Item { Subtype = ItemSubtype.Defect };
         Assert.Null(item.Severity);
-    }
-
-    [Fact]
-    public void Item_With_DefectSubtype_Has_ParentFeature_Returns_Self()
-    {
-        var item = new Item { Subtype = ItemSubtype.Defect };
-        Assert.NotNull(item.ParentFeature);
-        Assert.Same(item, item.ParentFeature);
-    }
-
-    [Fact]
-    public void Item_Has_RootCause_Nullable()
-    {
-        var item = new Item();
-        Assert.Null(item.RootCause);
     }
 }
 
@@ -186,10 +169,49 @@ public class AgentTaskTests
     {
         var task = new AgentTask();
         
-        Assert.Null(task.Deliverable);
-        Assert.Null(task.AcceptanceCriteria);
-        Assert.Null(task.Risks);
         Assert.Null(task.Result);
-        Assert.Null(task.RequiredFollowUps);
+        Assert.Null(task.Errors);
+        Assert.Null(task.CommitHash);
+        Assert.Null(task.DependsOnDevTask);
+        Assert.Null(task.PromptTokens);
+        Assert.Null(task.CompletionTokens);
+        Assert.Null(task.ExecutionDurationInSeconds);
+        Assert.Null(task.Model);
+    }
+}
+
+public class DeliverableTests
+{
+    [Fact]
+    public void Deliverable_Creation_Sets_Default_Values()
+    {
+        var deliverable = new Deliverable();
+        
+        Assert.NotEqual(Guid.Empty, deliverable.Id);
+        Assert.Equal(string.Empty, deliverable.Title);
+        Assert.Equal(0, (int)deliverable.Status);
+        Assert.Equal(0, (int)deliverable.Type);
+        Assert.NotEqual(DateTime.MinValue, deliverable.CreatedAt);
+        Assert.NotEqual(DateTime.MinValue, deliverable.UpdatedAt);
+    }
+
+    [Fact]
+    public void Deliverable_Has_Required_Fields()
+    {
+        var deliverable = new Deliverable();
+        Assert.Equal(string.Empty, deliverable.Title);
+        Assert.Equal(DeliverableStatus.Draft, deliverable.Status);
+        Assert.Equal(DeliverableType.Feature, deliverable.Type);
+    }
+
+    [Fact]
+    public void Deliverable_Optional_Fields_Are_Nullable()
+    {
+        var deliverable = new Deliverable();
+        Assert.Null(deliverable.Description);
+        Assert.Null(deliverable.AcceptanceCriteria);
+        Assert.Null(deliverable.Plan);
+        Assert.Null(deliverable.Result);
+        Assert.Null(deliverable.Errors);
     }
 }

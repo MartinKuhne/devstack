@@ -1,5 +1,3 @@
-#nullable disable warnings
-#pragma warning disable CS0618
 using DevStack.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -10,65 +8,51 @@ public class AgentTaskConfiguration : IEntityTypeConfiguration<AgentTask>
 {
     public void Configure(EntityTypeBuilder<AgentTask> builder)
     {
-        builder.HasKey(at => at.Id);
+        builder.HasKey(t => t.Id);
 
-        builder.Property(at => at.ProjectId)
-            .IsRequired();
-
-        builder.Property(at => at.ItemId)
-            .IsRequired();
-
-        builder.Property(at => at.Title)
+        builder.Property(t => t.Title)
             .IsRequired()
             .HasMaxLength(300);
 
-        builder.Property(at => at.Status)
+        builder.Property(t => t.Status)
             .IsRequired();
 
-        builder.Property(at => at.Deliverable)
+        builder.Property(t => t.Result)
             .IsRequired(false);
 
-        builder.Property(at => at.AcceptanceCriteria)
+        builder.Property(t => t.Errors)
             .IsRequired(false);
 
-        builder.Property(at => at.Risks)
+        builder.Property(t => t.CommitHash)
             .IsRequired(false);
 
-        builder.Property(at => at.Result)
-            .IsRequired(false);
-
-        builder.Property(at => at.RequiredFollowUps)
-            .IsRequired(false);
-
-        builder.Property(at => at.ComplexityRating)
+        builder.Property(t => t.ComplexityRating)
             .IsRequired()
             .HasDefaultValue(1);
 
-        builder.Property(at => at.Errors)
+        builder.Property(t => t.DependsOnDevTask)
             .IsRequired(false);
 
-        builder.Property(at => at.CommitHash)
+        builder.Property(t => t.PromptTokens)
             .IsRequired(false);
 
-        builder.Property(at => at.DependsOnAgentTask)
+        builder.Property(t => t.CompletionTokens)
             .IsRequired(false);
 
-        builder.Property(at => at.PromptTokens)
+        builder.Property(t => t.ExecutionDurationInSeconds)
             .IsRequired(false);
 
-        builder.Property(at => at.CompletionTokens)
+        builder.Property(t => t.Model)
             .IsRequired(false);
 
-        builder.Property(at => at.ExecutionDurationInSeconds)
-            .IsRequired(false);
-
-        builder.Property(at => at.Model)
-            .IsRequired(false);
-
-        builder.HasOne(at => at.Item)
+        builder.HasOne(t => t.Deliverable)
             .WithMany()
-            .HasForeignKey(at => at.ItemId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .HasForeignKey(t => t.DeliverableId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(t => t.Project)
+            .WithMany()
+            .HasForeignKey(t => t.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
-#pragma warning restore CS0618

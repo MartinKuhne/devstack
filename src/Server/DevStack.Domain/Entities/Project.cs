@@ -36,13 +36,7 @@ public class Project : Entity
     [NotMapped]
     public virtual ICollection<Item> Features => new List<Item>();
 
-    [Obsolete("Use Items with ItemType=Defect instead")]
-    [NotMapped]
-    public virtual ICollection<Defect> Defects => new List<Defect>();
-
-    [Obsolete("Use AgentTasks with Item navigation instead")]
-    [NotMapped]
-    public virtual ICollection<AgentTask> AgentTasks => new List<AgentTask>();
+ 
 
     public DateTime CreatedAt { get; set; }
 

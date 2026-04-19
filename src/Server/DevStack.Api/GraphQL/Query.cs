@@ -1,7 +1,7 @@
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using HotChocolate.Types;
 
 namespace DevStack.Api.GraphQL.Types;

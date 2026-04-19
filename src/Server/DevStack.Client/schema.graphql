@@ -3,11 +3,32 @@ schema {
   mutation: Mutation
 }
 
+input CreateProjectInput {
+  name: String!
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+}
+
+input UpdateProjectInput {
+  id: UUID!
+  name: String
+  description: String
+  architecture: String
+  memory: String
+  githubUrl: String
+  githubToken_Encrypted: String
+}
+
+input DeleteProjectInput {
+  id: UUID!
+}
+
 input CreateDeliverableInput {
   projectId: UUID!
-  epicId: UUID
-  type: DeliverableType!
   title: String!
+  type: String!
   description: String
   acceptanceCriteria: String
   agentFeedback: String
@@ -48,30 +69,30 @@ input DeleteDeliverableInput {
 
 input CreateAgentTaskInput {
   projectId: UUID!
-  itemId: UUID!
+  deliverableId: UUID!
   title: String!
-  deliverable: String
-  acceptanceCriteria: String
-  risks: String
-  result: String
-  requiredFollowUps: String
   complexityRating: Int!
+  result: String
+  errors: String
+  commitHash: String
+  dependsOnDevTask: String
+  promptTokens: Int
+  completionTokens: Int
+  executionDurationInSeconds: Float
+  model: String
 }
 
 input UpdateAgentTaskInput {
   id: UUID!
   title: String
-  deliverable: String
-  acceptanceCriteria: String
-  risks: String
   result: String
-  requiredFollowUps: String
-  complexityRating: Int
   errors: String
   commitHash: String
+  dependsOnDevTask: String
+  complexityRating: Int
   promptTokens: Int
   completionTokens: Int
-  executionDurationInSeconds: Int
+  executionDurationInSeconds: Float
   model: String
 }
 
@@ -109,112 +130,48 @@ input DeleteLargeLanguageModelInput {
   id: UUID!
 }
 
-input DeleteDefectInput {
-  id: UUID!
-}
-
 type ProjectPageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   totalCount: Int!
 }
 
-
+type ItemPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
 
 type ProjectPayload {
   project: Project
   errors: [String!]!
 }
 
+type DeliverablePayload {
+  deliverable: Deliverable
+  errors: [String!]!
+}
+
+type AgentTaskPayload {
+  agentTask: AgentTask
+  errors: [String!]!
+}
+
+type LargeLanguageModelPayload {
+  largeLanguageModel: LargeLanguageModel
+  errors: [String!]!
+}
+
+type ProjectConnection {
+  nodes: [Project!]!
+  pageInfo: ProjectPageInfo!
+  totalCount: Int!
+}
+
 type ItemConnection {
   nodes: [Item!]!
   pageInfo: ItemPageInfo!
   totalCount: Int!
-}
-
-enum TaskStatus {
-  PLANNING
-  READY
-  PREPARE
-  CODE
-  REVIEW
-  READY_FOR_TEST
-  TESTING
-  DONE
-  FAILED
-  REJECTED
-  IN_REVIEW
-}
-
-input UpdateProjectInput {
-  id: UUID!
-  name: String
-  description: String
-  architecture: String
-  memory: String
-  githubUrl: String
-  githubToken_Encrypted: String
-}
-
-type Mutation {
-  createProject(input: CreateProjectInput!): ProjectPayload!
-  updateProject(input: UpdateProjectInput!): ProjectPayload!
-  deleteProject(input: DeleteProjectInput!): ProjectPayload!
-  createDeliverable(input: CreateDeliverableInput!): DeliverablePayload!
-  updateDeliverable(input: UpdateDeliverableInput!): DeliverablePayload!
-  transitionDeliverableStatus(input: TransitionDeliverableInput!): DeliverablePayload!
-  deleteDeliverable(input: DeleteDeliverableInput!): DeliverablePayload!
-  createFeature(input: CreateFeatureInput!): FeaturePayload!
-  updateFeature(input: UpdateFeatureInput!): FeaturePayload!
-  transitionFeatureStatus(input: TransitionFeatureInput!): FeaturePayload!
-  deleteFeature(input: DeleteFeatureInput!): FeaturePayload!
-  createDefect(input: CreateDefectInput!): DefectPayload!
-  updateDefect(input: UpdateDefectInput!): DefectPayload!
-  transitionDefectStatus(input: TransitionDefectInput!): DefectPayload!
-  deleteDefect(input: DeleteDefectInput!): DefectPayload!
-  createAgentTask(input: CreateAgentTaskInput!): AgentTaskPayload!
-  updateAgentTask(input: UpdateAgentTaskInput!): AgentTaskPayload!
-  transitionAgentTaskStatus(input: TransitionAgentTaskInput!): AgentTaskPayload!
-  deleteAgentTask(input: DeleteAgentTaskInput!): AgentTaskPayload!
-  createTask(input: CreateTaskInput!): TaskPayload!
-  updateTask(input: UpdateTaskInput!): TaskPayload!
-  transitionTaskStatus(input: TransitionTaskInput!): TaskPayload!
-  deleteTask(input: DeleteTaskInput!): TaskPayload!
- 
-  createLargeLanguageModel(input: CreateLargeLanguageModelInput!): LargeLanguageModelPayload!
-  updateLargeLanguageModel(input: UpdateLargeLanguageModelInput!): LargeLanguageModelPayload!
-  deleteLargeLanguageModel(input: DeleteLargeLanguageModelInput!): LargeLanguageModelPayload!
-}
-
-input UpdateDefectInput {
-  id: UUID!
-  title: String
-  description: String
-  acceptanceCriteria: String
-  plan: String
-  securityImpact: String
-  performanceImpact: String
-  testPlan: String
-  deploymentPlan: String
-  openQuestions: String
-  severity: Severity
-  rootCause: String
-}
-
-input DeleteProjectInput {
-  id: UUID!
-}
-
-input CreateTaskInput {
-  projectId: UUID!
-  itemId: UUID!
-  title: String!
-  deliverable: String
-  acceptanceCriteria: String
-  risks: String
-  result: String
-  requiredFollowUps: String
-  complexityRating: Int!
 }
 
 type DashboardSummary {
@@ -225,161 +182,24 @@ type DashboardSummary {
   tasksFailed: Int!
 }
 
-type TaskPageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  totalCount: Int!
-}
-
-type FeaturePayload {
-  item: Item
-  errors: [String!]!
-}
-
-input DeleteTaskInput {
-  id: UUID!
-}
-
-enum DeliverableType {
-  FEATURE
-  DEFECT
-  MAINTENANCE
-}
-
-enum ItemSubtype {
-  FEATURE
-  DEFECT
-  MAINTENANCE
-  ENABLER
-}
-
-input CreateProjectInput {
-  name: String!
+type Project {
+  id: ID
+  name: String
   description: String
   architecture: String
   memory: String
+  repository: String
   githubUrl: String
-}
-
-input TransitionDefectInput {
-  id: UUID!
-  targetStatus: FeatureStatus!
-  actor: String!
-}
-
-type LargeLanguageModelPayload {
-  largeLanguageModel: LargeLanguageModel
-  errors: [String!]!
-}
-
-input DeleteFeatureInput {
-  id: UUID!
-}
-
-input UpdateTaskInput {
-  id: UUID!
-  title: String
-  deliverable: String
-  acceptanceCriteria: String
-  risks: String
-  result: String
-  requiredFollowUps: String
-  complexityRating: Int
-}
-
-type LargeLanguageModel {
-  id: ID
-  projectId: ID
-  url: String
-  model: String
-  modelAlias: String
-  apiKey_Encrypted: String
-  maxComplexity: Int
-  maxConcurrency: Int
+  githubToken_Encrypted: String
   createdAt: DateTime
   updatedAt: DateTime
-  project: Project
-}
-
-
-
-type TaskConnection {
-  nodes: [AgentTask!]!
-  pageInfo: TaskPageInfo!
-  totalCount: Int!
-}
-
-
-
-input CreateFeatureInput {
-  projectId: UUID!
-  title: String!
-  description: String
-  acceptanceCriteria: String
-  plan: String
-  securityImpact: String
-  performanceImpact: String
-  testPlan: String
-  deploymentPlan: String
-  openQuestions: String
-  initialStatus: FeatureStatus
-}
-
-enum Severity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime
-
-type TaskPayload {
-  task: AgentTask
-  errors: [String!]!
-}
-
-type AgentTaskPayload {
-  task: AgentTask
-  errors: [String!]!
-}
-
-type DefectPayload {
-  item: Item
-  errors: [String!]!
-}
-
-type AgentTask {
-  id: ID
-  itemId: ID
-  title: String
-  status: AgentTaskStatus
-  deliverable: String
-  acceptanceCriteria: String
-  risks: String
-  result: String
-  requiredFollowUps: String
-  complexityRating: Int
-  errors: String
-  commitHash: String
-  dependsOnAgentTask: [AgentTask]
-  promptTokens: Int
-  completionTokens: Int
-  executionDurationInSeconds: Int
-  model: String
-  createdAt: DateTime
-  updatedAt: DateTime
-  projectId: UUID!
-  item: Item
-  featureId: UUID! @deprecated(reason: "Use ItemId and Item instead")
-  feature: Item @deprecated(reason: "Use Item instead")
+  items: [Item]
+  llms: [LargeLanguageModel!]!
 }
 
 type Deliverable {
   id: ID
   projectId: ID
-  epicId: ID
   type: DeliverableType
   title: String
   status: DeliverableStatus
@@ -396,26 +216,37 @@ type Deliverable {
   errors: String
   createdAt: DateTime
   updatedAt: DateTime
-  parentDeliverableId: ID
   severity: Severity
   rootCause: String
   tasks: [AgentTask]
-  parentDeliverable: Deliverable
-  validStatusTransitions: [DeliverableStatus]
   project: Project
-  deliverableType: DeliverableType!
 }
 
-type DeliverablePayload {
+type AgentTask {
+  id: ID
+  projectId: ID
+  deliverableId: ID
+  title: String
+  status: AgentTaskStatus
+  result: String
+  errors: String
+  commitHash: String
+  complexityRating: Int
+  dependsOnDevTask: String
+  promptTokens: Int
+  completionTokens: Int
+  executionDurationInSeconds: Float
+  model: String
+  createdAt: DateTime
+  updatedAt: DateTime
   deliverable: Deliverable
-  errors: [String!]!
+  project: Project
 }
 
 type Item {
   id: ID
   projectId: ID
-  epicId: ID
-  subtype: ItemSubtype
+  subtype: ItemSubtype!
   title: String
   status: FeatureStatus
   description: String
@@ -433,28 +264,28 @@ type Item {
   parentFeatureId: ID
   severity: Severity
   rootCause: String
-  tasks: [AgentTask]
-  parentFeature: Item
-  validStatusTransitions: [FeatureStatus]
+  dependsOnId: ID
   project: Project
-  featureSubtype: ItemSubtype!
 }
 
-type Query {
-  projectById(id: UUID!): Project
-  projects(first: Int! = 50 skip: Int): ProjectConnection!
-  items(projectId: UUID epicId: UUID status: [FeatureStatus!] subtype: [ItemSubtype!] createdAfter: DateTime createdBefore: DateTime first: Int! = 50 skip: Int): ItemConnection!
-  getItemById(id: UUID!): Item
-  deliverableById(id: UUID!): Deliverable
-  tasks(itemId: UUID status: [TaskStatus!] createdAfter: DateTime createdBefore: DateTime first: Int! = 50 skip: Int): TaskConnection!
-  largeLanguageModels(projectId: UUID): [LargeLanguageModel!]!
-  dashboardSummary: DashboardSummary!
+type LargeLanguageModel {
+  id: ID
+  projectId: ID
+  url: String
+  model: String
+  modelAlias: String
+  apiKey_Encrypted: String
+  maxComplexity: Int
+  maxConcurrency: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+  project: Project
 }
 
-type ProjectConnection {
-  nodes: [Project!]!
-  pageInfo: ProjectPageInfo!
-  totalCount: Int!
+enum DeliverableType {
+  FEATURE
+  DEFECT
+  MAINTENANCE
 }
 
 enum DeliverableStatus {
@@ -489,70 +320,55 @@ enum FeatureStatus {
   IN_REVIEW
 }
 
-type ItemPageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  totalCount: Int!
+enum ItemSubtype {
+  FEATURE
+  DEFECT
+  MAINTENANCE
+  ENABLER
+  TASK
 }
 
-input TransitionFeatureInput {
-  id: UUID!
-  targetStatus: FeatureStatus!
-  actor: String!
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
 
-input CreateDefectInput {
-  projectId: UUID!
-  parentFeatureId: UUID
-  title: String!
-  description: String
-  acceptanceCriteria: String
-  plan: String
-  securityImpact: String
-  performanceImpact: String
-  testPlan: String
-  deploymentPlan: String
-  openQuestions: String
-  severity: Severity
-  initialStatus: FeatureStatus
-}
-
-input TransitionTaskInput {
-  id: UUID!
-  targetStatus: TaskStatus!
-  actor: String!
-}
-
-type Project {
-  id: ID
-  name: String
-  description: String
-  architecture: String
-  memory: String
-  githubUrl: String
-  githubToken_Encrypted: String
-  repository: String
-  createdAt: DateTime
-  updatedAt: DateTime
-  items: [Item]
-  deliverables: [Deliverable]
-  llms: [LargeLanguageModel!]!
-}
-
-input UpdateFeatureInput {
-  id: UUID!
-  title: String
-  description: String
-  acceptanceCriteria: String
-  plan: String
-  securityImpact: String
-  performanceImpact: String
-  testPlan: String
-  deploymentPlan: String
-  openQuestions: String
-}
-
+scalar DateTime
 scalar UUID
 
-"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
-directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+type Query {
+  projectById(id: UUID!): Project
+  projects(first: Int! = 50, skip: Int): ProjectConnection!
+  items(projectId: UUID, status: [FeatureStatus!], subtype: [ItemSubtype!], createdAfter: DateTime, createdBefore: DateTime, first: Int! = 50, skip: Int): ItemConnection!
+  getItemById(id: UUID!): Item
+  largeLanguageModelById(id: UUID!): LargeLanguageModel
+  largeLanguageModels(projectId: UUID): [LargeLanguageModel!]!
+  dashboardSummary: DashboardSummary!
+}
+
+type Mutation {
+  createProject(input: CreateProjectInput!): ProjectPayload!
+  updateProject(input: UpdateProjectInput!): ProjectPayload!
+  deleteProject(input: DeleteProjectInput!): ProjectPayload!
+  createDeliverable(input: CreateDeliverableInput!): DeliverablePayload!
+  updateDeliverable(input: UpdateDeliverableInput!): DeliverablePayload!
+  transitionDeliverableStatus(input: TransitionDeliverableInput!): DeliverablePayload!
+  deleteDeliverable(input: DeleteDeliverableInput!): DeliverablePayload!
+  createAgentTask(input: CreateAgentTaskInput!): AgentTaskPayload!
+  updateAgentTask(input: UpdateAgentTaskInput!): AgentTaskPayload!
+  transitionAgentTaskStatus(input: TransitionAgentTaskInput!): AgentTaskPayload!
+  deleteAgentTask(input: DeleteAgentTaskInput!): AgentTaskPayload!
+  createLargeLanguageModel(input: CreateLargeLanguageModelInput!): LargeLanguageModelPayload!
+  updateLargeLanguageModel(input: UpdateLargeLanguageModelInput!): LargeLanguageModelPayload!
+  deleteLargeLanguageModel(input: DeleteLargeLanguageModelInput!): LargeLanguageModelPayload!
+  cleanupTestData: CleanupTestDataPayload!
+}
+
+type CleanupTestDataPayload {
+  success: Boolean!
+  message: String
+}
+
+directive @cost(weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION

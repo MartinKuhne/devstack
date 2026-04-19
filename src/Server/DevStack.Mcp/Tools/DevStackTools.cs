@@ -1,11 +1,8 @@
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
-using DevStack.Infrastructure.Defects;
-using DevStack.Infrastructure.Features;
 using DevStack.Infrastructure.Projects;
-using DevStack.Infrastructure.Tasks;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
@@ -27,69 +24,30 @@ public class DevStackTools
     }
 
     [McpServerTool, Description("Read all projects from DevStack. Returns project name, id, and repository.")]
-    public async Task<string> ReadProjects(
-        [Description("Maximum number of projects to return")][DefaultValue(50)] int first,
-        [Description("Number of projects to skip for pagination")][DefaultValue(0)] int skip,
-        CancellationToken cancellationToken = default)
+    public async Task<string> ReadProjects()
     {
-        try
-        {
-            var query = _dbContext.Projects.AsQueryable();
-            var totalCount = query.Count();
-            query = query.OrderBy(p => p.CreatedAt);
-            if (skip > 0)
-            {
-                query = query.Skip(skip);
-            }
-            var projects = query.Take(first).ToList();
-
-            var result = projects.Select(p => new
-            {
-                id = p.Id.ToString(),
-                name = p.Name,
-                repository = p.GithubUrl?.ToString() ?? string.Empty
-            });
-
-            var json = JsonSerializer.Serialize(result);
-            _logger.LogInformation("Read {Count} projects", result.Count());
-            return json;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reading projects");
-            throw;
-        }
+        var projects = await _dbContext.Projects.ToListAsync();
+        return JsonSerializer.Serialize(projects);
     }
 
-    [McpServerTool, Description("Get a single project by ID. Returns project name and repository.")]
-    public async Task<string> GetProjectById([Description("The project ID")] Guid id)
+    [McpServerTool, Description("Read a project by its ID.")]
+    public async Task<string> ReadProjectById([Description("The project ID")][DefaultValue(null)] Guid? id)
     {
-        try
+        if (id == null)
         {
-            var project = await _dbContext.Projects.FindAsync([id]);
-            if (project == null)
-            {
-                return JsonSerializer.Serialize(new { error = $"Project with ID {id} not found." });
-            }
-
-            var result = new
-            {
-                id = project.Id.ToString(),
-                name = project.Name,
-                repository = project.GithubUrl?.ToString() ?? string.Empty
-            };
-
-            _logger.LogInformation("Get project by ID: {Id}", id);
-            return JsonSerializer.Serialize(result);
+            return JsonSerializer.Serialize(new { error = "Project ID is required" });
         }
-        catch (Exception ex)
+
+        var project = await _dbContext.Projects.FindAsync([id.Value]);
+        if (project == null)
         {
-            _logger.LogError(ex, "Error getting project by ID: {Id}", id);
-            throw;
+            return JsonSerializer.Serialize(new { error = "Project not found" });
         }
+
+        return JsonSerializer.Serialize(project);
     }
 
-    [McpServerTool, Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in READY state.")]
+    [McpServerTool, Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Planning state.")]
     public async Task<string> CreateDeliverable(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
         [Description("The deliverable title")] string title,
@@ -97,20 +55,22 @@ public class DevStackTools
     {
         try
         {
-            var handler = new CreateFeatureHandler(_dbContext);
-            var command = new CreateFeatureCommand(
-                projectId ?? Guid.Empty,
-                title,
-                description,
-                null, null, null, null, null, null, null,
-                FeatureStatus.Ready,
-                null);
+            var deliverable = new Deliverable
+            {
+                ProjectId = projectId ?? Guid.Empty,
+                Title = title,
+                Description = description,
+                Type = DeliverableType.Feature,
+                Status = DeliverableStatus.Planning,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-           var itemId = await handler.Handle(command, CancellationToken.None);
-            var result = new { id = itemId.ToString() };
+            _dbContext.Deliverables.Add(deliverable);
+            await _dbContext.SaveChangesAsync();
 
-            _logger.LogInformation("Created deliverable with ID: {Id}", itemId);
-            return JsonSerializer.Serialize(result);
+            _logger.LogInformation("Created deliverable with ID: {Id}", deliverable.Id);
+            return JsonSerializer.Serialize(new { id = deliverable.Id.ToString() });
         }
         catch (Exception ex)
         {
@@ -127,15 +87,18 @@ public class DevStackTools
     {
         try
         {
-            var handler = new UpdateFeatureHandler(_dbContext);
-            var command = new UpdateFeatureCommand(
-                id, title, description, null, null, null, null, null, null, null, null);
+            var deliverable = await _dbContext.Deliverables.FindAsync([id]);
+            if (deliverable == null)
+                return JsonSerializer.Serialize(new { error = "Deliverable not found" });
 
-            await handler.Handle(command, CancellationToken.None);
-            var result = new { id = id.ToString(), updated = true };
+            if (title is not null) deliverable.Title = title;
+            if (description is not null) deliverable.Description = description;
+            deliverable.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Updated deliverable with ID: {Id}", id);
-            return JsonSerializer.Serialize(result);
+            return JsonSerializer.Serialize(new { id = id.ToString(), updated = true });
         }
         catch (Exception ex)
         {
@@ -147,19 +110,25 @@ public class DevStackTools
     [McpServerTool, Description("Transition a deliverable (Feature) status in DevStack.")]
     public async Task<string> TransitionDeliverableStatus(
         [Description("The deliverable ID")] Guid id,
-        [Description("The target status")] FeatureStatus targetStatus,
+        [Description("The target status")] DeliverableStatus targetStatus,
         [Description("The actor performing the transition")] string actor)
     {
         try
         {
-            var handler = new TransitionFeatureStatusHandler(_dbContext, new ItemStatusTransitionService());
-            var command = new TransitionFeatureStatusCommand(id, targetStatus, actor);
+            var deliverable = await _dbContext.Deliverables.FindAsync([id]);
+            if (deliverable == null)
+                return JsonSerializer.Serialize(new { error = "Deliverable not found" });
 
-            await handler.Handle(command, CancellationToken.None);
-            var result = new { id = id.ToString(), status = targetStatus.ToString(), actor };
+            var service = new DeliverableStatusTransitionService();
+            var result = service.Transition(deliverable, targetStatus, actor);
+
+            if (!result.IsSuccess)
+                return JsonSerializer.Serialize(new { error = result.Errors[0] });
+
+            await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Transitioned deliverable {Id} to {Status} by {Actor}", id, targetStatus, actor);
-            return JsonSerializer.Serialize(result);
+            return JsonSerializer.Serialize(new { id = id.ToString(), status = targetStatus.ToString(), actor });
         }
         catch (Exception ex)
         {
@@ -168,24 +137,35 @@ public class DevStackTools
         }
     }
 
-    [McpServerTool, Description("Create a new agent task in DevStack. New tasks are created in READY state.")]
+    [McpServerTool, Description("Create a new agent task in DevStack. New tasks are created in Ready state.")]
     public async Task<string> CreateAgentTask(
         [Description("The project ID")] Guid projectId,
+        [Description("The deliverable ID")] Guid deliverableId,
         [Description("The task title")] string title,
-        [Description("The task deliverable description")][DefaultValue(null)] string? deliverable,
-        [Description("The task description")][DefaultValue(null)] string? description)
+        [Description("The complexity rating (1-10)")] int complexityRating = 5)
     {
         try
         {
-            var handler = new CreateTaskHandler(_dbContext);
-            var command = new CreateTaskCommand(
-                projectId, title, description, deliverable, null, null, null, null, 5, FeatureStatus.Ready, null);
+            var deliverable = await _dbContext.Deliverables.FindAsync([deliverableId]);
+            if (deliverable == null)
+                return JsonSerializer.Serialize(new { error = "Deliverable not found" });
 
-            var itemId = await handler.Handle(command, CancellationToken.None);
-            var result = new { id = itemId.ToString() };
+            var agentTask = new AgentTask
+            {
+                ProjectId = projectId,
+                DeliverableId = deliverableId,
+                Title = title,
+                ComplexityRating = complexityRating,
+                Status = AgentTaskStatus.Ready,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-            _logger.LogInformation("Created agent task with ID: {Id}", itemId);
-            return JsonSerializer.Serialize(result);
+            _dbContext.AgentTasks.Add(agentTask);
+            await _dbContext.SaveChangesAsync();
+
+            _logger.LogInformation("Created agent task with ID: {Id}", agentTask.Id);
+            return JsonSerializer.Serialize(new { id = agentTask.Id.ToString() });
         }
         catch (Exception ex)
         {
@@ -198,19 +178,22 @@ public class DevStackTools
     public async Task<string> UpdateAgentTask(
         [Description("The agent task ID")] Guid id,
         [Description("The updated title")][DefaultValue(null)] string? title,
-        [Description("The updated deliverable")][DefaultValue(null)] string? deliverable)
+        [Description("The result")][DefaultValue(null)] string? result)
     {
         try
         {
-            var handler = new UpdateTaskHandler(_dbContext);
-            var command = new UpdateTaskCommand(
-                id, title, null, deliverable, null, null, null, null, null);
+            var agentTask = await _dbContext.AgentTasks.FindAsync([id]);
+            if (agentTask == null)
+                return JsonSerializer.Serialize(new { error = "AgentTask not found" });
 
-            await handler.Handle(command, CancellationToken.None);
-            var result = new { id = id.ToString(), updated = true };
+            if (title is not null) agentTask.Title = title;
+            if (result is not null) agentTask.Result = result;
+            agentTask.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Updated agent task with ID: {Id}", id);
-            return JsonSerializer.Serialize(result);
+            return JsonSerializer.Serialize(new { id = id.ToString(), updated = true });
         }
         catch (Exception ex)
         {
@@ -222,19 +205,25 @@ public class DevStackTools
     [McpServerTool, Description("Transition an agent task status in DevStack.")]
     public async Task<string> TransitionAgentTaskStatus(
         [Description("The agent task ID")] Guid id,
-        [Description("The target status")] FeatureStatus targetStatus,
+        [Description("The target status")] AgentTaskStatus targetStatus,
         [Description("The actor performing the transition")] string actor)
     {
         try
         {
-            var handler = new TransitionTaskStatusHandler(_dbContext);
-            var command = new TransitionTaskStatusCommand(id, targetStatus, actor);
+            var agentTask = await _dbContext.AgentTasks.FindAsync([id]);
+            if (agentTask == null)
+                return JsonSerializer.Serialize(new { error = "AgentTask not found" });
 
-            await handler.Handle(command, CancellationToken.None);
-            var result = new { id = id.ToString(), status = targetStatus.ToString(), actor };
+            var service = new AgentTaskStatusTransitionService();
+            var result = service.Transition(agentTask, targetStatus, actor);
+
+            if (!result.IsSuccess)
+                return JsonSerializer.Serialize(new { error = result.Errors[0] });
+
+            await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Transitioned agent task {Id} to {Status} by {Actor}", id, targetStatus, actor);
-            return JsonSerializer.Serialize(result);
+            return JsonSerializer.Serialize(new { id = id.ToString(), status = targetStatus.ToString(), actor });
         }
         catch (Exception ex)
         {
