@@ -45,7 +45,7 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
         return await SendPrivateBatchRequestAsync(requests, cancellationToken);
     }
 
-   private async Task<JsonRpcResponse> SendPrivateRequestAsync(JsonRpcRequest request, CancellationToken cancellationToken)
+    private async Task<JsonRpcResponse> SendPrivateRequestAsync(JsonRpcRequest request, CancellationToken cancellationToken)
     {
         var jsonContent = JsonSerializer.Serialize(request, _jsonOptions);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -60,15 +60,55 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
             throw new JsonException("Empty response from MCP server");
         }
 
-        var response = JsonSerializer.Deserialize<JsonRpcResponse>(responseContent, _jsonOptions)
-            ?? throw new JsonException("Failed to deserialize JSON-RPC response");
-
-        if (response.Error != null)
+        JsonRpcResponse[] jsonRpcResponses;
+        
+        // Try to parse as plain JSON first (for non-streaming responses)
+        var trimmedContent = responseContent.Trim();
+        if (trimmedContent.StartsWith("{"))
         {
-            throw new JsonRpcException(response.Error.Code, response.Error.Message, response.Error.Data);
+            try
+            {
+                var response = JsonSerializer.Deserialize<JsonRpcResponse>(trimmedContent, _jsonOptions);
+                if (response != null)
+                {
+                    jsonRpcResponses = new[] { response };
+                }
+                else
+                {
+                    jsonRpcResponses = ParseSseStream(responseContent);
+                }
+            }
+            catch
+            {
+                jsonRpcResponses = ParseSseStream(responseContent);
+            }
+        }
+        else
+        {
+            jsonRpcResponses = ParseSseStream(responseContent);
         }
 
-        return response;
+        if (jsonRpcResponses.Length == 0)
+        {
+            throw new JsonException("No JSON-RPC responses received from MCP server");
+        }
+
+        var matchingResponse = jsonRpcResponses.FirstOrDefault(r => r.Id == request.Id);
+        if (matchingResponse != null)
+        {
+            if (matchingResponse.Error != null)
+            {
+                throw new JsonRpcException(matchingResponse.Error.Code, matchingResponse.Error.Message, matchingResponse.Error.Data);
+            }
+            return matchingResponse;
+        }
+
+        var lastResponse = jsonRpcResponses[jsonRpcResponses.Length - 1];
+        if (lastResponse.Error != null)
+        {
+            throw new JsonRpcException(lastResponse.Error.Code, lastResponse.Error.Message, lastResponse.Error.Data);
+        }
+        return lastResponse;
     }
 
     private async Task SendPrivateNotificationAsync(JsonRpcNotification notification, CancellationToken cancellationToken)
@@ -82,7 +122,7 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
         await _httpClient.PostAsync(_endpoint, content, cancellationToken);
     }
 
-   private async Task<JsonRpcResponse[]> SendPrivateBatchRequestAsync(JsonRpcRequest[] requests, CancellationToken cancellationToken)
+    private async Task<JsonRpcResponse[]> SendPrivateBatchRequestAsync(JsonRpcRequest[] requests, CancellationToken cancellationToken)
     {
         var jsonContent = JsonSerializer.Serialize(requests, _jsonOptions);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -97,10 +137,14 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
             throw new JsonException("Empty response from MCP server");
         }
 
-        var responses = JsonSerializer.Deserialize<JsonRpcResponse[]>(responseContent, _jsonOptions)
-            ?? throw new JsonException("Failed to deserialize JSON-RPC batch response");
+        var jsonRpcResponses = ParseSseStream(responseContent);
 
-        foreach (var response in responses)
+        if (jsonRpcResponses.Length == 0)
+        {
+            throw new JsonException("No JSON-RPC responses received from MCP server");
+        }
+
+        foreach (var response in jsonRpcResponses)
         {
             if (response.Error != null)
             {
@@ -108,7 +152,88 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
             }
         }
 
-        return responses;
+        return jsonRpcResponses;
+    }
+
+    private static JsonRpcResponse[] ParseSseStream(string sseContent)
+    {
+        var responses = new List<JsonRpcResponse>();
+        var lines = sseContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+        
+        var currentEvent = new StringBuilder();
+        var currentEventType = "";
+        
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i].Trim();
+            
+            if (line.StartsWith("event:"))
+            {
+                var eventType = line.Substring(6).Trim();
+                if (eventType == "message")
+                {
+                    currentEvent.Clear();
+                    currentEventType = eventType;
+                }
+                else if (eventType == "error")
+                {
+                    currentEvent.Clear();
+                    currentEventType = eventType;
+                }
+            }
+            else if (line.StartsWith("data:"))
+            {
+                var dataLine = line.Substring(5).Trim();
+                if (currentEvent.Length > 0 || dataLine.StartsWith("{"))
+                {
+                    currentEvent.AppendLine(dataLine);
+                }
+            }
+            else if (line == "event: end" || line == "")
+            {
+                if (currentEvent.Length > 0)
+                {
+                    try
+                    {
+                        var response = JsonSerializer.Deserialize<JsonRpcResponse>(currentEvent.ToString(), new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+                        if (response != null)
+                        {
+                            responses.Add(response);
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore malformed JSON in SSE stream
+                    }
+                    currentEvent.Clear();
+                }
+                currentEventType = "";
+            }
+        }
+
+        if (currentEvent.Length > 0)
+        {
+            try
+            {
+                var response = JsonSerializer.Deserialize<JsonRpcResponse>(currentEvent.ToString(), new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                if (response != null)
+                {
+                    responses.Add(response);
+                }
+            }
+            catch
+            {
+                // Ignore malformed JSON in SSE stream
+            }
+        }
+
+        return responses.ToArray();
     }
 }
 

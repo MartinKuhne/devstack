@@ -42,7 +42,7 @@ public sealed class ErrorHandlingSteps
         if (_scenarioContext.TryGetValue<string>("InvalidJson", out var invalidJson))
         {
             var content = new StringContent(invalidJson, Encoding.UTF8, "application/json");
-            _httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
+            _httpResponse = await HttpClient.PostAsync("/mcp", content);
             var responseContent = await _httpResponse.Content.ReadAsStringAsync();
             
             try
@@ -69,6 +69,12 @@ public sealed class ErrorHandlingSteps
     public void ThenTheErrorMessageShouldContain(string expectedMessage)
     {
         _response!.Error!.Message.Should().Contain(expectedMessage);
+    }
+
+    [Then(@"the error message should indicate parse error")]
+    public void ThenTheErrorMessageShouldIndicateParseError()
+    {
+        _response!.Error!.Message.ToLower().Should().Contain("parse");
     }
 
     #endregion
@@ -160,8 +166,8 @@ public sealed class ErrorHandlingSteps
         _scenarioContext["BatchRequests"] = requests;
     }
 
-    [Given(@"an array with (\d+) valid requests and (\d+) notification")]
-    public void GivenAnArrayWithValidRequestsAndNotification(int requestCount, int notificationCount)
+[Given(@"an array with (\d+) requests and (\d+) notification")]
+    public void GivenAnArrayWithRequestsAndNotification(int requestCount, int notificationCount)
     {
         var items = new List<object>();
         for (int i = 0; i < requestCount; i++)
@@ -173,6 +179,40 @@ public sealed class ErrorHandlingSteps
             items.Add(new { jsonrpc = "2.0", method = "notifications/test" });
         }
         _scenarioContext["BatchRequests"] = items.ToArray();
+    }
+
+    [Then(@"the response should contain (\d+) responses \(notifications excluded\)")]
+    public void ThenTheResponseShouldContainResponsesNotificationsExcluded(int expectedCount)
+    {
+        JsonRpcResponse[]? responses = null;
+        if (_scenarioContext.TryGetValue<JsonRpcResponse[]>("BatchResponses", out var batchResponses))
+        {
+            responses = batchResponses;
+        }
+        else if (_response?.Result != null)
+        {
+            var result = _response.Result.ToString()!;
+            responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
+        }
+        responses!.Should().NotBeEmpty();
+        var responseCount = responses!.Count(r => r.Id.HasValue);
+        responseCount.Should().Be(expectedCount);
+    }
+
+    [Then(@"the response should contain responses for all requests")]
+    public void ThenTheResponseShouldContainResponsesForAllRequests()
+    {
+        JsonRpcResponse[]? responses = null;
+        if (_scenarioContext.TryGetValue<JsonRpcResponse[]>("BatchResponses", out var batchResponses))
+        {
+            responses = batchResponses;
+        }
+        else if (_response?.Result != null)
+        {
+            var result = _response.Result.ToString()!;
+            responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
+        }
+        responses!.Should().NotBeEmpty();
     }
 
     [Given(@"an array with (\d+) valid requests and (\d+) invalid request")]
@@ -198,7 +238,7 @@ public sealed class ErrorHandlingSteps
             var requests = (object[])requestsObj;
             var json = System.Text.Json.JsonSerializer.Serialize(requests);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
+            var httpResponse = await HttpClient.PostAsync("/mcp", content);
             var responseContent = await httpResponse.Content.ReadAsStringAsync();
             
             var responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(responseContent);

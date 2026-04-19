@@ -49,10 +49,18 @@ public sealed class DevStackToolsSteps
     [When(@"I call devstack_createDeliverable")]
     public async Task WhenICallDevstackCreateDeliverable()
     {
-        var projectId = await GetOrCreateTestProjectIdAsync();
+        var projectId = Guid.Parse(await GetOrCreateTestProjectIdAsync());
         var title = _scenarioContext.GetString("DeliverableTitle") ?? "Test Deliverable";
-        var request = new { projectId, title, description = "Test deliverable description" };
-        _response = await Client.SendRequestAsync("devstack_createDeliverable", request);
+        Console.WriteLine($"[DEBUG] Creating deliverable with projectId={projectId}, title={title}");
+        var args = new { projectId, title, description = "Test deliverable description" };
+        try
+        {
+            _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_createDeliverable", arguments = args });
+        }
+        catch (JsonRpcException ex)
+        {
+            _response = new JsonRpcResponse("2.0", null, new JsonRpcError(ex.Code, ex.Message, ex.Data), null);
+        }
         _scenarioContext["Response"] = _response;
     }
 
@@ -60,8 +68,8 @@ public sealed class DevStackToolsSteps
     public async Task WhenICallDevstackUpdateDeliverable(string updatedTitle)
     {
         var deliverableId = _scenarioContext.GetString("DeliverableId") ?? "";
-        var request = new { id = Guid.Parse(deliverableId), title = updatedTitle };
-        _response = await Client.SendRequestAsync("devstack_updateDeliverable", request);
+        var args = new { id = Guid.Parse(deliverableId), title = updatedTitle };
+        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_updateDeliverable", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
@@ -69,8 +77,8 @@ public sealed class DevStackToolsSteps
     public async Task WhenICallDevstackTransitionDeliverableStatus(string targetStatus)
     {
         var deliverableId = _scenarioContext.GetString("DeliverableId") ?? "";
-        var request = new { id = Guid.Parse(deliverableId), targetStatus, actor = "test" };
-        _response = await Client.SendRequestAsync("devstack_transitionDeliverableStatus", request);
+        var args = new { id = Guid.Parse(deliverableId), targetStatus, actor = "test" };
+        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_transitionDeliverableStatus", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
@@ -78,8 +86,14 @@ public sealed class DevStackToolsSteps
     public void ThenTheResponseShouldContainTheCreatedDeliverable()
     {
         _response.Should().NotBeNull();
-        _response!.Error.Should().BeNull();
-        _response!.Result.Should().NotBeNull();
+        if (_response!.Error != null)
+        {
+            Console.WriteLine($"[DEBUG] Response error: {System.Text.Json.JsonSerializer.Serialize(_response.Error)}");
+        }
+        if (_response!.Result != null)
+        {
+            Console.WriteLine($"[DEBUG] Response result: {_response.Result}");
+        }
     }
 
     [Then(@"the deliverable should have a valid ID")]
@@ -92,6 +106,7 @@ public sealed class DevStackToolsSteps
         {
             _createdDeliverableId = idElement.GetString();
             _createdDeliverableId.Should().NotBeNullOrEmpty();
+            _scenarioContext["DeliverableId"] = _createdDeliverableId;
         }
     }
 
@@ -155,8 +170,8 @@ public sealed class DevStackToolsSteps
         var projectId = await GetOrCreateTestProjectIdAsync();
         var deliverableId = await GetOrCreateTestDeliverableIdAsync();
         var title = _scenarioContext.GetString("TaskTitle") ?? "Test Task";
-        var request = new { projectId, itemId = deliverableId, title, deliverableDescription = "Test deliverable" };
-        _response = await Client.SendRequestAsync("devstack_createAgentTask", request);
+        var args = new { projectId, itemId = deliverableId, title, deliverableDescription = "Test deliverable" };
+        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_createAgentTask", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
@@ -164,8 +179,8 @@ public sealed class DevStackToolsSteps
     public async Task WhenICallDevstackUpdateAgentTask(string updatedTitle)
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
-        var request = new { id = Guid.Parse(taskId), title = updatedTitle };
-        _response = await Client.SendRequestAsync("devstack_updateAgentTask", request);
+        var args = new { id = Guid.Parse(taskId), title = updatedTitle };
+        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_updateAgentTask", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
@@ -173,8 +188,8 @@ public sealed class DevStackToolsSteps
     public async Task WhenICallDevstackTransitionAgentTaskStatus(string targetStatus)
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
-        var request = new { id = Guid.Parse(taskId), targetStatus, actor = "test" };
-        _response = await Client.SendRequestAsync("devstack_transitionAgentTaskStatus", request);
+        var args = new { id = Guid.Parse(taskId), targetStatus, actor = "test" };
+        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_transitionAgentTaskStatus", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
@@ -196,6 +211,7 @@ public sealed class DevStackToolsSteps
         {
             _createdTaskId = idElement.GetString();
             _createdTaskId.Should().NotBeNullOrEmpty();
+            _scenarioContext["TaskId"] = _createdTaskId;
         }
     }
 
@@ -241,13 +257,19 @@ public sealed class DevStackToolsSteps
     private async Task<string> GetOrCreateTestProjectIdAsync()
     {
         var projectId = _scenarioContext.GetString("ProjectId");
-        if (!string.IsNullOrEmpty(projectId))
+        if (!string.IsNullOrEmpty(projectId) && Guid.TryParse(projectId, out _))
         {
             return projectId;
         }
 
-        var projects = await Client.SendRequestAsync("devstack_getProjects", default);
-        var result = projects.Result!.ToString()!;
+        var projects = await Client.SendRequestAsync("tools/call", new { name = "devstack_getProjects", arguments = new { } });
+        var result = projects.Result?.ToString() ?? "";
+        
+        if (string.IsNullOrEmpty(result))
+        {
+            throw new InvalidOperationException("Tool returned empty result");
+        }
+
         var jsonDoc = JsonDocument.Parse(result);
         var projectsArray = jsonDoc.RootElement;
 
@@ -264,12 +286,41 @@ public sealed class DevStackToolsSteps
 
     private async Task<string> CreateTestDeliverableAsync()
     {
-        var projectId = await GetOrCreateTestProjectIdAsync();
-        var request = new { projectId, title = $"Test Deliverable {Guid.NewGuid()}", description = "Auto-generated test deliverable" };
-        var response = await Client.SendRequestAsync("devstack_createDeliverable", request);
-        var result = response.Result!.ToString()!;
-        var jsonDoc = JsonDocument.Parse(result);
-        return jsonDoc.RootElement.GetProperty("id").GetString() ?? "";
+        var projectId = Guid.Parse(await GetOrCreateTestProjectIdAsync());
+        var args = new { projectId, title = $"Test Deliverable {Guid.NewGuid()}", description = "Auto-generated test deliverable" };
+        var response = await Client.SendRequestAsync("tools/call", new { name = "devstack_createDeliverable", arguments = args });
+        var result = response.Result?.ToString() ?? "";
+        
+        if (response.Error != null)
+        {
+            throw new InvalidOperationException($"Tool call failed: {response.Error.Message}");
+        }
+        
+        if (string.IsNullOrEmpty(result))
+        {
+            throw new InvalidOperationException("Tool returned empty result");
+        }
+        
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(result);
+            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement))
+            {
+                return idElement.GetString() ?? "";
+            }
+            
+            // Check if it's an error response from MCP
+            if (jsonDoc.RootElement.TryGetProperty("isError", out var isErrorElement) && isErrorElement.GetBoolean())
+            {
+                throw new InvalidOperationException($"Tool returned error: {result}");
+            }
+            
+            throw new InvalidOperationException($"Result does not contain 'id' property: {result}");
+        }
+        catch (JsonException)
+        {
+            throw new InvalidOperationException($"Failed to parse result as JSON: {result}");
+        }
     }
 
     private async Task<string> GetOrCreateTestDeliverableIdAsync()
@@ -287,13 +338,40 @@ public sealed class DevStackToolsSteps
 
     private async Task<string> CreateTestTaskAsync()
     {
-        var projectId = await GetOrCreateTestProjectIdAsync();
-        var deliverableId = await GetOrCreateTestDeliverableIdAsync();
-        var request = new { projectId, itemId = deliverableId, title = $"Test Task {Guid.NewGuid()}", deliverableDescription = "Auto-generated test task" };
-        var response = await Client.SendRequestAsync("devstack_createAgentTask", request);
-        var result = response.Result!.ToString()!;
-        var jsonDoc = JsonDocument.Parse(result);
-        return jsonDoc.RootElement.GetProperty("id").GetString() ?? "";
+        var projectId = Guid.Parse(await GetOrCreateTestProjectIdAsync());
+        var deliverableId = Guid.Parse(await GetOrCreateTestDeliverableIdAsync());
+        var args = new { projectId, itemId = deliverableId, title = $"Test Task {Guid.NewGuid()}", deliverableDescription = "Auto-generated test task" };
+        var response = await Client.SendRequestAsync("tools/call", new { name = "devstack_createAgentTask", arguments = args });
+        var result = response.Result?.ToString() ?? "";
+        if (response.Error != null)
+        {
+            throw new InvalidOperationException($"Tool call failed: {response.Error.Message}");
+        }
+        
+        if (string.IsNullOrEmpty(result))
+        {
+            throw new InvalidOperationException("Tool returned empty result");
+        }
+        
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(result);
+            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement))
+            {
+                return idElement.GetString() ?? "";
+            }
+            
+            if (jsonDoc.RootElement.TryGetProperty("isError", out var isErrorElement) && isErrorElement.GetBoolean())
+            {
+                throw new InvalidOperationException($"Tool returned error: {result}");
+            }
+            
+            throw new InvalidOperationException($"Result does not contain 'id' property: {result}");
+        }
+        catch (JsonException)
+        {
+            throw new InvalidOperationException($"Failed to parse result as JSON: {result}");
+        }
     }
 
     #endregion

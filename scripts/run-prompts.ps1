@@ -1,3 +1,5 @@
+# This is a developer maintained file. Do not modfiy or delete.
+
 $AgentsFile = Join-Path $PSScriptRoot "..\agents.md"
 Write-Host $AgentsFile
 $DelaySeconds = 2

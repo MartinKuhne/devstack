@@ -31,6 +31,7 @@ public sealed class InitializeSteps
         var protocolVersion = _scenarioContext.GetString("ProtocolVersion") ?? "2024-11-05";
         var request = new
         {
+            protocolVersion = protocolVersion,
             capabilities = new { }
         };
 

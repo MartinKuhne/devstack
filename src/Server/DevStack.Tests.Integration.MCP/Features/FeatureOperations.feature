@@ -16,7 +16,8 @@ Feature: Feature CRUD and Status Transition Operations
         And the deliverable title should be "Updated Deliverable"
 
     Scenario: Transition deliverable status
-        Given a deliverable in "ready" status
+        Given an existing deliverable ID
+        And a deliverable in "ready" status
         When I call devstack_transitionDeliverableStatus to "in_progress"
         Then the response should contain the deliverable with new status
         And the status should be "InProgress"
