@@ -17,6 +17,8 @@ import { useDeliverables } from '@/features/deliverables/hooks/useDeliverables';
 import { CreateDeliverableDialog } from '@/features/deliverables/components/CreateDeliverableDialog';
 import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
 import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
+import { useDeleteProjectMutation } from '@/generated/graphql';
+import { toast } from 'react-toastify';
 
 const STATUS_COLORS: Record<string, string> = {
     Planned: 'bg-blue-500',
@@ -38,6 +40,27 @@ export function ProjectDetailPage() {
     const [createFeatureDialogOpen, setCreateFeatureDialogOpen] = useState(false);
     const [createDeliverableDialogOpen, setCreateDeliverableDialogOpen] = useState(false);
     const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);
+    const [deleteProject, { loading: deleting }] = useDeleteProjectMutation();
+
+    const handleDelete = async () => {
+        if (!project?.id) return;
+        if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) return;
+        try {
+            const result = await deleteProject({
+                variables: {
+                    input: { id: project.id },
+                },
+            });
+            if (result.data?.deleteProject?.errors?.length) {
+                toast.error(result.data.deleteProject.errors.join(', '));
+            } else {
+                toast.success('Project deleted successfully');
+                navigate('/projects');
+            }
+        } catch {
+            toast.error('Failed to delete project');
+        }
+    };
 
     if (loading) {
         return (
@@ -102,12 +125,17 @@ export function ProjectDetailPage() {
                         </a>
                     )}
                 </div>
-                <Button variant="outline" onClick={() => navigate('/projects')}>
-                    Back to Projects
-                </Button>
-                <Button onClick={() => setEditDialogOpen(true)}>
-                    Edit
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => navigate('/projects')}>
+                        Back to Projects
+                    </Button>
+                    <Button onClick={() => setEditDialogOpen(true)}>
+                        Edit
+                    </Button>
+                    <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                        Delete
+                    </Button>
+                </div>
             </div>
 
             <Tabs defaultValue="overview" className="w-full">

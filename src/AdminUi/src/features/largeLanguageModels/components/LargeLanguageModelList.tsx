@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useLargeLanguageModels } from '@/features/largeLanguageModels/hooks/useLargeLanguageModels';
 import { LargeLanguageModelDialog } from './LargeLanguageModelDialog';
+import { useDeleteModelConfigurationMutation } from '@/generated/graphql';
+import { toast } from 'react-toastify';
 
 interface LargeLanguageModelListProps {
     onAddModel: () => void;
@@ -21,6 +23,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         apiKey?: string;
         maxComplexity: number;
     } | null>(null);
+    const [deleteModelConfiguration, { loading: deleting }] = useDeleteModelConfigurationMutation();
 
     const handleEdit = (model: { id: string | null; model: string | null; modelAlias: string | null; url: string | null; maxComplexity: number | null }) => {
         setEditingModel({
@@ -29,6 +32,25 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
             url: model.url ?? '',
             maxComplexity: model.maxComplexity ?? 0,
         });
+    };
+
+    const handleDelete = async (modelId: string) => {
+        if (!confirm('Are you sure you want to delete this model configuration?')) return;
+        try {
+            const result = await deleteModelConfiguration({
+                variables: {
+                    input: { id: modelId },
+                },
+            });
+            if (result.data?.deleteModelConfiguration?.errors?.length) {
+                toast.error(result.data.deleteModelConfiguration.errors.join(', '));
+            } else {
+                toast.success('Model deleted successfully');
+                onRefetch?.();
+            }
+        } catch {
+            toast.error('Failed to delete model');
+        }
     };
 
     const handleCloseDialog = () => {
@@ -105,7 +127,8 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 text-destructive hover:text-destructive"
-                                        onClick={() => handleEdit(config)}
+                                        onClick={() => config.id && handleDelete(config.id)}
+                                        disabled={deleting}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>

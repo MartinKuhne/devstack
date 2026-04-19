@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAgentTask } from '../hooks/useAgentTask';
 import { UpdateAgentTaskDialog } from '../components/UpdateAgentTaskDialog';
 import { useState } from 'react';
-import { useTransitionAgentTaskStatusMutation } from '@/generated/graphql';
+import { useTransitionAgentTaskStatusMutation, useDeleteAgentTaskMutation } from '@/generated/graphql';
 import {
     Select,
     SelectContent,
@@ -33,6 +33,27 @@ export function AgentTaskDetailPage() {
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
     const [transitionAgentTaskStatus, { loading: transitionLoading }] = useTransitionAgentTaskStatusMutation();
     const [selectedStatus, setSelectedStatus] = useState('');
+    const [deleteAgentTask, { loading: deleting }] = useDeleteAgentTaskMutation();
+
+    const handleDelete = async () => {
+        if (!agentTask?.id) return;
+        if (!confirm('Are you sure you want to delete this agent task? This action cannot be undone.')) return;
+        try {
+            const result = await deleteAgentTask({
+                variables: {
+                    input: { id: agentTask.id },
+                },
+            });
+            if (result.data?.deleteAgentTask?.errors?.length) {
+                toast.error(result.data.deleteAgentTask.errors.join(', '));
+            } else {
+                toast.success('Agent task deleted successfully');
+                navigate('/agent-tasks');
+            }
+        } catch {
+            toast.error('Failed to delete agent task');
+        }
+    };
 
     const handleStatusChange = async () => {
         if (!selectedStatus || !agentTask?.id) return;
@@ -135,6 +156,9 @@ export function AgentTaskDetailPage() {
                     </Button>
                     <Button onClick={() => setUpdateDialogOpen(true)}>
                         Edit
+                    </Button>
+                    <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                        Delete
                     </Button>
                 </div>
             </div>
