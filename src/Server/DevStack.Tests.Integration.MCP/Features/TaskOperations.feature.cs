@@ -144,7 +144,8 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a task in \"ready\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.Given("an existing task ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.And("a task in \"ready\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.When("I call devstack_transitionAgentTaskStatus to \"in_progress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the task with new status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");

@@ -16,7 +16,8 @@ Feature: Task CRUD and Status Transition Operations
         And the task title should be "Updated Task"
 
     Scenario: Transition task status
-        Given a task in "ready" status
+        Given an existing task ID
+        And a task in "ready" status
         When I call devstack_transitionAgentTaskStatus to "in_progress"
         Then the response should contain the task with new status
         And the status should be "InProgress"

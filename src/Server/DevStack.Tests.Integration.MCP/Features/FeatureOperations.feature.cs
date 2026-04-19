@@ -144,7 +144,8 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a deliverable in \"ready\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.Given("an existing deliverable ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.And("a deliverable in \"ready\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.When("I call devstack_transitionDeliverableStatus to \"in_progress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the deliverable with new status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");

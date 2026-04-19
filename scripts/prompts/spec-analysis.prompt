@@ -1,2 +1,4 @@
-Compare the specification under ```{SpecPath}``` with the actual implementation and create Deliverables and AgentTasks to change the implementation to match the specification. Create Deliverables and AgentTaks in state NeedsReview if there are open questions or architecture and/or technology choices are ambigous.
+Compare the specification under ```{SpecPath}``` with the actual implementation and create Deliverables and AgentTasks to change the implementation to match the specification. Create Deliverables and AgentTasks in the Ready state when the architecture and technology choices are unambiguous. Create just a Deliverable in state NeedsReview if there are open questions or architecture and/or technology choices are ambiguous.
 The spec is the source of truth and the code must be changed accordingly.
+
+If there are multiple folders under specs/**, instead run the prompt once for the contents of each folder. For example, the prompt would start with: Compare the specification under specs/graphql/**

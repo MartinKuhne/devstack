@@ -2,6 +2,7 @@ using TechTalk.SpecFlow;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using DevStack.Tests.Integration.MCP.Client;
 using Testcontainers.PostgreSql;
@@ -131,12 +132,14 @@ public sealed class SpecFlowHooks
 
         var services = new ServiceCollection();
 
-  var port = 18887;
+  var port = 8887;
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri($"http://localhost:{port}")
         };
-        _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+        _httpClient.DefaultRequestHeaders.Accept.Clear();
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
 
         services.AddSingleton(_httpClient);
         services.AddSingleton<IMcpJsonRpcClient>(sp =>
@@ -150,6 +153,7 @@ public sealed class SpecFlowHooks
         _scenarioContext["ConnectionString"] = connectionString;
         _scenarioContext["McpPort"] = port;
         _scenarioContext["ProjectId"] = _seededProjectId.ToString();
+        Console.WriteLine($"[MCP] Seeded ProjectId: {_seededProjectId}");
 
         StartMcpServer(connectionString, port);
     }
@@ -196,7 +200,7 @@ public sealed class SpecFlowHooks
             var startInfo = new ProcessStartInfo
             {
                 FileName = "C:\\Program Files\\dotnet\\dotnet.exe",
-                Arguments = $"run --project \"{mcpProjectPath}\" -- --urls http://localhost:{port}",
+                Arguments = $"run --no-build --project \"{mcpProjectPath}\" -- --urls http://localhost:{port}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -208,6 +212,7 @@ public sealed class SpecFlowHooks
                     ["DEVSTACK_SECRET_KEY"] = "test-secret-key-for-mcp-integration-tests"
                 }
             };
+            Console.WriteLine($"[MCP] Connection string: {connectionString}");
 
             _mcpProcess = new Process { StartInfo = startInfo };
             _mcpProcess.OutputDataReceived += (s, e) => Console.WriteLine($"[MCP OUT] {e.Data}");
