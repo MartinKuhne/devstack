@@ -2,49 +2,34 @@ query GetAgentTaskById($id: UUID!) {
     agentTaskById(id: $id) {
         id
         title
-        deliverable
-        acceptanceCriteria
-        risks
-        requiredFollowUps
-        complexityRating
-        result
         status
-        itemId
-        item {
-            id
-            title
-        }
-        dependsOnAgentTask {
-            id
-            title
-        }
+        deliverableId
+        result
+        errors
+        commitHash
+        complexityRating
+        dependsOnDevTask
         promptTokens
         completionTokens
         executionDurationInSeconds
         model
-        commitHash
-        errors
-        createdAt
-        updatedAt
     }
 }
 
 query GetAgentTasks($projectId: UUID, $status: [AgentTaskStatus!]) {
-    agentTasks(itemId: $projectId, status: $status) {
-        nodes {
-            id
-            title
-            deliverable
-            status
-            itemId
-            complexityRating
-            promptTokens
-            completionTokens
-            executionDurationInSeconds
-            model
-            commitHash
-            createdAt
-            updatedAt
-        }
+    agentTasks(itemId: $projectId) {
+        id
+        title
+        status
+        deliverableId
+        result
+        errors
+        commitHash
+        complexityRating
+        dependsOnDevTask
+        promptTokens
+        completionTokens
+        executionDurationInSeconds
+        model
     }
 }

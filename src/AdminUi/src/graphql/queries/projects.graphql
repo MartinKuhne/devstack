@@ -4,8 +4,7 @@ query GetProjects {
             id
             name
             description
-            githubUrl
-            updatedAt
+            repository
         }
     }
 }

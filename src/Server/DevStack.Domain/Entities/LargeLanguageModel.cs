@@ -15,7 +15,7 @@ public class LargeLanguageModel
     public string Model { get; set; } = string.Empty;
 
     [StringLength(100)]
-    public string? ModelAlias { get; set; }
+    public string ModelAlias { get; set; } = string.Empty;
 
     [Required]
     [StringLength(1000)]

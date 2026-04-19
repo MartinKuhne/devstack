@@ -71,7 +71,7 @@ input CreateAgentTaskInput {
   dependsOnDevTask: String
   promptTokens: Int
   completionTokens: Int
-  executionDurationInSeconds: Float
+  executionDurationInSeconds: Int
   model: String
 }
 
@@ -85,7 +85,7 @@ input UpdateAgentTaskInput {
   complexityRating: Int
   promptTokens: Int
   completionTokens: Int
-  executionDurationInSeconds: Float
+  executionDurationInSeconds: Int
   model: String
 }
 
@@ -159,7 +159,6 @@ type Project {
   name: String
   description: String
   repository: String
-  largeLanguageModels: [LargeLanguageModel!]!
 }
 
 type Deliverable {
@@ -181,7 +180,6 @@ type Deliverable {
 
 type AgentTask {
   id: ID
-  projectId: ID
   deliverableId: ID
   title: String
   status: AgentTaskStatus
@@ -192,7 +190,7 @@ type AgentTask {
   dependsOnDevTask: String
   promptTokens: Int
   completionTokens: Int
-  executionDurationInSeconds: Float
+  executionDurationInSeconds: Int
   model: String
 }
 
@@ -240,6 +238,11 @@ type Query {
   projects(first: Int! = 50, skip: Int): ProjectConnection!
   largeLanguageModelById(id: UUID!): LargeLanguageModel
   largeLanguageModels: [LargeLanguageModel!]!
+  deliverableById(id: UUID!): Deliverable
+  deliverables: [Deliverable!]!
+  deliverablesByProjectId(projectId: UUID!): [Deliverable!]!
+  agentTaskById(id: UUID!): AgentTask
+  agentTasks(itemId: UUID): [AgentTask!]!
 }
 
 type Mutation {
