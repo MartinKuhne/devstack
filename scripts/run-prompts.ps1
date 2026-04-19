@@ -1,4 +1,5 @@
-$AgentsFile = Join-Path $PSScriptRoot "agents.md"
+$AgentsFile = Join-Path $PSScriptRoot "..\agents.md"
+Write-Host $AgentsFile
 $DelaySeconds = 2
 
 $Prompts = @(
@@ -41,8 +42,9 @@ for ($i = 1; $i -le $Iterations; $i++) {
         Write-Host "`n--- Running prompt ---"
         Write-Host $prompt
 
-        $npxArgs = @("opencode", "run", ($prompt -replace "`r`n|`n|`r", " "))
-        if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
+        $npxArgs = @("opencode", "run", ($prompt -replace "`r`n|`n|`r", " "), "--file", $AgentsFile)
+#       if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
+        Write-Host $npxArgs
         & npx @npxArgs
 
         if ($LASTEXITCODE -ne 0) {
