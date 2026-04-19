@@ -48,14 +48,6 @@ public class Query
         return dbContext.LargeLanguageModels.ToList();
     }
 
-    public List<LargeLanguageModel> GetLargeLanguageModelsByProjectId([Service] DevStackDbContext dbContext, Guid projectId)
-    {
-        return dbContext.LargeLanguageModels
-            .Where(m => m.ProjectId == projectId)
-            .OrderBy(m => m.Id)
-            .ToList();
-    }
-
     public List<Deliverable> GetDeliverablesByProjectId([Service] DevStackDbContext dbContext, Guid projectId)
     {
         return dbContext.Deliverables

@@ -6,7 +6,7 @@ using DevStack.Domain.Services;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Persistence;
-using DevStack.Infrastructure.Services;
+
 using DevStack.Api.Logging;
 using DevStack.Api.Middlewares;
 using Microsoft.EntityFrameworkCore;
@@ -65,11 +65,6 @@ builder.Services.AddTransient<IGetProjectByIdHandler, GetProjectByIdHandler>();
 builder.Services.AddTransient<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
 builder.Services.AddTransient<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
 builder.Services.AddTransient<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
-
-var secretKey = builder.Configuration["DEVSTACK_SECRET_KEY"] 
-    ?? Environment.GetEnvironmentVariable("DEVSTACK_SECRET_KEY") 
-    ?? throw new InvalidOperationException("DEVSTACK_SECRET_KEY must be set");
-builder.Services.AddSingleton<ISecretService>(new AesSecretService(secretKey));
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
