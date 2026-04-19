@@ -52,6 +52,16 @@ public class DevStackTools
 
     #region Deliverable Tools
 
+    [McpServerTool(Name = "devstack_getDeliverable"), Description("Read a deliverable by its ID.")]
+    public async Task<string> GetDeliverable([Description("The deliverable ID")] Guid id)
+    {
+        var deliverable = await _dbContext.Deliverables.FindAsync([id]);
+        if (deliverable == null)
+            return JsonSerializer.Serialize(new { error = "Deliverable not found" });
+
+        return JsonSerializer.Serialize(new { id = deliverable.Id.ToString(), title = deliverable.Title, description = deliverable.Description, type = deliverable.Type.ToString(), status = deliverable.Status.ToString() });
+    }
+
     [McpServerTool(Name = "devstack_createDeliverable"), Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state.")]
     public async Task<string> CreateDeliverable(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
@@ -142,6 +152,16 @@ public class DevStackTools
     #endregion
 
     #region Agent Task Tools
+
+    [McpServerTool(Name = "devstack_getTask"), Description("Read an agent task by its ID.")]
+    public async Task<string> GetTask([Description("The agent task ID")] Guid id)
+    {
+        var agentTask = await _dbContext.AgentTasks.FindAsync([id]);
+        if (agentTask == null)
+            return JsonSerializer.Serialize(new { error = "AgentTask not found" });
+
+        return JsonSerializer.Serialize(new { id = agentTask.Id.ToString(), title = agentTask.Title, result = agentTask.Result, complexityRating = agentTask.ComplexityRating, status = agentTask.Status.ToString() });
+    }
 
     [McpServerTool(Name = "devstack_createAgentTask"), Description("Create a new agent task in DevStack. New tasks are created in Ready state.")]
     public async Task<string> CreateAgentTask(
