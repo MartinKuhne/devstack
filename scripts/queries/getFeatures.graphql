@@ -9,6 +9,14 @@ query GetFeatures($projectId: UUID!, $first: Int!) {
       plan
       featureSubtype
       epicId
+      type
+      agentFeedback
+      executionPlan
+      securityImpact
+      performanceImpact
+      testPlan
+      deploymentPlan
+      blocking
     }
   }
 }
