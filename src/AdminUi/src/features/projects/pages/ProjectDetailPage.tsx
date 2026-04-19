@@ -13,6 +13,8 @@ import { LargeLanguageModelDialog } from '@/features/largeLanguageModels/compone
 import { GitHubConfigurationSection } from '@/features/projects/components/GitHubConfigurationSection';
 import { CreateFeatureDialog } from '@/features/features/components/CreateFeatureDialog';
 import { useFeatures } from '@/features/features/hooks/useFeatures';
+import { useDeliverables } from '@/features/deliverables/hooks/useDeliverables';
+import { CreateDeliverableDialog } from '@/features/deliverables/components/CreateDeliverableDialog';
 
 const STATUS_COLORS: Record<string, string> = {
     Planned: 'bg-blue-500',
@@ -27,9 +29,11 @@ export function ProjectDetailPage() {
     const navigate = useNavigate();
     const { project, loading, error, refetch } = useProject(id ?? '');
     const { features, loading: featuresLoading, error: featuresError, refetch: refetchFeatures } = useFeatures(id ?? '');
+    const { deliverables, loading: deliverablesLoading, error: deliverablesError, refetch: refetchDeliverables } = useDeliverables(id ?? '');
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [addModelDialogOpen, setAddModelDialogOpen] = useState(false);
     const [createFeatureDialogOpen, setCreateFeatureDialogOpen] = useState(false);
+    const [createDeliverableDialogOpen, setCreateDeliverableDialogOpen] = useState(false);
 
     if (loading) {
         return (
@@ -107,6 +111,7 @@ export function ProjectDetailPage() {
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="features">Features</TabsTrigger>
                     <TabsTrigger value="defects">Defects</TabsTrigger>
+                    <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
                     <TabsTrigger value="models">Models</TabsTrigger>
                     <TabsTrigger value="settings">Settings</TabsTrigger>
                 </TabsList>
@@ -234,6 +239,78 @@ export function ProjectDetailPage() {
                     </Card>
                 </TabsContent>
 
+               <TabsContent value="deliverables">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Deliverables</CardTitle>
+                                <Button onClick={() => setCreateDeliverableDialogOpen(true)}>
+                                    New Deliverable
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {deliverablesError ? (
+                                <p className="text-sm text-destructive">{deliverablesError.message}</p>
+                            ) : deliverablesLoading ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Updated</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {[1, 2, 3].map((item) => (
+                                            <TableRow key={item}>
+                                                <TableCell><Skeleton className="h-4 w-64" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : deliverables && deliverables.length > 0 ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Updated</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {deliverables.map((deliverable) => (
+                                            <TableRow
+                                                key={deliverable.id ?? ''}
+                                                className="cursor-pointer hover:bg-muted/50"
+                                                onClick={() => deliverable.id && navigate(`/deliverables/${deliverable.id}`)}
+                                            >
+                                                <TableCell className="font-medium">{deliverable.title}</TableCell>
+                                                <TableCell>{deliverable.subtype}</TableCell>
+                                                <TableCell>
+                                                    <Badge className={STATUS_COLORS[deliverable.status ?? ''] || 'bg-gray-500'}>
+                                                        {deliverable.status}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {deliverable.updatedAt ? new Date(deliverable.updatedAt).toLocaleDateString() : '-'}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : (
+                                <p className="text-muted-foreground text-sm">No deliverables yet.</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
                 <TabsContent value="models">
                     <LargeLanguageModelList
                         onAddModel={() => setAddModelDialogOpen(true)}
@@ -275,6 +352,16 @@ export function ProjectDetailPage() {
                     refetchFeatures();
                     if (featureId) {
                         navigate(`/features/${featureId}`);
+                    }
+                }}
+            />
+            <CreateDeliverableDialog
+                open={createDeliverableDialogOpen}
+                onOpenChange={setCreateDeliverableDialogOpen}
+                onSuccess={(deliverableId) => {
+                    refetchDeliverables();
+                    if (deliverableId) {
+                        navigate(`/deliverables/${deliverableId}`);
                     }
                 }}
             />

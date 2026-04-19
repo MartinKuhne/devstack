@@ -5,8 +5,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Plus, AlertTriangle, Clock } from 'lucide-react';
+import { RefreshCw, Plus, Clock, BrainCircuit } from 'lucide-react';
 import { useDashboardSummary } from '@/features/dashboard/hooks/useDashboardSummary';
+import { useDeliverableCounts } from '@/features/dashboard/hooks/useDeliverableCounts';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
 import type { GetDashboardSummaryQuery } from '@/generated/graphql';
 
@@ -37,6 +38,7 @@ export function StatCard({ title, value, variant, description }: StatCardProps) 
 export function DashboardPage() {
     const navigate = useNavigate();
     const { dashboardSummary, loading, error, refetch, isBackgroundRefresh } = useDashboardSummary();
+    const { deliverablesPlanning, deliverablesReady, deliverablesInProgress, deliverablesNeedsReview } = useDeliverableCounts();
     const [showCreateProject, setShowCreateProject] = useState(false);
 
     const handleRefresh = async () => {
@@ -50,8 +52,8 @@ export function DashboardPage() {
                     <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
                     <p className="text-muted-foreground">Welcome to your DevStack dashboard.</p>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                    {[1, 2, 3, 4, 5].map((item) => (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    {[1, 2, 3, 4].map((item) => (
                         <Card key={item}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Metric {item}</CardTitle>
@@ -102,7 +104,7 @@ export function DashboardPage() {
     }
 
     const summary = dashboardSummary as GetDashboardSummaryQuery['dashboardSummary'] | undefined;
-    const hasData = summary && (summary.projectsInFlight > 0 || summary.featuresInReview > 0 || summary.featuresFailed > 0 || summary.tasksInProgress > 0 || summary.tasksFailed > 0);
+    const hasData = summary && (summary.projectsInFlight > 0 || summary.featuresInReview > 0 || summary.featuresFailed > 0 || summary.tasksInProgress > 0 || summary.tasksFailed > 0) || deliverablesPlanning > 0 || deliverablesReady > 0 || deliverablesInProgress > 0 || deliverablesNeedsReview > 0;
 
     return (
         <div className="space-y-6">
@@ -139,51 +141,45 @@ export function DashboardPage() {
 
             {hasData && (
                 <div className="flex gap-2">
-                    {(summary?.featuresFailed ?? 0) > 0 && (
-                        <Button variant="outline" onClick={() => navigate('/features?status=Failed')}>
-                            <AlertTriangle className="h-4 w-4 mr-2" />
-                            View Failed Features ({summary.featuresFailed})
+                    {deliverablesNeedsReview > 0 && (
+                        <Button variant="outline" onClick={() => navigate('/deliverables?status=NEEDS_REVIEW')}>
+                            <BrainCircuit className="h-4 w-4 mr-2" />
+                            Review Deliverables ({deliverablesNeedsReview})
                         </Button>
                     )}
-                    {(summary?.tasksFailed ?? 0) > 0 && (
-                        <Button variant="outline" onClick={() => navigate('/tasks?status=Failed')}>
-                            <AlertTriangle className="h-4 w-4 mr-2" />
-                            View Failed Tasks ({summary.tasksFailed})
+                    {deliverablesInProgress > 0 && (
+                        <Button variant="outline" onClick={() => navigate('/deliverables?status=IN_PROGRESS')}>
+                            <Clock className="h-4 w-4 mr-2" />
+                            View In Progress ({deliverablesInProgress})
                         </Button>
                     )}
                 </div>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
-                    title="Projects In Flight"
-                    value={summary?.projectsInFlight ?? 0}
+                    title="Planning"
+                    value={deliverablesPlanning}
                     variant="default"
-                    description="Active projects"
+                    description="Deliverables in planning"
                 />
                 <StatCard
-                    title="Features In Review"
-                    value={summary?.featuresInReview ?? 0}
+                    title="Ready"
+                    value={deliverablesReady}
+                    variant="default"
+                    description="Deliverables ready for execution"
+                />
+                <StatCard
+                    title="In Progress"
+                    value={deliverablesInProgress}
                     variant="warning"
-                    description="Features awaiting review"
+                    description="Deliverables currently in progress"
                 />
                 <StatCard
-                    title="Features Failed"
-                    value={summary?.featuresFailed ?? 0}
+                    title="Needs Review"
+                    value={deliverablesNeedsReview}
                     variant="danger"
-                    description="Features that failed"
-                />
-                <StatCard
-                    title="Tasks In Progress"
-                    value={summary?.tasksInProgress ?? 0}
-                    variant="default"
-                    description="Tasks in progress"
-                />
-                <StatCard
-                    title="Tasks Failed"
-                    value={summary?.tasksFailed ?? 0}
-                    variant="danger"
-                    description="Tasks that failed"
+                    description="Deliverables awaiting review"
                 />
             </div>
 

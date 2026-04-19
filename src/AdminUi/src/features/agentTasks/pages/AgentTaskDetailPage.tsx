@@ -7,6 +7,15 @@ import { Separator } from '@/components/ui/separator';
 import { useAgentTask } from '../hooks/useAgentTask';
 import { UpdateAgentTaskDialog } from '../components/UpdateAgentTaskDialog';
 import { useState } from 'react';
+import { useTransitionAgentTaskStatusMutation } from '@/generated/graphql';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'react-toastify';
 
 const STATUS_COLORS: Record<string, string> = {
     READY: 'bg-blue-500',
@@ -22,6 +31,50 @@ export function AgentTaskDetailPage() {
     const navigate = useNavigate();
     const { agentTask, loading, error, refetch } = useAgentTask(id ?? '');
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+    const [transitionAgentTaskStatus, { loading: transitionLoading }] = useTransitionAgentTaskStatusMutation();
+    const [selectedStatus, setSelectedStatus] = useState('');
+
+    const handleStatusChange = async () => {
+        if (!selectedStatus || !agentTask?.id) return;
+
+        try {
+            const result = await transitionAgentTaskStatus({
+                variables: {
+                    input: {
+                        id: agentTask.id,
+                        targetStatus: selectedStatus as never,
+                        actor: 'admin-ui',
+                    },
+                },
+            });
+
+            if (result.data?.transitionAgentTaskStatus?.errors?.length) {
+                toast.error(result.data.transitionAgentTaskStatus.errors.join(', '));
+                return;
+            }
+
+            toast.success('Status updated successfully');
+            refetch();
+            setSelectedStatus('');
+        } catch {
+            toast.error('Failed to update status');
+        }
+    };
+
+    const validTransitions: string[] = [];
+    if (agentTask?.status === 'READY') {
+        validTransitions.push('IN_PROGRESS', 'FAILED', 'REJECTED');
+    } else if (agentTask?.status === 'IN_PROGRESS') {
+        validTransitions.push('NEEDS_REVIEW', 'FAILED', 'REJECTED');
+    } else if (agentTask?.status === 'NEEDS_REVIEW') {
+        validTransitions.push('DONE', 'IN_PROGRESS', 'FAILED', 'REJECTED');
+    } else if (agentTask?.status === 'DONE') {
+        validTransitions.push('IN_PROGRESS');
+    } else if (agentTask?.status === 'FAILED') {
+        validTransitions.push('READY');
+    } else if (agentTask?.status === 'REJECTED') {
+        validTransitions.push('READY');
+    }
 
     if (loading) {
         return (
@@ -85,6 +138,36 @@ export function AgentTaskDetailPage() {
                     </Button>
                 </div>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Change Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex gap-2 items-end">
+                        <div className="flex-1">
+                            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select new status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {validTransitions.map((status) => (
+                                        <SelectItem key={status} value={status}>
+                                            {status.replace('_', ' ')}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Button
+                            onClick={handleStatusChange}
+                            disabled={!selectedStatus || transitionLoading}
+                        >
+                            {transitionLoading ? 'Updating...' : 'Update Status'}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
 
             <Tabs defaultValue="overview" className="w-full">
                 <TabsList>
