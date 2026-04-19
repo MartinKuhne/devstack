@@ -1,7 +1,7 @@
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using HotChocolate.Types;
 
 namespace DevStack.Api.GraphQL.Types;
@@ -50,33 +50,7 @@ public class ItemType : ObjectType<Item>
         descriptor.Field("parentFeatureId").Resolve(ctx => ctx.Parent<Item>().ParentFeatureId).Type(typeof(IdType));
         descriptor.Field(i => i.Severity).Type<EnumType<Severity>>();
         descriptor.Field(i => i.RootCause).Type<StringType>();
-        
-        // Task-specific fields
-        descriptor.Field("deliverable").Resolve(ctx => ctx.Parent<Item>().Deliverable).Type<StringType>();
-        descriptor.Field("risks").Resolve(ctx => ctx.Parent<Item>().Risks).Type<StringType>();
-        descriptor.Field("complexityRating").Resolve(ctx => ctx.Parent<Item>().ComplexityRating).Type<IntType>();
-        
         descriptor.Field("dependsOnId").Resolve(ctx => ctx.Parent<Item>().DependsOnId).Type(typeof(IdType));
-    }
-}
-
-[Obsolete("Use ItemType with Subtype=Task filter instead")]
-public class TaskType : ObjectType<DevStack.Domain.Entities.AgentTask>
-{
-    protected override void Configure(IObjectTypeDescriptor<DevStack.Domain.Entities.AgentTask> descriptor)
-    {
-        descriptor.Field(t => t.Id).Type<IdType>().ID();
-        descriptor.Field(t => t.ItemId).Type<IdType>();
-        descriptor.Field(t => t.Title).Type<StringType>();
-        descriptor.Field(t => t.Status).Type<EnumType<DevStack.Domain.Enums.TaskStatus>>();
-        descriptor.Field(t => t.Deliverable).Type<StringType>();
-        descriptor.Field(t => t.AcceptanceCriteria).Type<StringType>();
-        descriptor.Field(t => t.Risks).Type<StringType>();
-        descriptor.Field(t => t.Result).Type<StringType>();
-        descriptor.Field(t => t.RequiredFollowUps).Type<StringType>();
-        descriptor.Field(t => t.ComplexityRating).Type<IntType>();
-        descriptor.Field(t => t.CreatedAt).Type<DateTimeType>();
-        descriptor.Field(t => t.UpdatedAt).Type<DateTimeType>();
     }
 }
 

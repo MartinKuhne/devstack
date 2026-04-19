@@ -11,6 +11,8 @@ public class DevStackDbContext : DbContext
     }
 
     public DbSet<Project> Projects { get; set; } = null!;
+    public DbSet<Deliverable> Deliverables { get; set; } = null!;
+    public DbSet<AgentTask> AgentTasks { get; set; } = null!;
     public DbSet<Item> Items { get; set; } = null!;
     public DbSet<LargeLanguageModel> LargeLanguageModels { get; set; } = null!;
 

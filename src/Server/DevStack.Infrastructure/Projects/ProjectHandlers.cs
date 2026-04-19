@@ -1,5 +1,5 @@
 using DevStack.Domain.Entities;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using Task = System.Threading.Tasks.Task;
 
 namespace DevStack.Infrastructure.Projects;

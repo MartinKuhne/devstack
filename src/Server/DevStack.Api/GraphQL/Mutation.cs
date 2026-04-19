@@ -2,11 +2,8 @@ using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using DevStack.Infrastructure.Projects;
-using DevStack.Infrastructure.Features;
-using DevStack.Infrastructure.Defects;
-using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -33,130 +30,80 @@ public record DeleteProjectInput(Guid Id);
 
 public record ProjectPayload(Project? Project, List<string> Errors);
 
-public record CreateFeatureInput(
+public record CreateDeliverableInput(
     Guid ProjectId,
     string Title,
+    string Type,
     string? Description,
     string? AcceptanceCriteria,
-    string? Plan,
+    string? AgentFeedback,
+    string? ExecutionPlan,
     string? SecurityImpact,
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    string? OpenQuestions,
-    FeatureStatus? InitialStatus,
-    Guid? DependsOnId);
+    string? Blocking,
+    DeliverableStatus? InitialStatus);
 
-public record UpdateFeatureInput(
+public record UpdateDeliverableInput(
     Guid Id,
     string? Title,
     string? Description,
     string? AcceptanceCriteria,
-    string? Plan,
+    string? AgentFeedback,
+    string? ExecutionPlan,
     string? SecurityImpact,
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    string? OpenQuestions,
-    Guid? DependsOnId);
+    string? Blocking,
+    string? Result,
+    string? Errors);
 
-public record TransitionFeatureInput(
+public record TransitionDeliverableInput(
     Guid Id,
-    FeatureStatus TargetStatus,
+    DeliverableStatus TargetStatus,
     string Actor);
 
-public record DeleteFeatureInput(Guid Id);
+public record DeleteDeliverableInput(Guid Id);
 
-public record FeaturePayload(Item? Item, List<string> Errors);
+public record DeliverablePayload(Deliverable? Deliverable, List<string> Errors);
 
-public record CreateDefectInput(
+public record CreateAgentTaskInput(
     Guid ProjectId,
-    Guid? ParentFeatureId,
+    Guid DeliverableId,
     string Title,
-    string? Description,
-    string? AcceptanceCriteria,
-    string? Plan,
-    string? SecurityImpact,
-    string? PerformanceImpact,
-    string? TestPlan,
-    string? DeploymentPlan,
-    string? OpenQuestions,
-    Severity? Severity,
-    FeatureStatus? InitialStatus,
-    Guid? DependsOnId);
-
-public record UpdateDefectInput(
-    Guid Id,
-    string? Title,
-    string? Description,
-    string? AcceptanceCriteria,
-    string? Plan,
-    string? SecurityImpact,
-    string? PerformanceImpact,
-    string? TestPlan,
-    string? DeploymentPlan,
-    string? OpenQuestions,
-    Severity? Severity,
-    string? RootCause,
-    Guid? DependsOnId);
-
-public record TransitionDefectInput(
-    Guid Id,
-    FeatureStatus TargetStatus,
-    string Actor);
-
-public record DeleteDefectInput(Guid Id);
-
-public record DefectPayload(Item? Item, List<string> Errors);
-
-[Obsolete("Use CreateTaskInput with ItemType=Task instead")]
-public record CreateTaskInput_Old(
-    Guid ProjectId,
-    Guid FeatureId,
-    string Title,
-    string? Deliverable,
-    string? AcceptanceCriteria,
-    string? Risks,
-    string? Result,
-    string? RequiredFollowUps,
-    int ComplexityRating);
-
-[Obsolete("Use Item mutations with ItemType=Task filter instead")]
-public record CreateTaskInput(
-    Guid ProjectId,
-    string Title,
-    string? Description,
-    string? Deliverable,
-    string? AcceptanceCriteria,
-    string? Risks,
-    string? Result,
-    string? RequiredFollowUps,
     int ComplexityRating,
-    FeatureStatus? InitialStatus);
+    string? Result,
+    string? Errors,
+    string? CommitHash,
+    string? DependsOnAgentTask,
+    int? PromptTokens,
+    int? CompletionTokens,
+    double? ExecutionDurationInSeconds,
+    string? Model);
 
-[Obsolete("Use Item mutations with ItemType=Task filter instead")]
-public record UpdateTaskInput(
+public record UpdateAgentTaskInput(
     Guid Id,
     string? Title,
-    string? Description,
-    string? Deliverable,
-    string? AcceptanceCriteria,
-    string? Risks,
     string? Result,
-    string? RequiredFollowUps,
-    int? ComplexityRating);
+    string? Errors,
+    string? CommitHash,
+    string? DependsOnAgentTask,
+    int? ComplexityRating,
+    int? PromptTokens,
+    int? CompletionTokens,
+    double? ExecutionDurationInSeconds,
+    string? Model);
 
-[Obsolete("Use Item mutations with ItemType=Task filter instead")]
-public record TransitionTaskInput(
+public record TransitionAgentTaskInput(
     Guid Id,
-    FeatureStatus TargetStatus,
+    AgentTaskStatus TargetStatus,
     string Actor);
 
-[Obsolete("Use Item mutations with ItemType=Task filter instead")]
-public record DeleteTaskInput(Guid Id);
+public record DeleteAgentTaskInput(Guid Id);
 
-[Obsolete("Use FeaturePayload with Item instead")]
-public record TaskPayload(Item? Item, List<string> Errors);
+public record AgentTaskPayload(AgentTask? AgentTask, List<string> Errors);
 
 public record CreateLargeLanguageModelInput(
     string Url,
@@ -179,12 +126,6 @@ public record DeleteLargeLanguageModelInput(Guid Id);
 
 public record LargeLanguageModelPayload(LargeLanguageModel? LargeLanguageModel, List<string> Errors);
 
-public record CreateWorkflowRunInput(
-    Guid ProjectId,
-    Guid? ItemId,
-    Guid? TaskId,
-    string InputPayload);
-
 public record CleanupTestDataPayload(bool Success, string? Message);
 
 public class Mutation
@@ -202,9 +143,6 @@ public class Mutation
         if (!string.IsNullOrEmpty(input.Name) && input.Name.Length > 200)
             errors.Add("Name must be 200 characters or less");
 
-        if (!string.IsNullOrEmpty(input.GithubUrl) && !Uri.TryCreate(input.GithubUrl, UriKind.Absolute, out _))
-            errors.Add("GitHub URL is not a valid URI");
-
         if (errors.Count > 0)
             return new ProjectPayload(null, errors);
 
@@ -216,7 +154,7 @@ public class Mutation
                 input.Architecture,
                 input.Memory,
                 input.GithubUrl), cancellationToken);
-            
+
             var project = new Project { Id = id };
             return new ProjectPayload(project, new List<string>());
         }
@@ -236,9 +174,6 @@ public class Mutation
         if (!string.IsNullOrWhiteSpace(input.Name) && input.Name.Length > 200)
             errors.Add("Name must be 200 characters or less");
 
-        if (!string.IsNullOrEmpty(input.GithubUrl) && !Uri.TryCreate(input.GithubUrl, UriKind.Absolute, out _))
-            errors.Add("GitHub URL is not a valid URI");
-
         if (errors.Count > 0)
             return new ProjectPayload(null, errors);
 
@@ -252,17 +187,13 @@ public class Mutation
                 input.Memory,
                 input.GithubUrl,
                 input.GithubToken_Encrypted), cancellationToken);
-            
+
             var project = new Project { Id = input.Id };
             return new ProjectPayload(project, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
             return new ProjectPayload(null, ["NOT_FOUND: Project not found"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
-        {
-            return new ProjectPayload(null, ["CONCURRENCY_CONFLICT: The project has been modified by another process"]);
         }
         catch (Exception ex)
         {
@@ -275,12 +206,10 @@ public class Mutation
         [Service] IDeleteProjectHandler handler,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
-
         try
         {
             await handler.Handle(new DevStack.Infrastructure.Projects.DeleteProjectCommand(input.Id), cancellationToken);
-            
+
             var project = new Project { Id = input.Id };
             return new ProjectPayload(project, new List<string>());
         }
@@ -294,9 +223,9 @@ public class Mutation
         }
     }
 
-    public async Task<FeaturePayload> CreateFeatureAsync(
-        CreateFeatureInput input,
-        [Service] ICreateFeatureHandler handler,
+    public async Task<DeliverablePayload> CreateDeliverableAsync(
+        CreateDeliverableInput input,
+        [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = new List<string>();
@@ -305,275 +234,123 @@ public class Mutation
             errors.Add("Title is required");
 
         if (errors.Count > 0)
-            return new FeaturePayload(null, errors);
+            return new DeliverablePayload(null, errors);
 
         try
         {
-            var id = await handler.Handle(new CreateFeatureCommand(
-                input.ProjectId,
-                input.Title,
-                input.Description,
-                input.AcceptanceCriteria,
-                input.Plan,
-                input.SecurityImpact,
-                input.PerformanceImpact,
-                input.TestPlan,
-                input.DeploymentPlan,
-                input.OpenQuestions,
-                input.InitialStatus,
-                input.DependsOnId), cancellationToken);
-            
-            var feature = new Item { Id = id, ItemType = Domain.Enums.ItemSubtype.Feature };
-            return new FeaturePayload(feature, new List<string>());
+            var deliverable = new Deliverable
+            {
+                ProjectId = input.ProjectId,
+                Title = input.Title,
+                Type = Enum.Parse<DeliverableType>(input.Type, ignoreCase: true),
+                Description = input.Description,
+                AcceptanceCriteria = input.AcceptanceCriteria,
+                Plan = input.ExecutionPlan,
+                SecurityImpact = input.SecurityImpact,
+                PerformanceImpact = input.PerformanceImpact,
+                TestPlan = input.TestPlan,
+                DeploymentPlan = input.DeploymentPlan,
+                Status = input.InitialStatus ?? DeliverableStatus.Planning,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            dbContext.Deliverables.Add(deliverable);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return new DeliverablePayload(deliverable, new List<string>());
         }
         catch (Exception ex)
         {
-            return new FeaturePayload(null, [ex.Message]);
+            return new DeliverablePayload(null, [ex.Message]);
         }
     }
 
-    public async Task<FeaturePayload> UpdateFeatureAsync(
-        UpdateFeatureInput input,
-        [Service] IUpdateFeatureHandler handler,
+    public async Task<DeliverablePayload> UpdateDeliverableAsync(
+        UpdateDeliverableInput input,
+        [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
-
         try
         {
-            await handler.Handle(new UpdateFeatureCommand(
-                input.Id,
-                input.Title,
-                input.Description,
-                input.AcceptanceCriteria,
-                input.Plan,
-                input.SecurityImpact,
-                input.PerformanceImpact,
-                input.TestPlan,
-                input.DeploymentPlan,
-                input.OpenQuestions,
-                input.DependsOnId), cancellationToken);
+            var deliverable = await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
+            if (deliverable == null)
+                return new DeliverablePayload(null, ["NOT_FOUND: Deliverable not found"]);
 
-            var feature = new Item{ Id = input.Id };
-            return new FeaturePayload(feature, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new FeaturePayload(null, ["NOT_FOUND: Item not found"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
-        {
-            return new FeaturePayload(null, ["CONCURRENCY_CONFLICT: The feature has been modified by another process"]);
+            if (input.Title is not null) deliverable.Title = input.Title;
+            if (input.Description is not null) deliverable.Description = input.Description;
+            if (input.AcceptanceCriteria is not null) deliverable.AcceptanceCriteria = input.AcceptanceCriteria;
+            if (input.ExecutionPlan is not null) deliverable.Plan = input.ExecutionPlan;
+            if (input.SecurityImpact is not null) deliverable.SecurityImpact = input.SecurityImpact;
+            if (input.PerformanceImpact is not null) deliverable.PerformanceImpact = input.PerformanceImpact;
+            if (input.TestPlan is not null) deliverable.TestPlan = input.TestPlan;
+            if (input.DeploymentPlan is not null) deliverable.DeploymentPlan = input.DeploymentPlan;
+            if (input.Result is not null) deliverable.Result = input.Result;
+            if (input.Errors is not null) deliverable.Errors = input.Errors;
+            deliverable.UpdatedAt = DateTime.UtcNow;
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return new DeliverablePayload(deliverable, new List<string>());
         }
         catch (Exception ex)
         {
-            return new FeaturePayload(null, [ex.Message]);
+            return new DeliverablePayload(null, [ex.Message]);
         }
     }
 
-    public async Task<FeaturePayload> TransitionFeatureStatusAsync(
-        TransitionFeatureInput input,
-        [Service] ITransitionFeatureStatusHandler handler,
+    public async Task<DeliverablePayload> TransitionDeliverableStatusAsync(
+        TransitionDeliverableInput input,
+        [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
-
         try
         {
-            await handler.Handle(new TransitionFeatureStatusCommand(
-                input.Id,
-                input.TargetStatus,
-                input.Actor), cancellationToken);
+            var deliverable = await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
+            if (deliverable == null)
+                return new DeliverablePayload(null, ["NOT_FOUND: Deliverable not found"]);
 
-            var feature = new Item{ Id = input.Id };
-            return new FeaturePayload(feature, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new FeaturePayload(null, ["NOT_FOUND: Item not found"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
-        {
-            return new FeaturePayload(null, ["CONCURRENCY_CONFLICT: The feature has been modified by another process"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Transition failed"))
-        {
-            return new FeaturePayload(null, ["FEATURE_VALIDATION_ERROR: " + ex.Message.Replace("Transition failed: ", "")]);
+            var service = new DeliverableStatusTransitionService();
+            var result = service.Transition(deliverable, input.TargetStatus, input.Actor);
+
+            if (!result.IsSuccess)
+                return new DeliverablePayload(null, [result.Errors[0]]);
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return new DeliverablePayload(deliverable, new List<string>());
         }
         catch (Exception ex)
         {
-            return new FeaturePayload(null, [ex.Message]);
+            return new DeliverablePayload(null, [ex.Message]);
         }
     }
 
-    public async Task<FeaturePayload> DeleteFeatureAsync(
-        DeleteFeatureInput input,
-        [Service] IDeleteFeatureHandler handler,
+    public async Task<DeliverablePayload> DeleteDeliverableAsync(
+        DeleteDeliverableInput input,
+        [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
-
         try
         {
-            await handler.Handle(new DeleteFeatureCommand(input.Id), cancellationToken);
-            
-            var feature = new Item{ Id = input.Id };
-            return new FeaturePayload(feature, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new FeaturePayload(null, ["NOT_FOUND: Item not found"]);
+            var deliverable = await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
+            if (deliverable == null)
+                return new DeliverablePayload(null, ["NOT_FOUND: Deliverable not found"]);
+
+            dbContext.Deliverables.Remove(deliverable);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return new DeliverablePayload(deliverable, new List<string>());
         }
         catch (Exception ex)
         {
-            return new FeaturePayload(null, [ex.Message]);
+            return new DeliverablePayload(null, [ex.Message]);
         }
     }
 
-    public async Task<DefectPayload> CreateDefectAsync(
-        CreateDefectInput input,
-        [Service] ICreateDefectHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(input.Title))
-            errors.Add("Title is required");
-
-        if (errors.Count > 0)
-            return new DefectPayload(null, errors);
-
-        try
-        {
-           var id = await handler.Handle(new CreateDefectCommand(
-                input.ProjectId,
-                input.ParentFeatureId,
-                input.Title,
-                input.Description,
-                input.AcceptanceCriteria,
-                input.Plan,
-                input.SecurityImpact,
-                input.PerformanceImpact,
-                input.TestPlan,
-                input.DeploymentPlan,
-                input.OpenQuestions,
-                input.Severity,
-                input.InitialStatus,
-                input.DependsOnId), cancellationToken);
-            
-            var defect = new Item { Id = id, ItemType = Domain.Enums.ItemSubtype.Defect };
-            return new DefectPayload(defect, new List<string>());
-        }
-        catch (Exception ex)
-        {
-            return new DefectPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<DefectPayload> UpdateDefectAsync(
-        UpdateDefectInput input,
-        [Service] IUpdateDefectHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new UpdateDefectCommand(
-                input.Id,
-                input.Title,
-                input.Description,
-                input.AcceptanceCriteria,
-                input.Plan,
-                input.SecurityImpact,
-                input.PerformanceImpact,
-                input.TestPlan,
-                input.DeploymentPlan,
-                input.OpenQuestions,
-                input.Severity,
-                input.RootCause,
-                input.DependsOnId), cancellationToken);
-
-            var defect = new Item { Id = input.Id };
-            return new DefectPayload(defect, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new DefectPayload(null, ["NOT_FOUND: Item not found"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
-        {
-            return new DefectPayload(null, ["CONCURRENCY_CONFLICT: The defect has been modified by another process"]);
-        }
-        catch (Exception ex)
-        {
-            return new DefectPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<DefectPayload> TransitionDefectStatusAsync(
-        TransitionDefectInput input,
-        [Service] ITransitionDefectStatusHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new TransitionDefectStatusCommand(
-                input.Id,
-                input.TargetStatus,
-                input.Actor), cancellationToken);
-
-            var defect = new Item { Id = input.Id };
-            return new DefectPayload(defect, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new DefectPayload(null, ["NOT_FOUND: Item not found"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
-        {
-            return new DefectPayload(null, ["CONCURRENCY_CONFLICT: The defect has been modified by another process"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Transition failed"))
-        {
-            return new DefectPayload(null, ["DEFECT_VALIDATION_ERROR: " + ex.Message.Replace("Transition failed: ", "")]);
-        }
-        catch (Exception ex)
-        {
-            return new DefectPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<DefectPayload> DeleteDefectAsync(
-        DeleteDefectInput input,
-        [Service] IDeleteDefectHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new DeleteDefectCommand(input.Id), cancellationToken);
-            
-            var defect = new Item { Id = input.Id };
-            return new DefectPayload(defect, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new DefectPayload(null, ["NOT_FOUND: Item not found"]);
-        }
-        catch (Exception ex)
-        {
-            return new DefectPayload(null, [ex.Message]);
-        }
-    }
-
-    [Obsolete("Use Item mutations with ItemType=Task filter instead")]
-    public async Task<TaskPayload> CreateTaskAsync(
-        CreateTaskInput input,
-        [Service] ICreateTaskHandler handler,
+    public async Task<AgentTaskPayload> CreateAgentTaskAsync(
+        CreateAgentTaskInput input,
+        [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var errors = new List<string>();
@@ -585,128 +362,123 @@ public class Mutation
             errors.Add("ComplexityRating must be between 1 and 10");
 
         if (errors.Count > 0)
-            return new TaskPayload(null, errors);
+            return new AgentTaskPayload(null, errors);
 
         try
         {
-            var id = await handler.Handle(new CreateTaskCommand(
-                input.ProjectId,
-                input.Title,
-                input.Description,
-                input.Deliverable,
-                input.AcceptanceCriteria,
-                input.Risks,
-                input.Result,
-                input.RequiredFollowUps,
-                input.ComplexityRating,
-                input.InitialStatus ?? FeatureStatus.Planning,
-                null), cancellationToken);
-            
-            var task = new Item { Id = id, ItemType = Domain.Enums.ItemSubtype.Task };
-            return new TaskPayload(task, new List<string>());
+            var deliverable = await dbContext.Deliverables.FindAsync([input.DeliverableId], cancellationToken);
+            if (deliverable == null)
+                return new AgentTaskPayload(null, ["NOT_FOUND: Deliverable not found"]);
+
+            var agentTask = new AgentTask
+            {
+                ProjectId = input.ProjectId,
+                DeliverableId = input.DeliverableId,
+                Title = input.Title,
+                ComplexityRating = input.ComplexityRating,
+                Result = input.Result,
+                Errors = input.Errors,
+                CommitHash = input.CommitHash,
+                DependsOnDevTask = input.DependsOnAgentTask,
+                PromptTokens = input.PromptTokens,
+                CompletionTokens = input.CompletionTokens,
+                ExecutionDurationInSeconds = input.ExecutionDurationInSeconds,
+                Model = input.Model,
+                Status = AgentTaskStatus.Ready,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            dbContext.AgentTasks.Add(agentTask);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return new AgentTaskPayload(agentTask, new List<string>());
         }
         catch (Exception ex)
         {
-            return new TaskPayload(null, [ex.Message]);
+            return new AgentTaskPayload(null, [ex.Message]);
         }
     }
 
-    [Obsolete("Use Item mutations with ItemType=Task filter instead")]
-    public async Task<TaskPayload> UpdateTaskAsync(
-        UpdateTaskInput input,
-        [Service] IUpdateTaskHandler handler,
+    public async Task<AgentTaskPayload> UpdateAgentTaskAsync(
+        UpdateAgentTaskInput input,
+        [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
-
         try
         {
-            await handler.Handle(new UpdateTaskCommand(
-                input.Id,
-                input.Title,
-                input.Description,
-                input.Deliverable,
-                input.AcceptanceCriteria,
-                input.Risks,
-                input.Result,
-                input.RequiredFollowUps,
-                input.ComplexityRating), cancellationToken);
-            
-            var task = new Item { Id = input.Id, ItemType = Domain.Enums.ItemSubtype.Task };
-            return new TaskPayload(task, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new TaskPayload(null, ["NOT_FOUND: Task not found"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
-        {
-            return new TaskPayload(null, ["CONCURRENCY_CONFLICT: The task has been modified by another process"]);
+            var agentTask = await dbContext.AgentTasks.FindAsync([input.Id], cancellationToken);
+            if (agentTask == null)
+                return new AgentTaskPayload(null, ["NOT_FOUND: AgentTask not found"]);
+
+            if (input.Title is not null) agentTask.Title = input.Title;
+            if (input.Result is not null) agentTask.Result = input.Result;
+            if (input.Errors is not null) agentTask.Errors = input.Errors;
+            if (input.CommitHash is not null) agentTask.CommitHash = input.CommitHash;
+            if (input.DependsOnAgentTask is not null) agentTask.DependsOnDevTask = input.DependsOnAgentTask;
+            if (input.ComplexityRating.HasValue) agentTask.ComplexityRating = input.ComplexityRating.Value;
+            if (input.PromptTokens.HasValue) agentTask.PromptTokens = input.PromptTokens;
+            if (input.CompletionTokens.HasValue) agentTask.CompletionTokens = input.CompletionTokens;
+            if (input.ExecutionDurationInSeconds.HasValue) agentTask.ExecutionDurationInSeconds = input.ExecutionDurationInSeconds;
+            if (input.Model is not null) agentTask.Model = input.Model;
+            agentTask.UpdatedAt = DateTime.UtcNow;
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return new AgentTaskPayload(agentTask, new List<string>());
         }
         catch (Exception ex)
         {
-            return new TaskPayload(null, [ex.Message]);
+            return new AgentTaskPayload(null, [ex.Message]);
         }
     }
 
-    [Obsolete("Use Item mutations with ItemType=Task filter instead")]
-    public async Task<TaskPayload> TransitionTaskStatusAsync(
-        TransitionTaskInput input,
-        [Service] ITransitionTaskStatusHandler handler,
+    public async Task<AgentTaskPayload> TransitionAgentTaskStatusAsync(
+        TransitionAgentTaskInput input,
+        [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
-
         try
         {
-            await handler.Handle(new TransitionTaskStatusCommand(
-                input.Id,
-                input.TargetStatus,
-                input.Actor), cancellationToken);
+            var agentTask = await dbContext.AgentTasks.FindAsync([input.Id], cancellationToken);
+            if (agentTask == null)
+                return new AgentTaskPayload(null, ["NOT_FOUND: AgentTask not found"]);
 
-            var task = new Item { Id = input.Id, ItemType = Domain.Enums.ItemSubtype.Task };
-            return new TaskPayload(task, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new TaskPayload(null, ["NOT_FOUND: Task not found"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
-        {
-            return new TaskPayload(null, ["CONCURRENCY_CONFLICT: The task has been modified by another process"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Transition failed"))
-        {
-            return new TaskPayload(null, ["TASK_VALIDATION_ERROR: " + ex.Message.Replace("Transition failed: ", "")]);
+            var service = new AgentTaskStatusTransitionService();
+            var result = service.Transition(agentTask, input.TargetStatus, input.Actor);
+
+            if (!result.IsSuccess)
+                return new AgentTaskPayload(null, [result.Errors[0]]);
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return new AgentTaskPayload(agentTask, new List<string>());
         }
         catch (Exception ex)
         {
-            return new TaskPayload(null, [ex.Message]);
+            return new AgentTaskPayload(null, [ex.Message]);
         }
     }
 
-    [Obsolete("Use Item mutations with ItemType=Task filter instead")]
-    public async Task<TaskPayload> DeleteTaskAsync(
-        DeleteTaskInput input,
-        [Service] IDeleteTaskHandler handler,
+    public async Task<AgentTaskPayload> DeleteAgentTaskAsync(
+        DeleteAgentTaskInput input,
+        [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
-
         try
         {
-            await handler.Handle(new DeleteTaskCommand(input.Id), cancellationToken);
-            
-            var task = new Item { Id = input.Id, ItemType = Domain.Enums.ItemSubtype.Task };
-            return new TaskPayload(task, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new TaskPayload(null, ["NOT_FOUND: Task not found"]);
+            var agentTask = await dbContext.AgentTasks.FindAsync([input.Id], cancellationToken);
+            if (agentTask == null)
+                return new AgentTaskPayload(null, ["NOT_FOUND: AgentTask not found"]);
+
+            dbContext.AgentTasks.Remove(agentTask);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return new AgentTaskPayload(agentTask, new List<string>());
         }
         catch (Exception ex)
         {
-            return new TaskPayload(null, [ex.Message]);
+            return new AgentTaskPayload(null, [ex.Message]);
         }
     }
 
@@ -761,7 +533,6 @@ public class Mutation
 
         try
         {
-            // If ApiKey is provided, encrypt it
             string? encryptedApiKey = null;
             if (input.ApiKey is not null)
             {
@@ -784,10 +555,6 @@ public class Mutation
         {
             return new LargeLanguageModelPayload(null, ["NOT_FOUND: LargeLanguageModel not found"]);
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
-        {
-            return new LargeLanguageModelPayload(null, ["CONCURRENCY_CONFLICT: The LargeLanguageModel has been modified by another process"]);
-        }
         catch (Exception ex)
         {
             return new LargeLanguageModelPayload(null, [ex.Message]);
@@ -799,8 +566,6 @@ public class Mutation
         [Service] IDeleteLargeLanguageModelHandler handler,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
-
         try
         {
             await handler.Handle(new DeleteLargeLanguageModelCommand(input.Id), cancellationToken);
@@ -826,7 +591,7 @@ public class Mutation
         {
             await context.CleanupTestDataAsync(cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
-            
+
             return new CleanupTestDataPayload(true, "Test data cleaned up successfully");
         }
         catch (Exception ex)

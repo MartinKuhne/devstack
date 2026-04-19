@@ -1,0 +1,61 @@
+using DevStack.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace DevStack.Persistence.Configurations;
+
+public class DeliverableConfiguration : IEntityTypeConfiguration<Deliverable>
+{
+    public void Configure(EntityTypeBuilder<Deliverable> builder)
+    {
+        builder.HasKey(d => d.Id);
+
+        builder.Property(d => d.Title)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(d => d.Status)
+            .IsRequired();
+
+        builder.Property(d => d.Type)
+            .IsRequired();
+
+        builder.Property(d => d.Description)
+            .IsRequired(false);
+
+        builder.Property(d => d.AcceptanceCriteria)
+            .IsRequired(false);
+
+        builder.Property(d => d.Plan)
+            .IsRequired(false);
+
+        builder.Property(d => d.SecurityImpact)
+            .IsRequired(false);
+
+        builder.Property(d => d.PerformanceImpact)
+            .IsRequired(false);
+
+        builder.Property(d => d.TestPlan)
+            .IsRequired(false);
+
+        builder.Property(d => d.DeploymentPlan)
+            .IsRequired(false);
+
+        builder.Property(d => d.Result)
+            .IsRequired(false);
+
+        builder.Property(d => d.Errors)
+            .IsRequired(false);
+
+        builder.Property(d => d.Severity)
+            .IsRequired(false);
+
+        builder.Property(d => d.RootCause)
+            .IsRequired(false);
+
+        builder.HasOne(d => d.Project)
+            .WithMany()
+            .HasForeignKey(d => d.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

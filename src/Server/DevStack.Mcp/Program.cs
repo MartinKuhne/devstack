@@ -1,4 +1,4 @@
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using Microsoft.EntityFrameworkCore;
 using ModelContextProtocol.Server;
 using Serilog;

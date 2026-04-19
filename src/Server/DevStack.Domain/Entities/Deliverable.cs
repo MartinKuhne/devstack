@@ -48,7 +48,7 @@ public class Deliverable : Entity
     [Required]
     public DateTime UpdatedAt { get; set; }
 
-    public Severity Severity { get; set; }
+    public Severity? Severity { get; set; }
 
     public string? RootCause { get; set; }
 

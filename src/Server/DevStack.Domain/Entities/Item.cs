@@ -25,10 +25,7 @@ public class Item : WorkItem
         set { }
     }
 
-    [NotMapped]
-#pragma warning disable CS0618
-    public virtual ICollection<AgentTask> Tasks { get; set; } = new List<AgentTask>();
-#pragma warning restore CS0618
+ 
 
     public Guid? ParentFeatureId { get; set; }
 

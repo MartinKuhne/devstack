@@ -1,6 +1,6 @@
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;

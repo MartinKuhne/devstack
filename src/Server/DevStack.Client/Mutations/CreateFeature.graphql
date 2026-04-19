@@ -1,9 +1,0 @@
-mutation CreateFeature($input: CreateFeatureInput!) {
-  createFeature(input: $input) {
-    item {
-      id
-      title
-    }
-    errors
-  }
-}

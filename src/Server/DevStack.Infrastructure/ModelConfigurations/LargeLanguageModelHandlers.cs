@@ -1,5 +1,5 @@
 using DevStack.Domain.Entities;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using System.Threading.Tasks;
 
 namespace DevStack.Infrastructure.ModelConfigurations;

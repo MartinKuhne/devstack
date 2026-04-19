@@ -1,4 +1,4 @@
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using FluentAssertions;
 using Xunit;
 

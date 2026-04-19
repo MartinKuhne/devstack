@@ -1,7 +1,7 @@
 using DevStack.Api.GraphQL;
 using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Entities;
-using DevStack.Infrastructure.Persistence;
+using DevStack.Persistence;
 using DevStack.Infrastructure.Projects;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
