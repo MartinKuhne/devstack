@@ -7,7 +7,7 @@ Enable an AI coding agent and coding tool to access the devstack data
 # Components
 
 - Model Context Protocol Server, Containerized, .net with Postgress access though shared DbContext with GraphQL
-- Integration tests, using JSON RPC wire protocol with no knowledge of the MCP server process
+- Integration tests, using JSON RPC wire protocol with no knowledge of the MCP server process, and using Testcontainers for .NET
 
 # Capabilities
 
@@ -21,3 +21,8 @@ Enable an AI coding agent and coding tool to access the devstack data
 - Change AgentTask state
 
 Newly created Deliverables and Agent Tasks are created in the READY state
+
+# Technical specification
+
+Log operations and errors to the console
+
