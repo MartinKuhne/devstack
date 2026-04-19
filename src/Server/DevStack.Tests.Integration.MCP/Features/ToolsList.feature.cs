@@ -100,8 +100,6 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.Then("the response should contain a list of tools", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the tools should include \"devstack_getProjects\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"devstack_getProjectById\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the tools should include \"devstack_createProject\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the tools should include \"devstack_updateProject\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"devstack_createDeliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"devstack_updateDeliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"devstack_transitionDeliverableStatus\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");

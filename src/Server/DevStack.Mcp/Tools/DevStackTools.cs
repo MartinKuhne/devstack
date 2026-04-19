@@ -27,11 +27,11 @@ public class DevStackTools
     [McpServerTool, Description("Read all projects from DevStack. Returns project name, id, and repository.")]
     public async Task<string> GetProjects()
     {
-        var projects = await _dbContext.Projects.ToListAsync();
+        var projects = await _dbContext.Projects.Select(p => new { p.Name, p.Id, p.Repository }).ToListAsync();
         return JsonSerializer.Serialize(projects);
     }
 
-    [McpServerTool, Description("Read a project by its ID.")]
+    [McpServerTool, Description("Read a project by its ID. Returns project name and repository.")]
     public async Task<string> GetProjectById([Description("The project ID")][DefaultValue(null)] Guid? id)
     {
         if (id == null)
@@ -39,73 +39,13 @@ public class DevStackTools
             return JsonSerializer.Serialize(new { error = "Project ID is required" });
         }
 
-        var project = await _dbContext.Projects.FindAsync([id.Value]);
+        var project = await _dbContext.Projects.Where(p => p.Id == id.Value).Select(p => new { p.Name, p.Repository }).FirstOrDefaultAsync();
         if (project == null)
         {
             return JsonSerializer.Serialize(new { error = "Project not found" });
         }
 
         return JsonSerializer.Serialize(project);
-    }
-
-    [McpServerTool, Description("Create a new project in DevStack.")]
-    public async Task<string> CreateProject(
-        [Description("The project name")] string name,
-        [Description("The project description")][DefaultValue(null)] string? description,
-        [Description("The repository URL")][DefaultValue(null)] string? repository)
-    {
-        try
-        {
-            var project = new Project
-            {
-                Name = name,
-                Description = description,
-                Repository = repository ?? string.Empty
-            };
-
-            _dbContext.Projects.Add(project);
-            await _dbContext.SaveChangesAsync();
-
-            _logger.LogInformation("Created project with ID: {Id}", project.Id);
-            return JsonSerializer.Serialize(new { id = project.Id.ToString(), name = project.Name });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating project");
-            throw;
-        }
-    }
-
-    [McpServerTool, Description("Update an existing project in DevStack.")]
-    public async Task<string> UpdateProject(
-        [Description("The project ID")] Guid id,
-        [Description("The updated project name")][DefaultValue(null)] string? name,
-        [Description("The updated project description")][DefaultValue(null)] string? description,
-        [Description("The updated repository URL")][DefaultValue(null)] string? repository)
-    {
-        try
-        {
-            var project = await _dbContext.Projects.FindAsync([id]);
-            if (project == null)
-            {
-                _logger.LogWarning("Project not found for update: {Id}", id);
-                return JsonSerializer.Serialize(new { error = "Project not found" });
-            }
-
-            if (name is not null) project.Name = name;
-            if (description is not null) project.Description = description;
-            if (repository is not null) project.Repository = repository;
-
-            await _dbContext.SaveChangesAsync();
-
-            _logger.LogInformation("Updated project with ID: {Id}", id);
-            return JsonSerializer.Serialize(new { id = id.ToString(), name = project.Name, description = project.Description, repository = project.Repository });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating project: {Id}", id);
-            throw;
-        }
     }
 
     #endregion
