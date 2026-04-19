@@ -1,5 +1,6 @@
 using TechTalk.SpecFlow;
 using DevStack.Tests.Integration.MCP.Client;
+using DevStack.Tests.Integration.MCP.Hooks;
 using FluentAssertions;
 using System.Text.Json;
 
@@ -9,14 +10,14 @@ namespace DevStack.Tests.Integration.MCP.Steps;
 public sealed class InitializeSteps
 {
     private readonly ScenarioContext _scenarioContext;
-    private readonly IMcpJsonRpcClient _client;
     private JsonRpcResponse? _response;
 
-    public InitializeSteps(ScenarioContext scenarioContext, IMcpJsonRpcClient client)
+    public InitializeSteps(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
-        _client = client;
     }
+
+    private IMcpJsonRpcClient Client => SpecFlowHooks.GetMcpClient(_scenarioContext);
 
     [Given(@"a valid initialize request with protocol version ""(.*)""")]
     public void GivenAValidInitializeRequest(string protocolVersion)
@@ -33,7 +34,7 @@ public sealed class InitializeSteps
             capabilities = new { }
         };
 
-        _response = await _client.SendRequestAsync("initialize", request);
+        _response = await Client.SendRequestAsync("initialize", request);
         _scenarioContext["Response"] = _response;
     }
 

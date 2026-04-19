@@ -76,6 +76,38 @@ public class DevStackTools
         }
     }
 
+    [McpServerTool, Description("Update an existing project in DevStack.")]
+    public async Task<string> UpdateProject(
+        [Description("The project ID")] Guid id,
+        [Description("The updated project name")][DefaultValue(null)] string? name,
+        [Description("The updated project description")][DefaultValue(null)] string? description,
+        [Description("The updated repository URL")][DefaultValue(null)] string? repository)
+    {
+        try
+        {
+            var project = await _dbContext.Projects.FindAsync([id]);
+            if (project == null)
+            {
+                _logger.LogWarning("Project not found for update: {Id}", id);
+                return JsonSerializer.Serialize(new { error = "Project not found" });
+            }
+
+            if (name is not null) project.Name = name;
+            if (description is not null) project.Description = description;
+            if (repository is not null) project.Repository = repository;
+
+            await _dbContext.SaveChangesAsync();
+
+            _logger.LogInformation("Updated project with ID: {Id}", id);
+            return JsonSerializer.Serialize(new { id = id.ToString(), name = project.Name, description = project.Description, repository = project.Repository });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating project: {Id}", id);
+            throw;
+        }
+    }
+
     #endregion
 
     #region Deliverable Tools

@@ -1,5 +1,6 @@
 using TechTalk.SpecFlow;
 using DevStack.Tests.Integration.MCP.Client;
+using DevStack.Tests.Integration.MCP.Hooks;
 using FluentAssertions;
 using System.Text.Json;
 using System.Threading;
@@ -10,17 +11,17 @@ namespace DevStack.Tests.Integration.MCP.Steps;
 public sealed class DevStackToolsSteps
 {
     private readonly ScenarioContext _scenarioContext;
-    private readonly IMcpJsonRpcClient _client;
     private JsonRpcResponse? _response;
     private string? _createdProjectId;
     private string? _createdDeliverableId;
     private string? _createdTaskId;
 
-    public DevStackToolsSteps(ScenarioContext scenarioContext, IMcpJsonRpcClient client)
+    public DevStackToolsSteps(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
-        _client = client;
     }
+
+    private IMcpJsonRpcClient Client => SpecFlowHooks.GetMcpClient(_scenarioContext);
 
     #region Project Steps
 
@@ -54,7 +55,7 @@ public sealed class DevStackToolsSteps
     {
         var projectName = _scenarioContext.GetString("ProjectName") ?? "Test Project";
         var request = new { name = projectName, description = "Test project description" };
-        _response = await _client.SendRequestAsync("devstack_createProject", request);
+        _response = await Client.SendRequestAsync("devstack_createProject", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -63,14 +64,14 @@ public sealed class DevStackToolsSteps
     {
         var projectId = _scenarioContext.GetString("ProjectId") ?? "";
         var request = new { id = projectId };
-        _response = await _client.SendRequestAsync("devstack_getProjectById", request);
+        _response = await Client.SendRequestAsync("devstack_getProjectById", request);
         _scenarioContext["Response"] = _response;
     }
 
     [When(@"I call devstack_getProjects")]
     public async Task WhenICallDevstackGetProjects()
     {
-        _response = await _client.SendRequestAsync("devstack_getProjects", default);
+        _response = await Client.SendRequestAsync("devstack_getProjects", default);
         _scenarioContext["Response"] = _response;
     }
 
@@ -79,7 +80,7 @@ public sealed class DevStackToolsSteps
     {
         var projectId = _scenarioContext.GetString("ProjectId") ?? "";
         var request = new { id = projectId, name = updatedName };
-        _response = await _client.SendRequestAsync("devstack_updateProject", request);
+        _response = await Client.SendRequestAsync("devstack_updateProject", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -180,7 +181,7 @@ public sealed class DevStackToolsSteps
         var projectId = await GetOrCreateTestProjectIdAsync();
         var title = _scenarioContext.GetString("DeliverableTitle") ?? "Test Deliverable";
         var request = new { projectId, title, description = "Test deliverable description" };
-        _response = await _client.SendRequestAsync("devstack_createDeliverable", request);
+        _response = await Client.SendRequestAsync("devstack_createDeliverable", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -189,7 +190,7 @@ public sealed class DevStackToolsSteps
     {
         var deliverableId = _scenarioContext.GetString("DeliverableId") ?? "";
         var request = new { id = Guid.Parse(deliverableId), title = updatedTitle };
-        _response = await _client.SendRequestAsync("devstack_updateDeliverable", request);
+        _response = await Client.SendRequestAsync("devstack_updateDeliverable", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -198,7 +199,7 @@ public sealed class DevStackToolsSteps
     {
         var deliverableId = _scenarioContext.GetString("DeliverableId") ?? "";
         var request = new { id = Guid.Parse(deliverableId), targetStatus, actor = "test" };
-        _response = await _client.SendRequestAsync("devstack_transitionDeliverableStatus", request);
+        _response = await Client.SendRequestAsync("devstack_transitionDeliverableStatus", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -284,7 +285,7 @@ public sealed class DevStackToolsSteps
         var deliverableId = await GetOrCreateTestDeliverableIdAsync();
         var title = _scenarioContext.GetString("TaskTitle") ?? "Test Task";
         var request = new { projectId, itemId = deliverableId, title, deliverableDescription = "Test deliverable" };
-        _response = await _client.SendRequestAsync("devstack_createAgentTask", request);
+        _response = await Client.SendRequestAsync("devstack_createAgentTask", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -293,7 +294,7 @@ public sealed class DevStackToolsSteps
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
         var request = new { id = Guid.Parse(taskId), title = updatedTitle };
-        _response = await _client.SendRequestAsync("devstack_updateAgentTask", request);
+        _response = await Client.SendRequestAsync("devstack_updateAgentTask", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -302,7 +303,7 @@ public sealed class DevStackToolsSteps
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
         var request = new { id = Guid.Parse(taskId), targetStatus, actor = "test" };
-        _response = await _client.SendRequestAsync("devstack_transitionAgentTaskStatus", request);
+        _response = await Client.SendRequestAsync("devstack_transitionAgentTaskStatus", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -369,7 +370,7 @@ public sealed class DevStackToolsSteps
     private async Task<string> CreateTestProjectAsync()
     {
         var request = new { name = $"Test Project {Guid.NewGuid()}", description = "Auto-generated test project" };
-        var response = await _client.SendRequestAsync("devstack_createProject", request);
+        var response = await Client.SendRequestAsync("devstack_createProject", request);
         var result = response.Result!.ToString()!;
         var jsonDoc = JsonDocument.Parse(result);
         return jsonDoc.RootElement.GetProperty("id").GetString() ?? "";
@@ -392,7 +393,7 @@ public sealed class DevStackToolsSteps
     {
         var projectId = await GetOrCreateTestProjectIdAsync();
         var request = new { projectId, title = $"Test Deliverable {Guid.NewGuid()}", description = "Auto-generated test deliverable" };
-        var response = await _client.SendRequestAsync("devstack_createDeliverable", request);
+        var response = await Client.SendRequestAsync("devstack_createDeliverable", request);
         var result = response.Result!.ToString()!;
         var jsonDoc = JsonDocument.Parse(result);
         return jsonDoc.RootElement.GetProperty("id").GetString() ?? "";
@@ -416,7 +417,7 @@ public sealed class DevStackToolsSteps
         var projectId = await GetOrCreateTestProjectIdAsync();
         var deliverableId = await GetOrCreateTestDeliverableIdAsync();
         var request = new { projectId, itemId = deliverableId, title = $"Test Task {Guid.NewGuid()}", deliverableDescription = "Auto-generated test task" };
-        var response = await _client.SendRequestAsync("devstack_createAgentTask", request);
+        var response = await Client.SendRequestAsync("devstack_createAgentTask", request);
         var result = response.Result!.ToString()!;
         var jsonDoc = JsonDocument.Parse(result);
         return jsonDoc.RootElement.GetProperty("id").GetString() ?? "";

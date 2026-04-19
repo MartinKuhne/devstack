@@ -1,5 +1,6 @@
 using TechTalk.SpecFlow;
 using DevStack.Tests.Integration.MCP.Client;
+using DevStack.Tests.Integration.MCP.Hooks;
 using FluentAssertions;
 using System.Net.Http;
 using System.Text;
@@ -10,17 +11,16 @@ namespace DevStack.Tests.Integration.MCP.Steps;
 public sealed class ErrorHandlingSteps
 {
     private readonly ScenarioContext _scenarioContext;
-    private readonly IMcpJsonRpcClient _client;
-    private readonly HttpClient _httpClient;
     private JsonRpcResponse? _response;
     private HttpResponseMessage? _httpResponse;
 
-    public ErrorHandlingSteps(ScenarioContext scenarioContext, IMcpJsonRpcClient client, HttpClient httpClient)
+    public ErrorHandlingSteps(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
-        _client = client;
-        _httpClient = httpClient;
     }
+
+    private IMcpJsonRpcClient Client => SpecFlowHooks.GetMcpClient(_scenarioContext);
+    private HttpClient HttpClient => _scenarioContext.TryGetValue<HttpClient>("HttpClient", out var hc) ? hc : throw new InvalidOperationException("HttpClient not initialized.");
 
     #region Parse Error Steps
 
@@ -42,7 +42,7 @@ public sealed class ErrorHandlingSteps
         if (_scenarioContext.TryGetValue<string>("InvalidJson", out var invalidJson))
         {
             var content = new StringContent(invalidJson, Encoding.UTF8, "application/json");
-            _httpResponse = await _httpClient.PostAsync("http://localhost:8887/mcp", content);
+            _httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
             var responseContent = await _httpResponse.Content.ReadAsStringAsync();
             
             try
@@ -126,7 +126,7 @@ public sealed class ErrorHandlingSteps
     {
         if (_scenarioContext.TryGetValue("InvalidParams", out var invalidParams))
         {
-            _response = await _client.SendRequestAsync("tools/call", invalidParams);
+            _response = await Client.SendRequestAsync("tools/call", invalidParams);
         }
 
         _scenarioContext["Response"] = _response;
@@ -198,7 +198,7 @@ public sealed class ErrorHandlingSteps
             var requests = (object[])requestsObj;
             var json = System.Text.Json.JsonSerializer.Serialize(requests);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var httpResponse = await _httpClient.PostAsync("http://localhost:8887/mcp", content);
+            var httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
             var responseContent = await httpResponse.Content.ReadAsStringAsync();
             
             _response = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(responseContent)?.FirstOrDefault();
@@ -247,7 +247,7 @@ public sealed class ErrorHandlingSteps
         var request = _scenarioContext.Get<object>("ValidRequest");
         var json = System.Text.Json.JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, contentType);
-        _httpResponse = await _httpClient.PostAsync("http://localhost:8887/mcp", content);
+        _httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
     }
 
     [When(@"I send the request without Content-Type header")]
@@ -256,7 +256,7 @@ public sealed class ErrorHandlingSteps
         var request = _scenarioContext.Get<object>("ValidRequest");
         var json = System.Text.Json.JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8);
-        _httpResponse = await _httpClient.PostAsync("http://localhost:8887/mcp", content);
+        _httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
     }
 
     [Then(@"the response should be successful")]
@@ -277,6 +277,51 @@ public sealed class ErrorHandlingSteps
         _httpResponse!.StatusCode.Should().BeOneOf(
             System.Net.HttpStatusCode.BadRequest,
             System.Net.HttpStatusCode.UnsupportedMediaType);
+    }
+
+    #endregion
+
+   #region Not Implemented Steps
+
+    [Given(@"a resources/read request")]
+    public void GivenAResourcesReadRequest()
+    {
+        _scenarioContext["NotImplementedMethod"] = "resources/read";
+    }
+
+    [Given(@"a prompts/list request")]
+    public void GivenAPromptsListRequest()
+    {
+        _scenarioContext["NotImplementedMethod"] = "prompts/list";
+    }
+
+    [Given(@"a prompts/get request")]
+    public void GivenAPromptsGetRequest()
+    {
+        _scenarioContext["NotImplementedMethod"] = "prompts/get";
+    }
+
+    [Given(@"a completion/complete request")]
+    public void GivenACompletionCompleteRequest()
+    {
+        _scenarioContext["NotImplementedMethod"] = "completion/complete";
+    }
+
+    [When(@"I send the unimplemented request")]
+    public async Task WhenISendTheUnimplementedRequest()
+    {
+        var methodName = _scenarioContext.GetString("NotImplementedMethod") ?? "resources/read";
+        
+        try
+        {
+            _response = await Client.SendRequestAsync(methodName, new { });
+        }
+        catch (JsonRpcException ex) when (ex.Code == -32601)
+        {
+            _response = new JsonRpcResponse("2.0", null, new JsonRpcError(-32601, "Method not found", null), null);
+        }
+
+        _scenarioContext["Response"] = _response;
     }
 
     #endregion
@@ -306,7 +351,7 @@ public sealed class ErrorHandlingSteps
     {
         var body = _scenarioContext.GetString("EmptyBody") ?? "";
         var content = new StringContent(body, Encoding.UTF8, "application/json");
-        _httpResponse = await _httpClient.PostAsync("http://localhost:8887/mcp", content);
+        _httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
         var responseContent = await _httpResponse.Content.ReadAsStringAsync();
         
         try

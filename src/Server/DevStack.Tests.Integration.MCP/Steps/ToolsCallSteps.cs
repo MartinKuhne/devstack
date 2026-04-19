@@ -1,5 +1,6 @@
 using TechTalk.SpecFlow;
 using DevStack.Tests.Integration.MCP.Client;
+using DevStack.Tests.Integration.MCP.Hooks;
 using FluentAssertions;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
@@ -8,14 +9,14 @@ namespace DevStack.Tests.Integration.MCP.Steps;
 public sealed class ToolsCallSteps
 {
     private readonly ScenarioContext _scenarioContext;
-    private readonly IMcpJsonRpcClient _client;
     private JsonRpcResponse? _response;
 
-    public ToolsCallSteps(ScenarioContext scenarioContext, IMcpJsonRpcClient client)
+    public ToolsCallSteps(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
-        _client = client;
     }
+
+    private IMcpJsonRpcClient Client => SpecFlowHooks.GetMcpClient(_scenarioContext);
 
     [Given(@"a valid tools/call request for ""(.*)""")]
     public void GivenAValidToolsCallRequest(string toolName)
@@ -35,13 +36,13 @@ public sealed class ToolsCallSteps
         if (_scenarioContext.TryGetValue<bool>("InvalidParams", out var invalid) && invalid)
         {
             var invalidRequest = new { name = "", arguments = new { } };
-            _response = await _client.SendRequestAsync("tools/call", invalidRequest);
+            _response = await Client.SendRequestAsync("tools/call", invalidRequest);
         }
         else
         {
             var toolName = _scenarioContext.GetString("ToolName") ?? "devstack_getProjects";
             var request = new { name = toolName, arguments = new { } };
-            _response = await _client.SendRequestAsync("tools/call", request);
+            _response = await Client.SendRequestAsync("tools/call", request);
         }
 
         _scenarioContext["Response"] = _response;
