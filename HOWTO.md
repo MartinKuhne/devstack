@@ -51,7 +51,7 @@ Go ahead an enter a feature, and then run the runner (see below)
 
 ## Requirements in the admin UI
 
-Vistit the admin UI and enter a feature or defect.
+Vistit the admin UI and enter a feature or defect. 
 
 ## Executing the changes
 
