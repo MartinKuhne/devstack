@@ -1,43 +1,22 @@
 @devstack-tools
 Feature: Feature CRUD and Status Transition Operations
-    Verify MCP server devstack tools for feature management
+    Verify MCP server devstack tools for deliverable management
 
-    Scenario: Create a new feature
-        Given a valid feature creation request with title "Test Feature"
-        When I call devstack_createFeature
-        Then the response should contain the created feature
-        And the feature should have a valid ID
+    Scenario: Create a new deliverable
+        Given a valid deliverable creation request with title "Test Deliverable"
+        When I call devstack_createDeliverable
+        Then the response should contain the created deliverable
+        And the deliverable should have a valid ID
+        And the deliverable status should be "Ready"
 
-    Scenario: Get feature by ID
-        Given an existing feature ID
-        When I call devstack_getFeatureById with the ID
-        Then the response should contain the feature details
+    Scenario: Update a deliverable
+        Given an existing deliverable ID
+        When I call devstack_updateDeliverable with updated title "Updated Deliverable"
+        Then the response should contain the updated deliverable
+        And the deliverable title should be "Updated Deliverable"
 
-    Scenario: Get features with filters
-        Given existing features in the system
-        When I call devstack_getFeatures with projectId filter
-        Then the response should contain filtered features
-        And all features should belong to the specified project
-
-    Scenario: Update a feature
-        Given an existing feature ID
-        When I call devstack_updateFeature with updated title "Updated Feature"
-        Then the response should contain the updated feature
-        And the feature title should be "Updated Feature"
-
-    Scenario: Transition feature status
-        Given a feature in "planned" status
-        When I call devstack_transitionFeatureStatus to "in_progress"
-        Then the response should contain the feature with new status
-        And the status should be "in_progress"
-
-    Scenario: Get valid status transitions
-        Given a feature in "planned" status
-        When I call devstack_getValidStatusTransitions
-        Then the response should contain valid transitions
-        And "in_progress" should be a valid transition
-
-    Scenario: Delete a feature
-        Given an existing feature ID
-        When I call devstack_deleteFeature with the ID
-        Then the response should confirm deletion
+    Scenario: Transition deliverable status
+        Given a deliverable in "ready" status
+        When I call devstack_transitionDeliverableStatus to "in_progress"
+        Then the response should contain the deliverable with new status
+        And the status should be "InProgress"

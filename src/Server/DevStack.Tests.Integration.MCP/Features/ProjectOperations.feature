@@ -25,9 +25,3 @@ Feature: Project CRUD Operations
         When I call devstack_updateProject with updated name "Updated Project"
         Then the response should contain the updated project
         And the project name should be "Updated Project"
-
-    Scenario: Delete a project
-        Given an existing project ID
-        When I call devstack_deleteProject with the ID
-        Then the response should confirm deletion
-        And calling devstack_getProjectById should return not found
