@@ -7,6 +7,7 @@ Enable an AI coding agent and coding tool to access the devstack data
 # Components
 
 - Model Context Protocol Server, Containerized, .net with Postgress access though shared DbContext with GraphQL
+- Use the http streamable protocol
 - Integration tests, using JSON RPC wire protocol with no knowledge of the MCP server process, and using Testcontainers for .NET
   - The integration tests MUST run and MUST PASS do not make excuses about pre existing failures
   - (run with ```dotnet test src/server/```)
@@ -27,6 +28,7 @@ Newly created Deliverables and Agent Tasks are created in the READY state
 # Technical specification
 
 - [MCP Specification](https://modelcontextprotocol.io/specification/2025-11-25)
+- [MCP Protocol](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
 - [MCP SDK](https://github.com/modelcontextprotocol/csharp-sdk)
 - Log operations and errors to the console
 
