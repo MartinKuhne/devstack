@@ -22,9 +22,9 @@ Feature: Task Mutations
 
   @transition_status
   Scenario: Transition task status
-    Given a task with status "Todo" exists
-    When I transition the task status to "Done"
-    Then the task status should be "Done"
+    Given a task with status "Ready" exists
+    When I transition the task status to "InProgress"
+    Then the task status should be "InProgress"
 
   @delete
   Scenario: Delete an existing task

@@ -16,7 +16,7 @@ public class ProjectType : ObjectType<Project>
     }
 }
 
-public class DeliverableType : ObjectType<Deliverable>
+public class DeliverableObject : ObjectType<Deliverable>
 {
     protected override void Configure(IObjectTypeDescriptor<Deliverable> descriptor)
     {
