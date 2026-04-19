@@ -7,7 +7,7 @@ Create a data model and API to manage an AI driven development process
 # Components
 
 - Graphql server holding the data model
-- Integration tests using Testcontainers for .NET
+- Integration tests using Testcontainers for .NET (run with ```dotnet test src/server/```)
 
 # Graphql server
 
