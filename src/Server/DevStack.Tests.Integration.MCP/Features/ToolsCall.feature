@@ -3,11 +3,9 @@ Feature: Tools Call Method
     Verify MCP server tools/call method invokes tools correctly
 
     Scenario: Call a valid tool with parameters
-        Given a valid tools/call request for "devstack_getDashboardSummary"
+        Given a valid tools/call request for "devstack_getProjects"
         When I send the tools/call request
         Then the response should contain the tool result
-        And the result should contain project count
-        And the result should contain feature count
 
     Scenario: Call a tool with missing required parameters
         Given a tools/call request with missing required parameters

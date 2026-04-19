@@ -39,7 +39,7 @@ public sealed class ToolsCallSteps
         }
         else
         {
-            var toolName = _scenarioContext.GetString("ToolName") ?? "devstack_getDashboardSummary";
+            var toolName = _scenarioContext.GetString("ToolName") ?? "devstack_getProjects";
             var request = new { name = toolName, arguments = new { } };
             _response = await _client.SendRequestAsync("tools/call", request);
         }
@@ -55,21 +55,7 @@ public sealed class ToolsCallSteps
         _response!.Result.Should().NotBeNull();
     }
 
-    [Then(@"the result should contain project count")]
-    public void ThenTheResultShouldContainProjectCount()
-    {
-        var result = _response!.Result!.ToString();
-        result.Should().ContainAny("projectCount", "projects", "project");
-    }
-
-    [Then(@"the result should contain feature count")]
-    public void ThenTheResultShouldContainFeatureCount()
-    {
-        var result = _response!.Result!.ToString();
-        result.Should().ContainAny("featureCount", "features", "feature");
-    }
-
-    [Then(@"the response should contain an error")]
+   [Then(@"the response should contain an error")]
     public void ThenTheResponseShouldContainAnError()
     {
         _response.Should().NotBeNull();

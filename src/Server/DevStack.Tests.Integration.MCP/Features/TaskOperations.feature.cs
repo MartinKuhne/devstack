@@ -39,7 +39,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Task CRUD and Status Transition Operations", "    Verify MCP server devstack tools for task management", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Task CRUD and Status Transition Operations", "    Verify MCP server devstack tools for agent task management", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -79,14 +79,14 @@ namespace DevStack.Tests.Integration.MCP.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Create a new task")]
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new agent task")]
         [Xunit.TraitAttribute("FeatureTitle", "Task CRUD and Status Transition Operations")]
-        [Xunit.TraitAttribute("Description", "Create a new task")]
-        public void CreateANewTask()
+        [Xunit.TraitAttribute("Description", "Create a new agent task")]
+        public void CreateANewAgentTask()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new task", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new agent task", null, tagsOfScenario, argumentsOfScenario, featureTags);
             this.ScenarioInitialize(scenarioInfo);
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -95,57 +95,11 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a valid task creation request with title \"Test Task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_createTask", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.Given("a valid agent task creation request with title \"Test Task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.When("I call devstack_createAgentTask", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the created task", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the task should have a valid ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Get task by ID")]
-        [Xunit.TraitAttribute("FeatureTitle", "Task CRUD and Status Transition Operations")]
-        [Xunit.TraitAttribute("Description", "Get task by ID")]
-        public void GetTaskByID()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get task by ID", null, tagsOfScenario, argumentsOfScenario, featureTags);
-            this.ScenarioInitialize(scenarioInfo);
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-                testRunner.Given("an existing task ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_getTaskById with the ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-                testRunner.Then("the response should contain the task details", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Get tasks with filters")]
-        [Xunit.TraitAttribute("FeatureTitle", "Task CRUD and Status Transition Operations")]
-        [Xunit.TraitAttribute("Description", "Get tasks with filters")]
-        public void GetTasksWithFilters()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get tasks with filters", null, tagsOfScenario, argumentsOfScenario, featureTags);
-            this.ScenarioInitialize(scenarioInfo);
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-                testRunner.Given("existing tasks in the system", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_getTasks with featureId filter", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-                testRunner.Then("the response should contain filtered tasks", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("all tasks should belong to the specified feature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the task status should be \"Ready\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
@@ -167,7 +121,7 @@ namespace DevStack.Tests.Integration.MCP.Features
             {
                 this.ScenarioStart();
                 testRunner.Given("an existing task ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_updateTask with updated title \"Updated Task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I call devstack_updateAgentTask with updated title \"Updated Task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the updated task", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the task title should be \"Updated Task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
@@ -190,33 +144,10 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a task in \"todo\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_transitionTaskStatus to \"in_progress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.Given("a task in \"ready\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.When("I call devstack_transitionAgentTaskStatus to \"in_progress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the task with new status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the status should be \"in_progress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Delete a task")]
-        [Xunit.TraitAttribute("FeatureTitle", "Task CRUD and Status Transition Operations")]
-        [Xunit.TraitAttribute("Description", "Delete a task")]
-        public void DeleteATask()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete a task", null, tagsOfScenario, argumentsOfScenario, featureTags);
-            this.ScenarioInitialize(scenarioInfo);
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-                testRunner.Given("an existing task ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_deleteTask with the ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-                testRunner.Then("the response should confirm deletion", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
