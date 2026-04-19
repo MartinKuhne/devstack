@@ -19,7 +19,7 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class TaskMutationsFeature : object, Xunit.IClassFixture<TaskMutationsFeature.FixtureData>, System.IDisposable
+    public partial class AgentTaskMutationsFeature : object, Xunit.IClassFixture<AgentTaskMutationsFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -31,7 +31,7 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
 #line 1 "TaskMutations.feature"
 #line hidden
         
-        public TaskMutationsFeature(TaskMutationsFeature.FixtureData fixtureData, DevStack_Tests_Integration_GraphQL_Client_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public AgentTaskMutationsFeature(AgentTaskMutationsFeature.FixtureData fixtureData, DevStack_Tests_Integration_GraphQL_Client_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();
@@ -40,8 +40,8 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Task Mutations", "  As a DevStack API consumer\r\n  I want to be able to create, update, and delete t" +
-                    "asks\r\n  So that I can manage task data", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Agent Task Mutations", "  As a DevStack API consumer\r\n  I want to be able to create, update, transition s" +
+                    "tatus, and delete agent tasks\r\n  So that I can manage task data", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -87,7 +87,7 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
     testRunner.And("a parent project exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 9
-    testRunner.And("a parent feature exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("a parent deliverable exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
         }
         
@@ -96,16 +96,16 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Create a new task")]
-        [Xunit.TraitAttribute("FeatureTitle", "Task Mutations")]
-        [Xunit.TraitAttribute("Description", "Create a new task")]
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new agent task")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Create a new agent task")]
         [Xunit.TraitAttribute("Category", "create")]
-        public virtual void CreateANewTask()
+        public virtual void CreateANewAgentTask()
         {
             string[] tagsOfScenario = new string[] {
                     "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new task", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new agent task", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 12
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -130,28 +130,28 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 13
-    testRunner.When("I create a task with title \"Test Task\" and complexity rating 5", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I create an agent task with title \"Test Task\" and complexity rating 5", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 14
-    testRunner.Then("the task should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Then("the agent task should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 15
-    testRunner.And("the task should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the agent task should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Update an existing task")]
-        [Xunit.TraitAttribute("FeatureTitle", "Task Mutations")]
-        [Xunit.TraitAttribute("Description", "Update an existing task")]
-        [Xunit.TraitAttribute("Category", "update")]
-        public virtual void UpdateAnExistingTask()
+        [Xunit.SkippableFactAttribute(DisplayName="Create an agent task with minimal complexity")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Create an agent task with minimal complexity")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateAnAgentTaskWithMinimalComplexity()
         {
             string[] tagsOfScenario = new string[] {
-                    "update"};
+                    "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an existing task", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create an agent task with minimal complexity", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 18
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -176,28 +176,28 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 19
-    testRunner.Given("a task \"Original Title\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I create an agent task with title \"Simple Task\" and complexity rating 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 20
-    testRunner.When("I update the task title to \"Updated Title\" and complexity rating to 7", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the agent task should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 21
-    testRunner.Then("the task should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the agent task should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Transition task status")]
-        [Xunit.TraitAttribute("FeatureTitle", "Task Mutations")]
-        [Xunit.TraitAttribute("Description", "Transition task status")]
-        [Xunit.TraitAttribute("Category", "transition_status")]
-        public virtual void TransitionTaskStatus()
+        [Xunit.SkippableFactAttribute(DisplayName="Create an agent task with maximum complexity")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Create an agent task with maximum complexity")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateAnAgentTaskWithMaximumComplexity()
         {
             string[] tagsOfScenario = new string[] {
-                    "transition_status"};
+                    "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition task status", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create an agent task with maximum complexity", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 24
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -222,28 +222,28 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 25
-    testRunner.Given("a task with status \"Ready\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I create an agent task with title \"Complex Task\" and complexity rating 10", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 26
-    testRunner.When("I transition the task status to \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the agent task should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 27
-    testRunner.Then("the task status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the agent task should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing task")]
-        [Xunit.TraitAttribute("FeatureTitle", "Task Mutations")]
-        [Xunit.TraitAttribute("Description", "Delete an existing task")]
-        [Xunit.TraitAttribute("Category", "delete")]
-        public virtual void DeleteAnExistingTask()
+        [Xunit.SkippableFactAttribute(DisplayName="Create an agent task with all optional fields")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Create an agent task with all optional fields")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateAnAgentTaskWithAllOptionalFields()
         {
             string[] tagsOfScenario = new string[] {
-                    "delete"};
+                    "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing task", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create an agent task with all optional fields", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 30
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -268,16 +268,769 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 31
-    testRunner.Given("a task \"To Delete\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I create an agent task with title \"Full Task\" complexity 5 result \"Success\" error" +
+                        "s null commit hash \"abc123\" model \"gpt-4\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 32
-    testRunner.When("I delete the task", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the agent task should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 33
-    testRunner.Then("the task should be deleted successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the agent task should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 34
-    testRunner.And("the task should not exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Create an agent task with dependency")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Create an agent task with dependency")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateAnAgentTaskWithDependency()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "create"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create an agent task with dependency", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 36
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 37
+    testRunner.Given("an agent task \"Dependency Task\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 38
+    testRunner.When("I create an agent task with title \"Dependent Task\" complexity 3 and depends on \"D" +
+                        "ependency Task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 39
+    testRunner.Then("the agent task should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 40
+    testRunner.And("the agent task should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update an agent task title")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Update an agent task title")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateAnAgentTaskTitle()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an agent task title", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 43
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 44
+    testRunner.Given("an agent task \"Original Title\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 45
+    testRunner.When("I update the agent task title to \"Updated Title\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 46
+    testRunner.Then("the agent task should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update an agent task complexity rating")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Update an agent task complexity rating")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateAnAgentTaskComplexityRating()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an agent task complexity rating", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 49
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 50
+    testRunner.Given("an agent task \"Original Complexity\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 51
+    testRunner.When("I update the agent task complexity rating to 7", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 52
+    testRunner.Then("the agent task should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update an agent task result")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Update an agent task result")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateAnAgentTaskResult()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an agent task result", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 55
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 56
+    testRunner.Given("an agent task \"Original Result\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 57
+    testRunner.When("I update the agent task result to \"Task completed successfully\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 58
+    testRunner.Then("the agent task should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update an agent task commit hash")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Update an agent task commit hash")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateAnAgentTaskCommitHash()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an agent task commit hash", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 61
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 62
+    testRunner.Given("an agent task \"Original Hash\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 63
+    testRunner.When("I update the agent task commit hash to \"def456\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 64
+    testRunner.Then("the agent task should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update an agent task model")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Update an agent task model")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateAnAgentTaskModel()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an agent task model", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 67
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 68
+    testRunner.Given("an agent task \"Original Model\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 69
+    testRunner.When("I update the agent task model to \"gpt-4-turbo\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 70
+    testRunner.Then("the agent task should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition agent task from Ready to InProgress")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition agent task from Ready to InProgress")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionAgentTaskFromReadyToInProgress()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition agent task from Ready to InProgress", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 73
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 74
+    testRunner.Given("an agent task with status \"READY\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 75
+    testRunner.When("I transition the agent task status to \"IN_PROGRESS\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 76
+    testRunner.Then("the agent task status should be \"IN_PROGRESS\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition agent task from InProgress to NeedsReview")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition agent task from InProgress to NeedsReview")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionAgentTaskFromInProgressToNeedsReview()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition agent task from InProgress to NeedsReview", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 79
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 80
+    testRunner.Given("an agent task with status \"IN_PROGRESS\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 81
+    testRunner.When("I transition the agent task status to \"NEEDS_REVIEW\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 82
+    testRunner.Then("the agent task status should be \"NEEDS_REVIEW\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition agent task from InProgress to Failed")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition agent task from InProgress to Failed")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionAgentTaskFromInProgressToFailed()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition agent task from InProgress to Failed", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 85
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 86
+    testRunner.Given("an agent task with status \"IN_PROGRESS\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 87
+    testRunner.And("the agent task has errors set", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 88
+    testRunner.When("I transition the agent task status to \"FAILED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 89
+    testRunner.Then("the agent task status should be \"FAILED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition agent task from InProgress to Rejected")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition agent task from InProgress to Rejected")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionAgentTaskFromInProgressToRejected()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition agent task from InProgress to Rejected", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 92
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 93
+    testRunner.Given("an agent task with status \"IN_PROGRESS\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 94
+    testRunner.And("the agent task has errors set", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 95
+    testRunner.When("I transition the agent task status to \"REJECTED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 96
+    testRunner.Then("the agent task status should be \"REJECTED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition agent task from NeedsReview to Done")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition agent task from NeedsReview to Done")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionAgentTaskFromNeedsReviewToDone()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition agent task from NeedsReview to Done", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 99
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 100
+    testRunner.Given("an agent task with status \"NEEDS_REVIEW\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 101
+    testRunner.And("the agent task has result set", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 102
+    testRunner.When("I transition the agent task status to \"DONE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 103
+    testRunner.Then("the agent task status should be \"DONE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition agent task from NeedsReview to InProgress for revision")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition agent task from NeedsReview to InProgress for revision")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionAgentTaskFromNeedsReviewToInProgressForRevision()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition agent task from NeedsReview to InProgress for revision", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 106
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 107
+    testRunner.Given("an agent task with status \"NEEDS_REVIEW\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 108
+    testRunner.When("I transition the agent task status to \"IN_PROGRESS\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 109
+    testRunner.Then("the agent task status should be \"IN_PROGRESS\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition agent task from NeedsReview to Rejected")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition agent task from NeedsReview to Rejected")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionAgentTaskFromNeedsReviewToRejected()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition agent task from NeedsReview to Rejected", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 112
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 113
+    testRunner.Given("an agent task with status \"NEEDS_REVIEW\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 114
+    testRunner.And("the agent task has errors set", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 115
+    testRunner.When("I transition the agent task status to \"REJECTED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 116
+    testRunner.Then("the agent task status should be \"REJECTED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing agent task")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Delete an existing agent task")]
+        [Xunit.TraitAttribute("Category", "delete")]
+        public virtual void DeleteAnExistingAgentTask()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "delete"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing agent task", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 119
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 120
+    testRunner.Given("an agent task \"To Delete\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 121
+    testRunner.When("I delete the agent task", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 122
+    testRunner.Then("the agent task should be deleted successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 123
+    testRunner.And("the agent task should not exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Query agent task by id")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Query agent task by id")]
+        [Xunit.TraitAttribute("Category", "query")]
+        public virtual void QueryAgentTaskById()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "query"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Query agent task by id", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 126
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 127
+    testRunner.Given("an agent task \"Query Test\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 128
+    testRunner.When("I query the agent task by id", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 129
+    testRunner.Then("the agent task should be returned with correct data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Query agent tasks by deliverable id")]
+        [Xunit.TraitAttribute("FeatureTitle", "Agent Task Mutations")]
+        [Xunit.TraitAttribute("Description", "Query agent tasks by deliverable id")]
+        [Xunit.TraitAttribute("Category", "query")]
+        public virtual void QueryAgentTasksByDeliverableId()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "query"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Query agent tasks by deliverable id", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 132
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 133
+    testRunner.Given("an agent task \"Deliverable Query Test\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 134
+    testRunner.When("I query agent tasks by deliverable id", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 135
+    testRunner.Then("the agent tasks list should contain the created task", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -290,12 +1043,12 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             
             public FixtureData()
             {
-                TaskMutationsFeature.FeatureSetup();
+                AgentTaskMutationsFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                TaskMutationsFeature.FeatureTearDown();
+                AgentTaskMutationsFeature.FeatureTearDown();
             }
         }
     }
