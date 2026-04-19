@@ -81,6 +81,7 @@ App
 - [ShadCN Theming](https://ui.shadcn.com/docs/theming)
 - [ShadCN Components](https://ui.shadcn.com/docs/components)
 - [Playwright](https://playwright.dev/docs/writing-tests)
+- [TestContainers](https://dotnet.testcontainers.org/)
 
 # Preferred libraries
 - react
