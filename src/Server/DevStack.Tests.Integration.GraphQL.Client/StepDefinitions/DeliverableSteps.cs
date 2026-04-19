@@ -14,24 +14,16 @@ public sealed class DeliverableSteps
     private readonly ScenarioContext _scenarioContext;
     private readonly HttpClient _httpClient;
 
-    private static bool HasErrors(JsonElement response, string mutationName)
-    {
-        var errors = response.GetProperty("data").GetProperty(mutationName).GetProperty("errors");
-        return errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0;
-    }
-
     public DeliverableSteps(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
         _httpClient = SpecFlowHooks.GetHttpClient(scenarioContext);
     }
 
-    private DeliverableType ResolveDeliverableType(string name)
+    private static bool HasErrors(JsonElement response, string mutationName)
     {
-        var lower = name.ToLowerInvariant();
-        if (lower.Contains("feature") || lower.Contains("deliverable")) return DeliverableType.Feature;
-        if (lower.Contains("defect")) return DeliverableType.Defect;
-        return DeliverableType.Maintenance;
+        var errors = response.GetProperty("data").GetProperty(mutationName).GetProperty("errors");
+        return errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0;
     }
 
     [Given(@"a parent project exists")]
@@ -40,7 +32,7 @@ public sealed class DeliverableSteps
         var mutation = new
         {
             query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors } }",
-            variables = new { input = new { name = "Test Project", description = "Test description", repository = string.Empty } },
+            variables = new { input = new { name = "Test Project", description = (string?)null, repository = (string?)null } },
             operationName = "CreateProject"
         };
 
@@ -51,14 +43,14 @@ public sealed class DeliverableSteps
         _scenarioContext["ProjectId"] = projectId;
     }
 
-    [Given(@"a parent feature exists")]
-    public void GivenAParentFeatureExists()
+    [Given(@"a parent deliverable exists")]
+    public void GivenAParentDeliverableExists()
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var mutation = new
         {
             query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors } }",
-            variables = new { input = new { projectId, title = "Parent Feature", type = "Feature", description = (string?)null, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null, initialStatus = "PLANNING" } },
+            variables = new { input = new { projectId, title = "Parent Deliverable", type = "Feature", description = (string?)null, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null, initialStatus = "PLANNING" } },
             operationName = "CreateDeliverable"
         };
 
@@ -69,33 +61,23 @@ public sealed class DeliverableSteps
         _scenarioContext["DeliverableId"] = deliverableId;
     }
 
-    [Given(@"a (?:feature|deliverable|defect) ""(.*)"" exists")]
-    public void GivenADeliverableExists(string title)
+    [Given(@"a deliverable ""(.*)"" type ""(.*)"" exists")]
+    public void GivenADeliverableWithTitleAndTypeExists(string title, string type)
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        var type = ResolveDeliverableType(title);
         _scenarioContext["DeliverableTitle"] = title;
         CreateDeliverable(projectId, title, type, null);
     }
 
-    [Given(@"a (?:feature|deliverable|defect) with status ""(.*)"" exists")]
-    public void GivenADeliverableWithStatusExists(string status)
+    [Given(@"a deliverable with status ""(.*)"" type ""(.*)"" exists")]
+    public void GivenADeliverableWithStatusAndTypeExists(string status, string type)
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        var title = _scenarioContext.ContainsKey("DeliverableTitle") ? _scenarioContext["DeliverableTitle"]?.ToString() ?? "Test Deliverable" : "Test Deliverable";
-        var type = ResolveDeliverableType(title);
+        var title = "Test Deliverable";
         CreateDeliverable(projectId, title, type, status);
     }
 
-    [Given(@"a (?:feature|deliverable|defect) ""(.*)"" with type ""(.*)"" exists")]
-    public void GivenADeliverableWithTypeExists(string title, string type)
-    {
-        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        var deliverableType = ResolveDeliverableType(type);
-        CreateDeliverable(projectId, title, deliverableType, null);
-    }
-
-    private void CreateDeliverable(string projectId, string title, DeliverableType type, string? initialStatus)
+    private void CreateDeliverable(string projectId, string title, string type, string? initialStatus)
     {
         _scenarioContext["DeliverableTitle"] = title;
 
@@ -110,7 +92,7 @@ public sealed class DeliverableSteps
                 {
                     projectId,
                     title,
-                    type = type.ToString(),
+                    type,
                     description = (string?)null,
                     acceptanceCriteria = (string?)null,
                     agentFeedback = (string?)null,
@@ -142,21 +124,20 @@ public sealed class DeliverableSteps
         {
             "planning" => "PLANNING",
             "ready" => "READY",
-            "inprogress" or "in progress" => "IN_PROGRESS",
+            "in_progress" or "inprogress" or "in progress" => "IN_PROGRESS",
             "done" => "DONE",
             "failed" => "FAILED",
             "rejected" => "REJECTED",
-            "needsreview" or "needs review" => "NEEDS_REVIEW",
+            "needs_review" or "needsreview" or "needs review" => "NEEDS_REVIEW",
             "draft" => "DRAFT",
             _ => "PLANNING"
         };
     }
 
-    [When(@"I create a (?:feature|deliverable|defect) with title ""(.*)"" and description ""(.*)""")]
-    public void WhenICreateADeliverableWithDescription(string title, string description)
+    [When(@"I create a deliverable with title ""(.*)"" type ""(.*)"" and description ""(.*)""")]
+    public void WhenICreateADeliverableWithTitleTypeAndDescription(string title, string type, string description)
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        var type = ResolveDeliverableType(title);
         _scenarioContext["DeliverableTitle"] = title;
         var mutation = new
         {
@@ -167,7 +148,7 @@ public sealed class DeliverableSteps
                 {
                     projectId,
                     title,
-                    type = type.ToString(),
+                    type,
                     description,
                     acceptanceCriteria = (string?)null,
                     agentFeedback = (string?)null,
@@ -191,7 +172,85 @@ public sealed class DeliverableSteps
         _scenarioContext["Response"] = result;
     }
 
-    [When(@"I update the (?:feature|deliverable|defect) title to ""(.*)""")]
+    [When(@"I create a deliverable with title ""(.*)"" type ""(.*)"" and initial status ""(.*)""")]
+    public void WhenICreateADeliverableWithTitleTypeAndInitialStatus(string title, string type, string initialStatus)
+    {
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
+        _scenarioContext["DeliverableTitle"] = title;
+        var mappedStatus = MapStatus(initialStatus);
+        var mutation = new
+        {
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id status } errors } }",
+            variables = new
+            {
+                input = new
+                {
+                    projectId,
+                    title,
+                    type,
+                    description = (string?)null,
+                    acceptanceCriteria = (string?)null,
+                    agentFeedback = (string?)null,
+                    executionPlan = (string?)null,
+                    securityImpact = (string?)null,
+                    performanceImpact = (string?)null,
+                    testPlan = (string?)null,
+                    deploymentPlan = (string?)null,
+                    blocking = (string?)null,
+                    initialStatus = mappedStatus
+                }
+            },
+            operationName = "CreateDeliverable"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        var deliverableData = result.GetProperty("data").GetProperty("createDeliverable").GetProperty("deliverable");
+        var deliverableId = deliverableData.GetProperty("id").ToString();
+        _scenarioContext["DeliverableId"] = deliverableId;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I create a deliverable with title ""(.*)"" type ""(.*)"" description ""(.*)"" acceptance criteria ""(.*)"" agent feedback ""(.*)""")]
+    public void WhenICreateADeliverableWithAllFields(string title, string type, string description, string acceptanceCriteria, string agentFeedback)
+    {
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
+        _scenarioContext["DeliverableTitle"] = title;
+        var mutation = new
+        {
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors } }",
+            variables = new
+            {
+                input = new
+                {
+                    projectId,
+                    title,
+                    type,
+                    description,
+                    acceptanceCriteria,
+                    agentFeedback,
+                    executionPlan = (string?)null,
+                    securityImpact = (string?)null,
+                    performanceImpact = (string?)null,
+                    testPlan = (string?)null,
+                    deploymentPlan = (string?)null,
+                    blocking = (string?)null,
+                    initialStatus = "PLANNING"
+                }
+            },
+            operationName = "CreateDeliverable"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        var deliverableId = result.GetProperty("data").GetProperty("createDeliverable").GetProperty("deliverable").GetProperty("id").ToString();
+        _scenarioContext["DeliverableId"] = deliverableId;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I update the deliverable title to ""(.*)""")]
     public void WhenIUpdateTheDeliverableTitleTo(string title)
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
@@ -208,14 +267,14 @@ public sealed class DeliverableSteps
         _scenarioContext["Response"] = result;
     }
 
-    [When(@"I update the (?:feature|deliverable|defect) title to ""(.*)"" and description to ""(.*)""")]
-    public void WhenIUpdateTheDeliverableTitleAndDescriptionTo(string title, string description)
+    [When(@"I update the deliverable description to ""(.*)""")]
+    public void WhenIUpdateTheDeliverableDescriptionTo(string description)
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var mutation = new
         {
             query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors } }",
-            variables = new { input = new { id = deliverableId, title, description, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
+            variables = new { input = new { id = deliverableId, title = (string?)null, description, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
             operationName = "UpdateDeliverable"
         };
 
@@ -225,7 +284,24 @@ public sealed class DeliverableSteps
         _scenarioContext["Response"] = result;
     }
 
-    [When(@"I transition the (?:feature|deliverable|defect) status to ""(.*)""")]
+    [When(@"I update the deliverable acceptance criteria to ""(.*)""")]
+    public void WhenIUpdateTheDeliverableAcceptanceCriteriaTo(string acceptanceCriteria)
+    {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        var mutation = new
+        {
+            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors } }",
+            variables = new { input = new { id = deliverableId, title = (string?)null, description = (string?)null, acceptanceCriteria, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
+            operationName = "UpdateDeliverable"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I transition the deliverable status to ""(.*)""")]
     public void WhenITransitionTheDeliverableStatusTo(string targetStatus)
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
@@ -243,7 +319,7 @@ public sealed class DeliverableSteps
         _scenarioContext["Response"] = result;
     }
 
-    [When(@"I delete the (?:feature|deliverable|defect)")]
+    [When(@"I delete the deliverable")]
     public void WhenIDeleteTheDeliverable()
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
@@ -260,28 +336,62 @@ public sealed class DeliverableSteps
         _scenarioContext["Response"] = result;
     }
 
-    [Then(@"the (?:feature|deliverable|defect) should be created successfully")]
+    [When(@"I query the deliverable by id")]
+    public void WhenIQueryTheDeliverableById()
+    {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        var query = new
+        {
+            query = @"query GetDeliverableById($id: UUID!) { deliverableById(id: $id) { id title type status description } }",
+            variables = new { id = deliverableId },
+            operationName = "GetDeliverableById"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I query deliverables by project id")]
+    public void WhenIQueryDeliverablesByProjectId()
+    {
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
+        var query = new
+        {
+            query = @"query GetDeliverablesByProjectId($projectId: UUID!) { deliverablesByProjectId(projectId: $projectId) { id title type status } }",
+            variables = new { projectId },
+            operationName = "GetDeliverablesByProjectId"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [Then(@"the deliverable should be created successfully")]
     public void ThenTheDeliverableShouldBeCreatedSuccessfully()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
         HasErrors(response, "createDeliverable").Should().BeFalse("errors should be empty");
     }
 
-    [Then(@"the (?:feature|deliverable|defect) should be updated successfully")]
+    [Then(@"the deliverable should be updated successfully")]
     public void ThenTheDeliverableShouldBeUpdatedSuccessfully()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
         HasErrors(response, "updateDeliverable").Should().BeFalse("errors should be empty");
     }
 
-    [Then(@"the (?:feature|deliverable|defect) should be deleted successfully")]
+    [Then(@"the deliverable should be deleted successfully")]
     public void ThenTheDeliverableShouldBeDeletedSuccessfully()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
         HasErrors(response, "deleteDeliverable").Should().BeFalse("errors should be empty");
     }
 
-    [Then(@"the (?:feature|deliverable|defect) should exist in the database")]
+    [Then(@"the deliverable should exist in the database")]
     public void ThenTheDeliverableShouldExistInTheDatabase()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
@@ -292,25 +402,46 @@ public sealed class DeliverableSteps
         _scenarioContext["DeliverableId"] = deliverableId;
     }
 
-    [Then(@"the (?:feature|deliverable|defect) status should be ""(.*)""")]
+    [Then(@"the deliverable status should be ""(.*)""")]
     public void ThenTheDeliverableStatusShouldBe(string expectedStatus)
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var deliverable = response.GetProperty("data").GetProperty("transitionDeliverableStatus").GetProperty("deliverable");
+        JsonElement deliverable;
+        
+        var data = response.GetProperty("data");
+        if (data.TryGetProperty("createDeliverable", out var createResult))
+        {
+            deliverable = createResult.GetProperty("deliverable");
+        }
+        else if (data.TryGetProperty("transitionDeliverableStatus", out var transitionResult))
+        {
+            var errors = transitionResult.GetProperty("errors");
+            if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
+            {
+                throw new InvalidOperationException($"Transition failed: {errors}");
+            }
+            deliverable = transitionResult.GetProperty("deliverable");
+        }
+        else
+        {
+            throw new InvalidOperationException("Response does not contain createDeliverable or transitionDeliverableStatus");
+        }
+        
+        deliverable.ValueKind.Should().NotBe(JsonValueKind.Null, "deliverable should not be null");
         var status = deliverable.GetProperty("status").ToString();
         var mappedExpected = MapStatus(expectedStatus);
         status.Should().BeEquivalentTo(mappedExpected);
     }
 
-    [Then(@"the (?:feature|deliverable|defect) should not exist in the database")]
+    [Then(@"the deliverable should not exist in the database")]
     public void ThenTheDeliverableShouldNotExistInDatabase()
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var query = new
         {
-            query = @"query GetDeliverable($id: UUID!) { deliverableById(id: $id) { id } }",
+            query = @"query GetDeliverableById($id: UUID!) { deliverableById(id: $id) { id } }",
             variables = new { id = deliverableId },
-            operationName = "GetDeliverable"
+            operationName = "GetDeliverableById"
         };
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
@@ -318,5 +449,35 @@ public sealed class DeliverableSteps
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
         var deliverable = result.GetProperty("data").GetProperty("deliverableById");
         deliverable.ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Then(@"the deliverable should be returned with correct data")]
+    public void ThenTheDeliverableShouldBeReturnedWithCorrectData()
+    {
+        var response = (JsonElement)_scenarioContext["Response"]!;
+        var deliverable = response.GetProperty("data").GetProperty("deliverableById");
+        deliverable.ValueKind.Should().NotBe(JsonValueKind.Null);
+        var deliverableId = deliverable.GetProperty("id").ToString();
+        deliverableId.Should().NotBeNullOrEmpty();
+        deliverableId.Should().Be(_scenarioContext["DeliverableId"]?.ToString());
+    }
+
+    [Then(@"the deliverables list should contain the created deliverable")]
+    public void ThenTheDeliverablesListShouldContainTheCreatedDeliverable()
+    {
+        var response = (JsonElement)_scenarioContext["Response"]!;
+        var deliverables = response.GetProperty("data").GetProperty("deliverablesByProjectId");
+        deliverables.ValueKind.Should().Be(JsonValueKind.Array);
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString();
+        var found = false;
+        foreach (var d in deliverables.EnumerateArray())
+        {
+            if (d.GetProperty("id").ToString() == deliverableId)
+            {
+                found = true;
+                break;
+            }
+        }
+        found.Should().BeTrue("The deliverables list should contain the created deliverable");
     }
 }

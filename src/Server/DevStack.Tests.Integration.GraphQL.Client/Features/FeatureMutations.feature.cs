@@ -19,7 +19,7 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class FeatureMutationsFeature : object, Xunit.IClassFixture<FeatureMutationsFeature.FixtureData>, System.IDisposable
+    public partial class DeliverableMutationsFeature : object, Xunit.IClassFixture<DeliverableMutationsFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -31,7 +31,7 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
 #line 1 "FeatureMutations.feature"
 #line hidden
         
-        public FeatureMutationsFeature(FeatureMutationsFeature.FixtureData fixtureData, DevStack_Tests_Integration_GraphQL_Client_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public DeliverableMutationsFeature(DeliverableMutationsFeature.FixtureData fixtureData, DevStack_Tests_Integration_GraphQL_Client_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();
@@ -40,8 +40,8 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Feature Mutations", "  As a DevStack API consumer\r\n  I want to be able to create, update, and delete f" +
-                    "eatures\r\n  So that I can manage feature data", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Deliverable Mutations", "  As a DevStack API consumer\r\n  I want to be able to create, update, transition s" +
+                    "tatus, and delete deliverables\r\n  So that I can manage deliverable data", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -93,16 +93,16 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Create a new feature")]
-        [Xunit.TraitAttribute("FeatureTitle", "Feature Mutations")]
-        [Xunit.TraitAttribute("Description", "Create a new feature")]
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new feature deliverable")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Create a new feature deliverable")]
         [Xunit.TraitAttribute("Category", "create")]
-        public virtual void CreateANewFeature()
+        public virtual void CreateANewFeatureDeliverable()
         {
             string[] tagsOfScenario = new string[] {
                     "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new feature", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new feature deliverable", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 11
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -127,29 +127,29 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 12
-    testRunner.When("I create a feature with title \"Test Feature\" and description \"Feature description" +
-                        "\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I create a deliverable with title \"Test Feature\" type \"Feature\" and description \"" +
+                        "Feature description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 13
-    testRunner.Then("the feature should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Then("the deliverable should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 14
-    testRunner.And("the feature should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the deliverable should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Update an existing feature")]
-        [Xunit.TraitAttribute("FeatureTitle", "Feature Mutations")]
-        [Xunit.TraitAttribute("Description", "Update an existing feature")]
-        [Xunit.TraitAttribute("Category", "update")]
-        public virtual void UpdateAnExistingFeature()
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new defect deliverable")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Create a new defect deliverable")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateANewDefectDeliverable()
         {
             string[] tagsOfScenario = new string[] {
-                    "update"};
+                    "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an existing feature", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new defect deliverable", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 17
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -174,28 +174,29 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 18
-    testRunner.Given("a feature \"Original Title\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I create a deliverable with title \"Test Defect\" type \"Defect\" and description \"De" +
+                        "fect description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 19
-    testRunner.When("I update the feature title to \"Updated Title\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the deliverable should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 20
-    testRunner.Then("the feature should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the deliverable should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Transition feature status")]
-        [Xunit.TraitAttribute("FeatureTitle", "Feature Mutations")]
-        [Xunit.TraitAttribute("Description", "Transition feature status")]
-        [Xunit.TraitAttribute("Category", "transition_status")]
-        public virtual void TransitionFeatureStatus()
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new maintenance deliverable")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Create a new maintenance deliverable")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateANewMaintenanceDeliverable()
         {
             string[] tagsOfScenario = new string[] {
-                    "transition_status"};
+                    "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition feature status", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new maintenance deliverable", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 23
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -220,28 +221,29 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 24
-    testRunner.Given("a feature with status \"Planning\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I create a deliverable with title \"Test Maintenance\" type \"Maintenance\" and descr" +
+                        "iption \"Maintenance description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 25
-    testRunner.When("I transition the feature status to \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the deliverable should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 26
-    testRunner.Then("the feature status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the deliverable should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing feature")]
-        [Xunit.TraitAttribute("FeatureTitle", "Feature Mutations")]
-        [Xunit.TraitAttribute("Description", "Delete an existing feature")]
-        [Xunit.TraitAttribute("Category", "delete")]
-        public virtual void DeleteAnExistingFeature()
+        [Xunit.SkippableFactAttribute(DisplayName="Create a deliverable with initial status")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Create a deliverable with initial status")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateADeliverableWithInitialStatus()
         {
             string[] tagsOfScenario = new string[] {
-                    "delete"};
+                    "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing feature", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a deliverable with initial status", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 29
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -266,16 +268,571 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 30
-    testRunner.Given("a feature \"To Delete\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I create a deliverable with title \"Initial Status Feature\" type \"Feature\" and ini" +
+                        "tial status \"READY\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 31
-    testRunner.When("I delete the feature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the deliverable should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 32
-    testRunner.Then("the feature should be deleted successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the deliverable status should be \"READY\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 33
-    testRunner.And("the feature should not exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Create a deliverable with all optional fields")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Create a deliverable with all optional fields")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateADeliverableWithAllOptionalFields()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "create"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a deliverable with all optional fields", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 35
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 36
+    testRunner.When("I create a deliverable with title \"Full Feature\" type \"Feature\" description \"Full" +
+                        " description\" acceptance criteria \"Must pass tests\" agent feedback \"Good progres" +
+                        "s\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 37
+    testRunner.Then("the deliverable should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 38
+    testRunner.And("the deliverable should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update a deliverable title")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Update a deliverable title")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateADeliverableTitle()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update a deliverable title", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 41
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 42
+    testRunner.Given("a deliverable \"Original Title\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 43
+    testRunner.When("I update the deliverable title to \"Updated Title\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 44
+    testRunner.Then("the deliverable should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update a deliverable description")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Update a deliverable description")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateADeliverableDescription()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update a deliverable description", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 47
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 48
+    testRunner.Given("a deliverable \"Original Description\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 49
+    testRunner.When("I update the deliverable description to \"Updated description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 50
+    testRunner.Then("the deliverable should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update a deliverable acceptance criteria")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Update a deliverable acceptance criteria")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateADeliverableAcceptanceCriteria()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update a deliverable acceptance criteria", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 53
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 54
+    testRunner.Given("a deliverable \"Original Criteria\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 55
+    testRunner.When("I update the deliverable acceptance criteria to \"New acceptance criteria\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 56
+    testRunner.Then("the deliverable should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition deliverable status from Planning to InProgress")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition deliverable status from Planning to InProgress")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionDeliverableStatusFromPlanningToInProgress()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition deliverable status from Planning to InProgress", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 59
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 60
+    testRunner.Given("a deliverable with status \"PLANNING\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 61
+    testRunner.When("I transition the deliverable status to \"IN_PROGRESS\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 62
+    testRunner.Then("the deliverable status should be \"IN_PROGRESS\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition deliverable status from InProgress to Done")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition deliverable status from InProgress to Done")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionDeliverableStatusFromInProgressToDone()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition deliverable status from InProgress to Done", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 65
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 66
+    testRunner.Given("a deliverable with status \"IN_PROGRESS\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 67
+    testRunner.When("I transition the deliverable status to \"DONE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 68
+    testRunner.Then("the deliverable status should be \"DONE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition deliverable status to NeedsReview")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition deliverable status to NeedsReview")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionDeliverableStatusToNeedsReview()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition deliverable status to NeedsReview", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 71
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 72
+    testRunner.Given("a deliverable with status \"IN_PROGRESS\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 73
+    testRunner.When("I transition the deliverable status to \"NEEDS_REVIEW\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 74
+    testRunner.Then("the deliverable status should be \"NEEDS_REVIEW\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition deliverable status to Failed")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition deliverable status to Failed")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionDeliverableStatusToFailed()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition deliverable status to Failed", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 77
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 78
+    testRunner.Given("a deliverable with status \"IN_PROGRESS\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 79
+    testRunner.When("I transition the deliverable status to \"FAILED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 80
+    testRunner.Then("the deliverable status should be \"FAILED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Transition deliverable status to Rejected")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Transition deliverable status to Rejected")]
+        [Xunit.TraitAttribute("Category", "transition_status")]
+        public virtual void TransitionDeliverableStatusToRejected()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "transition_status"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition deliverable status to Rejected", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 83
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 84
+    testRunner.Given("a deliverable with status \"NEEDS_REVIEW\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 85
+    testRunner.When("I transition the deliverable status to \"REJECTED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 86
+    testRunner.Then("the deliverable status should be \"REJECTED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing deliverable")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Delete an existing deliverable")]
+        [Xunit.TraitAttribute("Category", "delete")]
+        public virtual void DeleteAnExistingDeliverable()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "delete"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing deliverable", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 89
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 90
+    testRunner.Given("a deliverable \"To Delete\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 91
+    testRunner.When("I delete the deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 92
+    testRunner.Then("the deliverable should be deleted successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 93
+    testRunner.And("the deliverable should not exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Query deliverable by id")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Query deliverable by id")]
+        [Xunit.TraitAttribute("Category", "query")]
+        public virtual void QueryDeliverableById()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "query"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Query deliverable by id", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 96
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 97
+    testRunner.Given("a deliverable \"Query Test\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 98
+    testRunner.When("I query the deliverable by id", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 99
+    testRunner.Then("the deliverable should be returned with correct data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Query deliverables by project id")]
+        [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
+        [Xunit.TraitAttribute("Description", "Query deliverables by project id")]
+        [Xunit.TraitAttribute("Category", "query")]
+        public virtual void QueryDeliverablesByProjectId()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "query"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Query deliverables by project id", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 102
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 103
+    testRunner.Given("a deliverable \"Project Query Test\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 104
+    testRunner.When("I query deliverables by project id", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 105
+    testRunner.Then("the deliverables list should contain the created deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -288,12 +845,12 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             
             public FixtureData()
             {
-                FeatureMutationsFeature.FeatureSetup();
+                DeliverableMutationsFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                FeatureMutationsFeature.FeatureTearDown();
+                DeliverableMutationsFeature.FeatureTearDown();
             }
         }
     }

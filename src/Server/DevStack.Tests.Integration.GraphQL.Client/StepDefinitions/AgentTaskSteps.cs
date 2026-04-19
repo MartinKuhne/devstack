@@ -13,92 +13,107 @@ public sealed class AgentTaskSteps
     private readonly ScenarioContext _scenarioContext;
     private readonly HttpClient _httpClient;
 
-    private static bool HasErrors(JsonElement response, string mutationName)
-    {
-        var errors = response.GetProperty("data").GetProperty(mutationName).GetProperty("errors");
-        return errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0;
-    }
-
     public AgentTaskSteps(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
         _httpClient = SpecFlowHooks.GetHttpClient(scenarioContext);
     }
 
- [Given(@"a deliverable exists")]
-    public void GivenADeliverableExists()
+    private static bool HasErrors(JsonElement response, string mutationName)
     {
-        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        var mutation = new
-        {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors } }",
-            variables = new { input = new { projectId, title = "Parent Deliverable", type = "Feature", description = (string?)null, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null, initialStatus = "PLANNING" } },
-            operationName = "CreateDeliverable"
-        };
-
-        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
-        var content = response.Content.ReadAsStringAsync().Result;
-        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var deliverableId = result.GetProperty("data").GetProperty("createDeliverable").GetProperty("deliverable").GetProperty("id").ToString();
-        _scenarioContext["DeliverableId"] = deliverableId;
+        var errors = response.GetProperty("data").GetProperty(mutationName).GetProperty("errors");
+        return errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0;
     }
 
-    [Given(@"a (?:task|agent task) ""(.*)"" exists")]
-    public void GivenATaskExists(string title)
-    {
-        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
-        CreateTask(deliverableId, title, 1);
-    }
-
-    [Given(@"a (?:task|agent task) with status ""(.*)"" exists")]
-    public void GivenATaskWithStatusExists(string status)
-    {
-        var deliverableIdObj = _scenarioContext["DeliverableId"];
-        var deliverableId = deliverableIdObj?.ToString() ?? throw new InvalidOperationException($"DeliverableId not set. Value: {deliverableIdObj ?? (object)"null"}");
-        CreateTask(deliverableId, "Test Task", 1);
-    }
-
-    [When(@"I create a (?:task|agent task) with title ""(.*)"" and complexity rating (.*)")]
-    public void WhenICreateATaskWithComplexityRating(string title, int complexityRating)
+    [Given(@"an agent task ""(.*)"" exists")]
+    public void GivenAnAgentTaskExists(string title)
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
-        CreateTask(deliverableId, title, complexityRating);
-        var mutation = new
-        {
-            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { deliverableId, title, complexityRating, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
-            operationName = "CreateAgentTask"
-        };
+        CreateAgentTask(deliverableId, title, 5);
+    }
 
-        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
-        var content = response.Content.ReadAsStringAsync().Result;
-        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var data = result.GetProperty("data");
-        var createAgentTask = data.GetProperty("createAgentTask");
-        var errors = createAgentTask.GetProperty("errors");
-        if (errors.GetArrayLength() > 0)
+    [Given(@"an agent task with status ""(.*)"" exists")]
+    public void GivenAnAgentTaskWithStatusExists(string status)
+    {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        CreateAgentTask(deliverableId, "Test Task", 5);
+        var targetStatus = MapAgentTaskStatus(status);
+        if (targetStatus != "READY")
         {
-            var errorMessages = new StringBuilder();
-            foreach (var error in errors.EnumerateArray())
-            {
-                errorMessages.Append(error.GetString()!);
-            }
-            throw new InvalidOperationException($"CreateAgentTask failed: {errorMessages}");
+            TransitionToTargetStatus(deliverableId, targetStatus);
         }
-        var agentTask = createAgentTask.GetProperty("agentTask");
-        var taskId = agentTask.GetProperty("id").ToString();
-        _scenarioContext["AgentTaskId"] = taskId;
-        _scenarioContext["Response"] = result;
     }
 
-    private void CreateTask(string deliverableId, string title, int complexityRating)
+    private void TransitionToTargetStatus(string deliverableId, string targetStatus)
     {
+        var currentStatus = "READY";
+        
+        while (currentStatus != targetStatus)
+        {
+            string nextStatus;
+            if (currentStatus == "READY")
+            {
+                if (targetStatus == "IN_PROGRESS" || targetStatus == "FAILED" || targetStatus == "REJECTED")
+                {
+                    nextStatus = targetStatus;
+                }
+                else if (targetStatus == "NEEDS_REVIEW" || targetStatus == "DONE")
+                {
+                    nextStatus = "IN_PROGRESS";
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Cannot transition from {currentStatus} to {targetStatus}");
+                }
+            }
+            else if (currentStatus == "IN_PROGRESS")
+            {
+                if (targetStatus == "NEEDS_REVIEW")
+                {
+                    nextStatus = "NEEDS_REVIEW";
+                }
+                else if (targetStatus == "FAILED" || targetStatus == "REJECTED")
+                {
+                    nextStatus = targetStatus;
+                }
+                else if (targetStatus == "DONE")
+                {
+                    nextStatus = "NEEDS_REVIEW";
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Cannot transition from {currentStatus} to {targetStatus}");
+                }
+            }
+            else if (currentStatus == "NEEDS_REVIEW")
+            {
+                if (targetStatus == "IN_PROGRESS" || targetStatus == "DONE" || targetStatus == "REJECTED")
+                {
+                    nextStatus = targetStatus;
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Cannot transition from {currentStatus} to {targetStatus}");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException($"Cannot transition from {currentStatus} to {targetStatus}");
+            }
+            
+            TransitionAgentTask(deliverableId, nextStatus);
+            currentStatus = nextStatus;
+        }
+    }
+
+    private void TransitionAgentTask(string deliverableId, string targetStatus)
+    {
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { deliverableId, title, complexityRating, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
-            operationName = "CreateAgentTask"
+            query = @"mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) { transitionAgentTaskStatus(input: $input) { agentTask { id status } errors } }",
+            variables = new { input = new { id = taskId, targetStatus, actor = "test-user" } },
+            operationName = "TransitionAgentTaskStatus"
         };
 
         var contentBody = JsonSerializer.Serialize(mutation);
@@ -109,19 +124,101 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var data = result.GetProperty("data");
-        var createAgentTask = data.GetProperty("createAgentTask");
-        var errors = createAgentTask.GetProperty("errors");
-        if (errors.GetArrayLength() > 0)
+        var transitionResponse = result.GetProperty("data").GetProperty("transitionAgentTaskStatus");
+        var errors = transitionResponse.GetProperty("errors");
+        if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
         {
             var errorMessages = new StringBuilder();
             foreach (var error in errors.EnumerateArray())
             {
-                errorMessages.Append(error.GetString()!);
+                errorMessages.Append(error.GetString());
             }
-            throw new InvalidOperationException($"CreateAgentTask failed: {errorMessages}");
+            throw new InvalidOperationException($"TransitionAgentTaskStatus failed: {errorMessages}");
         }
-        var agentTask = createAgentTask.GetProperty("agentTask");
+        var agentTask = transitionResponse.GetProperty("agentTask");
+        if (agentTask.ValueKind == JsonValueKind.Null)
+        {
+            throw new InvalidOperationException("TransitionAgentTaskStatus returned null agentTask. Response: " + content);
+        }
+    }
+
+    [Given(@"the agent task has errors set")]
+    public void GivenTheAgentTaskHasErrorsSet()
+    {
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
+        var mutation = new
+        {
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = "Test error message", commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            operationName = "UpdateAgentTask"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
+        }
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        var errors = result.GetProperty("data").GetProperty("updateAgentTask").GetProperty("errors");
+        if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
+        {
+            var errorMessages = new StringBuilder();
+            foreach (var error in errors.EnumerateArray())
+            {
+                errorMessages.Append(error.GetString());
+            }
+            throw new InvalidOperationException($"UpdateAgentTask failed: {errorMessages}");
+        }
+    }
+
+    [Given(@"the agent task has result set")]
+    public void GivenTheAgentTaskHasResultSet()
+    {
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
+        var mutation = new
+        {
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            variables = new { input = new { id = taskId, title = (string?)null, result = "Task completed successfully", errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            operationName = "UpdateAgentTask"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
+        }
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        var errors = result.GetProperty("data").GetProperty("updateAgentTask").GetProperty("errors");
+        if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
+        {
+            var errorMessages = new StringBuilder();
+            foreach (var error in errors.EnumerateArray())
+            {
+                errorMessages.Append(error.GetString());
+            }
+            throw new InvalidOperationException($"UpdateAgentTask failed: {errorMessages}");
+        }
+    }
+
+    private void CreateAgentTask(string deliverableId, string title, int complexityRating)
+    {
+        var mutation = new
+        {
+            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
+            variables = new { input = new { deliverableId, title, complexityRating, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            operationName = "CreateAgentTask"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
+        }
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        var agentTask = result.GetProperty("data").GetProperty("createAgentTask").GetProperty("agentTask");
         if (agentTask.ValueKind == JsonValueKind.Null)
         {
             throw new InvalidOperationException("CreateAgentTask returned null agentTask");
@@ -130,37 +227,155 @@ public sealed class AgentTaskSteps
         _scenarioContext["AgentTaskId"] = taskId;
     }
 
-    [When(@"I update the (?:task|agent task) title to ""(.*)"" and complexity rating to (.*)")]
-    public void WhenIUpdateTheTaskTitleAndComplexity(string title, int complexityRating)
+    [When(@"I create an agent task with title ""(.*)"" and complexity rating (.*)")]
+    public void WhenICreateAnAgentTaskWithTitleAndComplexityRating(string title, int complexityRating)
+    {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, null, null, null, null, null, null, null, null);
+    }
+
+    [When(@"I create an agent task with title ""(.*)"" complexity (.*) result ""(.*)"" errors (.*) commit hash ""(.*)"" model ""(.*)""")]
+    public void WhenICreateAnAgentTaskWithAllFields(string title, int complexityRating, string? result, string? errors, string? commitHash, string? model)
+    {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, result, errors, commitHash, null, null, null, null, model);
+    }
+
+    [When(@"I create an agent task with title ""(.*)"" complexity (.*) and depends on ""(.*)""")]
+    public void WhenICreateAnAgentTaskWithDependency(string title, int complexityRating, string dependencyTitle)
+    {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        var dependencyTaskId = _scenarioContext.Get<string>("AgentTaskId") ?? "";
+        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, null, null, null, dependencyTaskId, null, null, null, null);
+    }
+
+    private void CreateAgentTaskWithFullFields(string deliverableId, string title, int complexityRating, string? result, string? errors, string? commitHash, string? dependsOnDevTask, int? promptTokens, int? completionTokens, int? executionDurationInSeconds, string? model)
+    {
+        var mutation = new
+        {
+            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
+            variables = new { input = new { deliverableId, title, complexityRating, result, errors, commitHash, dependsOnDevTask, promptTokens, completionTokens, executionDurationInSeconds, model } },
+            operationName = "CreateAgentTask"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
+        }
+        var resultJson = JsonSerializer.Deserialize<JsonElement>(content)!;
+        var createResult = resultJson.GetProperty("data").GetProperty("createAgentTask");
+        var errs = createResult.GetProperty("errors");
+        if (errs.ValueKind != JsonValueKind.Null && errs.GetArrayLength() > 0)
+        {
+            var errorMessages = new StringBuilder();
+            foreach (var error in errs.EnumerateArray())
+            {
+                errorMessages.Append(error.GetString());
+            }
+            throw new InvalidOperationException($"CreateAgentTask failed: {errorMessages}");
+        }
+        var agentTask = createResult.GetProperty("agentTask");
+        if (agentTask.ValueKind == JsonValueKind.Null)
+        {
+            throw new InvalidOperationException("CreateAgentTask returned null agentTask");
+        }
+        var taskId = agentTask.GetProperty("id").ToString();
+        _scenarioContext["AgentTaskId"] = taskId;
+        _scenarioContext["Response"] = resultJson;
+    }
+
+    [When(@"I update the agent task title to ""(.*)""")]
+    public void WhenIUpdateTheAgentTaskTitleTo(string title)
     {
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { id = taskId, title, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            variables = new { input = new { id = taskId, title, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
             operationName = "UpdateAgentTask"
         };
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
-        var result = JsonSerializer.Deserialize<JsonElement>(content);
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
         _scenarioContext["Response"] = result;
     }
 
-    [When(@"I transition the (?:task|agent task) status to ""(.*)""")]
-    public void WhenITransitionTheTaskStatusTo(string targetStatus)
+    [When(@"I update the agent task complexity rating to (.*)")]
+    public void WhenIUpdateTheAgentTaskComplexityRatingTo(int complexityRating)
     {
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
-        var targetStatusMapped = targetStatus switch
+        var mutation = new
         {
-            "DONE" or "Done" => "DONE",
-            "FAILED" or "Failed" => "FAILED",
-            "REJECTED" or "Rejected" => "REJECTED",
-            "NEEDSREVIEW" or "NeedsReview" or "Needs Review" => "NEEDS_REVIEW",
-            "INPROGRESS" or "InProgress" or "In Progress" => "IN_PROGRESS",
-            "READY" or "Ready" => "READY",
-            _ => targetStatus.ToUpperInvariant().Replace(" ", "_")
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            operationName = "UpdateAgentTask"
         };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I update the agent task result to ""(.*)""")]
+    public void WhenIUpdateTheAgentTaskResultTo(string resultValue)
+    {
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
+        var mutation = new
+        {
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            variables = new { input = new { id = taskId, title = (string?)null, result = resultValue, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            operationName = "UpdateAgentTask"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I update the agent task commit hash to ""(.*)""")]
+    public void WhenIUpdateTheAgentTaskCommitHashTo(string commitHash)
+    {
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
+        var mutation = new
+        {
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            operationName = "UpdateAgentTask"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I update the agent task model to ""(.*)""")]
+    public void WhenIUpdateTheAgentTaskModelTo(string model)
+    {
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
+        var mutation = new
+        {
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model } },
+            operationName = "UpdateAgentTask"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I transition the agent task status to ""(.*)""")]
+    public void WhenITransitionTheAgentTaskStatusTo(string targetStatus)
+    {
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
+        var targetStatusMapped = MapAgentTaskStatus(targetStatus);
         var mutation = new
         {
             query = @"mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) { transitionAgentTaskStatus(input: $input) { agentTask { id status } errors } }",
@@ -176,28 +391,22 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var data = result.GetProperty("data");
-        var transitionResponse = data.GetProperty("transitionAgentTaskStatus");
+        var transitionResponse = result.GetProperty("data").GetProperty("transitionAgentTaskStatus");
         var errors = transitionResponse.GetProperty("errors");
         if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
         {
             var errorMessages = new StringBuilder();
             foreach (var error in errors.EnumerateArray())
             {
-                errorMessages.Append(error.GetString()!);
+                errorMessages.Append(error.GetString());
             }
             throw new InvalidOperationException($"TransitionAgentTaskStatus failed: {errorMessages}");
-        }
-        var agentTask = transitionResponse.GetProperty("agentTask");
-        if (agentTask.ValueKind == JsonValueKind.Null)
-        {
-            throw new InvalidOperationException("TransitionAgentTaskStatus returned null agentTask. Response: " + content);
         }
         _scenarioContext["Response"] = result;
     }
 
-    [When(@"I delete the (?:task|agent task)")]
-    public void WhenIDeleteTheTask()
+    [When(@"I delete the agent task")]
+    public void WhenIDeleteTheAgentTask()
     {
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
@@ -209,33 +418,67 @@ public sealed class AgentTaskSteps
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
-        var result = JsonSerializer.Deserialize<JsonElement>(content);
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
         _scenarioContext["Response"] = result;
     }
 
-    [Then(@"the (?:task|agent task) should be created successfully")]
-    public void ThenTheTaskShouldBeCreatedSuccessfully()
+    [When(@"I query the agent task by id")]
+    public void WhenIQueryTheAgentTaskById()
+    {
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
+        var query = new
+        {
+            query = @"query GetAgentTaskById($id: UUID!) { agentTaskById(id: $id) { id title status complexityRating } }",
+            variables = new { id = taskId },
+            operationName = "GetAgentTaskById"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I query agent tasks by deliverable id")]
+    public void WhenIQueryAgentTasksByDeliverableId()
+    {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        var query = new
+        {
+            query = @"query GetAgentTasksByDeliverableId($deliverableId: UUID!) { agentTasksByDeliverableId(deliverableId: $deliverableId) { id title status } }",
+            variables = new { deliverableId },
+            operationName = "GetAgentTasksByDeliverableId"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [Then(@"the agent task should be created successfully")]
+    public void ThenTheAgentTaskShouldBeCreatedSuccessfully()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
         HasErrors(response, "createAgentTask").Should().BeFalse("errors should be empty");
     }
 
-    [Then(@"the (?:task|agent task) should be updated successfully")]
-    public void ThenTheTaskShouldBeUpdatedSuccessfully()
+    [Then(@"the agent task should be updated successfully")]
+    public void ThenTheAgentTaskShouldBeUpdatedSuccessfully()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
         HasErrors(response, "updateAgentTask").Should().BeFalse("errors should be empty");
     }
 
-    [Then(@"the (?:task|agent task) should be deleted successfully")]
-    public void ThenTheTaskShouldBeDeletedSuccessfully()
+    [Then(@"the agent task should be deleted successfully")]
+    public void ThenTheAgentTaskShouldBeDeletedSuccessfully()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
         HasErrors(response, "deleteAgentTask").Should().BeFalse("errors should be empty");
     }
 
-   [Then(@"the (?:task|agent task) should exist in the database")]
-    public void ThenTheTaskShouldExistInTheDatabase()
+    [Then(@"the agent task should exist in the database")]
+    public void ThenTheAgentTaskShouldExistInTheDatabase()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
         var agentTask = response.GetProperty("data").GetProperty("createAgentTask").GetProperty("agentTask");
@@ -245,27 +488,18 @@ public sealed class AgentTaskSteps
         _scenarioContext["AgentTaskId"] = taskId;
     }
 
-    [Then(@"the (?:task|agent task) status should be ""(.*)""")]
-    public void ThenTheTaskStatusShouldBe(string expectedStatus)
+    [Then(@"the agent task status should be ""(.*)""")]
+    public void ThenTheAgentTaskStatusShouldBe(string expectedStatus)
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
         var agentTask = response.GetProperty("data").GetProperty("transitionAgentTaskStatus").GetProperty("agentTask");
         var status = agentTask.GetProperty("status").ToString();
-        var expectedMapped = expectedStatus switch
-        {
-            "DONE" or "Done" => "DONE",
-            "FAILED" or "Failed" => "FAILED",
-            "REJECTED" or "Rejected" => "REJECTED",
-            "NEEDSREVIEW" or "NeedsReview" or "Needs Review" => "NEEDS_REVIEW",
-            "INPROGRESS" or "InProgress" or "In Progress" => "IN_PROGRESS",
-            "READY" or "Ready" => "READY",
-            _ => expectedStatus.ToUpperInvariant().Replace(" ", "_")
-        };
+        var expectedMapped = MapAgentTaskStatus(expectedStatus);
         status.Should().BeEquivalentTo(expectedMapped);
     }
 
-    [Then(@"the (?:task|agent task) should not exist in the database")]
-    public void ThenTheTaskShouldNotExistInDatabase()
+    [Then(@"the agent task should not exist in the database")]
+    public void ThenTheAgentTaskShouldNotExistInDatabase()
     {
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var query = new
@@ -277,8 +511,53 @@ public sealed class AgentTaskSteps
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
-        var result = JsonSerializer.Deserialize<JsonElement>(content);
-        var agentTask = result!.GetProperty("data").GetProperty("agentTaskById");
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        var agentTask = result.GetProperty("data").GetProperty("agentTaskById");
         agentTask.ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Then(@"the agent task should be returned with correct data")]
+    public void ThenTheAgentTaskShouldBeReturnedWithCorrectData()
+    {
+        var response = (JsonElement)_scenarioContext["Response"]!;
+        var agentTask = response.GetProperty("data").GetProperty("agentTaskById");
+        agentTask.ValueKind.Should().NotBe(JsonValueKind.Null);
+        var taskId = agentTask.GetProperty("id").ToString();
+        taskId.Should().NotBeNullOrEmpty();
+        taskId.Should().Be(_scenarioContext["AgentTaskId"]?.ToString());
+    }
+
+    [Then(@"the agent tasks list should contain the created task")]
+    public void ThenTheAgentTasksListShouldContainTheCreatedTask()
+    {
+        var response = (JsonElement)_scenarioContext["Response"]!;
+        var tasks = response.GetProperty("data").GetProperty("agentTasksByDeliverableId");
+        tasks.ValueKind.Should().Be(JsonValueKind.Array);
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString();
+        var found = false;
+        foreach (var t in tasks.EnumerateArray())
+        {
+            if (t.GetProperty("id").ToString() == taskId)
+            {
+                found = true;
+                break;
+            }
+        }
+        found.Should().BeTrue("The agent tasks list should contain the created task");
+    }
+
+    private static string MapAgentTaskStatus(string status)
+    {
+        var lower = status.ToLowerInvariant();
+        return lower switch
+        {
+            "ready" => "READY",
+            "in_progress" or "inprogress" or "in progress" => "IN_PROGRESS",
+            "done" => "DONE",
+            "failed" => "FAILED",
+            "rejected" => "REJECTED",
+            "needs_review" or "needsreview" or "needs review" => "NEEDS_REVIEW",
+            _ => status.ToUpperInvariant().Replace(" ", "_")
+        };
     }
 }

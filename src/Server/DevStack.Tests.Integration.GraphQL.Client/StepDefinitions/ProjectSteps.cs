@@ -3,8 +3,6 @@ using System.Text;
 using System.Text.Json;
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using StrawberryShake;
 using TechTalk.SpecFlow;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.StepDefinitions;
@@ -38,7 +36,7 @@ public sealed class ProjectSteps
         var mutation = new
         {
             query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors } }",
-            variables = new { input = new { name, description = (string?)null, repository = string.Empty } },
+            variables = new { input = new { name, description = (string?)null, repository = (string?)null } },
             operationName = "CreateProject"
         };
 
@@ -57,7 +55,27 @@ public sealed class ProjectSteps
         var mutation = new
         {
             query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors } }",
-            variables = new { input = new { name, description, repository = string.Empty } },
+            variables = new { input = new { name, description, repository = (string?)null } },
+            operationName = "CreateProject"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+
+        var projectData = result.GetProperty("data").GetProperty("createProject").GetProperty("project");
+        var projectId = projectData.GetProperty("id").ToString();
+        _scenarioContext["ProjectId"] = projectId;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I create a project with name ""(.*)"" and no description")]
+    public void WhenICreateAProjectWithNameAndNoDescription(string name)
+    {
+        var mutation = new
+        {
+            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors } }",
+            variables = new { input = new { name, description = (string?)null, repository = (string?)null } },
             operationName = "CreateProject"
         };
 
@@ -88,6 +106,40 @@ public sealed class ProjectSteps
         _scenarioContext["Response"] = result;
     }
 
+    [When(@"I update the project description to ""(.*)""")]
+    public void WhenIUpdateTheProjectDescriptionTo(string description)
+    {
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
+        var mutation = new
+        {
+            query = @"mutation UpdateProject($input: UpdateProjectInput!) { updateProject(input: $input) { project { id } errors } }",
+            variables = new { input = new { id = projectId, name = (string?)null, description, repository = (string?)null } },
+            operationName = "UpdateProject"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I update the project repository to ""(.*)""")]
+    public void WhenIUpdateTheProjectRepositoryTo(string repository)
+    {
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
+        var mutation = new
+        {
+            query = @"mutation UpdateProject($input: UpdateProjectInput!) { updateProject(input: $input) { project { id } errors } }",
+            variables = new { input = new { id = projectId, name = (string?)null, description = (string?)null, repository } },
+            operationName = "UpdateProject"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
     [When(@"I delete the project")]
     public void WhenIDeleteTheProject()
     {
@@ -100,6 +152,23 @@ public sealed class ProjectSteps
         };
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [When(@"I query the project by id")]
+    public void WhenIQueryTheProjectById()
+    {
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
+        var query = new
+        {
+            query = @"query GetProjectById($id: UUID!) { projectById(id: $id) { id name description repository } }",
+            variables = new { id = projectId },
+            operationName = "GetProjectById"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
         _scenarioContext["Response"] = result;
@@ -153,5 +222,16 @@ public sealed class ProjectSteps
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
         var project = result.GetProperty("data").GetProperty("projectById");
         project.ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Then(@"the project should be returned with correct data")]
+    public void ThenTheProjectShouldBeReturnedWithCorrectData()
+    {
+        var response = (JsonElement)_scenarioContext["Response"]!;
+        var project = response.GetProperty("data").GetProperty("projectById");
+        project.ValueKind.Should().NotBe(JsonValueKind.Null);
+        var projectId = project.GetProperty("id").ToString();
+        projectId.Should().NotBeNullOrEmpty();
+        projectId.Should().Be(_scenarioContext["ProjectId"]?.ToString());
     }
 }

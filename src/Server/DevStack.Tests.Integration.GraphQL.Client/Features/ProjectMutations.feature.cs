@@ -90,16 +90,16 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Create a new project")]
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new project with name and description")]
         [Xunit.TraitAttribute("FeatureTitle", "Project Mutations")]
-        [Xunit.TraitAttribute("Description", "Create a new project")]
+        [Xunit.TraitAttribute("Description", "Create a new project with name and description")]
         [Xunit.TraitAttribute("Category", "create")]
-        public virtual void CreateANewProject()
+        public virtual void CreateANewProjectWithNameAndDescription()
         {
             string[] tagsOfScenario = new string[] {
                     "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new project", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new project with name and description", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 10
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -136,16 +136,16 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Update an existing project")]
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new project with minimal data")]
         [Xunit.TraitAttribute("FeatureTitle", "Project Mutations")]
-        [Xunit.TraitAttribute("Description", "Update an existing project")]
-        [Xunit.TraitAttribute("Category", "update")]
-        public virtual void UpdateAnExistingProject()
+        [Xunit.TraitAttribute("Description", "Create a new project with minimal data")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateANewProjectWithMinimalData()
         {
             string[] tagsOfScenario = new string[] {
-                    "update"};
+                    "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an existing project", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new project with minimal data", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 16
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -170,28 +170,28 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 17
-    testRunner.Given("a project \"Original Name\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I create a project with name \"Minimal Project\" and no description", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 18
-    testRunner.When("I update the project name to \"Updated Name\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the project should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 19
-    testRunner.Then("the project should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the project should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing project")]
+        [Xunit.SkippableFactAttribute(DisplayName="Update an existing project name")]
         [Xunit.TraitAttribute("FeatureTitle", "Project Mutations")]
-        [Xunit.TraitAttribute("Description", "Delete an existing project")]
-        [Xunit.TraitAttribute("Category", "delete")]
-        public virtual void DeleteAnExistingProject()
+        [Xunit.TraitAttribute("Description", "Update an existing project name")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateAnExistingProjectName()
         {
             string[] tagsOfScenario = new string[] {
-                    "delete"};
+                    "update"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing project", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an existing project name", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 22
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -216,16 +216,200 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 23
-    testRunner.Given("a project \"To Delete\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.Given("a project \"Original Name\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 24
-    testRunner.When("I delete the project", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I update the project name to \"Updated Name\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 25
+    testRunner.Then("the project should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update an existing project description")]
+        [Xunit.TraitAttribute("FeatureTitle", "Project Mutations")]
+        [Xunit.TraitAttribute("Description", "Update an existing project description")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateAnExistingProjectDescription()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an existing project description", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 28
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 29
+    testRunner.Given("a project \"Original Description\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 30
+    testRunner.When("I update the project description to \"New description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 31
+    testRunner.Then("the project should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update an existing project repository")]
+        [Xunit.TraitAttribute("FeatureTitle", "Project Mutations")]
+        [Xunit.TraitAttribute("Description", "Update an existing project repository")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateAnExistingProjectRepository()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an existing project repository", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 34
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 35
+    testRunner.Given("a project \"Original Repo\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 36
+    testRunner.When("I update the project repository to \"https://github.com/test/repo\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 37
+    testRunner.Then("the project should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing project")]
+        [Xunit.TraitAttribute("FeatureTitle", "Project Mutations")]
+        [Xunit.TraitAttribute("Description", "Delete an existing project")]
+        [Xunit.TraitAttribute("Category", "delete")]
+        public virtual void DeleteAnExistingProject()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "delete"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing project", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 40
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 41
+    testRunner.Given("a project \"To Delete\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 42
+    testRunner.When("I delete the project", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 43
     testRunner.Then("the project should be deleted successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 26
+#line 44
     testRunner.And("the project should not exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Query project by id")]
+        [Xunit.TraitAttribute("FeatureTitle", "Project Mutations")]
+        [Xunit.TraitAttribute("Description", "Query project by id")]
+        [Xunit.TraitAttribute("Category", "query")]
+        public virtual void QueryProjectById()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "query"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Query project by id", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 47
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 48
+    testRunner.Given("a project \"Query Test\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 49
+    testRunner.When("I query the project by id", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 50
+    testRunner.Then("the project should be returned with correct data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();

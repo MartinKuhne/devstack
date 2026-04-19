@@ -90,16 +90,16 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Create a new large language model")]
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new large language model with required fields")]
         [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
-        [Xunit.TraitAttribute("Description", "Create a new large language model")]
+        [Xunit.TraitAttribute("Description", "Create a new large language model with required fields")]
         [Xunit.TraitAttribute("Category", "create")]
-        public virtual void CreateANewLargeLanguageModel()
+        public virtual void CreateANewLargeLanguageModelWithRequiredFields()
         {
             string[] tagsOfScenario = new string[] {
                     "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new large language model", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new large language model with required fields", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 10
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -124,8 +124,8 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 11
-    testRunner.When("I create a large language model with url \"https://api.example.com\" and model \"gpt" +
-                        "-4\" and api key \"test-key-123\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I create a large language model with url \"https://api.example.com\" model \"gpt-4\" " +
+                        "api key \"test-key-123\" and max complexity 10", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 12
     testRunner.Then("the large language model should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
@@ -137,16 +137,16 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Update an existing large language model")]
+        [Xunit.SkippableFactAttribute(DisplayName="Create a large language model with model alias")]
         [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
-        [Xunit.TraitAttribute("Description", "Update an existing large language model")]
-        [Xunit.TraitAttribute("Category", "update")]
-        public virtual void UpdateAnExistingLargeLanguageModel()
+        [Xunit.TraitAttribute("Description", "Create a large language model with model alias")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateALargeLanguageModelWithModelAlias()
         {
             string[] tagsOfScenario = new string[] {
-                    "update"};
+                    "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an existing large language model", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a large language model with model alias", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 16
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -171,28 +171,29 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 17
-    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I create a large language model with url \"https://api.openai.com/v1\" model \"gpt-4" +
+                        "-turbo\" api key \"key-456\" max complexity 8 and alias \"Turbo Model\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 18
-    testRunner.When("I update the large language model model alias to \"Updated Alias\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the large language model should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 19
-    testRunner.Then("the large language model should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the large language model should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing large language model")]
+        [Xunit.SkippableFactAttribute(DisplayName="Create a large language model with max concurrency")]
         [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
-        [Xunit.TraitAttribute("Description", "Delete an existing large language model")]
-        [Xunit.TraitAttribute("Category", "delete")]
-        public virtual void DeleteAnExistingLargeLanguageModel()
+        [Xunit.TraitAttribute("Description", "Create a large language model with max concurrency")]
+        [Xunit.TraitAttribute("Category", "create")]
+        public virtual void CreateALargeLanguageModelWithMaxConcurrency()
         {
             string[] tagsOfScenario = new string[] {
-                    "delete"};
+                    "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing large language model", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a large language model with max concurrency", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 22
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -217,16 +218,385 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
   this.FeatureBackground();
 #line hidden
 #line 23
-    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I create a large language model with url \"https://api.anthropic.com\" model \"claud" +
+                        "e-3\" api key \"sk-ant-123\" max complexity 10 and max concurrency 5", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 24
-    testRunner.When("I delete the large language model", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the large language model should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 25
+    testRunner.And("the large language model should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update a large language model model alias")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Update a large language model model alias")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateALargeLanguageModelModelAlias()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update a large language model model alias", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 28
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 29
+    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 30
+    testRunner.When("I update the large language model model alias to \"Updated Alias\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 31
+    testRunner.Then("the large language model should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update a large language model url")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Update a large language model url")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateALargeLanguageModelUrl()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update a large language model url", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 34
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 35
+    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 36
+    testRunner.When("I update the large language model url to \"https://new-api.example.com\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 37
+    testRunner.Then("the large language model should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update a large language model model name")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Update a large language model model name")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateALargeLanguageModelModelName()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update a large language model model name", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 40
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 41
+    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 42
+    testRunner.When("I update the large language model model name to \"gpt-4-turbo\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 43
+    testRunner.Then("the large language model should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update a large language model max complexity")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Update a large language model max complexity")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateALargeLanguageModelMaxComplexity()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update a large language model max complexity", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 46
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 47
+    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 48
+    testRunner.When("I update the large language model max complexity to 8", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 49
+    testRunner.Then("the large language model should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Update a large language model max concurrency")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Update a large language model max concurrency")]
+        [Xunit.TraitAttribute("Category", "update")]
+        public virtual void UpdateALargeLanguageModelMaxConcurrency()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "update"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update a large language model max concurrency", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 52
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 53
+    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 54
+    testRunner.When("I update the large language model max concurrency to 10", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 55
+    testRunner.Then("the large language model should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing large language model")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Delete an existing large language model")]
+        [Xunit.TraitAttribute("Category", "delete")]
+        public virtual void DeleteAnExistingLargeLanguageModel()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "delete"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing large language model", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 58
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 59
+    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 60
+    testRunner.When("I delete the large language model", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 61
     testRunner.Then("the large language model should be deleted successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 26
+#line 62
     testRunner.And("the large language model should not exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Query large language model by id")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Query large language model by id")]
+        [Xunit.TraitAttribute("Category", "query")]
+        public virtual void QueryLargeLanguageModelById()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "query"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Query large language model by id", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 65
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 66
+    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 67
+    testRunner.When("I query the large language model by id", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 68
+    testRunner.Then("the large language model should be returned with correct data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Query all large language models")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Query all large language models")]
+        [Xunit.TraitAttribute("Category", "query")]
+        public virtual void QueryAllLargeLanguageModels()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "query"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Query all large language models", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 71
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 72
+    testRunner.Given("multiple large language models exist", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 73
+    testRunner.When("I query all large language models", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 74
+    testRunner.Then("the large language models list should contain the created models", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
