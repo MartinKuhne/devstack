@@ -9,6 +9,15 @@ query GetTasks($projectId: UUID!, $first: Int!) {
       risks
       itemId
       projectId
+      result
+      errors
+      commitHash
+      complexityRating
+      dependsOnDevTask
+      promptTokens
+      completionTokens
+      executionDurationInSeconds
+      model
       item {
         id
         title
