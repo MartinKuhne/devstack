@@ -29,8 +29,8 @@ query GetAgentTaskById($id: UUID!) {
     }
 }
 
-query GetAgentTasks($itemId: UUID, $status: [AgentTaskStatus!]) {
-    agentTasks(itemId: $itemId, status: $status) {
+query GetAgentTasks($projectId: UUID, $status: [AgentTaskStatus!]) {
+    agentTasks(itemId: $projectId, status: $status) {
         nodes {
             id
             title

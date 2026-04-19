@@ -1,23 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCreateModelConfigurationMutation } from '@/generated/graphql';
+import { useCreateModelConfigurationMutation, useUpdateModelConfigurationMutation, useDeleteModelConfigurationMutation } from '@/generated/graphql';
 
 interface LargeLanguageModelDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess: () => void;
+    model?: {
+        id: string;
+        model: string;
+        modelAlias?: string;
+        url: string;
+        apiKey?: string;
+        maxComplexity: number;
+    } | null;
 }
 
 export function LargeLanguageModelDialog({
     open,
     onOpenChange,
     onSuccess,
+    model,
 }: LargeLanguageModelDialogProps) {
-    const [model, setModel] = useState('');
+    const isEditMode = !!model;
+    const [modelValue, setModelValue] = useState('');
     const [modelAlias, setModelAlias] = useState('');
     const [url, setUrl] = useState('');
     const [apiKey, setApiKey] = useState('');
@@ -25,10 +35,12 @@ export function LargeLanguageModelDialog({
     const [showApiKey, setShowApiKey] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [createModelConfiguration, { loading }] = useCreateModelConfigurationMutation();
+    const [createModelConfiguration, { loading: createLoading }] = useCreateModelConfigurationMutation();
+    const [updateModelConfiguration, { loading: updateLoading }] = useUpdateModelConfigurationMutation();
+    const [deleteModelConfiguration, { loading: deleteLoading }] = useDeleteModelConfigurationMutation();
 
     const resetForm = () => {
-        setModel('');
+        setModelValue('');
         setModelAlias('');
         setUrl('');
         setApiKey('');
@@ -36,6 +48,20 @@ export function LargeLanguageModelDialog({
         setShowApiKey(false);
         setError(null);
     };
+
+    useEffect(() => {
+        if (open && model) {
+            setModelValue(model.model);
+            setModelAlias(model.modelAlias ?? '');
+            setUrl(model.url);
+            setApiKey(model.apiKey ?? '');
+            setMaxComplexity(model.maxComplexity.toString());
+            setShowApiKey(false);
+            setError(null);
+        } else if (open && !model) {
+            resetForm();
+        }
+    }, [open, model]);
 
     const handleOpenChange = (newOpen: boolean) => {
         if (!newOpen) {
@@ -53,7 +79,7 @@ export function LargeLanguageModelDialog({
         } catch {
             return { valid: false, error: 'Invalid URL format' };
         }
-        if (!model.trim()) {
+        if (!modelValue.trim()) {
             return { valid: false, error: 'Model name is required' };
         }
         if (!apiKey.trim()) {
@@ -77,22 +103,41 @@ export function LargeLanguageModelDialog({
         }
 
         try {
-            const result = await createModelConfiguration({
-                variables: {
-                    input: {
-                        model,
-                        modelAlias: modelAlias || null,
-                        url,
-                        apiKey,
-                        maxComplexity: parseInt(maxComplexity, 10),
+            if (isEditMode && model) {
+                const result = await updateModelConfiguration({
+                    variables: {
+                        input: {
+                            id: model.id,
+                            model: modelValue,
+                            modelAlias: modelAlias || null,
+                            url,
+                            apiKey,
+                            maxComplexity: parseInt(maxComplexity, 10),
+                        },
                     },
-                },
-            });
-
-            const payload = result.data?.createModelConfiguration;
-            if (payload?.errors?.length) {
-                setError(payload.errors.join(', '));
-                return;
+                });
+                const payload = result.data?.updateModelConfiguration;
+                if (payload?.errors?.length) {
+                    setError(payload.errors.join(', '));
+                    return;
+                }
+            } else {
+                const result = await createModelConfiguration({
+                    variables: {
+                        input: {
+                            model: modelValue,
+                            modelAlias: modelAlias || null,
+                            url,
+                            apiKey,
+                            maxComplexity: parseInt(maxComplexity, 10),
+                        },
+                    },
+                });
+                const payload = result.data?.createModelConfiguration;
+                if (payload?.errors?.length) {
+                    setError(payload.errors.join(', '));
+                    return;
+                }
             }
 
             resetForm();
@@ -103,20 +148,49 @@ export function LargeLanguageModelDialog({
         }
     };
 
+    const handleDelete = async () => {
+        if (!model) return;
+        setError(null);
+
+        try {
+            const result = await deleteModelConfiguration({
+                variables: {
+                    input: { id: model.id },
+                },
+            });
+            const payload = result.data?.deleteModelConfiguration;
+            if (payload?.errors?.length) {
+                setError(payload.errors.join(', '));
+                return;
+            }
+            resetForm();
+            onOpenChange(false);
+            onSuccess();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete model');
+        }
+    };
+
+    const isLoading = createLoading || updateLoading || deleteLoading;
+
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Add Large Language Model</DialogTitle>
+                    <DialogTitle>{isEditMode ? 'Edit Large Language Model' : 'Add Large Language Model'}</DialogTitle>
                     <DialogDescription>
-                        Configure a new model endpoint for this project. API keys are encrypted server-side.
+                        {isEditMode
+                            ? 'Update the model endpoint configuration. API keys are encrypted server-side.'
+                            : 'Configure a new model endpoint for this project. API keys are encrypted server-side.'}
                     </DialogDescription>
                 </DialogHeader>
+
+                {error && (
+                    <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
+                )}
+
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
-                        {error && (
-                            <div className="text-sm text-destructive">{error}</div>
-                        )}
                         <div className="grid gap-2">
                             <Label htmlFor="url">Endpoint URL</Label>
                             <Input
@@ -131,8 +205,8 @@ export function LargeLanguageModelDialog({
                             <Label htmlFor="model">Model Name</Label>
                             <Input
                                 id="model"
-                                value={model}
-                                onChange={(e) => setModel(e.target.value)}
+                                value={modelValue}
+                                onChange={(e) => setModelValue(e.target.value)}
                                 placeholder="gpt-4o-mini"
                                 required
                             />
@@ -183,11 +257,24 @@ export function LargeLanguageModelDialog({
                         </div>
                     </div>
                     <DialogFooter>
+                        {isEditMode && (
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                onClick={handleDelete}
+                                disabled={isLoading}
+                                className="mr-auto"
+                            >
+                                {deleteLoading ? 'Deleting...' : 'Delete'}
+                            </Button>
+                        )}
                         <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? 'Creating...' : 'Add Model'}
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading
+                                ? (isEditMode ? 'Updating...' : 'Creating...')
+                                : (isEditMode ? 'Save' : 'Add Model')}
                         </Button>
                     </DialogFooter>
                 </form>

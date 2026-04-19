@@ -1,8 +1,9 @@
 import { Outlet, Link } from 'react-router-dom';
-import { Menu, Moon, Sun, LayoutDashboard, Folder, Brain } from 'lucide-react';
+import { Menu, LayoutDashboard, Folder, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
+import { Header } from '@/components/Header';
 
 function getInitialDarkMode() {
     if (typeof window !== 'undefined') {
@@ -84,21 +85,25 @@ export function AppShell() {
                 {/* Desktop Sidebar */}
                 <aside className="hidden w-64 border-r bg-background md:block">
                     <div className="flex h-16 items-center border-b px-6">
-                        <h1 className="text-xl font-bold">DevStack</h1>
+                        <Link to="/" className="flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                <span className="text-sm font-bold">DS</span>
+                            </div>
+                            <span className="text-sm font-semibold">DevStack</span>
+                        </Link>
                     </div>
                     <SidebarContent />
                 </aside>
 
                 {/* Mobile Sidebar */}
                 <div className="flex-1 flex flex-col">
-                    <header className="flex h-16 items-center justify-between border-b px-4 md:px-6">
-                        <div className="flex items-center gap-4">
+                    <div className="md:hidden border-b">
+                        <div className="flex h-16 items-center justify-between px-4 md:px-6">
                             <Sheet>
                                 <SheetTrigger asChild>
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="md:hidden"
                                         aria-label="Open navigation menu"
                                     >
                                         <Menu className="h-5 w-5" />
@@ -106,27 +111,19 @@ export function AppShell() {
                                 </SheetTrigger>
                                 <SheetContent side="left" className="w-64 p-0" aria-label="Navigation menu">
                                     <div className="flex h-16 items-center border-b px-6">
-                                        <h1 className="text-xl font-bold">DevStack</h1>
+                                        <Link to="/" className="flex items-center gap-2">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                                <span className="text-sm font-bold">DS</span>
+                                            </div>
+                                            <span className="text-sm font-semibold">DevStack</span>
+                                        </Link>
                                     </div>
                                     <SidebarContent />
                                 </SheetContent>
                             </Sheet>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDarkMode(!darkMode)}
-                                aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                            >
-                                {darkMode ? (
-                                    <Sun className="h-5 w-5" />
-                                ) : (
-                                    <Moon className="h-5 w-5" />
-                                )}
-                            </Button>
-                        </div>
-                    </header>
+                    </div>
+                    <Header />
                     <main id="main-content" className="flex-1 p-4 md:p-6">
                         <Outlet />
                     </main>
