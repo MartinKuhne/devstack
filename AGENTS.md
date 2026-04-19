@@ -116,7 +116,7 @@ The following commands succeed without any errors
 ```
 dotnet build src/server
 dotnet test src/server
-docker compose build
+docker compose up --build -d
 ```
 There are no build warnings or errors
 

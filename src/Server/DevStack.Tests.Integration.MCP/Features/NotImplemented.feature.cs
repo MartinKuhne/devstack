@@ -96,7 +96,7 @@ namespace DevStack.Tests.Integration.MCP.Features
             {
                 this.ScenarioStart();
                 testRunner.Given("a resources/read request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I send the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I send the unimplemented request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32601", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the error message should contain \"Method not found\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
@@ -120,7 +120,7 @@ namespace DevStack.Tests.Integration.MCP.Features
             {
                 this.ScenarioStart();
                 testRunner.Given("a prompts/list request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I send the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I send the unimplemented request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32601", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
             }
             this.ScenarioCleanup();
@@ -143,7 +143,7 @@ namespace DevStack.Tests.Integration.MCP.Features
             {
                 this.ScenarioStart();
                 testRunner.Given("a prompts/get request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I send the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I send the unimplemented request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32601", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
             }
             this.ScenarioCleanup();
@@ -166,7 +166,7 @@ namespace DevStack.Tests.Integration.MCP.Features
             {
                 this.ScenarioStart();
                 testRunner.Given("a completion/complete request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I send the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I send the unimplemented request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32601", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
             }
             this.ScenarioCleanup();

@@ -1,5 +1,6 @@
 using TechTalk.SpecFlow;
 using DevStack.Tests.Integration.MCP.Client;
+using DevStack.Tests.Integration.MCP.Hooks;
 using FluentAssertions;
 using System.Text.Json;
 
@@ -9,14 +10,14 @@ namespace DevStack.Tests.Integration.MCP.Steps;
 public sealed class ToolsListSteps
 {
     private readonly ScenarioContext _scenarioContext;
-    private readonly IMcpJsonRpcClient _client;
     private JsonRpcResponse? _response;
 
-    public ToolsListSteps(ScenarioContext scenarioContext, IMcpJsonRpcClient client)
+    public ToolsListSteps(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
-        _client = client;
     }
+
+    private IMcpJsonRpcClient Client => SpecFlowHooks.GetMcpClient(_scenarioContext);
 
     [Given(@"a valid tools/list request")]
     public void GivenAValidToolsListRequest()
@@ -26,7 +27,7 @@ public sealed class ToolsListSteps
     [When(@"I send the tools/list request")]
     public async Task WhenISendTheToolsListRequest()
     {
-        _response = await _client.SendRequestAsync("tools/list", default(CancellationToken));
+        _response = await Client.SendRequestAsync("tools/list", default(CancellationToken));
         _scenarioContext["Response"] = _response;
     }
 
