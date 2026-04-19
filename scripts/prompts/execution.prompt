@@ -1,0 +1,1 @@
+Retrieve AgentTasks in Ready status for the current project and execute the tasks. When the task is complete and quality gates pass, commit the changes and change the AgentTask status to Done. If there were any errors, update the AgentTask with that information and move it to the Failed status.
