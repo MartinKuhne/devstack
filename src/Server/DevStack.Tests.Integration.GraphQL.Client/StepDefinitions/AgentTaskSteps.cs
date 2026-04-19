@@ -157,7 +157,7 @@ public sealed class AgentTaskSteps
             "FAILED" or "Failed" => "FAILED",
             "REJECTED" or "Rejected" => "REJECTED",
             "NEEDSREVIEW" or "NeedsReview" or "Needs Review" => "NEEDS_REVIEW",
-            "INPROGRESS" or "InProgress" => "IN_PROGRESS",
+            "INPROGRESS" or "InProgress" or "In Progress" => "IN_PROGRESS",
             "READY" or "Ready" => "READY",
             _ => targetStatus.ToUpperInvariant().Replace(" ", "_")
         };
@@ -257,9 +257,9 @@ public sealed class AgentTaskSteps
             "FAILED" or "Failed" => "FAILED",
             "REJECTED" or "Rejected" => "REJECTED",
             "NEEDSREVIEW" or "NeedsReview" or "Needs Review" => "NEEDS_REVIEW",
-            "INPROGRESS" or "InProgress" => "IN_PROGRESS",
+            "INPROGRESS" or "InProgress" or "In Progress" => "IN_PROGRESS",
             "READY" or "Ready" => "READY",
-            _ => expectedStatus.ToUpperInvariant()
+            _ => expectedStatus.ToUpperInvariant().Replace(" ", "_")
         };
         status.Should().BeEquivalentTo(expectedMapped);
     }

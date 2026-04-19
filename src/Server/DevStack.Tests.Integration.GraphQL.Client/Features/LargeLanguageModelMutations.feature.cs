@@ -19,7 +19,7 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class DefectMutationsFeature : object, Xunit.IClassFixture<DefectMutationsFeature.FixtureData>, System.IDisposable
+    public partial class LargeLanguageModelMutationsFeature : object, Xunit.IClassFixture<LargeLanguageModelMutationsFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -28,10 +28,10 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-#line 1 "DefectMutations.feature"
+#line 1 "LargeLanguageModelMutations.feature"
 #line hidden
         
-        public DefectMutationsFeature(DefectMutationsFeature.FixtureData fixtureData, DevStack_Tests_Integration_GraphQL_Client_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public LargeLanguageModelMutationsFeature(LargeLanguageModelMutationsFeature.FixtureData fixtureData, DevStack_Tests_Integration_GraphQL_Client_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();
@@ -40,8 +40,8 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Defect Mutations", "  As a DevStack API consumer\r\n  I want to be able to create, update, and delete d" +
-                    "efects\r\n  So that I can manage defect data", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Large Language Model Mutations", "  As a DevStack API consumer\r\n  I want to be able to create, update, and delete l" +
+                    "arge language models\r\n  So that I can manage AI model configurations", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -83,9 +83,6 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
 #line 7
     testRunner.Given("the API is available", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 8
-    testRunner.And("a parent project exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
         }
         
         void System.IDisposable.Dispose()
@@ -93,17 +90,17 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Create a new defect")]
-        [Xunit.TraitAttribute("FeatureTitle", "Defect Mutations")]
-        [Xunit.TraitAttribute("Description", "Create a new defect")]
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new large language model")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Create a new large language model")]
         [Xunit.TraitAttribute("Category", "create")]
-        public virtual void CreateANewDefect()
+        public virtual void CreateANewLargeLanguageModel()
         {
             string[] tagsOfScenario = new string[] {
                     "create"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new defect", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 11
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new large language model", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 10
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -126,30 +123,31 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
 #line 6
   this.FeatureBackground();
 #line hidden
+#line 11
+    testRunner.When("I create a large language model with url \"https://api.example.com\" and model \"gpt" +
+                        "-4\" and api key \"test-key-123\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
 #line 12
-    testRunner.When("I create a defect with title \"Test Defect\" and description \"Defect description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.Then("the large language model should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 13
-    testRunner.Then("the defect should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 14
-    testRunner.And("the defect should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the large language model should exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Update an existing defect")]
-        [Xunit.TraitAttribute("FeatureTitle", "Defect Mutations")]
-        [Xunit.TraitAttribute("Description", "Update an existing defect")]
+        [Xunit.SkippableFactAttribute(DisplayName="Update an existing large language model")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Update an existing large language model")]
         [Xunit.TraitAttribute("Category", "update")]
-        public virtual void UpdateAnExistingDefect()
+        public virtual void UpdateAnExistingLargeLanguageModel()
         {
             string[] tagsOfScenario = new string[] {
                     "update"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an existing defect", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 17
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update an existing large language model", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 16
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -171,77 +169,31 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
                 this.ScenarioStart();
 #line 6
   this.FeatureBackground();
+#line hidden
+#line 17
+    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 18
-    testRunner.Given("a defect \"Original Title\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.When("I update the large language model model alias to \"Updated Alias\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 19
-    testRunner.When("I update the defect title to \"Updated Title\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 20
-    testRunner.Then("the defect should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Then("the large language model should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Transition defect status")]
-        [Xunit.TraitAttribute("FeatureTitle", "Defect Mutations")]
-        [Xunit.TraitAttribute("Description", "Transition defect status")]
-        [Xunit.TraitAttribute("Category", "transition_status")]
-        public virtual void TransitionDefectStatus()
-        {
-            string[] tagsOfScenario = new string[] {
-                    "transition_status"};
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition defect status", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 23
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            bool isScenarioIgnored = default(bool);
-            bool isFeatureIgnored = default(bool);
-            if ((tagsOfScenario != null))
-            {
-                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((this._featureTags != null))
-            {
-                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((isScenarioIgnored || isFeatureIgnored))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 24
-    testRunner.Given("a defect with status \"Planning\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-#line 25
-    testRunner.When("I transition the defect status to \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 26
-    testRunner.Then("the defect status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing defect")]
-        [Xunit.TraitAttribute("FeatureTitle", "Defect Mutations")]
-        [Xunit.TraitAttribute("Description", "Delete an existing defect")]
+        [Xunit.SkippableFactAttribute(DisplayName="Delete an existing large language model")]
+        [Xunit.TraitAttribute("FeatureTitle", "Large Language Model Mutations")]
+        [Xunit.TraitAttribute("Description", "Delete an existing large language model")]
         [Xunit.TraitAttribute("Category", "delete")]
-        public virtual void DeleteAnExistingDefect()
+        public virtual void DeleteAnExistingLargeLanguageModel()
         {
             string[] tagsOfScenario = new string[] {
                     "delete"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing defect", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 29
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Delete an existing large language model", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 22
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -264,17 +216,17 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 30
-    testRunner.Given("a defect \"To Delete\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 23
+    testRunner.Given("a large language model exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 31
-    testRunner.When("I delete the defect", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 24
+    testRunner.When("I delete the large language model", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 32
-    testRunner.Then("the defect should be deleted successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 25
+    testRunner.Then("the large language model should be deleted successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 33
-    testRunner.And("the defect should not exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 26
+    testRunner.And("the large language model should not exist in the database", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -287,12 +239,12 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
             
             public FixtureData()
             {
-                DefectMutationsFeature.FeatureSetup();
+                LargeLanguageModelMutationsFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                DefectMutationsFeature.FeatureTearDown();
+                LargeLanguageModelMutationsFeature.FeatureTearDown();
             }
         }
     }
