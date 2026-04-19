@@ -219,11 +219,6 @@ var item = new Item
         
         var updatedItem = await _dbContext.Items.FindAsync(featureId);
         updatedItem!.Status.Should().Be(FeatureStatus.Ready);
-        
-        var auditEvent = await _dbContext.AuditEvents.FirstOrDefaultAsync();
-        auditEvent.Should().NotBeNull();
-        auditEvent!.EventType.Should().Be("StatusChanged");
-        auditEvent.Actor.Should().Be("operator");
     }
 
     [Fact]

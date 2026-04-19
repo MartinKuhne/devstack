@@ -10,12 +10,13 @@ input CreateDeliverableInput {
   title: String!
   description: String
   acceptanceCriteria: String
-  plan: String
+  agentFeedback: String
+  executionPlan: String
   securityImpact: String
   performanceImpact: String
   testPlan: String
   deploymentPlan: String
-  openQuestions: String
+  blocking: String
   initialStatus: DeliverableStatus
 }
 
@@ -24,12 +25,13 @@ input UpdateDeliverableInput {
   title: String
   description: String
   acceptanceCriteria: String
-  plan: String
+  agentFeedback: String
+  executionPlan: String
   securityImpact: String
   performanceImpact: String
   testPlan: String
   deploymentPlan: String
-  openQuestions: String
+  blocking: String
   result: String
   errors: String
 }
@@ -90,6 +92,7 @@ input CreateLargeLanguageModelInput {
   modelAlias: String
   apiKey: String!
   maxComplexity: Int!
+  maxConcurrency: Int
 }
 
 input UpdateLargeLanguageModelInput {
@@ -99,6 +102,7 @@ input UpdateLargeLanguageModelInput {
   modelAlias: String
   apiKey: String
   maxComplexity: Int
+  maxConcurrency: Int
 }
 
 input DeleteLargeLanguageModelInput {
@@ -107,11 +111,6 @@ input DeleteLargeLanguageModelInput {
 
 input DeleteDefectInput {
   id: UUID!
-}
-
-type WorkflowRunPayload {
-  workflowRun: WorkflowRun
-  errors: [String!]!
 }
 
 type ProjectPageInfo {
@@ -185,13 +184,6 @@ type Mutation {
   createLargeLanguageModel(input: CreateLargeLanguageModelInput!): LargeLanguageModelPayload!
   updateLargeLanguageModel(input: UpdateLargeLanguageModelInput!): LargeLanguageModelPayload!
   deleteLargeLanguageModel(input: DeleteLargeLanguageModelInput!): LargeLanguageModelPayload!
-  createWorkflowRun(input: CreateWorkflowRunInput!): WorkflowRunPayload!
-  updateWorkflowRun(input: UpdateWorkflowRunInput!): WorkflowRunPayload!
-  cancelWorkflowRun(input: CancelWorkflowRunInput!): WorkflowRunPayload!
-  deleteModelConfiguration(input: DeleteModelConfigurationInput!): ModelConfigurationPayload!
-  createEpic(input: CreateEpicInput!): EpicPayload!
-  updateEpic(input: UpdateEpicInput!): EpicPayload!
-  deleteEpic(input: DeleteEpicInput!): EpicPayload!
 }
 
 input UpdateDefectInput {
@@ -231,17 +223,6 @@ type DashboardSummary {
   featuresFailed: Int!
   tasksInProgress: Int!
   tasksFailed: Int!
-  recentAuditEvents: [AuditEvent!]!
-}
-
-type EpicConnection {
-  nodes: [Epic!]!
-  pageInfo: EpicPageInfo!
-  totalCount: Int!
-}
-
-input DeleteEpicInput {
-  id: UUID!
 }
 
 type TaskPageInfo {
@@ -255,22 +236,8 @@ type FeaturePayload {
   errors: [String!]!
 }
 
-enum WorkflowType {
-  PLANNER
-  DEV_LEAD
-  CODER
-  TESTER
-  ARCHITECT
-}
-
 input DeleteTaskInput {
   id: UUID!
-}
-
-type EpicPageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  totalCount: Int!
 }
 
 enum DeliverableType {
@@ -284,12 +251,6 @@ enum ItemSubtype {
   DEFECT
   MAINTENANCE
   ENABLER
-  EPIC
-}
-
-type EpicPayload {
-  epic: Epic
-  errors: [String!]!
 }
 
 input CreateProjectInput {
@@ -306,29 +267,9 @@ input TransitionDefectInput {
   actor: String!
 }
 
-input UpdateWorkflowRunInput {
-  id: UUID!
-  status: WorkflowRunStatus!
-  outputPayload: String
-}
-
-input CreateEpicInput {
-  projectId: UUID!
-  title: String!
-  description: String
-}
-
-
-
 type LargeLanguageModelPayload {
   largeLanguageModel: LargeLanguageModel
   errors: [String!]!
-}
-
-input UpdateEpicInput {
-  id: UUID!
-  title: String
-  description: String
 }
 
 input DeleteFeatureInput {
@@ -354,26 +295,13 @@ type LargeLanguageModel {
   modelAlias: String
   apiKey_Encrypted: String
   maxComplexity: Int
+  maxConcurrency: Int
   createdAt: DateTime
   updatedAt: DateTime
   project: Project
 }
 
-type ModelConfiguration {
-  id: ID
-  url: String
-  model: String
-  modelAlias: String
-  apiKey_Encrypted: String
-  maxComplexity: Int
-  createdAt: DateTime
-  updatedAt: DateTime
-}
 
-type ModelConfigurationPayload {
-  modelConfiguration: ModelConfiguration
-  errors: [String!]!
-}
 
 type TaskConnection {
   nodes: [AgentTask!]!
@@ -381,33 +309,7 @@ type TaskConnection {
   totalCount: Int!
 }
 
-enum WorkflowRunStatus {
-  QUEUED
-  RUNNING
-  SUCCEEDED
-  FAILED
-  CANCELLED
-}
 
-type WorkflowRun {
-  id: ID
-  projectId: ID
-  itemId: ID
-  taskId: ID
-  workflowType: WorkflowType
-  status: WorkflowRunStatus
-  startedAt: DateTime
-  completedAt: DateTime
-  errorMessage: String
-  inputPayload: String
-  outputPayload: String
-  createdAt: DateTime
-  project: Project
-  item: Item
-  featureId: UUID @deprecated(reason: "Use ItemId and Item instead")
-  feature: Item @deprecated(reason: "Use Item instead")
-  task: AgentTask
-}
 
 input CreateFeatureInput {
   projectId: UUID!
@@ -423,17 +325,6 @@ input CreateFeatureInput {
   initialStatus: FeatureStatus
 }
 
-type AuditEvent {
-  id: ID
-  entityType: String
-  entityId: ID
-  eventType: String
-  oldValue: String
-  newValue: String
-  actor: String
-  occurredAt: DateTime
-}
-
 enum Severity {
   LOW
   MEDIUM
@@ -444,14 +335,6 @@ enum Severity {
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
 
-input CreateWorkflowRunInput {
-  projectId: UUID!
-  itemId: UUID
-  taskId: UUID
-  workflowType: WorkflowType!
-  inputPayload: String!
-}
-
 type TaskPayload {
   task: AgentTask
   errors: [String!]!
@@ -460,10 +343,6 @@ type TaskPayload {
 type AgentTaskPayload {
   task: AgentTask
   errors: [String!]!
-}
-
-input DeleteModelConfigurationInput {
-  id: UUID!
 }
 
 type DefectPayload {
@@ -506,12 +385,13 @@ type Deliverable {
   status: DeliverableStatus
   description: String
   acceptanceCriteria: String
-  plan: String
+  agentFeedback: String
+  executionPlan: String
   securityImpact: String
   performanceImpact: String
   testPlan: String
   deploymentPlan: String
-  openQuestions: String
+  blocking: String
   result: String
   errors: String
   createdAt: DateTime
@@ -519,7 +399,6 @@ type Deliverable {
   parentDeliverableId: ID
   severity: Severity
   rootCause: String
-  epic: Epic
   tasks: [AgentTask]
   parentDeliverable: Deliverable
   validStatusTransitions: [DeliverableStatus]
@@ -554,7 +433,6 @@ type Item {
   parentFeatureId: ID
   severity: Severity
   rootCause: String
-  epic: Epic
   tasks: [AgentTask]
   parentFeature: Item
   validStatusTransitions: [FeatureStatus]
@@ -568,20 +446,8 @@ type Query {
   items(projectId: UUID epicId: UUID status: [FeatureStatus!] subtype: [ItemSubtype!] createdAfter: DateTime createdBefore: DateTime first: Int! = 50 skip: Int): ItemConnection!
   getItemById(id: UUID!): Item
   deliverableById(id: UUID!): Deliverable
-  itemById(id: UUID!): Item
-  featureById(id: UUID!): Item @deprecated(reason: "Use getItemById instead")
-  features(projectId: UUID status: [FeatureStatus!] first: Int! = 50 skip: Int): ItemConnection! @deprecated(reason: "Use GetItems instead")
-  defects(projectId: UUID status: [FeatureStatus!] first: Int! = 50 skip: Int): ItemConnection! @deprecated(reason: "Use GetItems with subtype filter instead")
-  defectById(id: UUID!): Item @deprecated(reason: "Use getItemById instead")
   tasks(itemId: UUID status: [TaskStatus!] createdAfter: DateTime createdBefore: DateTime first: Int! = 50 skip: Int): TaskConnection!
-  agentTasks(itemId: UUID status: [AgentTaskStatus!] createdAfter: DateTime createdBefore: DateTime first: Int! = 50 skip: Int): TaskConnection!
-  taskById(id: UUID!): AgentTask
-  agentTaskById(id: UUID!): AgentTask
-  modelConfigurations: [ModelConfiguration!]!
   largeLanguageModels(projectId: UUID): [LargeLanguageModel!]!
-  auditEvents(entityId: UUID! take: Int! = 50): [AuditEvent!]!
-  validStatusTransitions(itemId: UUID!): [FeatureStatus!]!
-  validDeliverableStatusTransitions(deliverableId: UUID!): [DeliverableStatus!]!
   dashboardSummary: DashboardSummary!
 }
 
@@ -589,18 +455,6 @@ type ProjectConnection {
   nodes: [Project!]!
   pageInfo: ProjectPageInfo!
   totalCount: Int!
-}
-
-type Epic {
-  id: ID
-  title: String
-  description: String
-  createdAt: DateTime
-  updatedAt: DateTime
-  items: [Item]
-  projectId: UUID!
-  project: Project
-  features: [Item!]! @deprecated(reason: "Use Items instead")
 }
 
 enum DeliverableStatus {
@@ -633,10 +487,6 @@ enum FeatureStatus {
   FAILED
   REJECTED
   IN_REVIEW
-}
-
-input CancelWorkflowRunInput {
-  id: UUID!
 }
 
 type ItemPageInfo {
@@ -685,18 +535,8 @@ type Project {
   createdAt: DateTime
   updatedAt: DateTime
   items: [Item]
-  features: [Item] @deprecated(reason: "Use items instead")
   deliverables: [Deliverable]
-  epics: [Epic!]!
   llms: [LargeLanguageModel!]!
-}
-
-input CreateModelConfigurationInput {
-  url: String!
-  model: String!
-  modelAlias: String
-  apiKey: String!
-  maxComplexity: Int!
 }
 
 input UpdateFeatureInput {

@@ -204,11 +204,7 @@ public List<FeatureStatus> GetValidStatusTransitions([Service] DevStackDbContext
             FeaturesInReview = dbContext.Items.Count(f => f.Status == FeatureStatus.InReview),
             FeaturesFailed = dbContext.Items.Count(f => f.Status == FeatureStatus.Failed),
             TasksInProgress = dbContext.Items.Count(t => t.ItemType == ItemSubtype.Task && t.Status == FeatureStatus.InProgress),
-            TasksFailed = dbContext.Items.Count(t => t.ItemType == ItemSubtype.Task && t.Status == FeatureStatus.Failed),
-            RecentAuditEvents = dbContext.AuditEvents
-                .OrderByDescending(a => a.OccurredAt)
-                .Take(10)
-                .ToList()
+            TasksFailed = dbContext.Items.Count(t => t.ItemType == ItemSubtype.Task && t.Status == FeatureStatus.Failed)
         };
     }
 

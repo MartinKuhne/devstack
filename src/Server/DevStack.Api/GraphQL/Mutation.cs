@@ -9,8 +9,6 @@ using DevStack.Infrastructure.Defects;
 using DevStack.Infrastructure.Tasks;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Services;
-using DevStack.Infrastructure.WorkflowRuns;
-using DevStack.Infrastructure.Epics;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Api.GraphQL.Types;
@@ -185,25 +183,7 @@ public record CreateWorkflowRunInput(
     Guid ProjectId,
     Guid? ItemId,
     Guid? TaskId,
-    WorkflowType WorkflowType,
     string InputPayload);
-
-public record UpdateWorkflowRunInput(
-    Guid Id,
-    WorkflowRunStatus Status,
-    string? OutputPayload);
-
-public record CancelWorkflowRunInput(Guid Id);
-
-public record WorkflowRunPayload(WorkflowRun? WorkflowRun, List<string> Errors);
-
-public record CreateEpicInput(Guid ProjectId, string Title, string? Description, Guid? DependsOnId);
-
-public record UpdateEpicInput(Guid Id, string? Title, string? Description, Guid? DependsOnId);
-
-public record DeleteEpicInput(Guid Id);
-
-public record EpicPayload(Item? Item, List<string> Errors);
 
 public record CleanupTestDataPayload(bool Success, string? Message);
 
@@ -814,82 +794,6 @@ public class Mutation
         }
     }
 
-    public async Task<WorkflowRunPayload> CreateWorkflowRunAsync(
-        CreateWorkflowRunInput input,
-        [Service] ICreateWorkflowRunHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            var id = await handler.Handle(new CreateWorkflowRunCommand(
-                input.ProjectId,
-                input.ItemId,
-                input.TaskId,
-                input.WorkflowType,
-                input.InputPayload), cancellationToken);
-
-            var workflowRun = new WorkflowRun { Id = id };
-            return new WorkflowRunPayload(workflowRun, new List<string>());
-        }
-        catch (Exception ex)
-        {
-            return new WorkflowRunPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<WorkflowRunPayload> UpdateWorkflowRunAsync(
-        UpdateWorkflowRunInput input,
-        [Service] IUpdateWorkflowRunHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new UpdateWorkflowRunCommand(
-                input.Id,
-                input.Status,
-                input.OutputPayload), cancellationToken);
-
-            var workflowRun = new WorkflowRun { Id = input.Id };
-            return new WorkflowRunPayload(workflowRun, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new WorkflowRunPayload(null, ["NOT_FOUND: WorkflowRun not found"]);
-        }
-        catch (Exception ex)
-        {
-            return new WorkflowRunPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<WorkflowRunPayload> CancelWorkflowRunAsync(
-        CancelWorkflowRunInput input,
-        [Service] ICancelWorkflowRunHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new CancelWorkflowRunCommand(input.Id), cancellationToken);
-
-            var workflowRun = new WorkflowRun { Id = input.Id };
-            return new WorkflowRunPayload(workflowRun, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new WorkflowRunPayload(null, ["NOT_FOUND: WorkflowRun not found"]);
-        }
-        catch (Exception ex)
-        {
-            return new WorkflowRunPayload(null, [ex.Message]);
-        }
-    }
-
     public async Task<LargeLanguageModelPayload> DeleteLargeLanguageModelAsync(
         DeleteLargeLanguageModelInput input,
         [Service] IDeleteLargeLanguageModelHandler handler,
@@ -911,94 +815,6 @@ public class Mutation
         catch (Exception ex)
         {
             return new LargeLanguageModelPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<EpicPayload> CreateEpicAsync(
-        CreateEpicInput input,
-        [Service] ICreateEpicHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(input.Title))
-            errors.Add("Title is required");
-
-        if (!string.IsNullOrEmpty(input.Title) && input.Title.Length > 200)
-            errors.Add("Title must be 200 characters or less");
-
-        if (errors.Count > 0)
-            return new EpicPayload(null, errors);
-
-        try
-        {
-          var id = await handler.Handle(new CreateEpicCommand(
-                input.ProjectId,
-                input.Title,
-                input.Description,
-                FeatureStatus.Planning), cancellationToken);
-            
-            var epic = new Item { Id = id, ItemType = Domain.Enums.ItemSubtype.Epic };
-            return new EpicPayload(epic, new List<string>());
-        }
-        catch (Exception ex)
-        {
-            return new EpicPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<EpicPayload> UpdateEpicAsync(
-        UpdateEpicInput input,
-        [Service] IUpdateEpicHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new UpdateEpicCommand(
-                input.Id,
-                input.Title,
-                input.Description), cancellationToken);
-
-            var epic = new Item { Id = input.Id };
-            return new EpicPayload(epic, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new EpicPayload(null, ["NOT_FOUND: Epic not found"]);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Concurrency"))
-        {
-            return new EpicPayload(null, ["CONCURRENCY_CONFLICT: The epic has been modified by another process"]);
-        }
-        catch (Exception ex)
-        {
-            return new EpicPayload(null, [ex.Message]);
-        }
-    }
-
-    public async Task<EpicPayload> DeleteEpicAsync(
-        DeleteEpicInput input,
-        [Service] IDeleteEpicHandler handler,
-        CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-
-        try
-        {
-            await handler.Handle(new DeleteEpicCommand(input.Id), cancellationToken);
-            
-            var epic = new Item { Id = input.Id };
-            return new EpicPayload(epic, new List<string>());
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-        {
-            return new EpicPayload(null, ["NOT_FOUND: Epic not found"]);
-        }
-        catch (Exception ex)
-        {
-            return new EpicPayload(null, [ex.Message]);
         }
     }
 

@@ -3,34 +3,36 @@ import { gql } from 'graphql-request';
 export const dashboardSummaryQuery = gql`
   query DashboardSummary {
     dashboardSummary {
-      totalProjects
-      totalFeatures
-      totalTasks
-      activeWorkflows
-      recentActivity {
+      projectsInFlight
+      featuresInReview
+      featuresFailed
+      tasksInProgress
+      tasksFailed
+      recentAuditEvents {
         id
         entityType
-        action
-        timestamp
-        description
+        eventType
+        oldValue
+        newValue
+        actor
+        occurredAt
       }
     }
   }
 `;
 
 export const getProjectQuery = gql`
-  query GetProject($id: ID!) {
-    project(id: $id) {
+  query GetProjectById($id: UUID!) {
+    projectById(id: $id) {
       id
       name
       description
-      status
       createdAt
       updatedAt
       githubUrl
-      features {
+      items {
         id
-        name
+        title
         status
       }
     }
@@ -38,30 +40,34 @@ export const getProjectQuery = gql`
 `;
 
 export const getFeaturesQuery = gql`
-  query GetFeatures($projectId: ID!) {
-    features(projectId: $projectId) {
-      id
-      name
-      description
-      status
-      projectId
-      createdAt
-      updatedAt
+  query GetItems($projectId: UUID!) {
+    items(projectId: $projectId, first: 50) {
+      nodes {
+        id
+        title
+        description
+        status
+        projectId
+        createdAt
+        updatedAt
+      }
     }
   }
 `;
 
 export const getTasksQuery = gql`
-  query GetTasks($featureId: ID!) {
-    tasks(featureId: $featureId) {
-      id
-      title
-      description
-      status
-      complexity
-      featureId
-      createdAt
-      updatedAt
+  query GetTasks($itemId: UUID!) {
+    tasks(itemId: $itemId, first: 50) {
+      nodes {
+        id
+        title
+        deliverable
+        status
+        complexityRating
+        itemId
+        createdAt
+        updatedAt
+      }
     }
   }
 `;

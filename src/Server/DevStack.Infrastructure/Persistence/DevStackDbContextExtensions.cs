@@ -12,61 +12,9 @@ public static class DevStackDbContextExtensions
         this DevStackDbContext context,
         CancellationToken cancellationToken = default)
     {
-        await CleanupTasksAsync(context, cancellationToken);
         await CleanupItemsAsync(context, cancellationToken);
         await CleanupProjectsAsync(context, cancellationToken);
         await CleanupLargeLanguageModelsAsync(context, cancellationToken);
-        await CleanupWorkflowRunsAsync(context, cancellationToken);
-        await CleanupAuditEventsAsync(context, cancellationToken);
-    }
-
-    private static async Task CleanupAuditEventsAsync(
-        DevStackDbContext context,
-        CancellationToken cancellationToken)
-    {
-        var auditEvents = await context.AuditEvents
-            .Where(e => e.EntityType == "Project" ||
-                       e.EntityType == "Item" ||
-                       e.EntityType == "Task" ||
-                       e.EntityType == "Feature" ||
-                       e.EntityType == "Defect" ||
-                       e.EntityType == "Epic")
-            .ToListAsync(cancellationToken);
-
-        foreach (var auditEvent in auditEvents)
-        {
-            if (ShouldDeleteEntity(auditEvent.EntityType, auditEvent.EntityId, context))
-            {
-                context.AuditEvents.Remove(auditEvent);
-            }
-        }
-
-        if (context.AuditEvents.Any())
-        {
-            await context.SaveChangesAsync(cancellationToken);
-        }
-    }
-
-    private static async Task CleanupWorkflowRunsAsync(
-        DevStackDbContext context,
-        CancellationToken cancellationToken)
-    {
-        var workflowRuns = await context.WorkflowRuns
-            .Where(w => ShouldDeleteProject(w.ProjectId, context))
-            .ToListAsync(cancellationToken);
-
-        foreach (var workflowRun in workflowRuns)
-        {
-            if (ShouldDeleteProject(workflowRun.ProjectId, context))
-            {
-                context.WorkflowRuns.Remove(workflowRun);
-            }
-        }
-
-        if (context.WorkflowRuns.Any())
-        {
-            await context.SaveChangesAsync(cancellationToken);
-        }
     }
 
     private static async Task CleanupLargeLanguageModelsAsync(
@@ -147,7 +95,6 @@ public static class DevStackDbContextExtensions
             nameof(Item) => context.Items.Any(i => i.Id == entityId && i.Title.Contains(TestDataMarker)),
             "Feature" => context.Items.Any(i => i.Id == entityId && i.ItemType == ItemSubtype.Feature && i.Title.Contains(TestDataMarker)),
             "Defect" => context.Items.Any(i => i.Id == entityId && i.ItemType == ItemSubtype.Defect && i.Title.Contains(TestDataMarker)),
-            "Epic" => context.Items.Any(i => i.Id == entityId && i.ItemType == ItemSubtype.Epic && i.Title.Contains(TestDataMarker)),
             "Task" => context.Items.Any(i => i.Id == entityId && i.ItemType == ItemSubtype.Task && i.Title.Contains(TestDataMarker)),
             nameof(Project) => context.Projects.Any(p => p.Id == entityId && p.Name.Contains(TestDataMarker)),
             _ => false

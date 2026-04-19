@@ -9,5 +9,4 @@ public class DashboardSummary
     public int FeaturesFailed { get; set; }
     public int TasksInProgress { get; set; }
     public int TasksFailed { get; set; }
-    public List<AuditEvent> RecentAuditEvents { get; set; } = new();
 }

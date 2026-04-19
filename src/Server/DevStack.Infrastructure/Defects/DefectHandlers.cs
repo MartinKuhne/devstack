@@ -156,21 +156,6 @@ public class TransitionDefectStatusHandler : ITransitionDefectStatusHandler
             throw new InvalidOperationException($"Transition failed: {string.Join(", ", result.Errors)}");
 
         _dbContext.Items.Update(item);
-        
-        foreach (var @event in _transitionService.DomainEvents)
-        {
-            _dbContext.AuditEvents.Add(new AuditEvent
-            {
-                EntityType = "Item",
-                EntityId = item.Id,
-                EventType = "StatusChanged",
-                OldValue = item.Status.ToString(),
-                NewValue = request.TargetStatus.ToString(),
-                Actor = request.Actor,
-                OccurredAt = DateTime.UtcNow
-            });
-        }
-
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

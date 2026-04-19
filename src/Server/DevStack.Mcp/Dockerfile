@@ -22,7 +22,4 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD dotnet DevStack.Mcp.dll --health || exit 1
-
 ENTRYPOINT ["dotnet", "DevStack.Mcp.dll"]

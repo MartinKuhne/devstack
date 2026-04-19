@@ -123,24 +123,5 @@ public class SchemaSnapshotTests : IAsyncLifetime
         summary.FeaturesFailed.Should().Be(0);
         summary.TasksInProgress.Should().Be(0);
         summary.TasksFailed.Should().Be(0);
-        summary.RecentAuditEvents.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GraphQL_Mutation_Creates_Audit_Event()
-    {
-        var mutation = new Mutation();
-        var task = _dbContext!.Tasks.First();
-
-        var input = new TransitionTaskInput(task.Id, FeatureStatus.InProgress, "test@example.com");
-        var handler = new DevStack.Infrastructure.Tasks.TransitionTaskStatusHandler(_dbContext);
-        var result = await mutation.TransitionTaskStatusAsync(input, handler, default);
-
-        result.Item.Should().NotBeNull();
-
-        var auditEvents = _dbContext.AuditEvents.ToList();
-        auditEvents.Should().HaveCount(1);
-        auditEvents[0].EntityType.Should().Be("Task");
-        auditEvents[0].EventType.Should().Be("StatusChanged");
     }
 }

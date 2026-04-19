@@ -245,11 +245,6 @@ public class TaskMutationTests : IAsyncLifetime
 
         var updatedTask = await _dbContext.Items.FindAsync(taskId);
         updatedTask!.Status.Should().Be(TaskStatus.Ready);
-
-        var auditEvent = await _dbContext.AuditEvents.FirstOrDefaultAsync();
-        auditEvent.Should().NotBeNull();
-        auditEvent!.EventType.Should().Be("StatusChanged");
-        auditEvent.Actor.Should().Be("operator");
     }
 
     [Fact]

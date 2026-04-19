@@ -145,18 +145,6 @@ public class TransitionTaskStatusHandler : ITransitionTaskStatusHandler
         item.UpdatedAt = DateTime.UtcNow;
 
         _dbContext.Items.Update(item);
-
-        _dbContext.AuditEvents.Add(new AuditEvent
-        {
-            EntityType = "Task",
-            EntityId = item.Id,
-            EventType = "StatusChanged",
-            OldValue = item.Status.ToString(),
-            NewValue = request.TargetStatus.ToString(),
-            Actor = request.Actor,
-            OccurredAt = DateTime.UtcNow
-        });
-
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

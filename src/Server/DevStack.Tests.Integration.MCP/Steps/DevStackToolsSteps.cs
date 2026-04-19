@@ -60,10 +60,10 @@ public sealed class DevStackToolsSteps
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_getProjects")]
+    [When(@"I call devstack_readProjects")]
     public async Task WhenICallDevstackGetProjects()
     {
-        _response = await _client.SendRequestAsync("devstack_getProjects", default(CancellationToken));
+        _response = await _client.SendRequestAsync("devstack_readProjects", default(CancellationToken));
         _scenarioContext["Response"] = _response;
     }
 
@@ -182,58 +182,58 @@ public sealed class DevStackToolsSteps
     {
     }
 
-    [When(@"I call devstack_createFeature")]
+    [When(@"I call devstack_createDeliverable")]
     public async Task WhenICallDevstackCreateFeature()
     {
         var projectId = await GetOrCreateTestProjectIdAsync();
         var title = _scenarioContext.GetString("FeatureTitle") ?? "Test Feature";
         var request = new { projectId, title, description = "Test feature description" };
-        _response = await _client.SendRequestAsync("devstack_createFeature", request);
+        _response = await _client.SendRequestAsync("devstack_createDeliverable", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_getFeatureById with the ID")]
+    [When(@"I call devstack_getDeliverableById with the ID")]
     public async Task WhenICallDevstackGetFeatureById()
     {
         var featureId = _scenarioContext.GetString("FeatureId") ?? "";
         var request = new { id = Guid.Parse(featureId) };
-        _response = await _client.SendRequestAsync("devstack_getFeatureById", request);
+        _response = await _client.SendRequestAsync("devstack_getDeliverableById", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_getFeatures with projectId filter")]
+    [When(@"I call devstack_getDeliverables with projectId filter")]
     public async Task WhenICallDevstackGetFeaturesWithProjectIdFilter()
     {
         var projectId = await GetOrCreateTestProjectIdAsync();
         var request = new { projectId };
-        _response = await _client.SendRequestAsync("devstack_getFeatures", request);
+        _response = await _client.SendRequestAsync("devstack_getDeliverables", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_updateFeature with updated title ""(.*)""")]
+    [When(@"I call devstack_updateDeliverable with updated title ""(.*)""")]
     public async Task WhenICallDevstackUpdateFeature(string updatedTitle)
     {
         var featureId = _scenarioContext.GetString("FeatureId") ?? "";
         var request = new { id = Guid.Parse(featureId), title = updatedTitle };
-        _response = await _client.SendRequestAsync("devstack_updateFeature", request);
+        _response = await _client.SendRequestAsync("devstack_updateDeliverable", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_transitionFeatureStatus to ""(.*)""")]
+    [When(@"I call devstack_transitionDeliverableStatus to ""(.*)""")]
     public async Task WhenICallDevstackTransitionFeatureStatus(string targetStatus)
     {
         var featureId = _scenarioContext.GetString("FeatureId") ?? "";
         var request = new { id = Guid.Parse(featureId), targetStatus, actor = "test" };
-        _response = await _client.SendRequestAsync("devstack_transitionFeatureStatus", request);
+        _response = await _client.SendRequestAsync("devstack_transitionDeliverableStatus", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_getValidStatusTransitions")]
+    [When(@"I call devstack_getDeliverableStatusTransitions")]
     public async Task WhenICallDevstackGetValidStatusTransitions()
     {
         var featureId = _scenarioContext.GetString("FeatureId") ?? "";
         var request = new { featureId = Guid.Parse(featureId) };
-        _response = await _client.SendRequestAsync("devstack_getValidStatusTransitions", request);
+        _response = await _client.SendRequestAsync("devstack_getDeliverableStatusTransitions", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -534,59 +534,59 @@ public sealed class DevStackToolsSteps
     {
     }
 
-    [When(@"I call devstack_createTask")]
+    [When(@"I call devstack_createAgentTask")]
     public async Task WhenICallDevstackCreateTask()
     {
         var projectId = await GetOrCreateTestProjectIdAsync();
         var featureId = await GetOrCreateTestFeatureIdAsync();
         var title = _scenarioContext.GetString("TaskTitle") ?? "Test Task";
         var request = new { projectId, itemId = featureId, title, deliverable = "Test deliverable" };
-        _response = await _client.SendRequestAsync("devstack_createTask", request);
+        _response = await _client.SendRequestAsync("devstack_createAgentTask", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_getTaskById with the ID")]
+    [When(@"I call devstack_getAgentTaskById with the ID")]
     public async Task WhenICallDevstackGetTaskById()
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
         var request = new { id = Guid.Parse(taskId) };
-        _response = await _client.SendRequestAsync("devstack_getTaskById", request);
+        _response = await _client.SendRequestAsync("devstack_getAgentTaskById", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_getTasks with featureId filter")]
+    [When(@"I call devstack_getAgentTasks with featureId filter")]
     public async Task WhenICallDevstackGetTasksWithFeatureIdFilter()
     {
         var featureId = await GetOrCreateTestFeatureIdAsync();
         var request = new { featureId };
-        _response = await _client.SendRequestAsync("devstack_getTasks", request);
+        _response = await _client.SendRequestAsync("devstack_getAgentTasks", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_updateTask with updated title ""(.*)""")]
+    [When(@"I call devstack_updateAgentTask with updated title ""(.*)""")]
     public async Task WhenICallDevstackUpdateTask(string updatedTitle)
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
         var request = new { id = Guid.Parse(taskId), title = updatedTitle };
-        _response = await _client.SendRequestAsync("devstack_updateTask", request);
+        _response = await _client.SendRequestAsync("devstack_updateAgentTask", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_transitionTaskStatus to ""(.*)""")]
+    [When(@"I call devstack_transitionAgentTaskStatus to ""(.*)""")]
     public async Task WhenICallDevstackTransitionTaskStatus(string targetStatus)
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
         var request = new { id = Guid.Parse(taskId), targetStatus, actor = "test" };
-        _response = await _client.SendRequestAsync("devstack_transitionTaskStatus", request);
+        _response = await _client.SendRequestAsync("devstack_transitionAgentTaskStatus", request);
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_deleteTask with the ID")]
+    [When(@"I call devstack_deleteAgentTask with the ID")]
     public async Task WhenICallDevstackDeleteTask()
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
         var request = new { id = Guid.Parse(taskId) };
-        _response = await _client.SendRequestAsync("devstack_deleteTask", request);
+        _response = await _client.SendRequestAsync("devstack_deleteAgentTask", request);
         _scenarioContext["Response"] = _response;
     }
 
@@ -835,7 +835,7 @@ public sealed class DevStackToolsSteps
     {
         var projectId = await GetOrCreateTestProjectIdAsync();
         var request = new { projectId, title = $"Test Feature {Guid.NewGuid()}", description = "Auto-generated test feature" };
-        var response = await _client.SendRequestAsync("devstack_createFeature", request);
+        var response = await _client.SendRequestAsync("devstack_createDeliverable", request);
         var result = response.Result!.ToString()!;
         var jsonDoc = JsonDocument.Parse(result);
         return jsonDoc.RootElement.GetProperty("id").GetString() ?? "";
@@ -869,7 +869,7 @@ public sealed class DevStackToolsSteps
         var projectId = await GetOrCreateTestProjectIdAsync();
         var featureId = await GetOrCreateTestFeatureIdAsync();
         var request = new { projectId, itemId = featureId, title = $"Test Task {Guid.NewGuid()}", deliverable = "Auto-generated test task" };
-        var response = await _client.SendRequestAsync("devstack_createTask", request);
+        var response = await _client.SendRequestAsync("devstack_createAgentTask", request);
         var result = response.Result!.ToString()!;
         var jsonDoc = JsonDocument.Parse(result);
         return jsonDoc.RootElement.GetProperty("id").GetString() ?? "";
