@@ -8,8 +8,6 @@ Feature: Tools List Method
         Then the response should contain a list of tools
         And the tools should include "devstack_getProjects"
         And the tools should include "devstack_getProjectById"
-        And the tools should include "devstack_createProject"
-        And the tools should include "devstack_updateProject"
         And the tools should include "devstack_createDeliverable"
         And the tools should include "devstack_updateDeliverable"
         And the tools should include "devstack_transitionDeliverableStatus"

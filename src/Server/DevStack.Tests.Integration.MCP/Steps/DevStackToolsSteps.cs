@@ -12,7 +12,6 @@ public sealed class DevStackToolsSteps
 {
     private readonly ScenarioContext _scenarioContext;
     private JsonRpcResponse? _response;
-    private string? _createdProjectId;
     private string? _createdDeliverableId;
     private string? _createdTaskId;
 
@@ -22,134 +21,6 @@ public sealed class DevStackToolsSteps
     }
 
     private IMcpJsonRpcClient Client => SpecFlowHooks.GetMcpClient(_scenarioContext);
-
-    #region Project Steps
-
-    [Given(@"a valid project creation request with name ""(.*)""")]
-    public void GivenAValidProjectCreationRequest(string projectName)
-    {
-        _scenarioContext["ProjectName"] = projectName;
-    }
-
-    [Given(@"an existing project ID")]
-    public async Task GivenAnExistingProjectID()
-    {
-        if (_createdProjectId == null)
-        {
-            _createdProjectId = await CreateTestProjectAsync();
-        }
-        _scenarioContext["ProjectId"] = _createdProjectId;
-    }
-
-    [Given(@"existing projects in the system")]
-    public async Task GivenExistingProjectsInTheSystem()
-    {
-        if (_createdProjectId == null)
-        {
-            _createdProjectId = await CreateTestProjectAsync();
-        }
-    }
-
-    [When(@"I call devstack_createProject")]
-    public async Task WhenICallDevstackCreateProject()
-    {
-        var projectName = _scenarioContext.GetString("ProjectName") ?? "Test Project";
-        var request = new { name = projectName, description = "Test project description" };
-        _response = await Client.SendRequestAsync("devstack_createProject", request);
-        _scenarioContext["Response"] = _response;
-    }
-
-    [When(@"I call devstack_getProjectById with the ID")]
-    public async Task WhenICallDevstackGetProjectById()
-    {
-        var projectId = _scenarioContext.GetString("ProjectId") ?? "";
-        var request = new { id = projectId };
-        _response = await Client.SendRequestAsync("devstack_getProjectById", request);
-        _scenarioContext["Response"] = _response;
-    }
-
-    [When(@"I call devstack_getProjects")]
-    public async Task WhenICallDevstackGetProjects()
-    {
-        _response = await Client.SendRequestAsync("devstack_getProjects", default);
-        _scenarioContext["Response"] = _response;
-    }
-
-    [When(@"I call devstack_updateProject with updated name ""(.*)""")]
-    public async Task WhenICallDevstackUpdateProject(string updatedName)
-    {
-        var projectId = _scenarioContext.GetString("ProjectId") ?? "";
-        var request = new { id = projectId, name = updatedName };
-        _response = await Client.SendRequestAsync("devstack_updateProject", request);
-        _scenarioContext["Response"] = _response;
-    }
-
-    [Then(@"the response should contain the created project")]
-    public void ThenTheResponseShouldContainTheCreatedProject()
-    {
-        _response.Should().NotBeNull();
-        _response!.Error.Should().BeNull();
-        _response!.Result.Should().NotBeNull();
-    }
-
-    [Then(@"the project should have a valid ID")]
-    public void ThenTheProjectShouldHaveAValidID()
-    {
-        var result = _response!.Result!.ToString();
-        result.Should().NotBeNullOrEmpty();
-
-        var jsonDoc = JsonDocument.Parse(result!);
-        if (jsonDoc.RootElement.TryGetProperty("id", out var idElement))
-        {
-            _createdProjectId = idElement.GetString();
-            _createdProjectId.Should().NotBeNullOrEmpty();
-        }
-    }
-
-    [Then(@"the response should contain the project details")]
-    public void ThenTheResponseShouldContainTheProjectDetails()
-    {
-        _response.Should().NotBeNull();
-        _response!.Error.Should().BeNull();
-    }
-
-    [Then(@"the project name should match")]
-    public void ThenTheProjectNameShouldMatch()
-    {
-        var expectedName = _scenarioContext.GetString("ProjectName");
-        var result = _response!.Result!.ToString();
-        result.Should().Contain(expectedName ?? "");
-    }
-
-    [Then(@"the response should contain a list of projects")]
-    public void ThenTheResponseShouldContainAListOfProjects()
-    {
-        _response.Should().NotBeNull();
-        _response!.Result.Should().NotBeNull();
-    }
-
-    [Then(@"the list should not be empty")]
-    public void ThenTheListShouldNotBeEmpty()
-    {
-        var result = _response!.Result!.ToString();
-        result.Should().NotBe("[]");
-    }
-
-    [Then(@"the response should contain the updated project")]
-    public void ThenTheResponseShouldContainTheUpdatedProject()
-    {
-        _response.Should().NotBeNull();
-        _response!.Error.Should().BeNull();
-    }
-
-    [Then(@"the project name should be ""(.*)""")]
-    public void ThenTheProjectNameShouldBe(string expectedName)
-    {
-        var result = _response!.Result!.ToString();
-        result.Should().Contain(expectedName);
-    }
-
-    #endregion
 
     #region Deliverable Steps
 
@@ -367,15 +238,6 @@ public sealed class DevStackToolsSteps
 
     #region Helper Methods
 
-    private async Task<string> CreateTestProjectAsync()
-    {
-        var request = new { name = $"Test Project {Guid.NewGuid()}", description = "Auto-generated test project" };
-        var response = await Client.SendRequestAsync("devstack_createProject", request);
-        var result = response.Result!.ToString()!;
-        var jsonDoc = JsonDocument.Parse(result);
-        return jsonDoc.RootElement.GetProperty("id").GetString() ?? "";
-    }
-
     private async Task<string> GetOrCreateTestProjectIdAsync()
     {
         var projectId = _scenarioContext.GetString("ProjectId");
@@ -384,9 +246,20 @@ public sealed class DevStackToolsSteps
             return projectId;
         }
 
-        var newProjectId = await CreateTestProjectAsync();
-        _scenarioContext["ProjectId"] = newProjectId;
-        return newProjectId;
+        var projects = await Client.SendRequestAsync("devstack_getProjects", default);
+        var result = projects.Result!.ToString()!;
+        var jsonDoc = JsonDocument.Parse(result);
+        var projectsArray = jsonDoc.RootElement;
+
+        if (projectsArray.GetArrayLength() > 0)
+        {
+            var firstProject = projectsArray[0];
+            var id = firstProject.GetProperty("id").GetString() ?? "";
+            _scenarioContext["ProjectId"] = id;
+            return id;
+        }
+
+        throw new InvalidOperationException("No projects found in the system. Seed data required for tests.");
     }
 
     private async Task<string> CreateTestDeliverableAsync()
