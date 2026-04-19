@@ -1,5 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
-import { Menu, Moon, Sun, LayoutDashboard, Folder, AlertCircle, Settings, Layers, CheckSquare } from 'lucide-react';
+import { Menu, Moon, Sun, LayoutDashboard, Folder, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
@@ -30,34 +30,10 @@ function SidebarContent() {
                     Projects
                 </Button>
             </Link>
-            <Link to="/features">
+            <Link to="/models">
                 <Button variant="ghost" className="w-full justify-start">
-                    <Folder className="mr-2 h-4 w-4" />
-                    Features
-                </Button>
-            </Link>
-            <Link to="/epics">
-                <Button variant="ghost" className="w-full justify-start">
-                    <Layers className="mr-2 h-4 w-4" />
-                    Epics
-                </Button>
-            </Link>
-            <Link to="/defects">
-                <Button variant="ghost" className="w-full justify-start">
-                    <AlertCircle className="mr-2 h-4 w-4" />
-                    Defects
-                </Button>
-            </Link>
-            <Link to="/deliverables">
-                <Button variant="ghost" className="w-full justify-start">
-                    <CheckSquare className="mr-2 h-4 w-4" />
-                    Deliverables
-                </Button>
-            </Link>
-            <Link to="/settings">
-                <Button variant="ghost" className="w-full justify-start">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
+                    <Brain className="mr-2 h-4 w-4" />
+                    Large Language Models
                 </Button>
             </Link>
         </nav>

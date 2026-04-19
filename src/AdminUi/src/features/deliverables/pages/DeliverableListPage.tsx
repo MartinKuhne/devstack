@@ -6,18 +6,41 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { CreateDeliverableDialog } from '../components/CreateDeliverableDialog';
+import { useDeliverables } from '../hooks/useDeliverables';
+import type { FeatureStatus, ItemSubtype } from '@/generated/graphql';
+
+  const STATUS_COLORS: Record<string, string> = {
+    DRAFT: 'bg-gray-500',
+    PLANNING: 'bg-blue-500',
+    READY: 'bg-green-500',
+    IN_PROGRESS: 'bg-yellow-500',
+    IN_REVIEW: 'bg-purple-500',
+    DONE: 'bg-emerald-600',
+    FAILED: 'bg-red-500',
+    REJECTED: 'bg-gray-600',
+};
+
+const SUBTYPE_LABELS: Record<string, string> = {
+    FEATURE: 'Feature',
+    DEFECT: 'Defect',
+    MAINTENANCE: 'Maintenance',
+};
 
 export function DeliverableListPage() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
-    
-    const statusFilter = searchParams.get('status') || undefined;
-    const typeFilter = searchParams.get('type') || undefined;
+
+    const statusFilter = (searchParams.get('status') || undefined) as FeatureStatus | undefined;
+    const typeFilter = (searchParams.get('type') || undefined as unknown) as ItemSubtype | undefined;
     const searchFilter = searchParams.get('search') || undefined;
-    
+
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
+
+    const { deliverables, loading, error, refetch } = useDeliverables(undefined, statusFilter ? [statusFilter] : undefined, typeFilter ? [typeFilter] : undefined);
 
     const handleStatusChange = useCallback((value: string) => {
         const newParams = new URLSearchParams(searchParams);
@@ -57,6 +80,12 @@ export function DeliverableListPage() {
     const handleRowClick = (id: string | null | undefined) => {
         if (id) navigate(`/deliverables/${id}`);
     };
+
+    const filteredDeliverables = deliverables.filter(d => {
+        if (!searchFilter) return true;
+        const searchLower = searchFilter.toLowerCase();
+        return (d.title?.toLowerCase().includes(searchLower) ?? false);
+    });
 
     return (
         <div className="space-y-6">
@@ -117,31 +146,71 @@ export function DeliverableListPage() {
                     <CardTitle>Deliverable List</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Title</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Updated</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => handleRowClick(null)}>
-                                <TableCell className="font-medium">No deliverables yet</TableCell>
-                                <TableCell>-</TableCell>
-                                <TableCell>-</TableCell>
-                                <TableCell>-</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
+                    {error ? (
+                        <p className="text-sm text-destructive">{error.message}</p>
+                    ) : loading ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Title</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Updated</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {[1, 2, 3].map((item) => (
+                                    <TableRow key={item}>
+                                        <TableCell><Skeleton className="h-4 w-64" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : filteredDeliverables.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Title</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Updated</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredDeliverables.map((deliverable) => (
+                                    <TableRow
+                                        key={deliverable.id ?? ''}
+                                        className="cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleRowClick(deliverable.id ?? undefined)}
+                                    >
+                                        <TableCell className="font-medium">{deliverable.title}</TableCell>
+                                        <TableCell>{SUBTYPE_LABELS[deliverable.subtype ?? ''] || deliverable.subtype}</TableCell>
+                                        <TableCell>
+                                            <Badge className={STATUS_COLORS[deliverable.status ?? ''] || 'bg-gray-500'}>
+                                                {deliverable.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {deliverable.updatedAt ? new Date(deliverable.updatedAt).toLocaleDateString() : '-'}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <p className="text-muted-foreground text-sm">No deliverables found.</p>
+                    )}
                 </CardContent>
             </Card>
-            
+
             <CreateDeliverableDialog
                 open={createDialogOpen}
                 onOpenChange={setCreateDialogOpen}
                 onSuccess={(deliverableId) => {
+                    refetch();
                     if (deliverableId) {
                         navigate(`/deliverables/${deliverableId}`);
                     }

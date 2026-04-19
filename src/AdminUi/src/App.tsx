@@ -16,6 +16,8 @@ const EpicListPage = lazy(() => import('./features/epics/pages/EpicListPage').th
 const DeliverableListPage = lazy(() => import('./features/deliverables/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
 const AgentTaskListPage = lazy(() => import('./features/agentTasks/pages/AgentTaskListPage').then(module => ({ default: module.AgentTaskListPage })));
 const AgentTaskDetailPage = lazy(() => import('./features/agentTasks/pages/AgentTaskDetailPage').then(module => ({ default: module.AgentTaskDetailPage })));
+const LargeLanguageModelsPage = lazy(() => import('./features/largeLanguageModels/pages/LargeLanguageModelsPage').then(module => ({ default: module.LargeLanguageModelsPage })));
+const DeliverableDetailPage = lazy(() => import('./features/deliverables/pages/DeliverableDetailPage').then(module => ({ default: module.DeliverableDetailPage })));
 
 function LoadingFallback() {
     return (
@@ -86,6 +88,11 @@ function App() {
                                 <DeliverableListPage />
                             </Suspense>
                         } />
+                        <Route path="deliverables/:id" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <DeliverableDetailPage />
+                            </Suspense>
+                        } />
                         <Route path="agent-tasks" element={
                             <Suspense fallback={<LoadingFallback />}>
                                 <AgentTaskListPage />
@@ -94,6 +101,11 @@ function App() {
                         <Route path="agent-tasks/:id" element={
                             <Suspense fallback={<LoadingFallback />}>
                                 <AgentTaskDetailPage />
+                            </Suspense>
+                        } />
+                        <Route path="models" element={
+                            <Suspense fallback={<LoadingFallback />}>
+                                <LargeLanguageModelsPage />
                             </Suspense>
                         } />
                     </Route>

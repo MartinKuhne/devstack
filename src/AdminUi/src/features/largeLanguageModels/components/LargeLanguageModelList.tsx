@@ -5,9 +5,10 @@ import { useLargeLanguageModels } from '@/features/largeLanguageModels/hooks/use
 
 interface LargeLanguageModelListProps {
     onAddModel: () => void;
+    onRefetch?: () => void;
 }
 
-export function LargeLanguageModelList({ onAddModel }: LargeLanguageModelListProps) {
+export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageModelListProps) {
     const { largeLanguageModels, loading, error } = useLargeLanguageModels();
 
     if (loading) {
@@ -15,7 +16,10 @@ export function LargeLanguageModelList({ onAddModel }: LargeLanguageModelListPro
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">Large Language Models</h3>
-                    <Button onClick={onAddModel}>Add Model</Button>
+                    <Button onClick={() => {
+                        onAddModel();
+                        onRefetch?.();
+                    }}>Add Model</Button>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {[1, 2, 3].map((i) => (
@@ -53,7 +57,10 @@ export function LargeLanguageModelList({ onAddModel }: LargeLanguageModelListPro
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle>Large Language Models</CardTitle>
-                        <Button onClick={onAddModel}>Add Model</Button>
+                        <Button onClick={() => {
+                        onAddModel();
+                        onRefetch?.();
+                    }}>Add Model</Button>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -69,7 +76,10 @@ export function LargeLanguageModelList({ onAddModel }: LargeLanguageModelListPro
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Large Language Models</h3>
-                <Button onClick={onAddModel}>Add Model</Button>
+                <Button onClick={() => {
+                    onAddModel();
+                    onRefetch?.();
+                }}>Add Model</Button>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {largeLanguageModels.map((config: any) => (
