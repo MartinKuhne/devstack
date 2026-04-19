@@ -63,7 +63,6 @@ public record DeleteDeliverableInput(Guid Id);
 public record DeliverablePayload(Deliverable? Deliverable, List<string> Errors);
 
 public record CreateAgentTaskInput(
-    Guid ProjectId,
     Guid DeliverableId,
     string Title,
     int ComplexityRating,
@@ -361,7 +360,7 @@ public class Mutation
 
             var agentTask = new AgentTask
             {
-                ProjectId = input.ProjectId,
+                ProjectId = deliverable.ProjectId,
                 DeliverableId = input.DeliverableId,
                 Title = input.Title,
                 ComplexityRating = input.ComplexityRating,

@@ -47,4 +47,24 @@ public class Query
     {
         return dbContext.LargeLanguageModels.ToList();
     }
+
+    public Deliverable? GetDeliverableById([Service] DevStackDbContext dbContext, Guid id)
+    {
+        return dbContext.Deliverables.Find(id);
+    }
+
+    public List<Deliverable> GetDeliverables([Service] DevStackDbContext dbContext)
+    {
+        return dbContext.Deliverables.OrderBy(d => d.Id).ToList();
+    }
+
+    public AgentTask? GetAgentTaskById([Service] DevStackDbContext dbContext, Guid id)
+    {
+        return dbContext.AgentTasks.Find(id);
+    }
+
+    public List<AgentTask> GetAgentTasks([Service] DevStackDbContext dbContext)
+    {
+        return dbContext.AgentTasks.OrderBy(t => t.Id).ToList();
+    }
 }
