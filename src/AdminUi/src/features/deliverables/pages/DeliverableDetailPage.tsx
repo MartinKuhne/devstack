@@ -40,6 +40,34 @@ export function DeliverableDetailPage() {
     const [transitionDeliverableStatus, { loading: transitionLoading }] = useTransitionDeliverableStatusMutation();
     const [selectedStatus, setSelectedStatus] = useState('');
     const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (!deliverable?.id) return;
+        if (!confirm('Are you sure you want to delete this deliverable? This action cannot be undone.')) return;
+        setDeleting(true);
+        try {
+            const response = await fetch('/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: 'mutation DeleteDeliverable($input: DeleteDeliverableInput!) { deleteDeliverable(input: $input) { deliverable { id } errors } }',
+                    variables: { input: { id: deliverable.id } },
+                }),
+            });
+            const result = await response.json();
+            if (result?.data?.deleteDeliverable?.errors?.length) {
+                toast.error(result.data.deleteDeliverable.errors.join(', '));
+            } else {
+                toast.success('Deliverable deleted successfully');
+                navigate('/deliverables');
+            }
+        } catch {
+            toast.error('Failed to delete deliverable');
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -131,6 +159,9 @@ export function DeliverableDetailPage() {
                     </Button>
                     <Button onClick={() => setUpdateDialogOpen(true)}>
                         Edit
+                    </Button>
+                    <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                        Delete
                     </Button>
                 </div>
             </div>

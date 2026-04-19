@@ -7,7 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Trash2 } from 'lucide-react';
 import { useAgentTasks } from '../hooks/useAgentTasks';
+import { useDeleteAgentTaskMutation } from '@/generated/graphql';
+import { toast } from 'react-toastify';
 import type { AgentTaskStatus } from '@/generated/graphql';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -22,12 +25,32 @@ const STATUS_COLORS: Record<string, string> = {
 export function AgentTaskListPage() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+    const [deleteAgentTask, { loading: deleting }] = useDeleteAgentTaskMutation();
     
     const statusFilter = searchParams.get('status') as AgentTaskStatus | undefined;
     const searchFilter = searchParams.get('search') || undefined;
     
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
     const { agentTasks, loading, error } = useAgentTasks(undefined, statusFilter ? [statusFilter] : undefined);
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this agent task?')) return;
+        try {
+            const result = await deleteAgentTask({
+                variables: {
+                    input: { id },
+                },
+            });
+            if (result.data?.deleteAgentTask?.errors?.length) {
+                toast.error(result.data.deleteAgentTask.errors.join(', '));
+            } else {
+                toast.success('Agent task deleted successfully');
+                // refetch would need to be added to useAgentTasks hook
+            }
+        } catch {
+            toast.error('Failed to delete agent task');
+        }
+    };
 
     const handleStatusChange = useCallback((value: string) => {
         const newParams = new URLSearchParams(searchParams);
@@ -135,37 +158,49 @@ export function AgentTaskListPage() {
                         </Table>
                     ) : filteredTasks.length > 0 ? (
                         <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Model</TableHead>
-                                    <TableHead>Tokens</TableHead>
-                                    <TableHead>Updated</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredTasks.map((task) => (
-                                    <TableRow
-                                        key={task.id ?? ''}
-                                        className="cursor-pointer hover:bg-muted/50"
-                                        onClick={() => handleRowClick(task.id)}
-                                    >
-                                        <TableCell className="font-medium">{task.title}</TableCell>
-                                        <TableCell>
-                                            <Badge className={STATUS_COLORS[task.status ?? ''] || 'bg-gray-500'}>
-                                                {task.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>{task.model || '-'}</TableCell>
-                                        <TableCell>
-                                            {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)}
-                                        </TableCell>
-                                        <TableCell>
-                                            {task.updatedAt ? new Date(task.updatedAt).toLocaleDateString() : '-'}
-                                        </TableCell>
+                          <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Title</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Model</TableHead>
+                                        <TableHead>Tokens</TableHead>
+                                        <TableHead>Updated</TableHead>
+                                        <TableHead className="w-16"></TableHead>
                                     </TableRow>
-                                ))}
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredTasks.map((task) => (
+                                        <TableRow
+                                            key={task.id ?? ''}
+                                            className="cursor-pointer hover:bg-muted/50"
+                                            onClick={() => handleRowClick(task.id)}
+                                        >
+                                            <TableCell className="font-medium">{task.title}</TableCell>
+                                            <TableCell>
+                                                <Badge className={STATUS_COLORS[task.status ?? ''] || 'bg-gray-500'}>
+                                                    {task.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>{task.model || '-'}</TableCell>
+                                            <TableCell>
+                                                {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {task.updatedAt ? new Date(task.updatedAt).toLocaleDateString() : '-'}
+                                            </TableCell>
+                                            <TableCell onClick={(e) => e.stopPropagation()}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                                    onClick={() => task.id && handleDelete(task.id)}
+                                                    disabled={deleting}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
                             </TableBody>
                         </Table>
                     ) : (

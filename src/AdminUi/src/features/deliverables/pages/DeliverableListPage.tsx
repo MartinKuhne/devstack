@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CreateDeliverableDialog } from '../components/CreateDeliverableDialog';
 import { useDeliverables } from '../hooks/useDeliverables';
+import { toast } from 'react-toastify';
 import type { FeatureStatus, ItemSubtype } from '@/generated/graphql';
 
   const STATUS_COLORS: Record<string, string> = {
@@ -39,8 +41,35 @@ export function DeliverableListPage() {
 
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
+    const [deleting, setDeleting] = useState(false);
 
     const { deliverables, loading, error, refetch } = useDeliverables(undefined, statusFilter ? [statusFilter] : undefined, typeFilter ? [typeFilter] : undefined);
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this deliverable?')) return;
+        setDeleting(true);
+        try {
+            const response = await fetch('/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: 'mutation DeleteDeliverable($input: DeleteDeliverableInput!) { deleteDeliverable(input: $input) { deliverable { id } errors } }',
+                    variables: { input: { id } },
+                }),
+            });
+            const result = await response.json();
+            if (result?.data?.deleteDeliverable?.errors?.length) {
+                toast.error(result.data.deleteDeliverable.errors.join(', '));
+            } else {
+                toast.success('Deliverable deleted successfully');
+                refetch();
+            }
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Failed to delete deliverable');
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     const handleStatusChange = useCallback((value: string) => {
         const newParams = new URLSearchParams(searchParams);
@@ -177,6 +206,7 @@ export function DeliverableListPage() {
                                     <TableHead>Type</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Updated</TableHead>
+                                    <TableHead className="w-16"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -195,6 +225,17 @@ export function DeliverableListPage() {
                                         </TableCell>
                                         <TableCell>
                                             {deliverable.updatedAt ? new Date(deliverable.updatedAt).toLocaleDateString() : '-'}
+                                        </TableCell>
+                                        <TableCell onClick={(e) => e.stopPropagation()}>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                                onClick={() => deliverable.id && handleDelete(deliverable.id)}
+                                                disabled={deleting}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
