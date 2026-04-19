@@ -120,8 +120,7 @@ namespace DevStack.Tests.Integration.MCP.Features
                 this.ScenarioStart();
                 testRunner.Given("a tools/call request with missing required parameters", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.When("I send the tools/call request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-                testRunner.Then("the response should contain an error", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the error code should be -32602", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.Then("the response should contain an error with code -32602", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
             }
             this.ScenarioCleanup();
         }

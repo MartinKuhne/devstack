@@ -45,18 +45,21 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
         return await SendPrivateBatchRequestAsync(requests, cancellationToken);
     }
 
-    private async Task<JsonRpcResponse> SendPrivateRequestAsync(JsonRpcRequest request, CancellationToken cancellationToken)
+   private async Task<JsonRpcResponse> SendPrivateRequestAsync(JsonRpcRequest request, CancellationToken cancellationToken)
     {
-        var content = new StringContent(
-            JsonSerializer.Serialize(request, _jsonOptions),
-            Encoding.UTF8,
-            "application/json"
-        );
+        var jsonContent = JsonSerializer.Serialize(request, _jsonOptions);
+        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var httpResponse = await _httpClient.PostAsync(_endpoint, content, cancellationToken);
         httpResponse.EnsureSuccessStatusCode();
 
         var responseContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(responseContent))
+        {
+            throw new JsonException("Empty response from MCP server");
+        }
+
         var response = JsonSerializer.Deserialize<JsonRpcResponse>(responseContent, _jsonOptions)
             ?? throw new JsonException("Failed to deserialize JSON-RPC response");
 
@@ -79,18 +82,21 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
         await _httpClient.PostAsync(_endpoint, content, cancellationToken);
     }
 
-    private async Task<JsonRpcResponse[]> SendPrivateBatchRequestAsync(JsonRpcRequest[] requests, CancellationToken cancellationToken)
+   private async Task<JsonRpcResponse[]> SendPrivateBatchRequestAsync(JsonRpcRequest[] requests, CancellationToken cancellationToken)
     {
-        var content = new StringContent(
-            JsonSerializer.Serialize(requests, _jsonOptions),
-            Encoding.UTF8,
-            "application/json"
-        );
+        var jsonContent = JsonSerializer.Serialize(requests, _jsonOptions);
+        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var httpResponse = await _httpClient.PostAsync(_endpoint, content, cancellationToken);
         httpResponse.EnsureSuccessStatusCode();
 
         var responseContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(responseContent))
+        {
+            throw new JsonException("Empty response from MCP server");
+        }
+
         var responses = JsonSerializer.Deserialize<JsonRpcResponse[]>(responseContent, _jsonOptions)
             ?? throw new JsonException("Failed to deserialize JSON-RPC batch response");
 

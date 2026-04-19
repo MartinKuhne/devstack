@@ -10,5 +10,4 @@ Feature: Tools Call Method
     Scenario: Call a tool with missing required parameters
         Given a tools/call request with missing required parameters
         When I send the tools/call request
-        Then the response should contain an error
-        And the error code should be -32602
+        Then the response should contain an error with code -32602
