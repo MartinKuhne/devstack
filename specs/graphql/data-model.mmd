@@ -7,6 +7,7 @@ erDiagram
     }
 
     Deliverable {
+        guid ProjerctId
         string Title
         string Status "Draft | Planning | Ready | InProgress | Done | Failed | Rejected | NeedsReview"
         string Type "Feature | Defect | Maintenance"
@@ -22,18 +23,20 @@ erDiagram
     }
 
     AgentTask {
+        guid ProjerctId
+        guid DeliverableId
         string Title
         string Status "Ready | InProgress | Done | Failed | Rejected | NeedsReview"
-        string DeliverableId
+        string Description
         string Result "optional"
         string Errors "optional"
         string CommitHash "optional"
         int ComplexityRating
-        string DependsOnDevTask "optional"
+        guid DependsOnAgentTaskId "optional"
         int PromptTokens "optional"
         int CompletionTokens "optional"
         int ExecutionDurationInSeconds "optional"
-        string Model "optional"
+        string Agent "optional"
     }
 
     LargeLanguageModel {
