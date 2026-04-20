@@ -149,7 +149,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = "Test error message", commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = "Test error message", commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
 
@@ -179,7 +179,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = "Task completed successfully", errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            variables = new { input = new { id = taskId, title = (string?)null, result = "Task completed successfully", errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
 
@@ -207,7 +207,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { deliverableId, title, complexityRating, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            variables = new { input = new { deliverableId, title, complexityRating, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "CreateAgentTask"
         };
 
@@ -231,14 +231,14 @@ public sealed class AgentTaskSteps
     public void WhenICreateAnAgentTaskWithTitleAndComplexityRating(string title, int complexityRating)
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
-        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, null, null, null, null, null, null, null, null);
+        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, null, null, null, null, null, null, null, null, null);
     }
 
     [When(@"I create an agent task with title ""(.*)"" complexity (.*) result ""(.*)"" errors (.*) commit hash ""(.*)"" model ""(.*)""")]
     public void WhenICreateAnAgentTaskWithAllFields(string title, int complexityRating, string? result, string? errors, string? commitHash, string? model)
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
-        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, result, errors, commitHash, null, null, null, null, model);
+        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, result, errors, commitHash, null, null, model, null, null, null);
     }
 
     [When(@"I create an agent task with title ""(.*)"" complexity (.*) and depends on ""(.*)""")]
@@ -246,15 +246,16 @@ public sealed class AgentTaskSteps
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var dependencyTaskId = _scenarioContext.Get<string>("AgentTaskId") ?? "";
-        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, null, null, null, dependencyTaskId, null, null, null, null);
+        Guid? depId = Guid.TryParse(dependencyTaskId, out var parsed) ? parsed : null;
+        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, null, null, null, depId, null, null, null, null, null);
     }
 
-    private void CreateAgentTaskWithFullFields(string deliverableId, string title, int complexityRating, string? result, string? errors, string? commitHash, string? dependsOnDevTask, int? promptTokens, int? completionTokens, int? executionDurationInSeconds, string? model)
+    private void CreateAgentTaskWithFullFields(string deliverableId, string title, int complexityRating, string? result, string? errors, string? commitHash, Guid? dependsOnAgentTaskId, string? description, string? agent, int? promptTokens, int? completionTokens, int? executionDurationInSeconds)
     {
         var mutation = new
         {
             query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { deliverableId, title, complexityRating, result, errors, commitHash, dependsOnDevTask, promptTokens, completionTokens, executionDurationInSeconds, model } },
+            variables = new { input = new { deliverableId, title, description, complexityRating, result, errors, commitHash, dependsOnAgentTaskId, promptTokens, completionTokens, executionDurationInSeconds, agent } },
             operationName = "CreateAgentTask"
         };
 
@@ -293,7 +294,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { id = taskId, title, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            variables = new { input = new { id = taskId, title, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
 
@@ -310,7 +311,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
 
@@ -327,7 +328,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = resultValue, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            variables = new { input = new { id = taskId, title = (string?)null, result = resultValue, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
 
@@ -344,7 +345,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model = (string?)null } },
+            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
 
@@ -361,7 +362,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnDevTask = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null, model } },
+            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = model, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
 

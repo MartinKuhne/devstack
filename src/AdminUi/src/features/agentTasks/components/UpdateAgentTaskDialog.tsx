@@ -91,7 +91,7 @@ export function UpdateAgentTaskDialog({ open, onOpenChange, agentTask, onSuccess
                         completionTokens: null,
                         errors: null,
                         executionDurationInSeconds: null,
-                        model: null,
+                        agent: null,
                         promptTokens: null,
                     },
                 },

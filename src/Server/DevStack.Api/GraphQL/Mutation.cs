@@ -65,28 +65,30 @@ public record DeliverablePayload(Deliverable? Deliverable, List<string> Errors);
   public record CreateAgentTaskInput(
      Guid DeliverableId,
      string Title,
+     string Description,
      int ComplexityRating,
      string? Result,
      string? Errors,
      string? CommitHash,
-     string? DependsOnDevTask,
+     Guid? DependsOnAgentTaskId,
      int? PromptTokens,
      int? CompletionTokens,
      int? ExecutionDurationInSeconds,
-     string? Model);
+     string? Agent);
 
  public record UpdateAgentTaskInput(
      Guid Id,
      string? Title,
+     string? Description,
      string? Result,
      string? Errors,
      string? CommitHash,
-     string? DependsOnDevTask,
+     Guid? DependsOnAgentTaskId,
      int? ComplexityRating,
      int? PromptTokens,
      int? CompletionTokens,
      int? ExecutionDurationInSeconds,
-     string? Model);
+     string? Agent);
 
 public record TransitionAgentTaskInput(
     Guid Id,
@@ -363,15 +365,16 @@ public class Mutation
                 ProjectId = deliverable.ProjectId,
                 DeliverableId = input.DeliverableId,
                 Title = input.Title,
+                Description = input.Description,
                 ComplexityRating = input.ComplexityRating,
                 Result = input.Result,
                 Errors = input.Errors,
                 CommitHash = input.CommitHash,
-                DependsOnDevTask = input.DependsOnDevTask,
+                DependsOnAgentTaskId = input.DependsOnAgentTaskId,
                 PromptTokens = input.PromptTokens,
                 CompletionTokens = input.CompletionTokens,
                 ExecutionDurationInSeconds = input.ExecutionDurationInSeconds,
-                Model = input.Model,
+                Agent = input.Agent,
                 Status = AgentTaskStatus.Ready
             };
 
@@ -398,15 +401,16 @@ public class Mutation
                 return new AgentTaskPayload(null, ["NOT_FOUND: AgentTask not found"]);
 
             if (input.Title is not null) agentTask.Title = input.Title;
+            if (input.Description is not null) agentTask.Description = input.Description;
             if (input.Result is not null) agentTask.Result = input.Result;
             if (input.Errors is not null) agentTask.Errors = input.Errors;
             if (input.CommitHash is not null) agentTask.CommitHash = input.CommitHash;
-            if (input.DependsOnDevTask is not null) agentTask.DependsOnDevTask = input.DependsOnDevTask;
+            if (input.DependsOnAgentTaskId.HasValue) agentTask.DependsOnAgentTaskId = input.DependsOnAgentTaskId.Value;
             if (input.ComplexityRating.HasValue) agentTask.ComplexityRating = input.ComplexityRating.Value;
             if (input.PromptTokens.HasValue) agentTask.PromptTokens = input.PromptTokens;
             if (input.CompletionTokens.HasValue) agentTask.CompletionTokens = input.CompletionTokens;
             if (input.ExecutionDurationInSeconds.HasValue) agentTask.ExecutionDurationInSeconds = input.ExecutionDurationInSeconds;
-            if (input.Model is not null) agentTask.Model = input.Model;
+            if (input.Agent is not null) agentTask.Agent = input.Agent;
 
             await dbContext.SaveChangesAsync(cancellationToken);
 

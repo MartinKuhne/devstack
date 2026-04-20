@@ -30,7 +30,11 @@ public class AgentTaskConfiguration : IEntityTypeConfiguration<AgentTask>
             .IsRequired()
             .HasDefaultValue(1);
 
-        builder.Property(t => t.DependsOnDevTask)
+        builder.Property(t => t.Description)
+            .IsRequired()
+            .HasMaxLength(500);
+
+        builder.Property(t => t.DependsOnAgentTaskId)
             .IsRequired(false);
 
         builder.Property(t => t.PromptTokens)
@@ -42,8 +46,14 @@ public class AgentTaskConfiguration : IEntityTypeConfiguration<AgentTask>
         builder.Property(t => t.ExecutionDurationInSeconds)
             .IsRequired(false);
 
-        builder.Property(t => t.Model)
-            .IsRequired(false);
+        builder.Property(t => t.Agent)
+            .IsRequired(false)
+            .HasMaxLength(200);
+
+        builder.HasOne(t => t.DependsOnAgentTask)
+            .WithMany()
+            .HasForeignKey(t => t.DependsOnAgentTaskId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(t => t.Project)
             .WithMany()
