@@ -4,15 +4,16 @@ query GetAgentTaskById($id: UUID!) {
         title
         status
         deliverableId
+        description
         result
         errors
         commitHash
         complexityRating
-        dependsOnDevTask
+        dependsOnAgentTaskId
         promptTokens
         completionTokens
         executionDurationInSeconds
-        model
+        agent
     }
 }
 
@@ -22,14 +23,15 @@ query GetAgentTasks($projectId: UUID) {
         title
         status
         deliverableId
+        description
         result
         errors
         commitHash
         complexityRating
-        dependsOnDevTask
+        dependsOnAgentTaskId
         promptTokens
         completionTokens
         executionDurationInSeconds
-        model
+        agent
     }
 }

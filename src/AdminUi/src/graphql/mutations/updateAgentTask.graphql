@@ -4,15 +4,16 @@ mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
             id
             title
             deliverableId
+            description
             complexityRating
             result
             errors
             commitHash
-            dependsOnDevTask
+            dependsOnAgentTaskId
             promptTokens
             completionTokens
             executionDurationInSeconds
-            model
+            agent
         }
         errors
     }

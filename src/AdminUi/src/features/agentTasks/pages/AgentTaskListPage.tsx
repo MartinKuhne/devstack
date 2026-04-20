@@ -141,8 +141,8 @@ export function AgentTaskListPage() {
                                 <TableRow>
                                     <TableHead>Title</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Model</TableHead>
-                                    <TableHead>Updated</TableHead>
+                                    <TableHead>Agent</TableHead>
+                                     <TableHead>Updated</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -162,7 +162,7 @@ export function AgentTaskListPage() {
                                     <TableRow>
                                         <TableHead>Title</TableHead>
                                         <TableHead>Status</TableHead>
-                                        <TableHead>Model</TableHead>
+                                        <TableHead>Agent</TableHead>
                                         <TableHead>Tokens</TableHead>
                                         <TableHead>Updated</TableHead>
                                         <TableHead className="w-16"></TableHead>
@@ -181,7 +181,7 @@ export function AgentTaskListPage() {
                                                     {task.status}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell>{task.model || '-'}</TableCell>
+                                            <TableCell>{task.agent || '-'}</TableCell>
                                             <TableCell>
                                                 {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)}
                                             </TableCell>

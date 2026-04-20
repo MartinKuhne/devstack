@@ -260,9 +260,9 @@ export function AgentTaskDetailPage() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Model</p>
-                                    <p className="font-medium">{agentTask.model || '-'}</p>
-                                </div>
+                                     <p className="text-sm text-muted-foreground">Agent</p>
+                                     <p className="font-medium">{agentTask.agent || '-'}</p>
+                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Commit Hash</p>
                                     <p className="font-medium font-mono text-xs">{agentTask.commitHash || '-'}</p>

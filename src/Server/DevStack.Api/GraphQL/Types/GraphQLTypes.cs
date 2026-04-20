@@ -45,15 +45,16 @@ public class AgentTaskType : ObjectType<AgentTask>
         descriptor.Field(t => t.DeliverableId).Type<IdType>();
         descriptor.Field(t => t.Title).Type<StringType>();
         descriptor.Field(t => t.Status).Type<EnumType<AgentTaskStatus>>();
+        descriptor.Field(t => t.Description).Type<StringType>();
         descriptor.Field(t => t.Result).Type<StringType>();
         descriptor.Field(t => t.Errors).Type<StringType>();
         descriptor.Field(t => t.CommitHash).Type<StringType>();
         descriptor.Field(t => t.ComplexityRating).Type<IntType>();
-        descriptor.Field(t => t.DependsOnDevTask).Type<StringType>();
+        descriptor.Field(t => t.DependsOnAgentTaskId).Type<IdType>();
         descriptor.Field(t => t.PromptTokens).Type<IntType>();
         descriptor.Field(t => t.CompletionTokens).Type<IntType>();
         descriptor.Field(t => t.ExecutionDurationInSeconds).Type<IntType>();
-        descriptor.Field(t => t.Model).Type<StringType>();
+        descriptor.Field(t => t.Agent).Type<StringType>();
     }
 }
 

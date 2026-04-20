@@ -21,6 +21,8 @@ public class AgentTask
     [Required]
     public AgentTaskStatus Status { get; set; }
 
+    public string Description { get; set; } = string.Empty;
+
     public string? Result { get; set; }
 
     public string? Errors { get; set; }
@@ -29,7 +31,7 @@ public class AgentTask
 
     public int ComplexityRating { get; set; } = 1;
 
-    public string? DependsOnDevTask { get; set; }
+    public Guid? DependsOnAgentTaskId { get; set; }
 
     public int? PromptTokens { get; set; }
 
@@ -37,13 +39,16 @@ public class AgentTask
 
     public int? ExecutionDurationInSeconds { get; set; }
 
-    public string? Model { get; set; }
+    public string? Agent { get; set; }
 
     [ForeignKey(nameof(DeliverableId))]
     public virtual Deliverable? Deliverable { get; set; }
 
     [ForeignKey(nameof(ProjectId))]
     public virtual Project? Project { get; set; }
+
+    [ForeignKey(nameof(DependsOnAgentTaskId))]
+    public virtual AgentTask? DependsOnAgentTask { get; set; }
 
     public AgentTask()
     {
