@@ -1,9 +1,17 @@
-import { Outlet, Link } from 'react-router-dom';
-import { Menu, LayoutDashboard, Folder, Brain } from 'lucide-react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, LayoutDashboard, Folder, Brain, GitBranch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useProjects } from '@/features/projects/hooks/useProjects';
 
 function getInitialDarkMode() {
     if (typeof window !== 'undefined') {
@@ -17,6 +25,21 @@ function getInitialDarkMode() {
 }
 
 function SidebarContent() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { projects, loading } = useProjects();
+
+    const currentProjectId = location.pathname.match(/\/projects\/([^/]+)/)?.[1] ?? '';
+    const currentDeliverableId = location.pathname.match(/\/deliverables\/([^/]+)/)?.[1] ?? '';
+
+    const handleProjectSelect = (value: string) => {
+        if (value) {
+            navigate(`/projects/${value}`);
+        } else {
+            navigate('/projects');
+        }
+    };
+
     return (
         <nav className="p-4 space-y-2">
             <Link to="/">
@@ -25,12 +48,55 @@ function SidebarContent() {
                     Dashboard
                 </Button>
             </Link>
+
+            <Select value={currentProjectId || ''} onValueChange={handleProjectSelect}>
+                <SelectTrigger className="w-full">
+                    <Folder className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Select Project" />
+                </SelectTrigger>
+                <SelectContent>
+                    {loading ? (
+                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                    ) : projects.length === 0 ? (
+                        <SelectItem value="none" disabled>No projects</SelectItem>
+                    ) : (
+                        <>
+                            <SelectItem value="">All Projects</SelectItem>
+                            {projects.map((project) => (
+                                <SelectItem key={project.id ?? ''} value={project.id ?? ''}>
+                                    {project.name ?? 'Unnamed Project'}
+                                </SelectItem>
+                            ))}
+                        </>
+                    )}
+                </SelectContent>
+            </Select>
+
+            {currentProjectId && (
+                <Link to={`/deliverables?project=${currentProjectId}`}>
+                    <Button variant="ghost" className="w-full justify-start">
+                        <GitBranch className="mr-2 h-4 w-4" />
+                        Deliverables
+                    </Button>
+                </Link>
+            )}
+
+            {currentDeliverableId && (
+                <Link to="/agent-tasks">
+                    <Button variant="ghost" className="w-full justify-start">
+                        <Brain className="mr-2 h-4 w-4" />
+                        Agent Tasks
+                    </Button>
+                </Link>
+            )}
+
             <Link to="/projects">
                 <Button variant="ghost" className="w-full justify-start">
                     <Folder className="mr-2 h-4 w-4" />
                     Projects
                 </Button>
             </Link>
+
             <Link to="/models">
                 <Button variant="ghost" className="w-full justify-start">
                     <Brain className="mr-2 h-4 w-4" />

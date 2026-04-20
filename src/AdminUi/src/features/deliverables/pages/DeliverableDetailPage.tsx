@@ -3,8 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDeliverable } from '../hooks/useDeliverable';
 import { EditDeliverableDialog } from '../components/EditDeliverableDialog';
 import { useState } from 'react';
@@ -196,14 +194,8 @@ export function DeliverableDetailPage() {
                 </CardContent>
             </Card>
 
-            <Tabs defaultValue="overview" className="w-full">
-                <TabsList>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="details">Details</TabsTrigger>
-                    <TabsTrigger value="agent-tasks">Agent Tasks</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-4">
                     {deliverable.description && (
                         <Card>
                             <CardHeader>
@@ -226,35 +218,6 @@ export function DeliverableDetailPage() {
                         </Card>
                     )}
 
-                    {deliverable.result && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Result</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.result}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.errors && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-destructive">Errors</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-destructive whitespace-pre-wrap">{deliverable.errors}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    <div className="text-sm text-muted-foreground">
-                        <p>Created: {deliverable.createdAt ? new Date(deliverable.createdAt).toLocaleString() : '-'}</p>
-                        <p>Updated: {deliverable.updatedAt ? new Date(deliverable.updatedAt).toLocaleString() : '-'}</p>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="details" className="space-y-4">
                     {deliverable.plan && (
                         <Card>
                             <CardHeader>
@@ -310,36 +273,36 @@ export function DeliverableDetailPage() {
                         </Card>
                     )}
 
+                    {deliverable.result && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Agent Feedback</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm whitespace-pre-wrap">{deliverable.result}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {deliverable.openQuestions && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>Open Questions</CardTitle>
+                                <CardTitle>Blocking</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm whitespace-pre-wrap">{deliverable.openQuestions}</p>
                             </CardContent>
                         </Card>
                     )}
+                </div>
 
-                    {deliverable.rootCause && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Root Cause</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.rootCause}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-                </TabsContent>
-
-                <TabsContent value="agent-tasks">
-                    <Card>
+                <div className="lg:col-span-1">
+                    <Card className="sticky top-4">
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Agent Tasks</CardTitle>
-                                <Button onClick={() => setCreateAgentTaskDialogOpen(true)}>
-                                    New Agent Task
+                                <Button onClick={() => setCreateAgentTaskDialogOpen(true)} size="sm">
+                                    New
                                 </Button>
                             </div>
                         </CardHeader>
@@ -347,68 +310,43 @@ export function DeliverableDetailPage() {
                             {agentTasksError ? (
                                 <p className="text-sm text-destructive">{agentTasksError.message}</p>
                             ) : agentTasksLoading ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Title</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Model</TableHead>
-                                            <TableHead>Updated</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {[1, 2, 3].map((item) => (
-                                            <TableRow key={item}>
-                                                <TableCell><Skeleton className="h-4 w-64" /></TableCell>
-                                                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                <div className="space-y-2">
+                                    {[1, 2, 3].map((item) => (
+                                        <Skeleton key={item} className="h-10 w-full" />
+                                    ))}
+                                </div>
                             ) : agentTasks && agentTasks.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Title</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Model</TableHead>
-                                            <TableHead>Tokens</TableHead>
-                                            <TableHead>Updated</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {agentTasks.map((task) => (
-                                            <TableRow
-                                                key={task.id ?? ''}
-                                                className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() => task.id && navigate(`/agent-tasks/${task.id}`)}
-                                            >
-                                                <TableCell className="font-medium">{task.title}</TableCell>
-                                                <TableCell>
-                                                    <Badge className={STATUS_COLORS[task.status ?? ''] || 'bg-gray-500'}>
-                                                        {task.status}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>{task.model || '-'}</TableCell>
-                                                <TableCell>
-                                                    {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {task.updatedAt ? new Date(task.updatedAt).toLocaleDateString() : '-'}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                <div className="space-y-2">
+                                    {agentTasks.map((task) => (
+                                        <div
+                                            key={task.id ?? ''}
+                                            className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 cursor-pointer"
+                                            onClick={() => task.id && navigate(`/agent-tasks/${task.id}`)}
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate">{task.title}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {task.model || '-'} · {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)} tokens
+                                                </p>
+                                            </div>
+                                            <Badge className={STATUS_COLORS[task.status ?? ''] || 'bg-gray-500'}>
+                                                {task.status}
+                                            </Badge>
+                                        </div>
+                                    ))}
+                                </div>
                             ) : (
                                 <p className="text-muted-foreground text-sm">No agent tasks for this deliverable.</p>
                             )}
                         </CardContent>
                     </Card>
-                </TabsContent>
-            </Tabs>
+                </div>
+            </div>
+
+            <div className="text-sm text-muted-foreground">
+                <p>Created: {deliverable.createdAt ? new Date(deliverable.createdAt).toLocaleString() : '-'}</p>
+                <p>Updated: {deliverable.updatedAt ? new Date(deliverable.updatedAt).toLocaleString() : '-'}</p>
+            </div>
 
             <EditDeliverableDialog
                 open={updateDialogOpen}
