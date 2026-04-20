@@ -34,6 +34,8 @@ try
 
     app.MapMcp("/mcp");
 
+    app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+
     app.Run();
 }
 catch (Exception ex)
