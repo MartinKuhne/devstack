@@ -93,9 +93,15 @@ public class DevStackTestEnvBuilder
             _mode == DevStackTestEnvMode.Api ? "DevStack.Api" : "DevStack.Mcp",
             "Dockerfile");
 
+        Console.WriteLine($"[DevStackTestEnvBuilder] Dockerfile path: {Path.GetFullPath(dockerfilePath)}");
+        Console.WriteLine($"[DevStackTestEnvBuilder] Docker build context: {Path.GetFullPath(solutionDir)}");
+
         if (!File.Exists(dockerfilePath))
         {
-            throw new FileNotFoundException($"Dockerfile not found at {dockerfilePath}");
+            throw new FileNotFoundException(
+                $"Dockerfile not found at '{Path.GetFullPath(dockerfilePath)}'. " +
+                $"Build context is '{Path.GetFullPath(solutionDir)}'. " +
+                $"Check that the Dockerfile exists at the expected location and that .dockerignore is not excluding it.");
         }
 
         var imageName = _mode switch
@@ -107,7 +113,7 @@ public class DevStackTestEnvBuilder
 
         _appImage = new ImageFromDockerfileBuilder()
             .WithDockerfileDirectory(solutionDir)
-            .WithDockerfile(Path.Combine(_mode == DevStackTestEnvMode.Api ? "DevStack.Api" : "DevStack.Mcp", "Dockerfile"))
+            .WithDockerfile(_mode == DevStackTestEnvMode.Api ? "DevStack.Api/Dockerfile" : "DevStack.Mcp/Dockerfile")
             .WithName(imageName)
             .WithImageBuildPolicy(_ => true)
             .Build();
