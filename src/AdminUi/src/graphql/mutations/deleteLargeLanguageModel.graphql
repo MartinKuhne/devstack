@@ -1,0 +1,8 @@
+mutation DeleteLargeLanguageModel($input: DeleteLargeLanguageModelInput!) {
+    deleteLargeLanguageModel(input: $input) {
+        largeLanguageModel {
+            id
+        }
+        errors
+    }
+}

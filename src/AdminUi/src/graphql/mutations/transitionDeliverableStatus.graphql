@@ -3,7 +3,6 @@ mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) {
         deliverable {
             id
             status
-            validStatusTransitions
         }
         errors
     }

@@ -1,10 +1,9 @@
 mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
     transitionAgentTaskStatus(input: $input) {
-        task {
+        agentTask {
             id
             title
             status
-            updatedAt
         }
         errors
     }

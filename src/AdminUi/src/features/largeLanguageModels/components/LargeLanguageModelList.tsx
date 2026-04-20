@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useLargeLanguageModels } from '@/features/largeLanguageModels/hooks/useLargeLanguageModels';
 import { LargeLanguageModelDialog } from './LargeLanguageModelDialog';
-import { useDeleteModelConfigurationMutation } from '@/generated/graphql';
+import { useDeleteLargeLanguageModelMutation } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 
 interface LargeLanguageModelListProps {
@@ -23,7 +23,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         apiKey?: string;
         maxComplexity: number;
     } | null>(null);
-    const [deleteModelConfiguration, { loading: deleting }] = useDeleteModelConfigurationMutation();
+    const [deleteLargeLanguageModel, { loading: deleting }] = useDeleteLargeLanguageModelMutation();
 
     const handleEdit = (model: { id: string | null; model: string | null; modelAlias: string | null; url: string | null; maxComplexity: number | null }) => {
         setEditingModel({
@@ -37,13 +37,13 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
     const handleDelete = async (modelId: string) => {
         if (!confirm('Are you sure you want to delete this model configuration?')) return;
         try {
-            const result = await deleteModelConfiguration({
+            const result = await deleteLargeLanguageModel({
                 variables: {
                     input: { id: modelId },
                 },
             });
-            if (result.data?.deleteModelConfiguration?.errors?.length) {
-                toast.error(result.data.deleteModelConfiguration.errors.join(', '));
+            if (result.data?.deleteLargeLanguageModel?.errors?.length) {
+                toast.error(result.data.deleteLargeLanguageModel.errors.join(', '));
             } else {
                 toast.success('Model deleted successfully');
                 onRefetch?.();

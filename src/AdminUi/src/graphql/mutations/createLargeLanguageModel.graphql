@@ -1,0 +1,13 @@
+mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) {
+    createLargeLanguageModel(input: $input) {
+        largeLanguageModel {
+            id
+            url
+            model
+            modelAlias
+            maxComplexity
+            maxConcurrency
+        }
+        errors
+    }
+}

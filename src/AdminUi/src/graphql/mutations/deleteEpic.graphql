@@ -1,8 +1,0 @@
-mutation DeleteEpic($input: DeleteEpicInput!) {
-    deleteEpic(input: $input) {
-        epic {
-            id
-        }
-        errors
-    }
-}

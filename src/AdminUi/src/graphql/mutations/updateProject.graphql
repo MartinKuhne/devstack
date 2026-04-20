@@ -4,11 +4,7 @@ mutation UpdateProject($input: UpdateProjectInput!) {
             id
             name
             description
-            architecture
-            memory
-            githubUrl
-            createdAt
-            updatedAt
+            repository
         }
         errors
     }

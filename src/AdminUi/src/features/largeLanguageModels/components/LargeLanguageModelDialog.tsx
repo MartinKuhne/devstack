@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCreateModelConfigurationMutation, useUpdateModelConfigurationMutation, useDeleteModelConfigurationMutation } from '@/generated/graphql';
+import { useCreateLargeLanguageModelMutation, useUpdateLargeLanguageModelMutation, useDeleteLargeLanguageModelMutation } from '@/generated/graphql';
 
 interface LargeLanguageModelDialogProps {
     open: boolean;
@@ -35,9 +35,9 @@ export function LargeLanguageModelDialog({
     const [showApiKey, setShowApiKey] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [createModelConfiguration, { loading: createLoading }] = useCreateModelConfigurationMutation();
-    const [updateModelConfiguration, { loading: updateLoading }] = useUpdateModelConfigurationMutation();
-    const [deleteModelConfiguration, { loading: deleteLoading }] = useDeleteModelConfigurationMutation();
+    const [createLargeLanguageModel, { loading: createLoading }] = useCreateLargeLanguageModelMutation();
+    const [updateLargeLanguageModel, { loading: updateLoading }] = useUpdateLargeLanguageModelMutation();
+    const [deleteLargeLanguageModel, { loading: deleteLoading }] = useDeleteLargeLanguageModelMutation();
 
     const resetForm = () => {
         setModelValue('');
@@ -104,7 +104,7 @@ export function LargeLanguageModelDialog({
 
         try {
             if (isEditMode && model) {
-                const result = await updateModelConfiguration({
+                const result = await updateLargeLanguageModel({
                     variables: {
                         input: {
                             id: model.id,
@@ -116,13 +116,13 @@ export function LargeLanguageModelDialog({
                         },
                     },
                 });
-                const payload = result.data?.updateModelConfiguration;
+                const payload = result.data?.updateLargeLanguageModel;
                 if (payload?.errors?.length) {
                     setError(payload.errors.join(', '));
                     return;
                 }
             } else {
-                const result = await createModelConfiguration({
+                const result = await createLargeLanguageModel({
                     variables: {
                         input: {
                             model: modelValue,
@@ -133,7 +133,7 @@ export function LargeLanguageModelDialog({
                         },
                     },
                 });
-                const payload = result.data?.createModelConfiguration;
+                const payload = result.data?.createLargeLanguageModel;
                 if (payload?.errors?.length) {
                     setError(payload.errors.join(', '));
                     return;
@@ -153,12 +153,12 @@ export function LargeLanguageModelDialog({
         setError(null);
 
         try {
-            const result = await deleteModelConfiguration({
+            const result = await deleteLargeLanguageModel({
                 variables: {
                     input: { id: model.id },
                 },
             });
-            const payload = result.data?.deleteModelConfiguration;
+            const payload = result.data?.deleteLargeLanguageModel;
             if (payload?.errors?.length) {
                 setError(payload.errors.join(', '));
                 return;
