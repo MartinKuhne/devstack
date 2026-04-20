@@ -21,13 +21,13 @@ Run a plan, execute, review loop using an AI agent
 
 # Components
 
-- A powershell script ```scripts/agent.ps1```
-- A set of graphql queries used by the script in ```scripts/queries```
-- A set of prompts used by the script in ```scripts/prompts```
+- A powershell script ```scripts/devstack.ps1```
+- A set of graphql queries used by the script, contained in the script as strings
+- A set of prompts used by the script, contained in the script as strings
 
 # Capabilities
 
-Run a loop executing the following prompts with opencode. Sample code:
+Execute prompts with OpenCode
 
 ```
     $npxArgs = @("opencode", "run", ($prompt -replace "`r`n|`n|`r", " "))
@@ -35,25 +35,50 @@ Run a loop executing the following prompts with opencode. Sample code:
     & npx @npxArgs
 ```
 
-## Specification analysis phase
+# Operation
 
-Prompt: Compare the specification under ```specs/**``` with the actual implementation and create Deliverables and AgentTasks to change the implementation to match the specification. Create Deliverables and AgentTaks in the Ready state when the architecture and technoloy choices
-are unambiguous. Create just a Deliverable in state NeedsReview if there are open questions or architecture and/or technology choices are ambigous.
-The spec is the source of truth and the code must be changed accordingly.
+- Determine the current project from the github repository name
+- Create a project if it does not exist
+- Add the MCP server to opencode.json in the repository root, like so
+- Retrieve the Project ID
 
-If there are multiple folders under ```specs/**```, instead run the prompt once for the contents of each folder. For example, the prompt would start with: Compare the specification under ```specs/graphql/**```
+```
+{
+    "$schema": "https://opencode.ai/config.json",
+    "mcp": {
+        "devstack": {
+            "type": "remote",
+            "url": "http://localhost:8088/mcp",
+            "enabled": true
+        }
+    }
+}
+```
+Edit but do not overwrite the file
+
+- Query the Deliverables for the Project in Status = PLANNING
+- For each Deliverable, execute the Planning phase (below)
+- Query the Deliverables for the Project in Status = READY
+- For each Deliverable, execute the Execution phase (below)
 
 ## Planning phase
 
-Prompt: Plan the implementation of Deliverables in the Planning state. Create AgentTasks that can be completed by an AI agent in less than 20 minutes. Indicate the complexity of the task. If architecture and/or technology choices are ambigous, do not create AgentTasks, instead change the Deliverable status to NeedsReview.
-
-Append all Deliverable fields to the prompt
+Prompt: Plan the implementation of the Deliverable. Do not make any changes to the project
+{{Title}}
+{{Description}}
+DeliverableId: {{DeliverableId}}
+Update the deliverable with the Plan and update all the fields with the findings. 
+If architecture and/or technology choices are ambigous, do not create AgentTasks, change the Deliverable status to NeedsReview.
+Otherwise, Create AgentTasks that can be completed by an AI agent in less than 60 minutes. Indicate the complexity of the task. 
 
 ## Execution phase
 
-Prompt: Retrieve AgentTasks in Ready status for the current project and execute the tasks. When the task is complete and quality gates pass, commit the changes and change the AgentTask status to Done. If there were any errors, update the AgentTask with that information and move it to the Failed status.
-
-Append all AgentTask fields to the prompt
+Prompt: Implement the change
+{{Title}}
+{{Description}}
+AgentTaskId: {{AgentTaskId}}
+If successful, change the AgentTask Status to Done
+It not successful, change the AgentTask Status to NeedsReview
 
 # Technical specification
 
