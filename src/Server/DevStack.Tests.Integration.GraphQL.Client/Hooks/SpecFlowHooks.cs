@@ -1,15 +1,19 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DevStack.Client;
+using DotNet.Testcontainers.Builders;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Infrastructure;
+using Testcontainers.PostgreSql;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.Hooks;
 
@@ -17,30 +21,23 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Hooks;
 public sealed class SpecFlowHooks
 {
     private readonly ScenarioContext _scenarioContext;
-    private readonly IConfiguration _configuration;
     private IDevStackClient? _client;
     private IServiceProvider? _serviceProvider;
     private HttpClient? _httpClient;
 
-    private static readonly Lazy<IConfiguration> Configuration = new(() =>
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .Build();
-        return configuration;
-    });
+    public static TestcontainersModule Module => TestcontainersModule.Instance;
 
     public SpecFlowHooks(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
-        _configuration = Configuration.Value;
     }
 
     [BeforeScenario]
     public void BeforeScenario()
     {
-        var graphQlUrl = _configuration["GraphQL:Url"] ?? "http://localhost:8087/graphql";
-        
+        var graphQlUrl = Module.GraphQlUrl
+            ?? throw new InvalidOperationException("GraphQL URL not configured. TestcontainersModule initialization failed.");
+
         var services = new ServiceCollection();
         services
             .AddDevStackClient()

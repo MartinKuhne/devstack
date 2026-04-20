@@ -62,12 +62,32 @@ App
  │   ├─ SearchBar
  │   └─ UserMenu
  ├─ Sidebar
+ │   ├─ Dropdown: Project (User selects project)
  │   ├─ NavItem: Dashboard
+ │   ├─ NavItem: LargeLanguageModels
  │   ├─ NavItem: Projects
- │   └─ NavItem: LargeLanguageModels
+ │   ├─ NavItem: Deliverables (when a Project is selected)
+ │   └─ NavItem: AgentTasks (when a Deliverable is selected)
  └─ Project
-     ├─ Deliverables
-        ├─ AgentTasks
+     ├─ Deliverables (List view)
+        └─  Deliverable (Detail view)
+
+Deliverable detail view
+
++--------------------------------------------------------+
+| Title                                  | Type | Status |
++--------------------------------------------------------+
+| Description (Text block)               | AgentTasks    |
+| AceptanceCriteria (Text block)         |               |
+| ExecutionPlan (Text block)             |               |
+| SecurityImpact (Text block)            |               |
+| PerformanceImpact (Text block)         |               | 
+| TestPlan (Text block)                  |               |
+| DeploymentPlan (Text block)            |               |
+| AgentFeedback (Text block)             |               |
+| Blocking (Text block)                  |               |
++--------------------------------------------------------+
+
 
 # Maintenance tasks
 - Verify UI visual styles are correct
