@@ -69,9 +69,8 @@ public sealed class SpecFlowHooks
             testProjectDir = Path.GetDirectoryName(testProjectDir) ?? Directory.GetParent(testProjectDir)?.FullName ?? "";
         }
 
-        var serverDir = Path.Combine(testProjectDir, "Server");
-        var mcpDockerfilePath = Path.Combine(serverDir, "DevStack.Mcp", "Dockerfile");
-        var dockerBuildContext = serverDir;
+        var mcpDockerfilePath = Path.Combine(testProjectDir, "DevStack.Mcp", "Dockerfile");
+        var dockerBuildContext = testProjectDir;
 
         if (!File.Exists(mcpDockerfilePath))
         {
