@@ -6,7 +6,7 @@ export function useLargeLanguageModels() {
     });
 
     return {
-        largeLanguageModels: data?.modelConfigurations ?? [],
+        largeLanguageModels: data?.largeLanguageModels ?? [],
         loading,
         error,
         refetch,

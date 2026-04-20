@@ -4,17 +4,17 @@ import { vi, beforeEach } from 'vitest';
 
 // Mock the GraphQL mutation hooks
 vi.mock('@/generated/graphql', () => ({
-    useCreateModelConfigurationMutation: vi.fn(),
-    useUpdateModelConfigurationMutation: vi.fn(),
-    useDeleteModelConfigurationMutation: vi.fn(),
+    useCreateLargeLanguageModelMutation: vi.fn(),
+    useUpdateLargeLanguageModelMutation: vi.fn(),
+    useDeleteLargeLanguageModelMutation: vi.fn(),
 }));
 
 const getMockedGraphqlHooks = async () => {
     const m = await import('@/generated/graphql');
     return {
-        useCreateModelConfigurationMutation: m.useCreateModelConfigurationMutation as ReturnType<typeof vi.fn>,
-        useUpdateModelConfigurationMutation: m.useUpdateModelConfigurationMutation as ReturnType<typeof vi.fn>,
-        useDeleteModelConfigurationMutation: m.useDeleteModelConfigurationMutation as ReturnType<typeof vi.fn>,
+        useCreateLargeLanguageModelMutation: m.useCreateLargeLanguageModelMutation as ReturnType<typeof vi.fn>,
+        useUpdateLargeLanguageModelMutation: m.useUpdateLargeLanguageModelMutation as ReturnType<typeof vi.fn>,
+        useDeleteLargeLanguageModelMutation: m.useDeleteLargeLanguageModelMutation as ReturnType<typeof vi.fn>,
     };
 };
 
@@ -25,9 +25,9 @@ describe('LargeLanguageModelDialog', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
         const hooks = await getMockedGraphqlHooks();
-        hooks.useCreateModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
-        hooks.useUpdateModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
-        hooks.useDeleteModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useCreateLargeLanguageModelMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useUpdateLargeLanguageModelMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useDeleteLargeLanguageModelMutation.mockReturnValue([vi.fn(), { loading: false }]);
     });
 
     it('should render form with correct labels', () => {

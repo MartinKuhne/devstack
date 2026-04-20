@@ -1,6 +1,6 @@
 mutation DeleteAgentTask($input: DeleteAgentTaskInput!) {
     deleteAgentTask(input: $input) {
-        task {
+        agentTask {
             id
         }
         errors

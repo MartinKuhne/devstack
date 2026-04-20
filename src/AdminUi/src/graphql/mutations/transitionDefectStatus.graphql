@@ -1,9 +1,0 @@
-mutation TransitionDefectStatus($input: TransitionDefectInput!) {
-    transitionDefectStatus(input: $input) {
-        item {
-            id
-            status
-        }
-        errors
-    }
-}

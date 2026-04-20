@@ -1,9 +1,0 @@
-mutation TransitionTaskStatus($input: TransitionTaskInput!) {
-    transitionTaskStatus(input: $input) {
-        task {
-            id
-            status
-        }
-        errors
-    }
-}

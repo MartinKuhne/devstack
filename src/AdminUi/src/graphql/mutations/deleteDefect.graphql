@@ -1,8 +1,0 @@
-mutation DeleteDefect($input: DeleteDefectInput!) {
-    deleteDefect(input: $input) {
-        item {
-            id
-        }
-        errors
-    }
-}

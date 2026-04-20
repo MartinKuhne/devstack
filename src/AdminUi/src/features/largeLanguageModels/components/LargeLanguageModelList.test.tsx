@@ -16,18 +16,18 @@ vi.mock(import('@/generated/graphql'), async (importOriginal) => {
     const actual = await importOriginal();
     return {
         ...actual,
-        useDeleteModelConfigurationMutation: vi.fn(),
-        useCreateModelConfigurationMutation: vi.fn(),
-        useUpdateModelConfigurationMutation: vi.fn(),
+        useDeleteLargeLanguageModelMutation: vi.fn(),
+        useCreateLargeLanguageModelMutation: vi.fn(),
+        useUpdateLargeLanguageModelMutation: vi.fn(),
     };
 });
 
 const getMockedGraphqlHooks = async () => {
     const m = await import('@/generated/graphql');
     return {
-        useDeleteModelConfigurationMutation: m.useDeleteModelConfigurationMutation as ViFnMock,
-        useCreateModelConfigurationMutation: m.useCreateModelConfigurationMutation as ViFnMock,
-        useUpdateModelConfigurationMutation: m.useUpdateModelConfigurationMutation as ViFnMock,
+        useDeleteLargeLanguageModelMutation: m.useDeleteLargeLanguageModelMutation as ViFnMock,
+        useCreateLargeLanguageModelMutation: m.useCreateLargeLanguageModelMutation as ViFnMock,
+        useUpdateLargeLanguageModelMutation: m.useUpdateLargeLanguageModelMutation as ViFnMock,
     };
 };
 
@@ -39,9 +39,9 @@ describe('LargeLanguageModelList', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
         const hooks = await getMockedGraphqlHooks();
-        hooks.useDeleteModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
-        hooks.useCreateModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
-        hooks.useUpdateModelConfigurationMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useDeleteLargeLanguageModelMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useCreateLargeLanguageModelMutation.mockReturnValue([vi.fn(), { loading: false }]);
+        hooks.useUpdateLargeLanguageModelMutation.mockReturnValue([vi.fn(), { loading: false }]);
     });
 
     it('should render empty state when no configurations exist', () => {

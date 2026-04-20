@@ -1,23 +1,18 @@
 mutation CreateAgentTask($input: CreateAgentTaskInput!) {
     createAgentTask(input: $input) {
-        task {
+        agentTask {
             id
             title
-            deliverable
-            acceptanceCriteria
-            risks
-            requiredFollowUps
+            deliverableId
             complexityRating
             result
-            status
-            itemId
+            errors
+            commitHash
+            dependsOnDevTask
             promptTokens
             completionTokens
             executionDurationInSeconds
             model
-            commitHash
-            createdAt
-            updatedAt
         }
         errors
     }

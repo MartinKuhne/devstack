@@ -17,44 +17,33 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  /** The `DateTime` scalar represents an ISO-8601 compliant date time type. */
-  DateTime: { input: any; output: any; }
   UUID: { input: any; output: any; }
 };
 
 export type AgentTask = {
   __typename?: 'AgentTask';
-  acceptanceCriteria: Maybe<Scalars['String']['output']>;
   commitHash: Maybe<Scalars['String']['output']>;
   completionTokens: Maybe<Scalars['Int']['output']>;
   complexityRating: Maybe<Scalars['Int']['output']>;
-  createdAt: Maybe<Scalars['DateTime']['output']>;
-  deliverable: Maybe<Scalars['String']['output']>;
-  dependsOnAgentTask: Maybe<Array<Maybe<AgentTask>>>;
+  deliverable: Maybe<Deliverable>;
+  deliverableId: Maybe<Scalars['ID']['output']>;
+  dependsOnDevTask: Maybe<Scalars['String']['output']>;
   errors: Maybe<Scalars['String']['output']>;
   executionDurationInSeconds: Maybe<Scalars['Int']['output']>;
-  /** @deprecated Use Item instead */
-  feature: Maybe<Item>;
-  /** @deprecated Use ItemId and Item instead */
-  featureId: Scalars['UUID']['output'];
   id: Maybe<Scalars['ID']['output']>;
-  item: Maybe<Item>;
-  itemId: Maybe<Scalars['ID']['output']>;
   model: Maybe<Scalars['String']['output']>;
+  project: Maybe<Project>;
   projectId: Scalars['UUID']['output'];
   promptTokens: Maybe<Scalars['Int']['output']>;
-  requiredFollowUps: Maybe<Scalars['String']['output']>;
   result: Maybe<Scalars['String']['output']>;
-  risks: Maybe<Scalars['String']['output']>;
   status: Maybe<AgentTaskStatus>;
   title: Maybe<Scalars['String']['output']>;
-  updatedAt: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type AgentTaskPayload = {
   __typename?: 'AgentTaskPayload';
+  agentTask: Maybe<AgentTask>;
   errors: Array<Scalars['String']['output']>;
-  task: Maybe<AgentTask>;
 };
 
 export const AgentTaskStatus = {
@@ -67,152 +56,58 @@ export const AgentTaskStatus = {
 } as const;
 
 export type AgentTaskStatus = typeof AgentTaskStatus[keyof typeof AgentTaskStatus];
-export type AuditEvent = {
-  __typename?: 'AuditEvent';
-  actor: Maybe<Scalars['String']['output']>;
-  entityId: Maybe<Scalars['ID']['output']>;
-  entityType: Maybe<Scalars['String']['output']>;
-  eventType: Maybe<Scalars['String']['output']>;
-  id: Maybe<Scalars['ID']['output']>;
-  newValue: Maybe<Scalars['String']['output']>;
-  occurredAt: Maybe<Scalars['DateTime']['output']>;
-  oldValue: Maybe<Scalars['String']['output']>;
-};
-
-export type CancelWorkflowRunInput = {
-  id: Scalars['UUID']['input'];
+export type CleanupTestDataPayload = {
+  __typename?: 'CleanupTestDataPayload';
+  message: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
 };
 
 export type CreateAgentTaskInput = {
-  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
+  commitHash: InputMaybe<Scalars['String']['input']>;
+  completionTokens: InputMaybe<Scalars['Int']['input']>;
   complexityRating: Scalars['Int']['input'];
-  deliverable: InputMaybe<Scalars['String']['input']>;
-  itemId: Scalars['UUID']['input'];
-  projectId: Scalars['UUID']['input'];
-  requiredFollowUps: InputMaybe<Scalars['String']['input']>;
+  deliverableId: Scalars['UUID']['input'];
+  dependsOnDevTask: InputMaybe<Scalars['String']['input']>;
+  errors: InputMaybe<Scalars['String']['input']>;
+  executionDurationInSeconds: InputMaybe<Scalars['Int']['input']>;
+  model: InputMaybe<Scalars['String']['input']>;
+  promptTokens: InputMaybe<Scalars['Int']['input']>;
   result: InputMaybe<Scalars['String']['input']>;
-  risks: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
-};
-
-export type CreateDefectInput = {
-  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
-  deploymentPlan: InputMaybe<Scalars['String']['input']>;
-  description: InputMaybe<Scalars['String']['input']>;
-  initialStatus: InputMaybe<FeatureStatus>;
-  openQuestions: InputMaybe<Scalars['String']['input']>;
-  parentFeatureId: InputMaybe<Scalars['UUID']['input']>;
-  performanceImpact: InputMaybe<Scalars['String']['input']>;
-  plan: InputMaybe<Scalars['String']['input']>;
-  projectId: Scalars['UUID']['input'];
-  securityImpact: InputMaybe<Scalars['String']['input']>;
-  severity: InputMaybe<Severity>;
-  testPlan: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
 };
 
 export type CreateDeliverableInput = {
   acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
+  agentFeedback: InputMaybe<Scalars['String']['input']>;
+  blocking: InputMaybe<Scalars['String']['input']>;
   deploymentPlan: InputMaybe<Scalars['String']['input']>;
   description: InputMaybe<Scalars['String']['input']>;
-  epicId: InputMaybe<Scalars['UUID']['input']>;
+  executionPlan: InputMaybe<Scalars['String']['input']>;
   initialStatus: InputMaybe<DeliverableStatus>;
-  openQuestions: InputMaybe<Scalars['String']['input']>;
   performanceImpact: InputMaybe<Scalars['String']['input']>;
-  plan: InputMaybe<Scalars['String']['input']>;
   projectId: Scalars['UUID']['input'];
   securityImpact: InputMaybe<Scalars['String']['input']>;
   testPlan: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
-  type: DeliverableType;
-};
-
-export type CreateEpicInput = {
-  description: InputMaybe<Scalars['String']['input']>;
-  projectId: Scalars['UUID']['input'];
-  title: Scalars['String']['input'];
-};
-
-export type CreateFeatureInput = {
-  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
-  deploymentPlan: InputMaybe<Scalars['String']['input']>;
-  description: InputMaybe<Scalars['String']['input']>;
-  initialStatus: InputMaybe<FeatureStatus>;
-  openQuestions: InputMaybe<Scalars['String']['input']>;
-  performanceImpact: InputMaybe<Scalars['String']['input']>;
-  plan: InputMaybe<Scalars['String']['input']>;
-  projectId: Scalars['UUID']['input'];
-  securityImpact: InputMaybe<Scalars['String']['input']>;
-  testPlan: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
+  type: Scalars['String']['input'];
 };
 
 export type CreateLargeLanguageModelInput = {
   apiKey: Scalars['String']['input'];
   maxComplexity: Scalars['Int']['input'];
-  model: Scalars['String']['input'];
-  modelAlias: InputMaybe<Scalars['String']['input']>;
-  projectId: Scalars['UUID']['input'];
-  url: Scalars['String']['input'];
-};
-
-export type CreateModelConfigurationInput = {
-  apiKey: Scalars['String']['input'];
-  maxComplexity: Scalars['Int']['input'];
+  maxConcurrency: InputMaybe<Scalars['Int']['input']>;
   model: Scalars['String']['input'];
   modelAlias: InputMaybe<Scalars['String']['input']>;
   url: Scalars['String']['input'];
 };
 
 export type CreateProjectInput = {
-  architecture: InputMaybe<Scalars['String']['input']>;
   description: InputMaybe<Scalars['String']['input']>;
-  githubUrl: InputMaybe<Scalars['String']['input']>;
-  memory: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-};
-
-export type CreateTaskInput = {
-  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
-  complexityRating: Scalars['Int']['input'];
-  deliverable: InputMaybe<Scalars['String']['input']>;
-  itemId: Scalars['UUID']['input'];
-  projectId: Scalars['UUID']['input'];
-  requiredFollowUps: InputMaybe<Scalars['String']['input']>;
-  result: InputMaybe<Scalars['String']['input']>;
-  risks: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
-};
-
-export type CreateWorkflowRunInput = {
-  inputPayload: Scalars['String']['input'];
-  itemId: InputMaybe<Scalars['UUID']['input']>;
-  projectId: Scalars['UUID']['input'];
-  taskId: InputMaybe<Scalars['UUID']['input']>;
-  workflowType: WorkflowType;
-};
-
-export type DashboardSummary = {
-  __typename?: 'DashboardSummary';
-  featuresFailed: Scalars['Int']['output'];
-  featuresInReview: Scalars['Int']['output'];
-  projectsInFlight: Scalars['Int']['output'];
-  recentAuditEvents: Array<AuditEvent>;
-  tasksFailed: Scalars['Int']['output'];
-  tasksInProgress: Scalars['Int']['output'];
-};
-
-export type DefectPayload = {
-  __typename?: 'DefectPayload';
-  errors: Array<Scalars['String']['output']>;
-  item: Maybe<Item>;
+  repository: InputMaybe<Scalars['String']['input']>;
 };
 
 export type DeleteAgentTaskInput = {
-  id: Scalars['UUID']['input'];
-};
-
-export type DeleteDefectInput = {
   id: Scalars['UUID']['input'];
 };
 
@@ -220,19 +115,7 @@ export type DeleteDeliverableInput = {
   id: Scalars['UUID']['input'];
 };
 
-export type DeleteEpicInput = {
-  id: Scalars['UUID']['input'];
-};
-
-export type DeleteFeatureInput = {
-  id: Scalars['UUID']['input'];
-};
-
 export type DeleteLargeLanguageModelInput = {
-  id: Scalars['UUID']['input'];
-};
-
-export type DeleteModelConfigurationInput = {
   id: Scalars['UUID']['input'];
 };
 
@@ -240,39 +123,24 @@ export type DeleteProjectInput = {
   id: Scalars['UUID']['input'];
 };
 
-export type DeleteTaskInput = {
-  id: Scalars['UUID']['input'];
-};
-
 export type Deliverable = {
   __typename?: 'Deliverable';
   acceptanceCriteria: Maybe<Scalars['String']['output']>;
-  createdAt: Maybe<Scalars['DateTime']['output']>;
-  deliverableType: DeliverableType;
+  agentFeedback: Maybe<Scalars['String']['output']>;
+  agentTasks: Maybe<Array<Maybe<AgentTask>>>;
+  blocking: Maybe<Scalars['String']['output']>;
   deploymentPlan: Maybe<Scalars['String']['output']>;
   description: Maybe<Scalars['String']['output']>;
-  epic: Maybe<Epic>;
-  epicId: Maybe<Scalars['ID']['output']>;
-  errors: Maybe<Scalars['String']['output']>;
+  executionPlan: Maybe<Scalars['String']['output']>;
   id: Maybe<Scalars['ID']['output']>;
-  openQuestions: Maybe<Scalars['String']['output']>;
-  parentDeliverable: Maybe<Deliverable>;
-  parentDeliverableId: Maybe<Scalars['ID']['output']>;
   performanceImpact: Maybe<Scalars['String']['output']>;
-  plan: Maybe<Scalars['String']['output']>;
   project: Maybe<Project>;
   projectId: Maybe<Scalars['ID']['output']>;
-  result: Maybe<Scalars['String']['output']>;
-  rootCause: Maybe<Scalars['String']['output']>;
   securityImpact: Maybe<Scalars['String']['output']>;
-  severity: Maybe<Severity>;
   status: Maybe<DeliverableStatus>;
-  tasks: Maybe<Array<Maybe<AgentTask>>>;
   testPlan: Maybe<Scalars['String']['output']>;
   title: Maybe<Scalars['String']['output']>;
   type: Maybe<DeliverableType>;
-  updatedAt: Maybe<Scalars['DateTime']['output']>;
-  validStatusTransitions: Maybe<Array<Maybe<DeliverableStatus>>>;
 };
 
 export type DeliverablePayload = {
@@ -300,124 +168,14 @@ export const DeliverableType = {
 } as const;
 
 export type DeliverableType = typeof DeliverableType[keyof typeof DeliverableType];
-export type Epic = {
-  __typename?: 'Epic';
-  createdAt: Maybe<Scalars['DateTime']['output']>;
-  description: Maybe<Scalars['String']['output']>;
-  /** @deprecated Use Items instead */
-  features: Array<Item>;
-  id: Maybe<Scalars['ID']['output']>;
-  items: Maybe<Array<Maybe<Item>>>;
-  project: Maybe<Project>;
-  projectId: Scalars['UUID']['output'];
-  title: Maybe<Scalars['String']['output']>;
-  updatedAt: Maybe<Scalars['DateTime']['output']>;
-};
-
-export type EpicConnection = {
-  __typename?: 'EpicConnection';
-  nodes: Array<Epic>;
-  pageInfo: EpicPageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type EpicPageInfo = {
-  __typename?: 'EpicPageInfo';
-  hasNextPage: Scalars['Boolean']['output'];
-  hasPreviousPage: Scalars['Boolean']['output'];
-  totalCount: Scalars['Int']['output'];
-};
-
-export type EpicPayload = {
-  __typename?: 'EpicPayload';
-  epic: Maybe<Epic>;
-  errors: Array<Scalars['String']['output']>;
-};
-
-export type FeaturePayload = {
-  __typename?: 'FeaturePayload';
-  errors: Array<Scalars['String']['output']>;
-  item: Maybe<Item>;
-};
-
-export const FeatureStatus = {
-  DONE: 'DONE',
-  FAILED: 'FAILED',
-  IN_PROGRESS: 'IN_PROGRESS',
-  IN_REVIEW: 'IN_REVIEW',
-  PLANNING: 'PLANNING',
-  READY: 'READY',
-  READY_FOR_TEST: 'READY_FOR_TEST',
-  REJECTED: 'REJECTED',
-  TESTING: 'TESTING'
-} as const;
-
-export type FeatureStatus = typeof FeatureStatus[keyof typeof FeatureStatus];
-export type Item = {
-  __typename?: 'Item';
-  acceptanceCriteria: Maybe<Scalars['String']['output']>;
-  createdAt: Maybe<Scalars['DateTime']['output']>;
-  deploymentPlan: Maybe<Scalars['String']['output']>;
-  description: Maybe<Scalars['String']['output']>;
-  epic: Maybe<Epic>;
-  epicId: Maybe<Scalars['ID']['output']>;
-  errors: Maybe<Scalars['String']['output']>;
-  featureSubtype: ItemSubtype;
-  id: Maybe<Scalars['ID']['output']>;
-  openQuestions: Maybe<Scalars['String']['output']>;
-  parentFeature: Maybe<Item>;
-  parentFeatureId: Maybe<Scalars['ID']['output']>;
-  performanceImpact: Maybe<Scalars['String']['output']>;
-  plan: Maybe<Scalars['String']['output']>;
-  project: Maybe<Project>;
-  projectId: Maybe<Scalars['ID']['output']>;
-  result: Maybe<Scalars['String']['output']>;
-  rootCause: Maybe<Scalars['String']['output']>;
-  securityImpact: Maybe<Scalars['String']['output']>;
-  severity: Maybe<Severity>;
-  status: Maybe<FeatureStatus>;
-  subtype: Maybe<ItemSubtype>;
-  tasks: Maybe<Array<Maybe<AgentTask>>>;
-  testPlan: Maybe<Scalars['String']['output']>;
-  title: Maybe<Scalars['String']['output']>;
-  updatedAt: Maybe<Scalars['DateTime']['output']>;
-  validStatusTransitions: Maybe<Array<Maybe<FeatureStatus>>>;
-};
-
-export type ItemConnection = {
-  __typename?: 'ItemConnection';
-  nodes: Array<Item>;
-  pageInfo: ItemPageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type ItemPageInfo = {
-  __typename?: 'ItemPageInfo';
-  hasNextPage: Scalars['Boolean']['output'];
-  hasPreviousPage: Scalars['Boolean']['output'];
-  totalCount: Scalars['Int']['output'];
-};
-
-export const ItemSubtype = {
-  DEFECT: 'DEFECT',
-  ENABLER: 'ENABLER',
-  EPIC: 'EPIC',
-  FEATURE: 'FEATURE',
-  MAINTENANCE: 'MAINTENANCE'
-} as const;
-
-export type ItemSubtype = typeof ItemSubtype[keyof typeof ItemSubtype];
 export type LargeLanguageModel = {
   __typename?: 'LargeLanguageModel';
-  apiKey_Encrypted: Maybe<Scalars['String']['output']>;
-  createdAt: Maybe<Scalars['DateTime']['output']>;
+  apiKey: Maybe<Scalars['String']['output']>;
   id: Maybe<Scalars['ID']['output']>;
   maxComplexity: Maybe<Scalars['Int']['output']>;
+  maxConcurrency: Maybe<Scalars['Int']['output']>;
   model: Maybe<Scalars['String']['output']>;
   modelAlias: Maybe<Scalars['String']['output']>;
-  project: Maybe<Project>;
-  projectId: Maybe<Scalars['ID']['output']>;
-  updatedAt: Maybe<Scalars['DateTime']['output']>;
   url: Maybe<Scalars['String']['output']>;
 };
 
@@ -427,66 +185,23 @@ export type LargeLanguageModelPayload = {
   largeLanguageModel: Maybe<LargeLanguageModel>;
 };
 
-export type ModelConfiguration = {
-  __typename?: 'ModelConfiguration';
-  apiKey_Encrypted: Maybe<Scalars['String']['output']>;
-  createdAt: Maybe<Scalars['DateTime']['output']>;
-  id: Maybe<Scalars['ID']['output']>;
-  maxComplexity: Maybe<Scalars['Int']['output']>;
-  model: Maybe<Scalars['String']['output']>;
-  modelAlias: Maybe<Scalars['String']['output']>;
-  updatedAt: Maybe<Scalars['DateTime']['output']>;
-  url: Maybe<Scalars['String']['output']>;
-};
-
-export type ModelConfigurationPayload = {
-  __typename?: 'ModelConfigurationPayload';
-  errors: Array<Scalars['String']['output']>;
-  modelConfiguration: Maybe<ModelConfiguration>;
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
-  cancelWorkflowRun: WorkflowRunPayload;
+  cleanupTestData: CleanupTestDataPayload;
   createAgentTask: AgentTaskPayload;
-  createDefect: DefectPayload;
   createDeliverable: DeliverablePayload;
-  createEpic: EpicPayload;
-  createFeature: FeaturePayload;
   createLargeLanguageModel: LargeLanguageModelPayload;
-  createModelConfiguration: ModelConfigurationPayload;
   createProject: ProjectPayload;
-  createTask: TaskPayload;
-  createWorkflowRun: WorkflowRunPayload;
   deleteAgentTask: AgentTaskPayload;
-  deleteDefect: DefectPayload;
   deleteDeliverable: DeliverablePayload;
-  deleteEpic: EpicPayload;
-  deleteFeature: FeaturePayload;
   deleteLargeLanguageModel: LargeLanguageModelPayload;
-  deleteModelConfiguration: ModelConfigurationPayload;
   deleteProject: ProjectPayload;
-  deleteTask: TaskPayload;
   transitionAgentTaskStatus: AgentTaskPayload;
-  transitionDefectStatus: DefectPayload;
   transitionDeliverableStatus: DeliverablePayload;
-  transitionFeatureStatus: FeaturePayload;
-  transitionTaskStatus: TaskPayload;
   updateAgentTask: AgentTaskPayload;
-  updateDefect: DefectPayload;
   updateDeliverable: DeliverablePayload;
-  updateEpic: EpicPayload;
-  updateFeature: FeaturePayload;
   updateLargeLanguageModel: LargeLanguageModelPayload;
-  updateModelConfiguration: ModelConfigurationPayload;
   updateProject: ProjectPayload;
-  updateTask: TaskPayload;
-  updateWorkflowRun: WorkflowRunPayload;
-};
-
-
-export type MutationcancelWorkflowRunArgs = {
-  input: CancelWorkflowRunInput;
 };
 
 
@@ -495,23 +210,8 @@ export type MutationcreateAgentTaskArgs = {
 };
 
 
-export type MutationcreateDefectArgs = {
-  input: CreateDefectInput;
-};
-
-
 export type MutationcreateDeliverableArgs = {
   input: CreateDeliverableInput;
-};
-
-
-export type MutationcreateEpicArgs = {
-  input: CreateEpicInput;
-};
-
-
-export type MutationcreateFeatureArgs = {
-  input: CreateFeatureInput;
 };
 
 
@@ -520,23 +220,8 @@ export type MutationcreateLargeLanguageModelArgs = {
 };
 
 
-export type MutationcreateModelConfigurationArgs = {
-  input: CreateModelConfigurationInput;
-};
-
-
 export type MutationcreateProjectArgs = {
   input: CreateProjectInput;
-};
-
-
-export type MutationcreateTaskArgs = {
-  input: CreateTaskInput;
-};
-
-
-export type MutationcreateWorkflowRunArgs = {
-  input: CreateWorkflowRunInput;
 };
 
 
@@ -545,23 +230,8 @@ export type MutationdeleteAgentTaskArgs = {
 };
 
 
-export type MutationdeleteDefectArgs = {
-  input: DeleteDefectInput;
-};
-
-
 export type MutationdeleteDeliverableArgs = {
   input: DeleteDeliverableInput;
-};
-
-
-export type MutationdeleteEpicArgs = {
-  input: DeleteEpicInput;
-};
-
-
-export type MutationdeleteFeatureArgs = {
-  input: DeleteFeatureInput;
 };
 
 
@@ -570,18 +240,8 @@ export type MutationdeleteLargeLanguageModelArgs = {
 };
 
 
-export type MutationdeleteModelConfigurationArgs = {
-  input: DeleteModelConfigurationInput;
-};
-
-
 export type MutationdeleteProjectArgs = {
   input: DeleteProjectInput;
-};
-
-
-export type MutationdeleteTaskArgs = {
-  input: DeleteTaskInput;
 };
 
 
@@ -590,23 +250,8 @@ export type MutationtransitionAgentTaskStatusArgs = {
 };
 
 
-export type MutationtransitionDefectStatusArgs = {
-  input: TransitionDefectInput;
-};
-
-
 export type MutationtransitionDeliverableStatusArgs = {
   input: TransitionDeliverableInput;
-};
-
-
-export type MutationtransitionFeatureStatusArgs = {
-  input: TransitionFeatureInput;
-};
-
-
-export type MutationtransitionTaskStatusArgs = {
-  input: TransitionTaskInput;
 };
 
 
@@ -615,23 +260,8 @@ export type MutationupdateAgentTaskArgs = {
 };
 
 
-export type MutationupdateDefectArgs = {
-  input: UpdateDefectInput;
-};
-
-
 export type MutationupdateDeliverableArgs = {
   input: UpdateDeliverableInput;
-};
-
-
-export type MutationupdateEpicArgs = {
-  input: UpdateEpicInput;
-};
-
-
-export type MutationupdateFeatureArgs = {
-  input: UpdateFeatureInput;
 };
 
 
@@ -640,43 +270,17 @@ export type MutationupdateLargeLanguageModelArgs = {
 };
 
 
-export type MutationupdateModelConfigurationArgs = {
-  input: UpdateModelConfigurationInput;
-};
-
-
 export type MutationupdateProjectArgs = {
   input: UpdateProjectInput;
 };
 
-
-export type MutationupdateTaskArgs = {
-  input: UpdateTaskInput;
-};
-
-
-export type MutationupdateWorkflowRunArgs = {
-  input: UpdateWorkflowRunInput;
-};
-
 export type Project = {
   __typename?: 'Project';
-  architecture: Maybe<Scalars['String']['output']>;
-  createdAt: Maybe<Scalars['DateTime']['output']>;
-  deliverables: Maybe<Array<Maybe<Deliverable>>>;
+  deliverables: Array<Deliverable>;
   description: Maybe<Scalars['String']['output']>;
-  epics: Array<Epic>;
-  /** @deprecated Use items instead */
-  features: Maybe<Array<Maybe<Item>>>;
-  githubToken_Encrypted: Maybe<Scalars['String']['output']>;
-  githubUrl: Maybe<Scalars['String']['output']>;
   id: Maybe<Scalars['ID']['output']>;
-  items: Maybe<Array<Maybe<Item>>>;
-  llms: Array<LargeLanguageModel>;
-  memory: Maybe<Scalars['String']['output']>;
   name: Maybe<Scalars['String']['output']>;
   repository: Maybe<Scalars['String']['output']>;
-  updatedAt: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type ProjectConnection = {
@@ -702,29 +306,15 @@ export type ProjectPayload = {
 export type Query = {
   __typename?: 'Query';
   agentTaskById: Maybe<AgentTask>;
-  agentTasks: TaskConnection;
-  auditEvents: Array<AuditEvent>;
-  dashboardSummary: DashboardSummary;
-  /** @deprecated Use getItemById instead */
-  defectById: Maybe<Item>;
-  /** @deprecated Use GetItems with subtype filter instead */
-  defects: ItemConnection;
+  agentTasks: Array<AgentTask>;
+  agentTasksByDeliverableId: Array<AgentTask>;
   deliverableById: Maybe<Deliverable>;
-  /** @deprecated Use getItemById instead */
-  featureById: Maybe<Item>;
-  /** @deprecated Use GetItems instead */
-  features: ItemConnection;
-  getItemById: Maybe<Item>;
-  itemById: Maybe<Item>;
-  items: ItemConnection;
+  deliverables: Array<Deliverable>;
+  deliverablesByProjectId: Array<Deliverable>;
+  largeLanguageModelById: Maybe<LargeLanguageModel>;
   largeLanguageModels: Array<LargeLanguageModel>;
-  modelConfigurations: Array<ModelConfiguration>;
   projectById: Maybe<Project>;
   projects: ProjectConnection;
-  taskById: Maybe<AgentTask>;
-  tasks: TaskConnection;
-  validDeliverableStatusTransitions: Array<DeliverableStatus>;
-  validStatusTransitions: Array<FeatureStatus>;
 };
 
 
@@ -734,31 +324,12 @@ export type QueryagentTaskByIdArgs = {
 
 
 export type QueryagentTasksArgs = {
-  createdAfter: InputMaybe<Scalars['DateTime']['input']>;
-  createdBefore: InputMaybe<Scalars['DateTime']['input']>;
-  first?: Scalars['Int']['input'];
   itemId: InputMaybe<Scalars['UUID']['input']>;
-  skip: InputMaybe<Scalars['Int']['input']>;
-  status: InputMaybe<Array<AgentTaskStatus>>;
 };
 
 
-export type QueryauditEventsArgs = {
-  entityId: Scalars['UUID']['input'];
-  take?: Scalars['Int']['input'];
-};
-
-
-export type QuerydefectByIdArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QuerydefectsArgs = {
-  first?: Scalars['Int']['input'];
-  projectId: InputMaybe<Scalars['UUID']['input']>;
-  skip: InputMaybe<Scalars['Int']['input']>;
-  status: InputMaybe<Array<FeatureStatus>>;
+export type QueryagentTasksByDeliverableIdArgs = {
+  deliverableId: Scalars['UUID']['input'];
 };
 
 
@@ -767,43 +338,13 @@ export type QuerydeliverableByIdArgs = {
 };
 
 
-export type QueryfeatureByIdArgs = {
+export type QuerydeliverablesByProjectIdArgs = {
+  projectId: Scalars['UUID']['input'];
+};
+
+
+export type QuerylargeLanguageModelByIdArgs = {
   id: Scalars['UUID']['input'];
-};
-
-
-export type QueryfeaturesArgs = {
-  first?: Scalars['Int']['input'];
-  projectId: InputMaybe<Scalars['UUID']['input']>;
-  skip: InputMaybe<Scalars['Int']['input']>;
-  status: InputMaybe<Array<FeatureStatus>>;
-};
-
-
-export type QuerygetItemByIdArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QueryitemByIdArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QueryitemsArgs = {
-  createdAfter: InputMaybe<Scalars['DateTime']['input']>;
-  createdBefore: InputMaybe<Scalars['DateTime']['input']>;
-  epicId: InputMaybe<Scalars['UUID']['input']>;
-  first?: Scalars['Int']['input'];
-  projectId: InputMaybe<Scalars['UUID']['input']>;
-  skip: InputMaybe<Scalars['Int']['input']>;
-  status: InputMaybe<Array<FeatureStatus>>;
-  subtype: InputMaybe<Array<ItemSubtype>>;
-};
-
-
-export type QuerylargeLanguageModelsArgs = {
-  projectId: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
@@ -817,84 +358,10 @@ export type QueryprojectsArgs = {
   skip: InputMaybe<Scalars['Int']['input']>;
 };
 
-
-export type QuerytaskByIdArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QuerytasksArgs = {
-  createdAfter: InputMaybe<Scalars['DateTime']['input']>;
-  createdBefore: InputMaybe<Scalars['DateTime']['input']>;
-  first?: Scalars['Int']['input'];
-  itemId: InputMaybe<Scalars['UUID']['input']>;
-  skip: InputMaybe<Scalars['Int']['input']>;
-  status: InputMaybe<Array<TaskStatus>>;
-};
-
-
-export type QueryvalidDeliverableStatusTransitionsArgs = {
-  deliverableId: Scalars['UUID']['input'];
-};
-
-
-export type QueryvalidStatusTransitionsArgs = {
-  itemId: Scalars['UUID']['input'];
-};
-
-export const Severity = {
-  CRITICAL: 'CRITICAL',
-  HIGH: 'HIGH',
-  LOW: 'LOW',
-  MEDIUM: 'MEDIUM'
-} as const;
-
-export type Severity = typeof Severity[keyof typeof Severity];
-export type TaskConnection = {
-  __typename?: 'TaskConnection';
-  nodes: Array<AgentTask>;
-  pageInfo: TaskPageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type TaskPageInfo = {
-  __typename?: 'TaskPageInfo';
-  hasNextPage: Scalars['Boolean']['output'];
-  hasPreviousPage: Scalars['Boolean']['output'];
-  totalCount: Scalars['Int']['output'];
-};
-
-export type TaskPayload = {
-  __typename?: 'TaskPayload';
-  errors: Array<Scalars['String']['output']>;
-  task: Maybe<AgentTask>;
-};
-
-export const TaskStatus = {
-  CODE: 'CODE',
-  DONE: 'DONE',
-  FAILED: 'FAILED',
-  IN_REVIEW: 'IN_REVIEW',
-  PLANNING: 'PLANNING',
-  PREPARE: 'PREPARE',
-  READY: 'READY',
-  READY_FOR_TEST: 'READY_FOR_TEST',
-  REJECTED: 'REJECTED',
-  REVIEW: 'REVIEW',
-  TESTING: 'TESTING'
-} as const;
-
-export type TaskStatus = typeof TaskStatus[keyof typeof TaskStatus];
 export type TransitionAgentTaskInput = {
   actor: Scalars['String']['input'];
   id: Scalars['UUID']['input'];
   targetStatus: AgentTaskStatus;
-};
-
-export type TransitionDefectInput = {
-  actor: Scalars['String']['input'];
-  id: Scalars['UUID']['input'];
-  targetStatus: FeatureStatus;
 };
 
 export type TransitionDeliverableInput = {
@@ -903,79 +370,29 @@ export type TransitionDeliverableInput = {
   targetStatus: DeliverableStatus;
 };
 
-export type TransitionFeatureInput = {
-  actor: Scalars['String']['input'];
-  id: Scalars['UUID']['input'];
-  targetStatus: FeatureStatus;
-};
-
-export type TransitionTaskInput = {
-  actor: Scalars['String']['input'];
-  id: Scalars['UUID']['input'];
-  targetStatus: TaskStatus;
-};
-
 export type UpdateAgentTaskInput = {
-  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
   commitHash: InputMaybe<Scalars['String']['input']>;
   completionTokens: InputMaybe<Scalars['Int']['input']>;
   complexityRating: InputMaybe<Scalars['Int']['input']>;
-  deliverable: InputMaybe<Scalars['String']['input']>;
+  dependsOnDevTask: InputMaybe<Scalars['String']['input']>;
   errors: InputMaybe<Scalars['String']['input']>;
   executionDurationInSeconds: InputMaybe<Scalars['Int']['input']>;
   id: Scalars['UUID']['input'];
   model: InputMaybe<Scalars['String']['input']>;
   promptTokens: InputMaybe<Scalars['Int']['input']>;
-  requiredFollowUps: InputMaybe<Scalars['String']['input']>;
   result: InputMaybe<Scalars['String']['input']>;
-  risks: InputMaybe<Scalars['String']['input']>;
-  title: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateDefectInput = {
-  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
-  deploymentPlan: InputMaybe<Scalars['String']['input']>;
-  description: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['UUID']['input'];
-  openQuestions: InputMaybe<Scalars['String']['input']>;
-  performanceImpact: InputMaybe<Scalars['String']['input']>;
-  plan: InputMaybe<Scalars['String']['input']>;
-  rootCause: InputMaybe<Scalars['String']['input']>;
-  securityImpact: InputMaybe<Scalars['String']['input']>;
-  severity: InputMaybe<Severity>;
-  testPlan: InputMaybe<Scalars['String']['input']>;
   title: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateDeliverableInput = {
   acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
+  agentFeedback: InputMaybe<Scalars['String']['input']>;
+  blocking: InputMaybe<Scalars['String']['input']>;
   deploymentPlan: InputMaybe<Scalars['String']['input']>;
   description: InputMaybe<Scalars['String']['input']>;
-  errors: InputMaybe<Scalars['String']['input']>;
+  executionPlan: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
-  openQuestions: InputMaybe<Scalars['String']['input']>;
   performanceImpact: InputMaybe<Scalars['String']['input']>;
-  plan: InputMaybe<Scalars['String']['input']>;
-  result: InputMaybe<Scalars['String']['input']>;
-  securityImpact: InputMaybe<Scalars['String']['input']>;
-  testPlan: InputMaybe<Scalars['String']['input']>;
-  title: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateEpicInput = {
-  description: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['UUID']['input'];
-  title: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateFeatureInput = {
-  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
-  deploymentPlan: InputMaybe<Scalars['String']['input']>;
-  description: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['UUID']['input'];
-  openQuestions: InputMaybe<Scalars['String']['input']>;
-  performanceImpact: InputMaybe<Scalars['String']['input']>;
-  plan: InputMaybe<Scalars['String']['input']>;
   securityImpact: InputMaybe<Scalars['String']['input']>;
   testPlan: InputMaybe<Scalars['String']['input']>;
   title: InputMaybe<Scalars['String']['input']>;
@@ -985,107 +402,25 @@ export type UpdateLargeLanguageModelInput = {
   apiKey: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   maxComplexity: InputMaybe<Scalars['Int']['input']>;
-  model: InputMaybe<Scalars['String']['input']>;
-  modelAlias: InputMaybe<Scalars['String']['input']>;
-  url: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateModelConfigurationInput = {
-  apiKey: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['UUID']['input'];
-  maxComplexity: InputMaybe<Scalars['Int']['input']>;
+  maxConcurrency: InputMaybe<Scalars['Int']['input']>;
   model: InputMaybe<Scalars['String']['input']>;
   modelAlias: InputMaybe<Scalars['String']['input']>;
   url: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateProjectInput = {
-  architecture: InputMaybe<Scalars['String']['input']>;
   description: InputMaybe<Scalars['String']['input']>;
-  githubToken_Encrypted: InputMaybe<Scalars['String']['input']>;
-  githubUrl: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
-  memory: InputMaybe<Scalars['String']['input']>;
   name: InputMaybe<Scalars['String']['input']>;
+  repository: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UpdateTaskInput = {
-  acceptanceCriteria: InputMaybe<Scalars['String']['input']>;
-  complexityRating: InputMaybe<Scalars['Int']['input']>;
-  deliverable: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['UUID']['input'];
-  requiredFollowUps: InputMaybe<Scalars['String']['input']>;
-  result: InputMaybe<Scalars['String']['input']>;
-  risks: InputMaybe<Scalars['String']['input']>;
-  title: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateWorkflowRunInput = {
-  id: Scalars['UUID']['input'];
-  outputPayload: InputMaybe<Scalars['String']['input']>;
-  status: WorkflowRunStatus;
-};
-
-export type WorkflowRun = {
-  __typename?: 'WorkflowRun';
-  completedAt: Maybe<Scalars['DateTime']['output']>;
-  createdAt: Maybe<Scalars['DateTime']['output']>;
-  errorMessage: Maybe<Scalars['String']['output']>;
-  /** @deprecated Use Item instead */
-  feature: Maybe<Item>;
-  /** @deprecated Use ItemId and Item instead */
-  featureId: Maybe<Scalars['UUID']['output']>;
-  id: Maybe<Scalars['ID']['output']>;
-  inputPayload: Maybe<Scalars['String']['output']>;
-  item: Maybe<Item>;
-  itemId: Maybe<Scalars['ID']['output']>;
-  outputPayload: Maybe<Scalars['String']['output']>;
-  project: Maybe<Project>;
-  projectId: Maybe<Scalars['ID']['output']>;
-  startedAt: Maybe<Scalars['DateTime']['output']>;
-  status: Maybe<WorkflowRunStatus>;
-  task: Maybe<AgentTask>;
-  taskId: Maybe<Scalars['ID']['output']>;
-  workflowType: Maybe<WorkflowType>;
-};
-
-export type WorkflowRunPayload = {
-  __typename?: 'WorkflowRunPayload';
-  errors: Array<Scalars['String']['output']>;
-  workflowRun: Maybe<WorkflowRun>;
-};
-
-export const WorkflowRunStatus = {
-  CANCELLED: 'CANCELLED',
-  FAILED: 'FAILED',
-  QUEUED: 'QUEUED',
-  RUNNING: 'RUNNING',
-  SUCCEEDED: 'SUCCEEDED'
-} as const;
-
-export type WorkflowRunStatus = typeof WorkflowRunStatus[keyof typeof WorkflowRunStatus];
-export const WorkflowType = {
-  ARCHITECT: 'ARCHITECT',
-  CODER: 'CODER',
-  DEV_LEAD: 'DEV_LEAD',
-  PLANNER: 'PLANNER',
-  TESTER: 'TESTER'
-} as const;
-
-export type WorkflowType = typeof WorkflowType[keyof typeof WorkflowType];
 export type CreateAgentTaskMutationVariables = Exact<{
   input: CreateAgentTaskInput;
 }>;
 
 
-export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null, commitHash: string | null, createdAt: any | null, updatedAt: any | null } | null } };
-
-export type CreateDefectMutationVariables = Exact<{
-  input: CreateDefectInput;
-}>;
-
-
-export type CreateDefectMutation = { __typename?: 'Mutation', createDefect: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null } | null } };
+export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverableId: string | null, complexityRating: number | null, result: string | null, errors: string | null, commitHash: string | null, dependsOnDevTask: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null } | null } };
 
 export type CreateDeliverableMutationVariables = Exact<{
   input: CreateDeliverableInput;
@@ -1094,82 +429,40 @@ export type CreateDeliverableMutationVariables = Exact<{
 
 export type CreateDeliverableMutation = { __typename?: 'Mutation', createDeliverable: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable: { __typename?: 'Deliverable', id: string | null, title: string | null, status: DeliverableStatus | null } | null } };
 
-export type CreateEpicMutationVariables = Exact<{
-  input: CreateEpicInput;
+export type CreateLargeLanguageModelMutationVariables = Exact<{
+  input: CreateLargeLanguageModelInput;
 }>;
 
 
-export type CreateEpicMutation = { __typename?: 'Mutation', createEpic: { __typename?: 'EpicPayload', errors: Array<string>, epic: { __typename?: 'Epic', id: string | null, title: string | null, description: string | null, createdAt: any | null, updatedAt: any | null } | null } };
-
-export type CreateFeatureMutationVariables = Exact<{
-  input: CreateFeatureInput;
-}>;
-
-
-export type CreateFeatureMutation = { __typename?: 'Mutation', createFeature: { __typename?: 'FeaturePayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, openQuestions: string | null, status: FeatureStatus | null, projectId: string | null, createdAt: any | null, updatedAt: any | null } | null } };
-
-export type CreateModelConfigurationMutationVariables = Exact<{
-  input: CreateModelConfigurationInput;
-}>;
-
-
-export type CreateModelConfigurationMutation = { __typename?: 'Mutation', createModelConfiguration: { __typename?: 'ModelConfigurationPayload', errors: Array<string>, modelConfiguration: { __typename?: 'ModelConfiguration', id: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, createdAt: any | null, updatedAt: any | null } | null } };
+export type CreateLargeLanguageModelMutation = { __typename?: 'Mutation', createLargeLanguageModel: { __typename?: 'LargeLanguageModelPayload', errors: Array<string>, largeLanguageModel: { __typename?: 'LargeLanguageModel', id: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, maxConcurrency: number | null } | null } };
 
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
 }>;
 
 
-export type CreateProjectMutation = { __typename?: 'Mutation', createProject: { __typename?: 'ProjectPayload', errors: Array<string>, project: { __typename?: 'Project', id: string | null, name: string | null, description: string | null, architecture: string | null, memory: string | null, githubUrl: string | null, createdAt: any | null, updatedAt: any | null } | null } };
-
-export type CreateTaskMutationVariables = Exact<{
-  input: CreateTaskInput;
-}>;
-
-
-export type CreateTaskMutation = { __typename?: 'Mutation', createTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, featureId: any, createdAt: any | null, updatedAt: any | null } | null } };
-
-export type CreateWorkflowRunMutationVariables = Exact<{
-  input: CreateWorkflowRunInput;
-}>;
-
-
-export type CreateWorkflowRunMutation = { __typename?: 'Mutation', createWorkflowRun: { __typename?: 'WorkflowRunPayload', errors: Array<string>, workflowRun: { __typename?: 'WorkflowRun', id: string | null, projectId: string | null, featureId: any | null, taskId: string | null, workflowType: WorkflowType | null, status: WorkflowRunStatus | null, startedAt: any | null, createdAt: any | null } | null } };
+export type CreateProjectMutation = { __typename?: 'Mutation', createProject: { __typename?: 'ProjectPayload', errors: Array<string>, project: { __typename?: 'Project', id: string | null, name: string | null, description: string | null, repository: string | null } | null } };
 
 export type DeleteAgentTaskMutationVariables = Exact<{
   input: DeleteAgentTaskInput;
 }>;
 
 
-export type DeleteAgentTaskMutation = { __typename?: 'Mutation', deleteAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null } | null } };
+export type DeleteAgentTaskMutation = { __typename?: 'Mutation', deleteAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask: { __typename?: 'AgentTask', id: string | null } | null } };
 
-export type DeleteDefectMutationVariables = Exact<{
-  input: DeleteDefectInput;
+export type DeleteDeliverableMutationVariables = Exact<{
+  input: DeleteDeliverableInput;
 }>;
 
 
-export type DeleteDefectMutation = { __typename?: 'Mutation', deleteDefect: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null } | null } };
+export type DeleteDeliverableMutation = { __typename?: 'Mutation', deleteDeliverable: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable: { __typename?: 'Deliverable', id: string | null } | null } };
 
-export type DeleteEpicMutationVariables = Exact<{
-  input: DeleteEpicInput;
+export type DeleteLargeLanguageModelMutationVariables = Exact<{
+  input: DeleteLargeLanguageModelInput;
 }>;
 
 
-export type DeleteEpicMutation = { __typename?: 'Mutation', deleteEpic: { __typename?: 'EpicPayload', errors: Array<string>, epic: { __typename?: 'Epic', id: string | null } | null } };
-
-export type DeleteFeatureMutationVariables = Exact<{
-  input: DeleteFeatureInput;
-}>;
-
-
-export type DeleteFeatureMutation = { __typename?: 'Mutation', deleteFeature: { __typename?: 'FeaturePayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null } | null } };
-
-export type DeleteModelConfigurationMutationVariables = Exact<{
-  input: DeleteModelConfigurationInput;
-}>;
-
-
-export type DeleteModelConfigurationMutation = { __typename?: 'Mutation', deleteModelConfiguration: { __typename?: 'ModelConfigurationPayload', errors: Array<string>, modelConfiguration: { __typename?: 'ModelConfiguration', id: string | null } | null } };
+export type DeleteLargeLanguageModelMutation = { __typename?: 'Mutation', deleteLargeLanguageModel: { __typename?: 'LargeLanguageModelPayload', errors: Array<string>, largeLanguageModel: { __typename?: 'LargeLanguageModel', id: string | null } | null } };
 
 export type DeleteProjectMutationVariables = Exact<{
   input: DeleteProjectInput;
@@ -1178,61 +471,26 @@ export type DeleteProjectMutationVariables = Exact<{
 
 export type DeleteProjectMutation = { __typename?: 'Mutation', deleteProject: { __typename?: 'ProjectPayload', errors: Array<string>, project: { __typename?: 'Project', id: string | null } | null } };
 
-export type DeleteTaskMutationVariables = Exact<{
-  input: DeleteTaskInput;
-}>;
-
-
-export type DeleteTaskMutation = { __typename?: 'Mutation', deleteTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null } | null } };
-
 export type TransitionAgentTaskStatusMutationVariables = Exact<{
   input: TransitionAgentTaskInput;
 }>;
 
 
-export type TransitionAgentTaskStatusMutation = { __typename?: 'Mutation', transitionAgentTaskStatus: { __typename?: 'AgentTaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null, updatedAt: any | null } | null } };
-
-export type TransitionDefectStatusMutationVariables = Exact<{
-  input: TransitionDefectInput;
-}>;
-
-
-export type TransitionDefectStatusMutation = { __typename?: 'Mutation', transitionDefectStatus: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, status: FeatureStatus | null } | null } };
+export type TransitionAgentTaskStatusMutation = { __typename?: 'Mutation', transitionAgentTaskStatus: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask: { __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null } | null } };
 
 export type TransitionDeliverableStatusMutationVariables = Exact<{
   input: TransitionDeliverableInput;
 }>;
 
 
-export type TransitionDeliverableStatusMutation = { __typename?: 'Mutation', transitionDeliverableStatus: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable: { __typename?: 'Deliverable', id: string | null, status: DeliverableStatus | null, validStatusTransitions: Array<DeliverableStatus | null> | null } | null } };
-
-export type TransitionFeatureStatusMutationVariables = Exact<{
-  input: TransitionFeatureInput;
-}>;
-
-
-export type TransitionFeatureStatusMutation = { __typename?: 'Mutation', transitionFeatureStatus: { __typename?: 'FeaturePayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, status: FeatureStatus | null, validStatusTransitions: Array<FeatureStatus | null> | null } | null } };
-
-export type TransitionTaskStatusMutationVariables = Exact<{
-  input: TransitionTaskInput;
-}>;
-
-
-export type TransitionTaskStatusMutation = { __typename?: 'Mutation', transitionTaskStatus: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, status: AgentTaskStatus | null } | null } };
+export type TransitionDeliverableStatusMutation = { __typename?: 'Mutation', transitionDeliverableStatus: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable: { __typename?: 'Deliverable', id: string | null, status: DeliverableStatus | null } | null } };
 
 export type UpdateAgentTaskMutationVariables = Exact<{
   input: UpdateAgentTaskInput;
 }>;
 
 
-export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null, commitHash: string | null, createdAt: any | null, updatedAt: any | null } | null } };
-
-export type UpdateDefectMutationVariables = Exact<{
-  input: UpdateDefectInput;
-}>;
-
-
-export type UpdateDefectMutation = { __typename?: 'Mutation', updateDefect: { __typename?: 'DefectPayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, updatedAt: any | null } | null } };
+export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverableId: string | null, complexityRating: number | null, result: string | null, errors: string | null, commitHash: string | null, dependsOnDevTask: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null } | null } };
 
 export type UpdateDeliverableMutationVariables = Exact<{
   input: UpdateDeliverableInput;
@@ -1241,173 +499,80 @@ export type UpdateDeliverableMutationVariables = Exact<{
 
 export type UpdateDeliverableMutation = { __typename?: 'Mutation', updateDeliverable: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable: { __typename?: 'Deliverable', id: string | null, title: string | null, status: DeliverableStatus | null } | null } };
 
-export type UpdateEpicMutationVariables = Exact<{
-  input: UpdateEpicInput;
+export type UpdateLargeLanguageModelMutationVariables = Exact<{
+  input: UpdateLargeLanguageModelInput;
 }>;
 
 
-export type UpdateEpicMutation = { __typename?: 'Mutation', updateEpic: { __typename?: 'EpicPayload', errors: Array<string>, epic: { __typename?: 'Epic', id: string | null, title: string | null, description: string | null, updatedAt: any | null } | null } };
-
-export type UpdateFeatureMutationVariables = Exact<{
-  input: UpdateFeatureInput;
-}>;
-
-
-export type UpdateFeatureMutation = { __typename?: 'Mutation', updateFeature: { __typename?: 'FeaturePayload', errors: Array<string>, item: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, status: FeatureStatus | null, updatedAt: any | null } | null } };
-
-export type UpdateModelConfigurationMutationVariables = Exact<{
-  input: UpdateModelConfigurationInput;
-}>;
-
-
-export type UpdateModelConfigurationMutation = { __typename?: 'Mutation', updateModelConfiguration: { __typename?: 'ModelConfigurationPayload', errors: Array<string>, modelConfiguration: { __typename?: 'ModelConfiguration', id: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, updatedAt: any | null } | null } };
+export type UpdateLargeLanguageModelMutation = { __typename?: 'Mutation', updateLargeLanguageModel: { __typename?: 'LargeLanguageModelPayload', errors: Array<string>, largeLanguageModel: { __typename?: 'LargeLanguageModel', id: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, maxConcurrency: number | null } | null } };
 
 export type UpdateProjectMutationVariables = Exact<{
   input: UpdateProjectInput;
 }>;
 
 
-export type UpdateProjectMutation = { __typename?: 'Mutation', updateProject: { __typename?: 'ProjectPayload', errors: Array<string>, project: { __typename?: 'Project', id: string | null, name: string | null, description: string | null, architecture: string | null, memory: string | null, githubUrl: string | null, createdAt: any | null, updatedAt: any | null } | null } };
-
-export type UpdateTaskMutationVariables = Exact<{
-  input: UpdateTaskInput;
-}>;
-
-
-export type UpdateTaskMutation = { __typename?: 'Mutation', updateTask: { __typename?: 'TaskPayload', errors: Array<string>, task: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, featureId: any, updatedAt: any | null } | null } };
+export type UpdateProjectMutation = { __typename?: 'Mutation', updateProject: { __typename?: 'ProjectPayload', errors: Array<string>, project: { __typename?: 'Project', id: string | null, name: string | null, description: string | null, repository: string | null } | null } };
 
 export type GetAgentTaskByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetAgentTaskByIdQuery = { __typename?: 'Query', agentTaskById: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null, commitHash: string | null, errors: string | null, createdAt: any | null, updatedAt: any | null, item: { __typename?: 'Item', id: string | null, title: string | null } | null, dependsOnAgentTask: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null } | null> | null } | null };
+export type GetAgentTaskByIdQuery = { __typename?: 'Query', agentTaskById: { __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null, deliverableId: string | null, result: string | null, errors: string | null, commitHash: string | null, complexityRating: number | null, dependsOnDevTask: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null } | null };
 
 export type GetAgentTasksQueryVariables = Exact<{
-  itemId: InputMaybe<Scalars['UUID']['input']>;
-  status: InputMaybe<Array<AgentTaskStatus> | AgentTaskStatus>;
-}>;
-
-
-export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks: { __typename?: 'TaskConnection', nodes: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, status: AgentTaskStatus | null, itemId: string | null, complexityRating: number | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null, commitHash: string | null, createdAt: any | null, updatedAt: any | null }> } };
-
-export type GetDashboardSummaryQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetDashboardSummaryQuery = { __typename?: 'Query', dashboardSummary: { __typename?: 'DashboardSummary', projectsInFlight: number, featuresInReview: number, featuresFailed: number, tasksInProgress: number, tasksFailed: number, recentAuditEvents: Array<{ __typename?: 'AuditEvent', id: string | null, entityType: string | null, entityId: string | null, eventType: string | null, actor: string | null, occurredAt: any | null }> } };
-
-export type GetDefectsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetDefectsQuery = { __typename?: 'Query', defects: { __typename?: 'ItemConnection', nodes: Array<{ __typename?: 'Item', id: string | null, title: string | null, description: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null }> } };
-
-export type GetDefectByIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetDefectByIdQuery = { __typename?: 'Query', defectById: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, result: string | null, errors: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, status: FeatureStatus | null, severity: Severity | null, projectId: string | null, parentFeatureId: string | null, createdAt: any | null, updatedAt: any | null } | null };
-
-export type GetDeliverablesQueryVariables = Exact<{
   projectId: InputMaybe<Scalars['UUID']['input']>;
-  epicId: InputMaybe<Scalars['UUID']['input']>;
-  status: InputMaybe<Array<FeatureStatus> | FeatureStatus>;
-  type: InputMaybe<Array<ItemSubtype> | ItemSubtype>;
 }>;
 
 
-export type GetDeliverablesQuery = { __typename?: 'Query', items: { __typename?: 'ItemConnection', nodes: Array<{ __typename?: 'Item', id: string | null, title: string | null, description: string | null, status: FeatureStatus | null, subtype: ItemSubtype | null, projectId: string | null, epicId: string | null, createdAt: any | null, updatedAt: any | null }> } };
+export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null, deliverableId: string | null, result: string | null, errors: string | null, commitHash: string | null, complexityRating: number | null, dependsOnDevTask: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null }> };
+
+export type GetDeliverablesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetDeliverablesQuery = { __typename?: 'Query', deliverables: Array<{ __typename?: 'Deliverable', id: string | null, title: string | null, description: string | null, status: DeliverableStatus | null, type: DeliverableType | null, acceptanceCriteria: string | null, executionPlan: string | null, agentFeedback: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, blocking: string | null }> };
 
 export type GetDeliverableByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetDeliverableByIdQuery = { __typename?: 'Query', getItemById: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, status: FeatureStatus | null, subtype: ItemSubtype | null, projectId: string | null, epicId: string | null, parentFeatureId: string | null, severity: Severity | null, rootCause: string | null, createdAt: any | null, updatedAt: any | null, validStatusTransitions: Array<FeatureStatus | null> | null } | null };
-
-export type GetEpicsQueryVariables = Exact<{
-  title: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type GetEpicsQuery = { __typename?: 'Query', items: { __typename?: 'ItemConnection', totalCount: number, nodes: Array<{ __typename?: 'Item', id: string | null, title: string | null, description: string | null, createdAt: any | null, updatedAt: any | null }>, pageInfo: { __typename?: 'ItemPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, totalCount: number } } };
-
-export type GetEpicByIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetEpicByIdQuery = { __typename?: 'Query', getItemById: { __typename?: 'Item', id: string | null, title: string | null, description: string | null, createdAt: any | null, updatedAt: any | null } | null };
-
-export type GetFeatureByIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetFeatureByIdQuery = { __typename?: 'Query', featureById: { __typename?: 'Item', id: string | null, title: string | null, status: FeatureStatus | null, description: string | null, acceptanceCriteria: string | null, plan: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, openQuestions: string | null, result: string | null, errors: string | null, createdAt: any | null, updatedAt: any | null, validStatusTransitions: Array<FeatureStatus | null> | null, tasks: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null } | null> | null } | null };
-
-export type GetFeaturesQueryVariables = Exact<{
-  projectId: InputMaybe<Scalars['UUID']['input']>;
-  status: InputMaybe<Array<FeatureStatus> | FeatureStatus>;
-}>;
-
-
-export type GetFeaturesQuery = { __typename?: 'Query', features: { __typename?: 'ItemConnection', nodes: Array<{ __typename?: 'Item', id: string | null, title: string | null, status: FeatureStatus | null, updatedAt: any | null, tasks: Array<{ __typename?: 'AgentTask', id: string | null } | null> | null }> } };
+export type GetDeliverableByIdQuery = { __typename?: 'Query', deliverableById: { __typename?: 'Deliverable', id: string | null, title: string | null, description: string | null, status: DeliverableStatus | null, type: DeliverableType | null, acceptanceCriteria: string | null, executionPlan: string | null, agentFeedback: string | null, securityImpact: string | null, performanceImpact: string | null, testPlan: string | null, deploymentPlan: string | null, blocking: string | null } | null };
 
 export type ModelConfigurationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ModelConfigurationsQuery = { __typename?: 'Query', modelConfigurations: Array<{ __typename?: 'ModelConfiguration', id: string | null, url: string | null, model: string | null, modelAlias: string | null, maxComplexity: number | null, createdAt: any | null, updatedAt: any | null }> };
+export type ModelConfigurationsQuery = { __typename?: 'Query', largeLanguageModels: Array<{ __typename?: 'LargeLanguageModel', id: string | null, url: string | null, model: string | null, modelAlias: string | null, apiKey: string | null, maxComplexity: number | null, maxConcurrency: number | null }> };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'Query', projectById: { __typename?: 'Project', id: string | null, name: string | null, description: string | null, architecture: string | null, memory: string | null, githubUrl: string | null, createdAt: any | null, updatedAt: any | null } | null };
+export type GetProjectQuery = { __typename?: 'Query', projectById: { __typename?: 'Project', id: string | null, name: string | null, description: string | null, repository: string | null } | null };
 
 export type GetProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetProjectsQuery = { __typename?: 'Query', projects: { __typename?: 'ProjectConnection', nodes: Array<{ __typename?: 'Project', id: string | null, name: string | null, description: string | null, githubUrl: string | null, updatedAt: any | null }> } };
-
-export type GetTaskByIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetTaskByIdQuery = { __typename?: 'Query', taskById: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, createdAt: any | null, updatedAt: any | null } | null };
-
-export type GetTasksQueryVariables = Exact<{
-  itemId: InputMaybe<Scalars['UUID']['input']>;
-  status: InputMaybe<Array<TaskStatus> | TaskStatus>;
-}>;
-
-
-export type GetTasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', nodes: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, deliverable: string | null, acceptanceCriteria: string | null, risks: string | null, requiredFollowUps: string | null, complexityRating: number | null, result: string | null, status: AgentTaskStatus | null, itemId: string | null, createdAt: any | null, updatedAt: any | null }> } };
+export type GetProjectsQuery = { __typename?: 'Query', projects: { __typename?: 'ProjectConnection', nodes: Array<{ __typename?: 'Project', id: string | null, name: string | null, description: string | null, repository: string | null }> } };
 
 
 export const CreateAgentTaskDocument = gql`
     mutation CreateAgentTask($input: CreateAgentTaskInput!) {
   createAgentTask(input: $input) {
-    task {
+    agentTask {
       id
       title
-      deliverable
-      acceptanceCriteria
-      risks
-      requiredFollowUps
+      deliverableId
       complexityRating
       result
-      status
-      itemId
+      errors
+      commitHash
+      dependsOnDevTask
       promptTokens
       completionTokens
       executionDurationInSeconds
       model
-      commitHash
-      createdAt
-      updatedAt
     }
     errors
   }
@@ -1439,56 +604,6 @@ export function useCreateAgentTaskMutation(baseOptions?: ApolloReactHooks.Mutati
 export type CreateAgentTaskMutationHookResult = ReturnType<typeof useCreateAgentTaskMutation>;
 export type CreateAgentTaskMutationResult = Apollo.MutationResult<CreateAgentTaskMutation>;
 export type CreateAgentTaskMutationOptions = Apollo.BaseMutationOptions<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>;
-export const CreateDefectDocument = gql`
-    mutation CreateDefect($input: CreateDefectInput!) {
-  createDefect(input: $input) {
-    item {
-      id
-      title
-      description
-      acceptanceCriteria
-      plan
-      result
-      errors
-      securityImpact
-      performanceImpact
-      status
-      severity
-      projectId
-      parentFeatureId
-      createdAt
-      updatedAt
-    }
-    errors
-  }
-}
-    `;
-export type CreateDefectMutationFn = Apollo.MutationFunction<CreateDefectMutation, CreateDefectMutationVariables>;
-
-/**
- * __useCreateDefectMutation__
- *
- * To run a mutation, you first call `useCreateDefectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateDefectMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createDefectMutation, { data, loading, error }] = useCreateDefectMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreateDefectMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateDefectMutation, CreateDefectMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<CreateDefectMutation, CreateDefectMutationVariables>(CreateDefectDocument, options);
-      }
-export type CreateDefectMutationHookResult = ReturnType<typeof useCreateDefectMutation>;
-export type CreateDefectMutationResult = Apollo.MutationResult<CreateDefectMutation>;
-export type CreateDefectMutationOptions = Apollo.BaseMutationOptions<CreateDefectMutation, CreateDefectMutationVariables>;
 export const CreateDeliverableDocument = gql`
     mutation CreateDeliverable($input: CreateDeliverableInput!) {
   createDeliverable(input: $input) {
@@ -1527,132 +642,47 @@ export function useCreateDeliverableMutation(baseOptions?: ApolloReactHooks.Muta
 export type CreateDeliverableMutationHookResult = ReturnType<typeof useCreateDeliverableMutation>;
 export type CreateDeliverableMutationResult = Apollo.MutationResult<CreateDeliverableMutation>;
 export type CreateDeliverableMutationOptions = Apollo.BaseMutationOptions<CreateDeliverableMutation, CreateDeliverableMutationVariables>;
-export const CreateEpicDocument = gql`
-    mutation CreateEpic($input: CreateEpicInput!) {
-  createEpic(input: $input) {
-    epic {
-      id
-      title
-      description
-      createdAt
-      updatedAt
-    }
-    errors
-  }
-}
-    `;
-export type CreateEpicMutationFn = Apollo.MutationFunction<CreateEpicMutation, CreateEpicMutationVariables>;
-
-/**
- * __useCreateEpicMutation__
- *
- * To run a mutation, you first call `useCreateEpicMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateEpicMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createEpicMutation, { data, loading, error }] = useCreateEpicMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreateEpicMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateEpicMutation, CreateEpicMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<CreateEpicMutation, CreateEpicMutationVariables>(CreateEpicDocument, options);
-      }
-export type CreateEpicMutationHookResult = ReturnType<typeof useCreateEpicMutation>;
-export type CreateEpicMutationResult = Apollo.MutationResult<CreateEpicMutation>;
-export type CreateEpicMutationOptions = Apollo.BaseMutationOptions<CreateEpicMutation, CreateEpicMutationVariables>;
-export const CreateFeatureDocument = gql`
-    mutation CreateFeature($input: CreateFeatureInput!) {
-  createFeature(input: $input) {
-    item {
-      id
-      title
-      description
-      acceptanceCriteria
-      openQuestions
-      status
-      projectId
-      createdAt
-      updatedAt
-    }
-    errors
-  }
-}
-    `;
-export type CreateFeatureMutationFn = Apollo.MutationFunction<CreateFeatureMutation, CreateFeatureMutationVariables>;
-
-/**
- * __useCreateFeatureMutation__
- *
- * To run a mutation, you first call `useCreateFeatureMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateFeatureMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createFeatureMutation, { data, loading, error }] = useCreateFeatureMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreateFeatureMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateFeatureMutation, CreateFeatureMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<CreateFeatureMutation, CreateFeatureMutationVariables>(CreateFeatureDocument, options);
-      }
-export type CreateFeatureMutationHookResult = ReturnType<typeof useCreateFeatureMutation>;
-export type CreateFeatureMutationResult = Apollo.MutationResult<CreateFeatureMutation>;
-export type CreateFeatureMutationOptions = Apollo.BaseMutationOptions<CreateFeatureMutation, CreateFeatureMutationVariables>;
-export const CreateModelConfigurationDocument = gql`
-    mutation CreateModelConfiguration($input: CreateModelConfigurationInput!) {
-  createModelConfiguration(input: $input) {
-    modelConfiguration {
+export const CreateLargeLanguageModelDocument = gql`
+    mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) {
+  createLargeLanguageModel(input: $input) {
+    largeLanguageModel {
       id
       url
       model
       modelAlias
       maxComplexity
-      createdAt
-      updatedAt
+      maxConcurrency
     }
     errors
   }
 }
     `;
-export type CreateModelConfigurationMutationFn = Apollo.MutationFunction<CreateModelConfigurationMutation, CreateModelConfigurationMutationVariables>;
+export type CreateLargeLanguageModelMutationFn = Apollo.MutationFunction<CreateLargeLanguageModelMutation, CreateLargeLanguageModelMutationVariables>;
 
 /**
- * __useCreateModelConfigurationMutation__
+ * __useCreateLargeLanguageModelMutation__
  *
- * To run a mutation, you first call `useCreateModelConfigurationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateModelConfigurationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreateLargeLanguageModelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateLargeLanguageModelMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [createModelConfigurationMutation, { data, loading, error }] = useCreateModelConfigurationMutation({
+ * const [createLargeLanguageModelMutation, { data, loading, error }] = useCreateLargeLanguageModelMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCreateModelConfigurationMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateModelConfigurationMutation, CreateModelConfigurationMutationVariables>) {
+export function useCreateLargeLanguageModelMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateLargeLanguageModelMutation, CreateLargeLanguageModelMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<CreateModelConfigurationMutation, CreateModelConfigurationMutationVariables>(CreateModelConfigurationDocument, options);
+        return ApolloReactHooks.useMutation<CreateLargeLanguageModelMutation, CreateLargeLanguageModelMutationVariables>(CreateLargeLanguageModelDocument, options);
       }
-export type CreateModelConfigurationMutationHookResult = ReturnType<typeof useCreateModelConfigurationMutation>;
-export type CreateModelConfigurationMutationResult = Apollo.MutationResult<CreateModelConfigurationMutation>;
-export type CreateModelConfigurationMutationOptions = Apollo.BaseMutationOptions<CreateModelConfigurationMutation, CreateModelConfigurationMutationVariables>;
+export type CreateLargeLanguageModelMutationHookResult = ReturnType<typeof useCreateLargeLanguageModelMutation>;
+export type CreateLargeLanguageModelMutationResult = Apollo.MutationResult<CreateLargeLanguageModelMutation>;
+export type CreateLargeLanguageModelMutationOptions = Apollo.BaseMutationOptions<CreateLargeLanguageModelMutation, CreateLargeLanguageModelMutationVariables>;
 export const CreateProjectDocument = gql`
     mutation CreateProject($input: CreateProjectInput!) {
   createProject(input: $input) {
@@ -1660,11 +690,7 @@ export const CreateProjectDocument = gql`
       id
       name
       description
-      architecture
-      memory
-      githubUrl
-      createdAt
-      updatedAt
+      repository
     }
     errors
   }
@@ -1696,100 +722,10 @@ export function useCreateProjectMutation(baseOptions?: ApolloReactHooks.Mutation
 export type CreateProjectMutationHookResult = ReturnType<typeof useCreateProjectMutation>;
 export type CreateProjectMutationResult = Apollo.MutationResult<CreateProjectMutation>;
 export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<CreateProjectMutation, CreateProjectMutationVariables>;
-export const CreateTaskDocument = gql`
-    mutation CreateTask($input: CreateTaskInput!) {
-  createTask(input: $input) {
-    task {
-      id
-      title
-      deliverable
-      acceptanceCriteria
-      risks
-      requiredFollowUps
-      complexityRating
-      result
-      status
-      featureId
-      createdAt
-      updatedAt
-    }
-    errors
-  }
-}
-    `;
-export type CreateTaskMutationFn = Apollo.MutationFunction<CreateTaskMutation, CreateTaskMutationVariables>;
-
-/**
- * __useCreateTaskMutation__
- *
- * To run a mutation, you first call `useCreateTaskMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateTaskMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createTaskMutation, { data, loading, error }] = useCreateTaskMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreateTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateTaskMutation, CreateTaskMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<CreateTaskMutation, CreateTaskMutationVariables>(CreateTaskDocument, options);
-      }
-export type CreateTaskMutationHookResult = ReturnType<typeof useCreateTaskMutation>;
-export type CreateTaskMutationResult = Apollo.MutationResult<CreateTaskMutation>;
-export type CreateTaskMutationOptions = Apollo.BaseMutationOptions<CreateTaskMutation, CreateTaskMutationVariables>;
-export const CreateWorkflowRunDocument = gql`
-    mutation CreateWorkflowRun($input: CreateWorkflowRunInput!) {
-  createWorkflowRun(input: $input) {
-    workflowRun {
-      id
-      projectId
-      featureId
-      taskId
-      workflowType
-      status
-      startedAt
-      createdAt
-    }
-    errors
-  }
-}
-    `;
-export type CreateWorkflowRunMutationFn = Apollo.MutationFunction<CreateWorkflowRunMutation, CreateWorkflowRunMutationVariables>;
-
-/**
- * __useCreateWorkflowRunMutation__
- *
- * To run a mutation, you first call `useCreateWorkflowRunMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateWorkflowRunMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createWorkflowRunMutation, { data, loading, error }] = useCreateWorkflowRunMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreateWorkflowRunMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateWorkflowRunMutation, CreateWorkflowRunMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<CreateWorkflowRunMutation, CreateWorkflowRunMutationVariables>(CreateWorkflowRunDocument, options);
-      }
-export type CreateWorkflowRunMutationHookResult = ReturnType<typeof useCreateWorkflowRunMutation>;
-export type CreateWorkflowRunMutationResult = Apollo.MutationResult<CreateWorkflowRunMutation>;
-export type CreateWorkflowRunMutationOptions = Apollo.BaseMutationOptions<CreateWorkflowRunMutation, CreateWorkflowRunMutationVariables>;
 export const DeleteAgentTaskDocument = gql`
     mutation DeleteAgentTask($input: DeleteAgentTaskInput!) {
   deleteAgentTask(input: $input) {
-    task {
+    agentTask {
       id
     }
     errors
@@ -1822,150 +758,78 @@ export function useDeleteAgentTaskMutation(baseOptions?: ApolloReactHooks.Mutati
 export type DeleteAgentTaskMutationHookResult = ReturnType<typeof useDeleteAgentTaskMutation>;
 export type DeleteAgentTaskMutationResult = Apollo.MutationResult<DeleteAgentTaskMutation>;
 export type DeleteAgentTaskMutationOptions = Apollo.BaseMutationOptions<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>;
-export const DeleteDefectDocument = gql`
-    mutation DeleteDefect($input: DeleteDefectInput!) {
-  deleteDefect(input: $input) {
-    item {
+export const DeleteDeliverableDocument = gql`
+    mutation DeleteDeliverable($input: DeleteDeliverableInput!) {
+  deleteDeliverable(input: $input) {
+    deliverable {
       id
     }
     errors
   }
 }
     `;
-export type DeleteDefectMutationFn = Apollo.MutationFunction<DeleteDefectMutation, DeleteDefectMutationVariables>;
+export type DeleteDeliverableMutationFn = Apollo.MutationFunction<DeleteDeliverableMutation, DeleteDeliverableMutationVariables>;
 
 /**
- * __useDeleteDefectMutation__
+ * __useDeleteDeliverableMutation__
  *
- * To run a mutation, you first call `useDeleteDefectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteDefectMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDeleteDeliverableMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteDeliverableMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteDefectMutation, { data, loading, error }] = useDeleteDefectMutation({
+ * const [deleteDeliverableMutation, { data, loading, error }] = useDeleteDeliverableMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useDeleteDefectMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteDefectMutation, DeleteDefectMutationVariables>) {
+export function useDeleteDeliverableMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteDeliverableMutation, DeleteDeliverableMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<DeleteDefectMutation, DeleteDefectMutationVariables>(DeleteDefectDocument, options);
+        return ApolloReactHooks.useMutation<DeleteDeliverableMutation, DeleteDeliverableMutationVariables>(DeleteDeliverableDocument, options);
       }
-export type DeleteDefectMutationHookResult = ReturnType<typeof useDeleteDefectMutation>;
-export type DeleteDefectMutationResult = Apollo.MutationResult<DeleteDefectMutation>;
-export type DeleteDefectMutationOptions = Apollo.BaseMutationOptions<DeleteDefectMutation, DeleteDefectMutationVariables>;
-export const DeleteEpicDocument = gql`
-    mutation DeleteEpic($input: DeleteEpicInput!) {
-  deleteEpic(input: $input) {
-    epic {
+export type DeleteDeliverableMutationHookResult = ReturnType<typeof useDeleteDeliverableMutation>;
+export type DeleteDeliverableMutationResult = Apollo.MutationResult<DeleteDeliverableMutation>;
+export type DeleteDeliverableMutationOptions = Apollo.BaseMutationOptions<DeleteDeliverableMutation, DeleteDeliverableMutationVariables>;
+export const DeleteLargeLanguageModelDocument = gql`
+    mutation DeleteLargeLanguageModel($input: DeleteLargeLanguageModelInput!) {
+  deleteLargeLanguageModel(input: $input) {
+    largeLanguageModel {
       id
     }
     errors
   }
 }
     `;
-export type DeleteEpicMutationFn = Apollo.MutationFunction<DeleteEpicMutation, DeleteEpicMutationVariables>;
+export type DeleteLargeLanguageModelMutationFn = Apollo.MutationFunction<DeleteLargeLanguageModelMutation, DeleteLargeLanguageModelMutationVariables>;
 
 /**
- * __useDeleteEpicMutation__
+ * __useDeleteLargeLanguageModelMutation__
  *
- * To run a mutation, you first call `useDeleteEpicMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteEpicMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDeleteLargeLanguageModelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteLargeLanguageModelMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteEpicMutation, { data, loading, error }] = useDeleteEpicMutation({
+ * const [deleteLargeLanguageModelMutation, { data, loading, error }] = useDeleteLargeLanguageModelMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useDeleteEpicMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteEpicMutation, DeleteEpicMutationVariables>) {
+export function useDeleteLargeLanguageModelMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteLargeLanguageModelMutation, DeleteLargeLanguageModelMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<DeleteEpicMutation, DeleteEpicMutationVariables>(DeleteEpicDocument, options);
+        return ApolloReactHooks.useMutation<DeleteLargeLanguageModelMutation, DeleteLargeLanguageModelMutationVariables>(DeleteLargeLanguageModelDocument, options);
       }
-export type DeleteEpicMutationHookResult = ReturnType<typeof useDeleteEpicMutation>;
-export type DeleteEpicMutationResult = Apollo.MutationResult<DeleteEpicMutation>;
-export type DeleteEpicMutationOptions = Apollo.BaseMutationOptions<DeleteEpicMutation, DeleteEpicMutationVariables>;
-export const DeleteFeatureDocument = gql`
-    mutation DeleteFeature($input: DeleteFeatureInput!) {
-  deleteFeature(input: $input) {
-    item {
-      id
-    }
-    errors
-  }
-}
-    `;
-export type DeleteFeatureMutationFn = Apollo.MutationFunction<DeleteFeatureMutation, DeleteFeatureMutationVariables>;
-
-/**
- * __useDeleteFeatureMutation__
- *
- * To run a mutation, you first call `useDeleteFeatureMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteFeatureMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteFeatureMutation, { data, loading, error }] = useDeleteFeatureMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useDeleteFeatureMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteFeatureMutation, DeleteFeatureMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<DeleteFeatureMutation, DeleteFeatureMutationVariables>(DeleteFeatureDocument, options);
-      }
-export type DeleteFeatureMutationHookResult = ReturnType<typeof useDeleteFeatureMutation>;
-export type DeleteFeatureMutationResult = Apollo.MutationResult<DeleteFeatureMutation>;
-export type DeleteFeatureMutationOptions = Apollo.BaseMutationOptions<DeleteFeatureMutation, DeleteFeatureMutationVariables>;
-export const DeleteModelConfigurationDocument = gql`
-    mutation DeleteModelConfiguration($input: DeleteModelConfigurationInput!) {
-  deleteModelConfiguration(input: $input) {
-    modelConfiguration {
-      id
-    }
-    errors
-  }
-}
-    `;
-export type DeleteModelConfigurationMutationFn = Apollo.MutationFunction<DeleteModelConfigurationMutation, DeleteModelConfigurationMutationVariables>;
-
-/**
- * __useDeleteModelConfigurationMutation__
- *
- * To run a mutation, you first call `useDeleteModelConfigurationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteModelConfigurationMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteModelConfigurationMutation, { data, loading, error }] = useDeleteModelConfigurationMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useDeleteModelConfigurationMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteModelConfigurationMutation, DeleteModelConfigurationMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<DeleteModelConfigurationMutation, DeleteModelConfigurationMutationVariables>(DeleteModelConfigurationDocument, options);
-      }
-export type DeleteModelConfigurationMutationHookResult = ReturnType<typeof useDeleteModelConfigurationMutation>;
-export type DeleteModelConfigurationMutationResult = Apollo.MutationResult<DeleteModelConfigurationMutation>;
-export type DeleteModelConfigurationMutationOptions = Apollo.BaseMutationOptions<DeleteModelConfigurationMutation, DeleteModelConfigurationMutationVariables>;
+export type DeleteLargeLanguageModelMutationHookResult = ReturnType<typeof useDeleteLargeLanguageModelMutation>;
+export type DeleteLargeLanguageModelMutationResult = Apollo.MutationResult<DeleteLargeLanguageModelMutation>;
+export type DeleteLargeLanguageModelMutationOptions = Apollo.BaseMutationOptions<DeleteLargeLanguageModelMutation, DeleteLargeLanguageModelMutationVariables>;
 export const DeleteProjectDocument = gql`
     mutation DeleteProject($input: DeleteProjectInput!) {
   deleteProject(input: $input) {
@@ -2002,50 +866,13 @@ export function useDeleteProjectMutation(baseOptions?: ApolloReactHooks.Mutation
 export type DeleteProjectMutationHookResult = ReturnType<typeof useDeleteProjectMutation>;
 export type DeleteProjectMutationResult = Apollo.MutationResult<DeleteProjectMutation>;
 export type DeleteProjectMutationOptions = Apollo.BaseMutationOptions<DeleteProjectMutation, DeleteProjectMutationVariables>;
-export const DeleteTaskDocument = gql`
-    mutation DeleteTask($input: DeleteTaskInput!) {
-  deleteTask(input: $input) {
-    task {
-      id
-    }
-    errors
-  }
-}
-    `;
-export type DeleteTaskMutationFn = Apollo.MutationFunction<DeleteTaskMutation, DeleteTaskMutationVariables>;
-
-/**
- * __useDeleteTaskMutation__
- *
- * To run a mutation, you first call `useDeleteTaskMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteTaskMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteTaskMutation, { data, loading, error }] = useDeleteTaskMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useDeleteTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteTaskMutation, DeleteTaskMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<DeleteTaskMutation, DeleteTaskMutationVariables>(DeleteTaskDocument, options);
-      }
-export type DeleteTaskMutationHookResult = ReturnType<typeof useDeleteTaskMutation>;
-export type DeleteTaskMutationResult = Apollo.MutationResult<DeleteTaskMutation>;
-export type DeleteTaskMutationOptions = Apollo.BaseMutationOptions<DeleteTaskMutation, DeleteTaskMutationVariables>;
 export const TransitionAgentTaskStatusDocument = gql`
     mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
   transitionAgentTaskStatus(input: $input) {
-    task {
+    agentTask {
       id
       title
       status
-      updatedAt
     }
     errors
   }
@@ -2077,50 +904,12 @@ export function useTransitionAgentTaskStatusMutation(baseOptions?: ApolloReactHo
 export type TransitionAgentTaskStatusMutationHookResult = ReturnType<typeof useTransitionAgentTaskStatusMutation>;
 export type TransitionAgentTaskStatusMutationResult = Apollo.MutationResult<TransitionAgentTaskStatusMutation>;
 export type TransitionAgentTaskStatusMutationOptions = Apollo.BaseMutationOptions<TransitionAgentTaskStatusMutation, TransitionAgentTaskStatusMutationVariables>;
-export const TransitionDefectStatusDocument = gql`
-    mutation TransitionDefectStatus($input: TransitionDefectInput!) {
-  transitionDefectStatus(input: $input) {
-    item {
-      id
-      status
-    }
-    errors
-  }
-}
-    `;
-export type TransitionDefectStatusMutationFn = Apollo.MutationFunction<TransitionDefectStatusMutation, TransitionDefectStatusMutationVariables>;
-
-/**
- * __useTransitionDefectStatusMutation__
- *
- * To run a mutation, you first call `useTransitionDefectStatusMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useTransitionDefectStatusMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [transitionDefectStatusMutation, { data, loading, error }] = useTransitionDefectStatusMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useTransitionDefectStatusMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<TransitionDefectStatusMutation, TransitionDefectStatusMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<TransitionDefectStatusMutation, TransitionDefectStatusMutationVariables>(TransitionDefectStatusDocument, options);
-      }
-export type TransitionDefectStatusMutationHookResult = ReturnType<typeof useTransitionDefectStatusMutation>;
-export type TransitionDefectStatusMutationResult = Apollo.MutationResult<TransitionDefectStatusMutation>;
-export type TransitionDefectStatusMutationOptions = Apollo.BaseMutationOptions<TransitionDefectStatusMutation, TransitionDefectStatusMutationVariables>;
 export const TransitionDeliverableStatusDocument = gql`
     mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) {
   transitionDeliverableStatus(input: $input) {
     deliverable {
       id
       status
-      validStatusTransitions
     }
     errors
   }
@@ -2152,102 +941,22 @@ export function useTransitionDeliverableStatusMutation(baseOptions?: ApolloReact
 export type TransitionDeliverableStatusMutationHookResult = ReturnType<typeof useTransitionDeliverableStatusMutation>;
 export type TransitionDeliverableStatusMutationResult = Apollo.MutationResult<TransitionDeliverableStatusMutation>;
 export type TransitionDeliverableStatusMutationOptions = Apollo.BaseMutationOptions<TransitionDeliverableStatusMutation, TransitionDeliverableStatusMutationVariables>;
-export const TransitionFeatureStatusDocument = gql`
-    mutation TransitionFeatureStatus($input: TransitionFeatureInput!) {
-  transitionFeatureStatus(input: $input) {
-    item {
-      id
-      status
-      validStatusTransitions
-    }
-    errors
-  }
-}
-    `;
-export type TransitionFeatureStatusMutationFn = Apollo.MutationFunction<TransitionFeatureStatusMutation, TransitionFeatureStatusMutationVariables>;
-
-/**
- * __useTransitionFeatureStatusMutation__
- *
- * To run a mutation, you first call `useTransitionFeatureStatusMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useTransitionFeatureStatusMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [transitionFeatureStatusMutation, { data, loading, error }] = useTransitionFeatureStatusMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useTransitionFeatureStatusMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<TransitionFeatureStatusMutation, TransitionFeatureStatusMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<TransitionFeatureStatusMutation, TransitionFeatureStatusMutationVariables>(TransitionFeatureStatusDocument, options);
-      }
-export type TransitionFeatureStatusMutationHookResult = ReturnType<typeof useTransitionFeatureStatusMutation>;
-export type TransitionFeatureStatusMutationResult = Apollo.MutationResult<TransitionFeatureStatusMutation>;
-export type TransitionFeatureStatusMutationOptions = Apollo.BaseMutationOptions<TransitionFeatureStatusMutation, TransitionFeatureStatusMutationVariables>;
-export const TransitionTaskStatusDocument = gql`
-    mutation TransitionTaskStatus($input: TransitionTaskInput!) {
-  transitionTaskStatus(input: $input) {
-    task {
-      id
-      status
-    }
-    errors
-  }
-}
-    `;
-export type TransitionTaskStatusMutationFn = Apollo.MutationFunction<TransitionTaskStatusMutation, TransitionTaskStatusMutationVariables>;
-
-/**
- * __useTransitionTaskStatusMutation__
- *
- * To run a mutation, you first call `useTransitionTaskStatusMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useTransitionTaskStatusMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [transitionTaskStatusMutation, { data, loading, error }] = useTransitionTaskStatusMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useTransitionTaskStatusMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<TransitionTaskStatusMutation, TransitionTaskStatusMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<TransitionTaskStatusMutation, TransitionTaskStatusMutationVariables>(TransitionTaskStatusDocument, options);
-      }
-export type TransitionTaskStatusMutationHookResult = ReturnType<typeof useTransitionTaskStatusMutation>;
-export type TransitionTaskStatusMutationResult = Apollo.MutationResult<TransitionTaskStatusMutation>;
-export type TransitionTaskStatusMutationOptions = Apollo.BaseMutationOptions<TransitionTaskStatusMutation, TransitionTaskStatusMutationVariables>;
 export const UpdateAgentTaskDocument = gql`
     mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
   updateAgentTask(input: $input) {
-    task {
+    agentTask {
       id
       title
-      deliverable
-      acceptanceCriteria
-      risks
-      requiredFollowUps
+      deliverableId
       complexityRating
       result
-      status
-      itemId
+      errors
+      commitHash
+      dependsOnDevTask
       promptTokens
       completionTokens
       executionDurationInSeconds
       model
-      commitHash
-      createdAt
-      updatedAt
     }
     errors
   }
@@ -2279,55 +988,6 @@ export function useUpdateAgentTaskMutation(baseOptions?: ApolloReactHooks.Mutati
 export type UpdateAgentTaskMutationHookResult = ReturnType<typeof useUpdateAgentTaskMutation>;
 export type UpdateAgentTaskMutationResult = Apollo.MutationResult<UpdateAgentTaskMutation>;
 export type UpdateAgentTaskMutationOptions = Apollo.BaseMutationOptions<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>;
-export const UpdateDefectDocument = gql`
-    mutation UpdateDefect($input: UpdateDefectInput!) {
-  updateDefect(input: $input) {
-    item {
-      id
-      title
-      description
-      acceptanceCriteria
-      plan
-      result
-      errors
-      securityImpact
-      performanceImpact
-      status
-      severity
-      projectId
-      parentFeatureId
-      updatedAt
-    }
-    errors
-  }
-}
-    `;
-export type UpdateDefectMutationFn = Apollo.MutationFunction<UpdateDefectMutation, UpdateDefectMutationVariables>;
-
-/**
- * __useUpdateDefectMutation__
- *
- * To run a mutation, you first call `useUpdateDefectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateDefectMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateDefectMutation, { data, loading, error }] = useUpdateDefectMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUpdateDefectMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateDefectMutation, UpdateDefectMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<UpdateDefectMutation, UpdateDefectMutationVariables>(UpdateDefectDocument, options);
-      }
-export type UpdateDefectMutationHookResult = ReturnType<typeof useUpdateDefectMutation>;
-export type UpdateDefectMutationResult = Apollo.MutationResult<UpdateDefectMutation>;
-export type UpdateDefectMutationOptions = Apollo.BaseMutationOptions<UpdateDefectMutation, UpdateDefectMutationVariables>;
 export const UpdateDeliverableDocument = gql`
     mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
   updateDeliverable(input: $input) {
@@ -2366,133 +1026,47 @@ export function useUpdateDeliverableMutation(baseOptions?: ApolloReactHooks.Muta
 export type UpdateDeliverableMutationHookResult = ReturnType<typeof useUpdateDeliverableMutation>;
 export type UpdateDeliverableMutationResult = Apollo.MutationResult<UpdateDeliverableMutation>;
 export type UpdateDeliverableMutationOptions = Apollo.BaseMutationOptions<UpdateDeliverableMutation, UpdateDeliverableMutationVariables>;
-export const UpdateEpicDocument = gql`
-    mutation UpdateEpic($input: UpdateEpicInput!) {
-  updateEpic(input: $input) {
-    epic {
-      id
-      title
-      description
-      updatedAt
-    }
-    errors
-  }
-}
-    `;
-export type UpdateEpicMutationFn = Apollo.MutationFunction<UpdateEpicMutation, UpdateEpicMutationVariables>;
-
-/**
- * __useUpdateEpicMutation__
- *
- * To run a mutation, you first call `useUpdateEpicMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateEpicMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateEpicMutation, { data, loading, error }] = useUpdateEpicMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUpdateEpicMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateEpicMutation, UpdateEpicMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<UpdateEpicMutation, UpdateEpicMutationVariables>(UpdateEpicDocument, options);
-      }
-export type UpdateEpicMutationHookResult = ReturnType<typeof useUpdateEpicMutation>;
-export type UpdateEpicMutationResult = Apollo.MutationResult<UpdateEpicMutation>;
-export type UpdateEpicMutationOptions = Apollo.BaseMutationOptions<UpdateEpicMutation, UpdateEpicMutationVariables>;
-export const UpdateFeatureDocument = gql`
-    mutation UpdateFeature($input: UpdateFeatureInput!) {
-  updateFeature(input: $input) {
-    item {
-      id
-      title
-      description
-      acceptanceCriteria
-      plan
-      securityImpact
-      performanceImpact
-      testPlan
-      deploymentPlan
-      openQuestions
-      status
-      updatedAt
-    }
-    errors
-  }
-}
-    `;
-export type UpdateFeatureMutationFn = Apollo.MutationFunction<UpdateFeatureMutation, UpdateFeatureMutationVariables>;
-
-/**
- * __useUpdateFeatureMutation__
- *
- * To run a mutation, you first call `useUpdateFeatureMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateFeatureMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateFeatureMutation, { data, loading, error }] = useUpdateFeatureMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUpdateFeatureMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateFeatureMutation, UpdateFeatureMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<UpdateFeatureMutation, UpdateFeatureMutationVariables>(UpdateFeatureDocument, options);
-      }
-export type UpdateFeatureMutationHookResult = ReturnType<typeof useUpdateFeatureMutation>;
-export type UpdateFeatureMutationResult = Apollo.MutationResult<UpdateFeatureMutation>;
-export type UpdateFeatureMutationOptions = Apollo.BaseMutationOptions<UpdateFeatureMutation, UpdateFeatureMutationVariables>;
-export const UpdateModelConfigurationDocument = gql`
-    mutation UpdateModelConfiguration($input: UpdateModelConfigurationInput!) {
-  updateModelConfiguration(input: $input) {
-    modelConfiguration {
+export const UpdateLargeLanguageModelDocument = gql`
+    mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) {
+  updateLargeLanguageModel(input: $input) {
+    largeLanguageModel {
       id
       url
       model
       modelAlias
       maxComplexity
-      updatedAt
+      maxConcurrency
     }
     errors
   }
 }
     `;
-export type UpdateModelConfigurationMutationFn = Apollo.MutationFunction<UpdateModelConfigurationMutation, UpdateModelConfigurationMutationVariables>;
+export type UpdateLargeLanguageModelMutationFn = Apollo.MutationFunction<UpdateLargeLanguageModelMutation, UpdateLargeLanguageModelMutationVariables>;
 
 /**
- * __useUpdateModelConfigurationMutation__
+ * __useUpdateLargeLanguageModelMutation__
  *
- * To run a mutation, you first call `useUpdateModelConfigurationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateModelConfigurationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useUpdateLargeLanguageModelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateLargeLanguageModelMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [updateModelConfigurationMutation, { data, loading, error }] = useUpdateModelConfigurationMutation({
+ * const [updateLargeLanguageModelMutation, { data, loading, error }] = useUpdateLargeLanguageModelMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useUpdateModelConfigurationMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateModelConfigurationMutation, UpdateModelConfigurationMutationVariables>) {
+export function useUpdateLargeLanguageModelMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateLargeLanguageModelMutation, UpdateLargeLanguageModelMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<UpdateModelConfigurationMutation, UpdateModelConfigurationMutationVariables>(UpdateModelConfigurationDocument, options);
+        return ApolloReactHooks.useMutation<UpdateLargeLanguageModelMutation, UpdateLargeLanguageModelMutationVariables>(UpdateLargeLanguageModelDocument, options);
       }
-export type UpdateModelConfigurationMutationHookResult = ReturnType<typeof useUpdateModelConfigurationMutation>;
-export type UpdateModelConfigurationMutationResult = Apollo.MutationResult<UpdateModelConfigurationMutation>;
-export type UpdateModelConfigurationMutationOptions = Apollo.BaseMutationOptions<UpdateModelConfigurationMutation, UpdateModelConfigurationMutationVariables>;
+export type UpdateLargeLanguageModelMutationHookResult = ReturnType<typeof useUpdateLargeLanguageModelMutation>;
+export type UpdateLargeLanguageModelMutationResult = Apollo.MutationResult<UpdateLargeLanguageModelMutation>;
+export type UpdateLargeLanguageModelMutationOptions = Apollo.BaseMutationOptions<UpdateLargeLanguageModelMutation, UpdateLargeLanguageModelMutationVariables>;
 export const UpdateProjectDocument = gql`
     mutation UpdateProject($input: UpdateProjectInput!) {
   updateProject(input: $input) {
@@ -2500,11 +1074,7 @@ export const UpdateProjectDocument = gql`
       id
       name
       description
-      architecture
-      memory
-      githubUrl
-      createdAt
-      updatedAt
+      repository
     }
     errors
   }
@@ -2536,81 +1106,22 @@ export function useUpdateProjectMutation(baseOptions?: ApolloReactHooks.Mutation
 export type UpdateProjectMutationHookResult = ReturnType<typeof useUpdateProjectMutation>;
 export type UpdateProjectMutationResult = Apollo.MutationResult<UpdateProjectMutation>;
 export type UpdateProjectMutationOptions = Apollo.BaseMutationOptions<UpdateProjectMutation, UpdateProjectMutationVariables>;
-export const UpdateTaskDocument = gql`
-    mutation UpdateTask($input: UpdateTaskInput!) {
-  updateTask(input: $input) {
-    task {
-      id
-      title
-      deliverable
-      acceptanceCriteria
-      risks
-      requiredFollowUps
-      complexityRating
-      result
-      status
-      featureId
-      updatedAt
-    }
-    errors
-  }
-}
-    `;
-export type UpdateTaskMutationFn = Apollo.MutationFunction<UpdateTaskMutation, UpdateTaskMutationVariables>;
-
-/**
- * __useUpdateTaskMutation__
- *
- * To run a mutation, you first call `useUpdateTaskMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateTaskMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateTaskMutation, { data, loading, error }] = useUpdateTaskMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUpdateTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateTaskMutation, UpdateTaskMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useMutation<UpdateTaskMutation, UpdateTaskMutationVariables>(UpdateTaskDocument, options);
-      }
-export type UpdateTaskMutationHookResult = ReturnType<typeof useUpdateTaskMutation>;
-export type UpdateTaskMutationResult = Apollo.MutationResult<UpdateTaskMutation>;
-export type UpdateTaskMutationOptions = Apollo.BaseMutationOptions<UpdateTaskMutation, UpdateTaskMutationVariables>;
 export const GetAgentTaskByIdDocument = gql`
     query GetAgentTaskById($id: UUID!) {
   agentTaskById(id: $id) {
     id
     title
-    deliverable
-    acceptanceCriteria
-    risks
-    requiredFollowUps
-    complexityRating
-    result
     status
-    itemId
-    item {
-      id
-      title
-    }
-    dependsOnAgentTask {
-      id
-      title
-    }
+    deliverableId
+    result
+    errors
+    commitHash
+    complexityRating
+    dependsOnDevTask
     promptTokens
     completionTokens
     executionDurationInSeconds
     model
-    commitHash
-    errors
-    createdAt
-    updatedAt
   }
 }
     `;
@@ -2651,23 +1162,21 @@ export type GetAgentTaskByIdLazyQueryHookResult = ReturnType<typeof useGetAgentT
 export type GetAgentTaskByIdSuspenseQueryHookResult = ReturnType<typeof useGetAgentTaskByIdSuspenseQuery>;
 export type GetAgentTaskByIdQueryResult = Apollo.QueryResult<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>;
 export const GetAgentTasksDocument = gql`
-    query GetAgentTasks($itemId: UUID, $status: [AgentTaskStatus!]) {
-  agentTasks(itemId: $itemId, status: $status) {
-    nodes {
-      id
-      title
-      deliverable
-      status
-      itemId
-      complexityRating
-      promptTokens
-      completionTokens
-      executionDurationInSeconds
-      model
-      commitHash
-      createdAt
-      updatedAt
-    }
+    query GetAgentTasks($projectId: UUID) {
+  agentTasks(itemId: $projectId) {
+    id
+    title
+    status
+    deliverableId
+    result
+    errors
+    commitHash
+    complexityRating
+    dependsOnDevTask
+    promptTokens
+    completionTokens
+    executionDurationInSeconds
+    model
   }
 }
     `;
@@ -2684,8 +1193,7 @@ export const GetAgentTasksDocument = gql`
  * @example
  * const { data, loading, error } = useGetAgentTasksQuery({
  *   variables: {
- *      itemId: // value for 'itemId'
- *      status: // value for 'status'
+ *      projectId: // value for 'projectId'
  *   },
  * });
  */
@@ -2708,186 +1216,22 @@ export type GetAgentTasksQueryHookResult = ReturnType<typeof useGetAgentTasksQue
 export type GetAgentTasksLazyQueryHookResult = ReturnType<typeof useGetAgentTasksLazyQuery>;
 export type GetAgentTasksSuspenseQueryHookResult = ReturnType<typeof useGetAgentTasksSuspenseQuery>;
 export type GetAgentTasksQueryResult = Apollo.QueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
-export const GetDashboardSummaryDocument = gql`
-    query GetDashboardSummary {
-  dashboardSummary {
-    projectsInFlight
-    featuresInReview
-    featuresFailed
-    tasksInProgress
-    tasksFailed
-    recentAuditEvents {
-      id
-      entityType
-      entityId
-      eventType
-      actor
-      occurredAt
-    }
-  }
-}
-    `;
-
-/**
- * __useGetDashboardSummaryQuery__
- *
- * To run a query within a React component, call `useGetDashboardSummaryQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetDashboardSummaryQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetDashboardSummaryQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetDashboardSummaryQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>(GetDashboardSummaryDocument, options);
-      }
-export function useGetDashboardSummaryLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>(GetDashboardSummaryDocument, options);
-        }
-// @ts-ignore
-export function useGetDashboardSummarySuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>;
-export function useGetDashboardSummarySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDashboardSummaryQuery | undefined, GetDashboardSummaryQueryVariables>;
-export function useGetDashboardSummarySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>(GetDashboardSummaryDocument, options);
-        }
-export type GetDashboardSummaryQueryHookResult = ReturnType<typeof useGetDashboardSummaryQuery>;
-export type GetDashboardSummaryLazyQueryHookResult = ReturnType<typeof useGetDashboardSummaryLazyQuery>;
-export type GetDashboardSummarySuspenseQueryHookResult = ReturnType<typeof useGetDashboardSummarySuspenseQuery>;
-export type GetDashboardSummaryQueryResult = Apollo.QueryResult<GetDashboardSummaryQuery, GetDashboardSummaryQueryVariables>;
-export const GetDefectsDocument = gql`
-    query GetDefects {
-  defects {
-    nodes {
-      id
-      title
-      description
-      status
-      severity
-      projectId
-      parentFeatureId
-      createdAt
-      updatedAt
-    }
-  }
-}
-    `;
-
-/**
- * __useGetDefectsQuery__
- *
- * To run a query within a React component, call `useGetDefectsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetDefectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetDefectsQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetDefectsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetDefectsQuery, GetDefectsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetDefectsQuery, GetDefectsQueryVariables>(GetDefectsDocument, options);
-      }
-export function useGetDefectsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetDefectsQuery, GetDefectsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetDefectsQuery, GetDefectsQueryVariables>(GetDefectsDocument, options);
-        }
-// @ts-ignore
-export function useGetDefectsSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetDefectsQuery, GetDefectsQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDefectsQuery, GetDefectsQueryVariables>;
-export function useGetDefectsSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDefectsQuery, GetDefectsQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDefectsQuery | undefined, GetDefectsQueryVariables>;
-export function useGetDefectsSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDefectsQuery, GetDefectsQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetDefectsQuery, GetDefectsQueryVariables>(GetDefectsDocument, options);
-        }
-export type GetDefectsQueryHookResult = ReturnType<typeof useGetDefectsQuery>;
-export type GetDefectsLazyQueryHookResult = ReturnType<typeof useGetDefectsLazyQuery>;
-export type GetDefectsSuspenseQueryHookResult = ReturnType<typeof useGetDefectsSuspenseQuery>;
-export type GetDefectsQueryResult = Apollo.QueryResult<GetDefectsQuery, GetDefectsQueryVariables>;
-export const GetDefectByIdDocument = gql`
-    query GetDefectById($id: UUID!) {
-  defectById(id: $id) {
+export const GetDeliverablesDocument = gql`
+    query GetDeliverables {
+  deliverables {
     id
     title
     description
+    status
+    type
     acceptanceCriteria
-    plan
-    result
-    errors
+    executionPlan
+    agentFeedback
     securityImpact
     performanceImpact
     testPlan
     deploymentPlan
-    openQuestions
-    status
-    severity
-    projectId
-    parentFeatureId
-    createdAt
-    updatedAt
-  }
-}
-    `;
-
-/**
- * __useGetDefectByIdQuery__
- *
- * To run a query within a React component, call `useGetDefectByIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetDefectByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetDefectByIdQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetDefectByIdQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetDefectByIdQuery, GetDefectByIdQueryVariables> & ({ variables: GetDefectByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetDefectByIdQuery, GetDefectByIdQueryVariables>(GetDefectByIdDocument, options);
-      }
-export function useGetDefectByIdLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetDefectByIdQuery, GetDefectByIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetDefectByIdQuery, GetDefectByIdQueryVariables>(GetDefectByIdDocument, options);
-        }
-// @ts-ignore
-export function useGetDefectByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetDefectByIdQuery, GetDefectByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDefectByIdQuery, GetDefectByIdQueryVariables>;
-export function useGetDefectByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDefectByIdQuery, GetDefectByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDefectByIdQuery | undefined, GetDefectByIdQueryVariables>;
-export function useGetDefectByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDefectByIdQuery, GetDefectByIdQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetDefectByIdQuery, GetDefectByIdQueryVariables>(GetDefectByIdDocument, options);
-        }
-export type GetDefectByIdQueryHookResult = ReturnType<typeof useGetDefectByIdQuery>;
-export type GetDefectByIdLazyQueryHookResult = ReturnType<typeof useGetDefectByIdLazyQuery>;
-export type GetDefectByIdSuspenseQueryHookResult = ReturnType<typeof useGetDefectByIdSuspenseQuery>;
-export type GetDefectByIdQueryResult = Apollo.QueryResult<GetDefectByIdQuery, GetDefectByIdQueryVariables>;
-export const GetDeliverablesDocument = gql`
-    query GetDeliverables($projectId: UUID, $epicId: UUID, $status: [FeatureStatus!], $type: [ItemSubtype!]) {
-  items(projectId: $projectId, epicId: $epicId, status: $status, subtype: $type) {
-    nodes {
-      id
-      title
-      description
-      status
-      subtype
-      projectId
-      epicId
-      createdAt
-      updatedAt
-    }
+    blocking
   }
 }
     `;
@@ -2904,10 +1248,6 @@ export const GetDeliverablesDocument = gql`
  * @example
  * const { data, loading, error } = useGetDeliverablesQuery({
  *   variables: {
- *      projectId: // value for 'projectId'
- *      epicId: // value for 'epicId'
- *      status: // value for 'status'
- *      type: // value for 'type'
  *   },
  * });
  */
@@ -2932,29 +1272,20 @@ export type GetDeliverablesSuspenseQueryHookResult = ReturnType<typeof useGetDel
 export type GetDeliverablesQueryResult = Apollo.QueryResult<GetDeliverablesQuery, GetDeliverablesQueryVariables>;
 export const GetDeliverableByIdDocument = gql`
     query GetDeliverableById($id: UUID!) {
-  getItemById(id: $id) {
+  deliverableById(id: $id) {
     id
     title
     description
+    status
+    type
     acceptanceCriteria
-    plan
+    executionPlan
+    agentFeedback
     securityImpact
     performanceImpact
     testPlan
     deploymentPlan
-    openQuestions
-    result
-    errors
-    status
-    subtype
-    projectId
-    epicId
-    parentFeatureId
-    severity
-    rootCause
-    createdAt
-    updatedAt
-    validStatusTransitions
+    blocking
   }
 }
     `;
@@ -2994,233 +1325,16 @@ export type GetDeliverableByIdQueryHookResult = ReturnType<typeof useGetDelivera
 export type GetDeliverableByIdLazyQueryHookResult = ReturnType<typeof useGetDeliverableByIdLazyQuery>;
 export type GetDeliverableByIdSuspenseQueryHookResult = ReturnType<typeof useGetDeliverableByIdSuspenseQuery>;
 export type GetDeliverableByIdQueryResult = Apollo.QueryResult<GetDeliverableByIdQuery, GetDeliverableByIdQueryVariables>;
-export const GetEpicsDocument = gql`
-    query GetEpics($title: String) {
-  items(subtype: [EPIC], first: 50, skip: null) {
-    nodes {
-      id
-      title
-      description
-      createdAt
-      updatedAt
-    }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-      totalCount
-    }
-    totalCount
-  }
-}
-    `;
-
-/**
- * __useGetEpicsQuery__
- *
- * To run a query within a React component, call `useGetEpicsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetEpicsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetEpicsQuery({
- *   variables: {
- *      title: // value for 'title'
- *   },
- * });
- */
-export function useGetEpicsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetEpicsQuery, GetEpicsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetEpicsQuery, GetEpicsQueryVariables>(GetEpicsDocument, options);
-      }
-export function useGetEpicsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetEpicsQuery, GetEpicsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetEpicsQuery, GetEpicsQueryVariables>(GetEpicsDocument, options);
-        }
-// @ts-ignore
-export function useGetEpicsSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetEpicsQuery, GetEpicsQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetEpicsQuery, GetEpicsQueryVariables>;
-export function useGetEpicsSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetEpicsQuery, GetEpicsQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetEpicsQuery | undefined, GetEpicsQueryVariables>;
-export function useGetEpicsSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetEpicsQuery, GetEpicsQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetEpicsQuery, GetEpicsQueryVariables>(GetEpicsDocument, options);
-        }
-export type GetEpicsQueryHookResult = ReturnType<typeof useGetEpicsQuery>;
-export type GetEpicsLazyQueryHookResult = ReturnType<typeof useGetEpicsLazyQuery>;
-export type GetEpicsSuspenseQueryHookResult = ReturnType<typeof useGetEpicsSuspenseQuery>;
-export type GetEpicsQueryResult = Apollo.QueryResult<GetEpicsQuery, GetEpicsQueryVariables>;
-export const GetEpicByIdDocument = gql`
-    query GetEpicById($id: UUID!) {
-  getItemById(id: $id) {
-    id
-    title
-    description
-    createdAt
-    updatedAt
-  }
-}
-    `;
-
-/**
- * __useGetEpicByIdQuery__
- *
- * To run a query within a React component, call `useGetEpicByIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetEpicByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetEpicByIdQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetEpicByIdQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetEpicByIdQuery, GetEpicByIdQueryVariables> & ({ variables: GetEpicByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetEpicByIdQuery, GetEpicByIdQueryVariables>(GetEpicByIdDocument, options);
-      }
-export function useGetEpicByIdLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetEpicByIdQuery, GetEpicByIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetEpicByIdQuery, GetEpicByIdQueryVariables>(GetEpicByIdDocument, options);
-        }
-// @ts-ignore
-export function useGetEpicByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetEpicByIdQuery, GetEpicByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetEpicByIdQuery, GetEpicByIdQueryVariables>;
-export function useGetEpicByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetEpicByIdQuery, GetEpicByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetEpicByIdQuery | undefined, GetEpicByIdQueryVariables>;
-export function useGetEpicByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetEpicByIdQuery, GetEpicByIdQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetEpicByIdQuery, GetEpicByIdQueryVariables>(GetEpicByIdDocument, options);
-        }
-export type GetEpicByIdQueryHookResult = ReturnType<typeof useGetEpicByIdQuery>;
-export type GetEpicByIdLazyQueryHookResult = ReturnType<typeof useGetEpicByIdLazyQuery>;
-export type GetEpicByIdSuspenseQueryHookResult = ReturnType<typeof useGetEpicByIdSuspenseQuery>;
-export type GetEpicByIdQueryResult = Apollo.QueryResult<GetEpicByIdQuery, GetEpicByIdQueryVariables>;
-export const GetFeatureByIdDocument = gql`
-    query GetFeatureById($id: UUID!) {
-  featureById(id: $id) {
-    id
-    title
-    status
-    description
-    acceptanceCriteria
-    plan
-    securityImpact
-    performanceImpact
-    testPlan
-    deploymentPlan
-    openQuestions
-    result
-    errors
-    createdAt
-    updatedAt
-    validStatusTransitions
-    tasks {
-      id
-      title
-      status
-    }
-  }
-}
-    `;
-
-/**
- * __useGetFeatureByIdQuery__
- *
- * To run a query within a React component, call `useGetFeatureByIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFeatureByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFeatureByIdQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetFeatureByIdQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetFeatureByIdQuery, GetFeatureByIdQueryVariables> & ({ variables: GetFeatureByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetFeatureByIdQuery, GetFeatureByIdQueryVariables>(GetFeatureByIdDocument, options);
-      }
-export function useGetFeatureByIdLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetFeatureByIdQuery, GetFeatureByIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetFeatureByIdQuery, GetFeatureByIdQueryVariables>(GetFeatureByIdDocument, options);
-        }
-// @ts-ignore
-export function useGetFeatureByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetFeatureByIdQuery, GetFeatureByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetFeatureByIdQuery, GetFeatureByIdQueryVariables>;
-export function useGetFeatureByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetFeatureByIdQuery, GetFeatureByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetFeatureByIdQuery | undefined, GetFeatureByIdQueryVariables>;
-export function useGetFeatureByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetFeatureByIdQuery, GetFeatureByIdQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetFeatureByIdQuery, GetFeatureByIdQueryVariables>(GetFeatureByIdDocument, options);
-        }
-export type GetFeatureByIdQueryHookResult = ReturnType<typeof useGetFeatureByIdQuery>;
-export type GetFeatureByIdLazyQueryHookResult = ReturnType<typeof useGetFeatureByIdLazyQuery>;
-export type GetFeatureByIdSuspenseQueryHookResult = ReturnType<typeof useGetFeatureByIdSuspenseQuery>;
-export type GetFeatureByIdQueryResult = Apollo.QueryResult<GetFeatureByIdQuery, GetFeatureByIdQueryVariables>;
-export const GetFeaturesDocument = gql`
-    query GetFeatures($projectId: UUID, $status: [FeatureStatus!]) {
-  features(projectId: $projectId, status: $status) {
-    nodes {
-      id
-      title
-      status
-      updatedAt
-      tasks {
-        id
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetFeaturesQuery__
- *
- * To run a query within a React component, call `useGetFeaturesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFeaturesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFeaturesQuery({
- *   variables: {
- *      projectId: // value for 'projectId'
- *      status: // value for 'status'
- *   },
- * });
- */
-export function useGetFeaturesQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetFeaturesQuery, GetFeaturesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetFeaturesQuery, GetFeaturesQueryVariables>(GetFeaturesDocument, options);
-      }
-export function useGetFeaturesLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetFeaturesQuery, GetFeaturesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetFeaturesQuery, GetFeaturesQueryVariables>(GetFeaturesDocument, options);
-        }
-// @ts-ignore
-export function useGetFeaturesSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetFeaturesQuery, GetFeaturesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetFeaturesQuery, GetFeaturesQueryVariables>;
-export function useGetFeaturesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetFeaturesQuery, GetFeaturesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetFeaturesQuery | undefined, GetFeaturesQueryVariables>;
-export function useGetFeaturesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetFeaturesQuery, GetFeaturesQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetFeaturesQuery, GetFeaturesQueryVariables>(GetFeaturesDocument, options);
-        }
-export type GetFeaturesQueryHookResult = ReturnType<typeof useGetFeaturesQuery>;
-export type GetFeaturesLazyQueryHookResult = ReturnType<typeof useGetFeaturesLazyQuery>;
-export type GetFeaturesSuspenseQueryHookResult = ReturnType<typeof useGetFeaturesSuspenseQuery>;
-export type GetFeaturesQueryResult = Apollo.QueryResult<GetFeaturesQuery, GetFeaturesQueryVariables>;
 export const ModelConfigurationsDocument = gql`
     query ModelConfigurations {
-  modelConfigurations {
+  largeLanguageModels {
     id
     url
     model
     modelAlias
+    apiKey
     maxComplexity
-    createdAt
-    updatedAt
+    maxConcurrency
   }
 }
     `;
@@ -3265,11 +1379,7 @@ export const GetProjectDocument = gql`
     id
     name
     description
-    architecture
-    memory
-    githubUrl
-    createdAt
-    updatedAt
+    repository
   }
 }
     `;
@@ -3316,8 +1426,7 @@ export const GetProjectsDocument = gql`
       id
       name
       description
-      githubUrl
-      updatedAt
+      repository
     }
   }
 }
@@ -3357,114 +1466,3 @@ export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
 export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLazyQuery>;
 export type GetProjectsSuspenseQueryHookResult = ReturnType<typeof useGetProjectsSuspenseQuery>;
 export type GetProjectsQueryResult = Apollo.QueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
-export const GetTaskByIdDocument = gql`
-    query GetTaskById($id: UUID!) {
-  taskById(id: $id) {
-    id
-    title
-    deliverable
-    acceptanceCriteria
-    risks
-    requiredFollowUps
-    complexityRating
-    result
-    status
-    itemId
-    createdAt
-    updatedAt
-  }
-}
-    `;
-
-/**
- * __useGetTaskByIdQuery__
- *
- * To run a query within a React component, call `useGetTaskByIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetTaskByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetTaskByIdQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetTaskByIdQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetTaskByIdQuery, GetTaskByIdQueryVariables> & ({ variables: GetTaskByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetTaskByIdQuery, GetTaskByIdQueryVariables>(GetTaskByIdDocument, options);
-      }
-export function useGetTaskByIdLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetTaskByIdQuery, GetTaskByIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetTaskByIdQuery, GetTaskByIdQueryVariables>(GetTaskByIdDocument, options);
-        }
-// @ts-ignore
-export function useGetTaskByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetTaskByIdQuery, GetTaskByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetTaskByIdQuery, GetTaskByIdQueryVariables>;
-export function useGetTaskByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetTaskByIdQuery, GetTaskByIdQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetTaskByIdQuery | undefined, GetTaskByIdQueryVariables>;
-export function useGetTaskByIdSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetTaskByIdQuery, GetTaskByIdQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetTaskByIdQuery, GetTaskByIdQueryVariables>(GetTaskByIdDocument, options);
-        }
-export type GetTaskByIdQueryHookResult = ReturnType<typeof useGetTaskByIdQuery>;
-export type GetTaskByIdLazyQueryHookResult = ReturnType<typeof useGetTaskByIdLazyQuery>;
-export type GetTaskByIdSuspenseQueryHookResult = ReturnType<typeof useGetTaskByIdSuspenseQuery>;
-export type GetTaskByIdQueryResult = Apollo.QueryResult<GetTaskByIdQuery, GetTaskByIdQueryVariables>;
-export const GetTasksDocument = gql`
-    query GetTasks($itemId: UUID, $status: [TaskStatus!]) {
-  tasks(itemId: $itemId, status: $status) {
-    nodes {
-      id
-      title
-      deliverable
-      acceptanceCriteria
-      risks
-      requiredFollowUps
-      complexityRating
-      result
-      status
-      itemId
-      createdAt
-      updatedAt
-    }
-  }
-}
-    `;
-
-/**
- * __useGetTasksQuery__
- *
- * To run a query within a React component, call `useGetTasksQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetTasksQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetTasksQuery({
- *   variables: {
- *      itemId: // value for 'itemId'
- *      status: // value for 'status'
- *   },
- * });
- */
-export function useGetTasksQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetTasksQuery, GetTasksQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetTasksQuery, GetTasksQueryVariables>(GetTasksDocument, options);
-      }
-export function useGetTasksLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetTasksQuery, GetTasksQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetTasksQuery, GetTasksQueryVariables>(GetTasksDocument, options);
-        }
-// @ts-ignore
-export function useGetTasksSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetTasksQuery, GetTasksQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetTasksQuery, GetTasksQueryVariables>;
-export function useGetTasksSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetTasksQuery, GetTasksQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetTasksQuery | undefined, GetTasksQueryVariables>;
-export function useGetTasksSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetTasksQuery, GetTasksQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetTasksQuery, GetTasksQueryVariables>(GetTasksDocument, options);
-        }
-export type GetTasksQueryHookResult = ReturnType<typeof useGetTasksQuery>;
-export type GetTasksLazyQueryHookResult = ReturnType<typeof useGetTasksLazyQuery>;
-export type GetTasksSuspenseQueryHookResult = ReturnType<typeof useGetTasksSuspenseQuery>;
-export type GetTasksQueryResult = Apollo.QueryResult<GetTasksQuery, GetTasksQueryVariables>;

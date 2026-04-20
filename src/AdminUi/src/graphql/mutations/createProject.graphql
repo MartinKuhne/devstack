@@ -4,11 +4,7 @@ mutation CreateProject($input: CreateProjectInput!) {
             id
             name
             description
-            architecture
-            memory
-            githubUrl
-            createdAt
-            updatedAt
+            repository
         }
         errors
     }

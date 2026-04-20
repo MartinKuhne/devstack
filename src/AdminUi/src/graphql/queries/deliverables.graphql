@@ -6,13 +6,13 @@ query GetDeliverables {
         status
         type
         acceptanceCriteria
-        plan
+        executionPlan
+        agentFeedback
         securityImpact
         performanceImpact
         testPlan
         deploymentPlan
-        openQuestions
-        result
+        blocking
     }
 }
 
@@ -24,12 +24,12 @@ query GetDeliverableById($id: UUID!) {
         status
         type
         acceptanceCriteria
-        plan
+        executionPlan
+        agentFeedback
         securityImpact
         performanceImpact
         testPlan
         deploymentPlan
-        openQuestions
-        result
+        blocking
     }
 }
