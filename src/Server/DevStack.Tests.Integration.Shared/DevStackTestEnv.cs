@@ -60,6 +60,7 @@ public sealed class DevStackTestEnv : IDisposable
             .WithWaitStrategy(Wait.ForUnixContainer()
                 .UntilHttpRequestIsSucceeded(
                     f => f.ForPort((ushort)builder.AppPort).ForPath(builder.HealthCheckPath)))
+            .WithOutputConsumer(Consume.DoNotConsumeStdoutAndStderr())
             .Build();
 
         _appContainer.StartAsync().GetAwaiter().GetResult();
