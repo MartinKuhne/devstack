@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DevStack.Client\DevStack.Client.csproj" />
     <ProjectReference Include="..\DevStack.Domain\DevStack.Domain.csproj" />
+    <ProjectReference Include="..\DevStack.Tests.Integration.Shared\DevStack.Tests.Integration.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

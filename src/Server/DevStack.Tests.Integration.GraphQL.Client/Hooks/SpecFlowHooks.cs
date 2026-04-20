@@ -7,13 +7,11 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DevStack.Client;
-using DotNet.Testcontainers.Builders;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Infrastructure;
-using Testcontainers.PostgreSql;
+using DevStack.Tests.Integration.Shared;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.Hooks;
 
@@ -26,7 +24,7 @@ public sealed class SpecFlowHooks : IDisposable
     private HttpClient? _httpClient;
     private bool _disposed;
 
-    public static TestcontainersModule Module => TestcontainersModule.Instance;
+    private static DevStackTestEnv? _env;
 
     public SpecFlowHooks(ScenarioContext scenarioContext)
     {
@@ -36,21 +34,24 @@ public sealed class SpecFlowHooks : IDisposable
     [BeforeTestRun]
     public static void BeforeTestRun()
     {
-        // Module singleton initializes containers in constructor
-        _ = Module;
+        _env = DevStackTestEnvFactory.CreateApi();
     }
 
     [AfterTestRun]
     public static void AfterTestRun()
     {
-        TestcontainersModule.DisposeInstance();
+        _env?.Dispose();
     }
 
     [BeforeScenario]
     public void BeforeScenario()
     {
-        var graphQlUrl = Module.GraphQlUrl
-            ?? throw new InvalidOperationException("GraphQL URL not configured. TestcontainersModule initialization failed.");
+        if (_env is null)
+        {
+            throw new InvalidOperationException("DevStackTestEnv not initialized. Check BeforeTestRun.");
+        }
+
+        var graphQlUrl = $"{_env.AppUrl}/graphql";
 
         var services = new ServiceCollection();
         services

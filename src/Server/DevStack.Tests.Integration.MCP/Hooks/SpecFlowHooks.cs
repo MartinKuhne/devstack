@@ -1,14 +1,12 @@
 using TechTalk.SpecFlow;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using DevStack.Tests.Integration.MCP.Client;
-using Testcontainers.PostgreSql;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
 using Npgsql;
 using DevStack.Persistence;
-using Microsoft.EntityFrameworkCore;
+using DevStack.Tests.Integration.Shared;
 
 namespace DevStack.Tests.Integration.MCP.Hooks;
 
@@ -18,12 +16,8 @@ public sealed class SpecFlowHooks
     private readonly ScenarioContext _scenarioContext;
     private IMcpJsonRpcClient? _mcpClient;
     private HttpClient? _httpClient;
-    private static PostgreSqlContainer? _postgresContainer;
-    private static IContainer? _mcpContainer;
-    private static readonly object _lock = new();
-    private static int _containerRefCount = 0;
+    private static DevStackTestEnv? _env;
     private static Guid _seededProjectId = Guid.Empty;
-    private static bool _initialized;
 
     public SpecFlowHooks(ScenarioContext scenarioContext)
     {
@@ -33,73 +27,14 @@ public sealed class SpecFlowHooks
     [BeforeTestRun]
     public static async Task BeforeTestRunAsync()
     {
-        lock (_lock)
-        {
-            if (_initialized)
-            {
-                _containerRefCount++;
-                return;
-            }
-
-            _initialized = true;
-            _containerRefCount = 1;
-        }
-
-        await InitializePostgresContainerAsync();
-        await InitializeMcpContainerAsync();
-    }
-
-    private static async Task InitializePostgresContainerAsync()
-    {
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:17-alpine")
-            .WithDatabase("devstack")
-            .WithUsername("devstack")
-            .WithPassword("devstack_password_123")
+        _env = DevStackTestEnvFactory.CreateBuilder()
+            .WithMode(DevStackTestEnvMode.Mcp)
+            .WithMcpImageName("devstack-mcp:test")
+            .WithEnvironmentName("Development")
+            .WithSecretKey("test-secret-key-for-mcp-integration-tests")
             .Build();
 
-        await _postgresContainer.StartAsync();
-
-        var connectionString = _postgresContainer.GetConnectionString();
-        await SeedDatabaseAsync(connectionString);
-    }
-
-    private static async Task InitializeMcpContainerAsync()
-    {
-        var testProjectDir = AppContext.BaseDirectory;
-        for (var i = 0; i < 10 && testProjectDir.Contains("DevStack.Tests.Integration.MCP"); i++)
-        {
-            testProjectDir = Path.GetDirectoryName(testProjectDir) ?? Directory.GetParent(testProjectDir)?.FullName ?? "";
-        }
-
-        var mcpDockerfilePath = Path.Combine(testProjectDir, "DevStack.Mcp", "Dockerfile");
-        var dockerBuildContext = testProjectDir;
-
-        if (!File.Exists(mcpDockerfilePath))
-        {
-            throw new FileNotFoundException(
-                $"MCP Dockerfile not found at {mcpDockerfilePath}. Ensure the project structure is correct.");
-        }
-
-        var mcpImage = new ImageFromDockerfileBuilder()
-            .WithName("devstack-mcp:test")
-            .WithContextDirectory(dockerBuildContext)
-            .WithDockerfile("DevStack.Mcp/Dockerfile")
-            .Build();
-
-        var mcpContainer = new ContainerBuilder()
-            .WithImage(mcpImage)
-            .WithPortBinding(8080)
-            .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
-            .WithEnvironment("ConnectionStrings__DefaultConnection", _postgresContainer!.GetConnectionString())
-            .WithEnvironment("DEVSTACK_SECRET_KEY", "test-secret-key-for-mcp-integration-tests")
-            .WithWaitStrategy(Wait.ForUnixContainer()
-                .UntilHttpRequestIsSucceeded(
-                    f => f.ForPort(8080).ForPath("/mcp")))
-            .Build();
-
-        await mcpContainer.StartAsync();
-        _mcpContainer = mcpContainer;
+        await SeedDatabaseAsync(_env.PostgresConnectionString);
     }
 
     private static async Task SeedDatabaseAsync(string connectionString)
@@ -141,51 +76,26 @@ public sealed class SpecFlowHooks
     }
 
     [AfterTestRun]
-    public static async Task AfterTestRunAsync()
+    public static void AfterTestRunAsync()
     {
-        lock (_lock)
-        {
-            _containerRefCount--;
-            if (_containerRefCount > 0)
-            {
-                return;
-            }
-        }
-
-        if (_mcpContainer is not null)
-        {
-            await _mcpContainer.DisposeAsync();
-            _mcpContainer = null;
-        }
-
-        if (_postgresContainer is not null)
-        {
-            await _postgresContainer.DisposeAsync();
-            _postgresContainer = null;
-        }
+        _env?.Dispose();
     }
 
     [BeforeScenario]
     public void BeforeScenario()
     {
-        if (_postgresContainer == null)
+        if (_env is null)
         {
-            throw new InvalidOperationException("PostgreSQL container not initialized. Check BeforeTestRun.");
+            throw new InvalidOperationException("DevStackTestEnv not initialized. Check BeforeTestRun.");
         }
 
-        var connectionString = _postgresContainer.GetConnectionString();
-
-        ushort? mcpPort = null;
-        if (_mcpContainer is not null)
-        {
-            mcpPort = _mcpContainer.GetMappedPublicPort(8080);
-        }
-
-        var port = mcpPort ?? 8887;
+        var port = _env.AppPort;
+        var connectionString = _env.PostgresConnectionString;
+        var appUrl = _env.AppUrl;
 
         var httpClient = new HttpClient
         {
-            BaseAddress = new Uri($"http://localhost:{port}")
+            BaseAddress = new Uri(appUrl)
         };
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -194,7 +104,7 @@ public sealed class SpecFlowHooks
         var services = new ServiceCollection();
         services.AddSingleton(httpClient);
         services.AddSingleton<IMcpJsonRpcClient>(sp =>
-            new McpJsonRpcClient(httpClient, $"http://localhost:{port}/mcp"));
+            new McpJsonRpcClient(httpClient, $"{appUrl}/mcp"));
 
         var provider = services.BuildServiceProvider();
         var mcpClient = provider.GetRequiredService<IMcpJsonRpcClient>();
