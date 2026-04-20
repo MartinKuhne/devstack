@@ -15,7 +15,6 @@ public sealed class TestcontainersModule : IDisposable
     private readonly PostgreSqlContainer _postgresContainer;
     private readonly IContainer _apiContainer;
     private bool _disposed;
-    private bool _started;
 
     private TestcontainersModule()
     {
@@ -60,7 +59,6 @@ public sealed class TestcontainersModule : IDisposable
         int graphqlPort = _apiContainer.GetMappedPublicPort(8080);
         GraphQlUrl = $"http://localhost:{graphqlPort}/graphql";
         PostgreSQLConnectionStringForHost = _postgresContainer.GetConnectionString();
-        _started = true;
     }
 
     public string PostgreSQLConnectionStringForHost { get; }
@@ -68,6 +66,14 @@ public sealed class TestcontainersModule : IDisposable
     public string SecretKey { get; }
 
     public static TestcontainersModule Instance => _lazyInstance.Value;
+
+    public static void DisposeInstance()
+    {
+        if (_lazyInstance.IsValueCreated)
+        {
+            _lazyInstance.Value.Dispose();
+        }
+    }
 
     public void Dispose()
     {
@@ -92,10 +98,7 @@ public sealed class TestcontainersModule : IDisposable
 
         try
         {
-            if (_started)
-            {
-                _network.DeleteAsync().GetAwaiter().GetResult();
-            }
+            _network.DeleteAsync().GetAwaiter().GetResult();
         }
         catch
         {
@@ -148,7 +151,7 @@ public sealed class TestcontainersModule : IDisposable
         if (process.ExitCode != 0)
         {
             throw new InvalidOperationException(
-                $"Docker build failed with exit code {process.ExitCode}.\\nSTDOUT: {stdout}\\nSTDERR: {stderr}");
+                $"Docker build failed with exit code {process.ExitCode}.\nSTDOUT: {stdout}\nSTDERR: {stderr}");
         }
     }
 

@@ -18,18 +18,32 @@ using Testcontainers.PostgreSql;
 namespace DevStack.Tests.Integration.GraphQL.Client.Hooks;
 
 [Binding]
-public sealed class SpecFlowHooks
+public sealed class SpecFlowHooks : IDisposable
 {
     private readonly ScenarioContext _scenarioContext;
     private IDevStackClient? _client;
     private IServiceProvider? _serviceProvider;
     private HttpClient? _httpClient;
+    private bool _disposed;
 
     public static TestcontainersModule Module => TestcontainersModule.Instance;
 
     public SpecFlowHooks(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
+    }
+
+    [BeforeTestRun]
+    public static void BeforeTestRun()
+    {
+        // Module singleton initializes containers in constructor
+        _ = Module;
+    }
+
+    [AfterTestRun]
+    public static void AfterTestRun()
+    {
+        TestcontainersModule.DisposeInstance();
     }
 
     [BeforeScenario]
@@ -50,14 +64,12 @@ public sealed class SpecFlowHooks
         _scenarioContext["GraphQLClient"] = _client;
         _scenarioContext["GraphQLUrl"] = graphQlUrl;
         _scenarioContext["HttpClient"] = _httpClient;
-
-        CleanupTestDataAsync().Wait();
     }
 
     [AfterScenario]
     public void AfterScenario()
     {
-        CleanupTestDataAsync().Wait();
+        CleanupTestDataAsync().GetAwaiter().GetResult();
 
         if (_httpClient is IDisposable httpDisposable)
         {
@@ -67,6 +79,10 @@ public sealed class SpecFlowHooks
         {
             disposable.Dispose();
         }
+
+        _httpClient = null;
+        _serviceProvider = null;
+        _client = null;
     }
 
     private async Task CleanupTestDataAsync()
@@ -113,5 +129,14 @@ public sealed class SpecFlowHooks
         return context.TryGetValue<HttpClient>("HttpClient", out var httpClient)
             ? httpClient
             : throw new InvalidOperationException("HttpClient not initialized. Ensure BeforeScenario hook has run.");
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        _httpClient?.Dispose();
+        (_serviceProvider as IDisposable)?.Dispose();
     }
 }

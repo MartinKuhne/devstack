@@ -23,6 +23,7 @@ public sealed class SpecFlowHooks
     private static readonly object _lock = new();
     private static int _containerRefCount = 0;
     private static Guid _seededProjectId = Guid.Empty;
+    private static bool _initialized;
 
     public SpecFlowHooks(ScenarioContext scenarioContext)
     {
@@ -30,23 +31,25 @@ public sealed class SpecFlowHooks
     }
 
     [BeforeTestRun]
-    public static void BeforeTestRun()
+    public static async Task BeforeTestRunAsync()
     {
         lock (_lock)
         {
-            if (_containerRefCount > 0)
+            if (_initialized)
             {
                 _containerRefCount++;
                 return;
             }
 
+            _initialized = true;
             _containerRefCount = 1;
-            InitializePostgresContainer();
-            InitializeMcpContainer();
         }
+
+        await InitializePostgresContainerAsync();
+        await InitializeMcpContainerAsync();
     }
 
-    private static void InitializePostgresContainer()
+    private static async Task InitializePostgresContainerAsync()
     {
         _postgresContainer = new PostgreSqlBuilder()
             .WithImage("postgres:17-alpine")
@@ -55,13 +58,13 @@ public sealed class SpecFlowHooks
             .WithPassword("devstack_password_123")
             .Build();
 
-        _postgresContainer.StartAsync().Wait(TimeSpan.FromSeconds(60));
+        await _postgresContainer.StartAsync();
 
         var connectionString = _postgresContainer.GetConnectionString();
-        SeedDatabase(connectionString);
+        await SeedDatabaseAsync(connectionString);
     }
 
-    private static void InitializeMcpContainer()
+    private static async Task InitializeMcpContainerAsync()
     {
         var testProjectDir = AppContext.BaseDirectory;
         for (var i = 0; i < 10 && testProjectDir.Contains("DevStack.Tests.Integration.MCP"); i++)
@@ -90,30 +93,33 @@ public sealed class SpecFlowHooks
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
             .WithEnvironment("ConnectionStrings__DefaultConnection", _postgresContainer!.GetConnectionString())
             .WithEnvironment("DEVSTACK_SECRET_KEY", "test-secret-key-for-mcp-integration-tests")
+            .WithWaitStrategy(Wait.ForUnixContainer()
+                .UntilHttpRequestIsSucceeded(
+                    f => f.ForPort(8080).ForPath("/mcp")))
             .Build();
 
-        mcpContainer.StartAsync().Wait(TimeSpan.FromSeconds(120));
+        await mcpContainer.StartAsync();
         _mcpContainer = mcpContainer;
     }
 
-    private static void SeedDatabase(string connectionString)
+    private static async Task SeedDatabaseAsync(string connectionString)
     {
         var options = new DbContextOptionsBuilder<DevStackDbContext>()
             .UseNpgsql(connectionString)
             .Options;
 
         using var context = new DevStackDbContext(options);
-        context.Database.Migrate();
+        await context.Database.MigrateAsync();
 
         using var connection = new NpgsqlConnection(connectionString);
-        connection.Open();
+        await connection.OpenAsync();
 
         using var checkCmd = new NpgsqlCommand("SELECT COUNT(*) FROM \"Projects\"", connection);
-        var count = (long)checkCmd.ExecuteScalar()!;
+        var count = (long)(await checkCmd.ExecuteScalarAsync())!;
         if (count > 0)
         {
             using var getCmd = new NpgsqlCommand("SELECT \"Id\" FROM \"Projects\" LIMIT 1", connection);
-            _seededProjectId = Guid.Parse(getCmd.ExecuteScalar()!.ToString()!);
+            _seededProjectId = Guid.Parse((await getCmd.ExecuteScalarAsync())!.ToString()!);
             return;
         }
 
@@ -125,7 +131,7 @@ public sealed class SpecFlowHooks
         seedCmd.Parameters.AddWithValue("name", "[TestData] MCP Test Project");
         seedCmd.Parameters.AddWithValue("desc", "A test project for MCP integration tests");
         seedCmd.Parameters.AddWithValue("repo", "https://github.com/test/mcp-project");
-        seedCmd.ExecuteNonQuery();
+        await seedCmd.ExecuteNonQueryAsync();
         _seededProjectId = projectId;
     }
 
@@ -135,7 +141,7 @@ public sealed class SpecFlowHooks
     }
 
     [AfterTestRun]
-    public static void AfterTestRun()
+    public static async Task AfterTestRunAsync()
     {
         lock (_lock)
         {
@@ -144,20 +150,18 @@ public sealed class SpecFlowHooks
             {
                 return;
             }
+        }
 
-            if (_mcpContainer != null)
-            {
-                _mcpContainer.StopAsync().Wait(TimeSpan.FromSeconds(30));
-                _mcpContainer.DisposeAsync().GetAwaiter().GetResult();
-                _mcpContainer = null;
-            }
+        if (_mcpContainer is not null)
+        {
+            await _mcpContainer.DisposeAsync();
+            _mcpContainer = null;
+        }
 
-            if (_postgresContainer != null)
-            {
-                _postgresContainer.StopAsync().Wait(TimeSpan.FromSeconds(30));
-                _postgresContainer.DisposeAsync().GetAwaiter().GetResult();
-                _postgresContainer = null;
-            }
+        if (_postgresContainer is not null)
+        {
+            await _postgresContainer.DisposeAsync();
+            _postgresContainer = null;
         }
     }
 
