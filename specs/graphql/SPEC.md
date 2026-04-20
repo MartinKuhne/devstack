@@ -27,9 +27,9 @@ Create a data model and API to manage an AI driven development process
 # Graphql server
 
 - A graphql server on .net 10, hot chocolate, postgres, containerized
-- Integration tests test CRUD operations for all types in the data model
-  -   - The integration tests MUST run and MUST PASS do not make excuses about pre existing failures
-  -   
+- Optional querying, sorting, filtering and paging
+- Integration tests create queries and mutations to CRUD operations for all types in the data model
+
 ## Data model
 
 I can create, read, update and delete the entities in the [entity relationship diagram](data-model.mmd)

@@ -6,8 +6,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-ARG VITE_GRAPHQL_API_URL=http://localhost:8087/graphql
-ENV VITE_GRAPHQL_API_URL=$VITE_GRAPHQL_API_URL
+ARG GRAPHQL_API_URL=http://localhost:8087/graphql
 RUN npm run build
 
 # Production stage
