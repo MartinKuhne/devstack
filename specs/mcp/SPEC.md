@@ -36,7 +36,7 @@ Enable an AI coding agent and coding tool to access the devstack data
 - update_deliverable: Update Deliverable
 - update_deliverable_state: Change Deliverable state
 - create_task: Create AgentTask
-- get_task: Create AgentTask
+- get_task: Read AgentTask
 - update_task: Update AgentTask
 - update_task_state: Change AgentTask state
 
