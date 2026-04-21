@@ -45,7 +45,7 @@ export function CreateProjectDialog({ open, onOpenChange, onSuccess }: CreatePro
         register,
         handleSubmit,
         reset,
-        formState: { errors },
+        formState: { errors, isValid },
     } = useForm<ProjectFormData>({
         resolver: zodResolver(projectSchema),
     });
@@ -154,7 +154,7 @@ export function CreateProjectDialog({ open, onOpenChange, onSuccess }: CreatePro
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={!isValid || loading}>
                             {loading ? 'Creating...' : 'Create Project'}
                         </Button>
                     </DialogFooter>

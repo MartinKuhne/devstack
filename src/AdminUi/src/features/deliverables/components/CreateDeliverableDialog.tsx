@@ -60,7 +60,7 @@ export function CreateDeliverableDialog({
         handleSubmit,
         reset,
         setValue,
-        formState: { errors },
+        formState: { errors, isValid },
     } = useForm<DeliverableFormData>({
         resolver: zodResolver(deliverableSchema),
         defaultValues: {
@@ -229,7 +229,7 @@ export function CreateDeliverableDialog({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={!isValid || loading}>
                             {loading ? 'Creating...' : 'Create Deliverable'}
                         </Button>
                     </DialogFooter>
