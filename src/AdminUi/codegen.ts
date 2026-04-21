@@ -12,7 +12,7 @@ const config: CodegenConfig = {
                 'typescript-react-apollo',
             ],
             config: {
-                avoidOptionals: true,
+                avoidOptionals: false,
                 namingConvention: 'keep',
                 enumsAsConst: true,
                 withHooks: true,
