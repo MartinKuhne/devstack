@@ -15,14 +15,12 @@ const deliverableSchema = z.object({
     title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
     description: z.string().optional(),
     acceptanceCriteria: z.string().optional(),
-    plan: z.string().optional(),
     securityImpact: z.string().optional(),
     performanceImpact: z.string().optional(),
     testPlan: z.string().optional(),
     deploymentPlan: z.string().optional(),
-    openQuestions: z.string().optional(),
     type: z.enum(['FEATURE', 'DEFECT', 'MAINTENANCE']),
-    initialStatus: z.enum(['DRAFT', 'PLANNING', 'READY', 'IN_PROGRESS', 'NEEDS_REVIEW', 'DONE', 'FAILED', 'REJECTED']).optional(),
+    initialStatus: z.enum(['DRAFT', 'PLANNING', 'READY']).optional(),
 });
 
 type DeliverableFormData = z.infer<typeof deliverableSchema>;
@@ -59,18 +57,18 @@ export function CreateDeliverableDialog({ open, onOpenChange, onSuccess }: Creat
                 variables: {
                     input: {
                         projectId: '',
-                        epicId: null,
                         type: data.type,
                         title: data.title,
                         description: data.description ?? null,
                         acceptanceCriteria: data.acceptanceCriteria ?? null,
-                        plan: data.plan ?? null,
                         securityImpact: data.securityImpact ?? null,
                         performanceImpact: data.performanceImpact ?? null,
                         testPlan: data.testPlan ?? null,
                         deploymentPlan: data.deploymentPlan ?? null,
-                        openQuestions: data.openQuestions ?? null,
-                        initialStatus: data.initialStatus,
+                        initialStatus: data.initialStatus ?? null,
+                        agentFeedback: null,
+                        blocking: null,
+                        executionPlan: null,
                     },
                 },
             });

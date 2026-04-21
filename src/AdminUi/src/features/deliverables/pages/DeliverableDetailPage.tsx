@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useDeliverable } from '../hooks/useDeliverable';
 import { EditDeliverableDialog } from '../components/EditDeliverableDialog';
 import { useState } from 'react';
-import { useTransitionDeliverableStatusMutation } from '@/generated/graphql';
+import { useTransitionDeliverableStatusMutation, type DeliverableStatus } from '@/generated/graphql';
 import {
     Select,
     SelectContent,
@@ -17,17 +17,7 @@ import {
 import { toast } from 'react-toastify';
 import { useAgentTasksByDeliverable } from '@/features/agentTasks/hooks/useAgentTasksByDeliverable';
 import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
-
-const STATUS_COLORS: Record<string, string> = {
-    DRAFT: 'bg-gray-500',
-    PLANNING: 'bg-blue-500',
-    READY: 'bg-green-500',
-    IN_PROGRESS: 'bg-yellow-500',
-    NEEDS_REVIEW: 'bg-purple-500',
-    DONE: 'bg-emerald-600',
-    FAILED: 'bg-red-500',
-    REJECTED: 'bg-gray-600',
-};
+import { DELIVERABLE_STATUS_COLORS, AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
 
 export function DeliverableDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -108,7 +98,18 @@ export function DeliverableDetailPage() {
         );
     }
 
-    const validTransitions = deliverable.validStatusTransitions?.filter(s => s !== null) || [];
+    const validTransitions: DeliverableStatus[] = [];
+    if (deliverable.status === 'DRAFT') {
+        validTransitions.push('PLANNING');
+    } else if (deliverable.status === 'PLANNING') {
+        validTransitions.push('READY');
+    } else if (deliverable.status === 'READY') {
+        validTransitions.push('IN_PROGRESS');
+    } else if (deliverable.status === 'IN_PROGRESS') {
+        validTransitions.push('NEEDS_REVIEW', 'FAILED');
+    } else if (deliverable.status === 'NEEDS_REVIEW') {
+        validTransitions.push('DONE', 'IN_PROGRESS');
+    }
 
     const handleStatusChange = async () => {
         if (!selectedStatus || !deliverable.id) return;
@@ -118,7 +119,7 @@ export function DeliverableDetailPage() {
                 variables: {
                     input: {
                         id: deliverable.id,
-                        targetStatus: selectedStatus as never,
+                        targetStatus: selectedStatus as DeliverableStatus,
                         actor: 'admin-ui',
                     },
                 },
@@ -137,27 +138,21 @@ export function DeliverableDetailPage() {
         }
     };
 
-    return (
+   return (
         <div className="space-y-6">
-            <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
-                <thead>
-                    <tr>
-                        <th className="text-left p-2 text-lg font-semibold" colSpan={3} style={{ width: '70%' }}>
-                            {deliverable.title}
-                        </th>
-                        <th className="text-center p-2 border-l">
-                            <span className="text-xs uppercase text-muted-foreground block mb-1">Type</span>
-                            <span>{deliverable.subtype}</span>
-                        </th>
-                        <th className="text-center p-2 border-l">
-                            <span className="text-xs uppercase text-muted-foreground block mb-1">Status</span>
-                            <Badge className={STATUS_COLORS[deliverable.status ?? ''] || 'bg-gray-500'}>
-                                {deliverable.status}
-                            </Badge>
-                        </th>
-                    </tr>
-                </thead>
-            </table>
+            <div className="grid grid-cols-[1fr_auto_auto] gap-4 items-center border-b pb-4">
+                <h1 className="text-2xl font-bold">{deliverable.title}</h1>
+                <div className="text-center">
+                    <span className="text-xs uppercase text-muted-foreground block mb-1">Type</span>
+                    <span>{deliverable.type}</span>
+                </div>
+                <div className="text-center">
+                    <span className="text-xs uppercase text-muted-foreground block mb-1">Status</span>
+                    <Badge className={getStatusColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_COLORS)}>
+                        {deliverable.status}
+                    </Badge>
+                </div>
+            </div>
 
             <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => navigate('/deliverables')}>
@@ -184,8 +179,8 @@ export function DeliverableDetailPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {validTransitions.map((status) => (
-                                        <SelectItem key={status ?? ''} value={status ?? ''}>
-                                            {status}
+                                        <SelectItem key={status} value={status}>
+                                            {status.replace('_', ' ')}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -225,13 +220,13 @@ export function DeliverableDetailPage() {
                         </Card>
                     )}
 
-                    {deliverable.plan && (
+                    {deliverable.executionPlan && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Execution Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.plan}</p>
+                                <p className="text-sm whitespace-pre-wrap">{deliverable.executionPlan}</p>
                             </CardContent>
                         </Card>
                     )}
@@ -280,24 +275,24 @@ export function DeliverableDetailPage() {
                         </Card>
                     )}
 
-                    {deliverable.result && (
+                    {deliverable.agentFeedback && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Agent Feedback</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.result}</p>
+                                <p className="text-sm whitespace-pre-wrap">{deliverable.agentFeedback}</p>
                             </CardContent>
                         </Card>
                     )}
 
-                    {deliverable.openQuestions && (
+                    {deliverable.blocking && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Blocking</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.openQuestions}</p>
+                                <p className="text-sm whitespace-pre-wrap">{deliverable.blocking}</p>
                             </CardContent>
                         </Card>
                     )}
@@ -333,10 +328,10 @@ export function DeliverableDetailPage() {
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium truncate">{task.title}</p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {task.model || '-'} · {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)} tokens
+                                                    {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)} tokens
                                                 </p>
                                             </div>
-                                            <Badge className={STATUS_COLORS[task.status ?? ''] || 'bg-gray-500'}>
+                                            <Badge className={getStatusColor(task.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
                                                 {task.status}
                                             </Badge>
                                         </div>
@@ -351,8 +346,7 @@ export function DeliverableDetailPage() {
             </div>
 
             <div className="text-sm text-muted-foreground">
-                <p>Created: {deliverable.createdAt ? new Date(deliverable.createdAt).toLocaleString() : '-'}</p>
-                <p>Updated: {deliverable.updatedAt ? new Date(deliverable.updatedAt).toLocaleString() : '-'}</p>
+                <p>Deliverable ID: {deliverable.id ?? '-'}</p>
             </div>
 
             <EditDeliverableDialog
@@ -363,20 +357,19 @@ export function DeliverableDetailPage() {
                     title: deliverable.title ?? '',
                     description: deliverable.description,
                     acceptanceCriteria: deliverable.acceptanceCriteria,
-                    executionPlan: deliverable.plan,
+                    executionPlan: deliverable.executionPlan,
                     securityImpact: deliverable.securityImpact,
                     performanceImpact: deliverable.performanceImpact,
                     testPlan: deliverable.testPlan,
                     deploymentPlan: deliverable.deploymentPlan,
-                    blocking: deliverable.openQuestions,
+                    blocking: deliverable.blocking,
                 }}
                 onSuccess={() => refetch()}
             />
             <CreateAgentTaskDialog
                 open={createAgentTaskDialogOpen}
                 onOpenChange={setCreateAgentTaskDialogOpen}
-                projectId={deliverable.projectId ?? ''}
-                itemId={id ?? ''}
+                deliverableId={id ?? ''}
                 onSuccess={() => {
                     refetchAgentTasks();
                     refetch();

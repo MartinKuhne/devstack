@@ -115,6 +115,7 @@ export function LargeLanguageModelDialog({
                             url,
                             apiKey,
                             maxComplexity: parseInt(maxComplexity, 10),
+                            maxConcurrency: 1,
                         },
                     },
                 });
@@ -132,6 +133,7 @@ export function LargeLanguageModelDialog({
                             url,
                             apiKey,
                             maxComplexity: parseInt(maxComplexity, 10),
+                            maxConcurrency: 1,
                         },
                     },
                 });

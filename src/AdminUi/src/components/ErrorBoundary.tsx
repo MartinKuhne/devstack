@@ -27,11 +27,6 @@ export class ErrorBoundary extends Component<Props, State> {
         console.error('Uncaught error:', error, errorInfo);
     }
 
-    private handleReset = () => {
-        this.setState({ hasError: false, error: null });
-        window.location.reload();
-    };
-
     public render() {
         if (this.state.hasError) {
             if (this.props.fallback) {
@@ -56,7 +51,7 @@ export class ErrorBoundary extends Component<Props, State> {
                                 Please try refreshing the page. If the problem persists, contact
                                 support.
                             </p>
-                            <Button onClick={this.handleReset} className="w-full">
+                            <Button onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }} className="w-full">
                                 Reload Page
                             </Button>
                         </CardContent>

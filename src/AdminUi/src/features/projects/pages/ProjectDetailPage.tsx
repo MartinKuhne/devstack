@@ -14,25 +14,16 @@ import { useDeliverables } from '@/features/deliverables/hooks/useDeliverables';
 import { CreateDeliverableDialog } from '@/features/deliverables/components/CreateDeliverableDialog';
 import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
 import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
-import { useDeleteProjectMutation } from '@/generated/graphql';
+import { useDeleteProjectMutation, type DeliverableStatus, type DeliverableType } from '@/generated/graphql';
 import { toast } from 'react-toastify';
-
-const STATUS_COLORS: Record<string, string> = {
-    PLANNING: 'bg-blue-500',
-    READY: 'bg-green-500',
-    IN_PROGRESS: 'bg-yellow-500',
-    NEEDS_REVIEW: 'bg-purple-500',
-    DONE: 'bg-emerald-500',
-    FAILED: 'bg-red-500',
-    REJECTED: 'bg-gray-500',
-};
+import { PROJECT_STATUS_COLORS, AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
 
 export function ProjectDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { project, loading, error, refetch } = useProject(id ?? '');
-    const { deliverables, loading: deliverablesLoading, error: deliverablesError, refetch: refetchDeliverables } = useDeliverables(id ?? '');
-    const { agentTasks, loading: agentTasksLoading, error: agentTasksError, refetch: refetchAgentTasks } = useAgentTasks(id ?? '');
+    const { deliverables, loading: deliverablesLoading, error: deliverablesError, refetch: refetchDeliverables } = useDeliverables();
+    const { agentTasks, loading: agentTasksLoading, error: agentTasksError, refetch: refetchAgentTasks } = useAgentTasks();
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [addModelDialogOpen, setAddModelDialogOpen] = useState(false);
     const [createDeliverableDialogOpen, setCreateDeliverableDialogOpen] = useState(false);
@@ -111,14 +102,14 @@ export function ProjectDetailPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">{project.name}</h2>
-                    {project.githubUrl && (
+                    {project.repository && (
                         <a
-                            href={project.githubUrl}
+                            href={project.repository}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm text-blue-600 hover:underline"
                         >
-                            {project.githubUrl}
+                            {project.repository}
                         </a>
                     )}
                 </div>
@@ -162,7 +153,7 @@ export function ProjectDetailPage() {
                                             <TableHead>Title</TableHead>
                                             <TableHead>Type</TableHead>
                                             <TableHead>Status</TableHead>
-                                            <TableHead>Updated</TableHead>
+                                            <TableHead>ID</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -183,26 +174,24 @@ export function ProjectDetailPage() {
                                             <TableHead>Title</TableHead>
                                             <TableHead>Type</TableHead>
                                             <TableHead>Status</TableHead>
-                                            <TableHead>Updated</TableHead>
+                                            <TableHead>ID</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {deliverables.map((deliverable) => (
+                                        {deliverables.map((deliverable: { id: string | null; title: string | null; status: DeliverableStatus | null; type: DeliverableType | null }) => (
                                             <TableRow
                                                 key={deliverable.id ?? ''}
                                                 className="cursor-pointer hover:bg-muted/50"
                                                 onClick={() => deliverable.id && navigate(`/deliverables/${deliverable.id}`)}
                                             >
                                                 <TableCell className="font-medium">{deliverable.title}</TableCell>
-                                                <TableCell>{deliverable.subtype}</TableCell>
+                                                <TableCell>{deliverable.type}</TableCell>
                                                 <TableCell>
-                                                    <Badge className={STATUS_COLORS[deliverable.status ?? ''] || 'bg-gray-500'}>
+                                                    <Badge className={getStatusColor(deliverable.status ?? undefined, PROJECT_STATUS_COLORS)}>
                                                         {deliverable.status}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell>
-                                                    {deliverable.updatedAt ? new Date(deliverable.updatedAt).toLocaleDateString() : '-'}
-                                                </TableCell>
+                                                <TableCell className="text-xs font-mono">{deliverable.id ?? '-'}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -233,8 +222,8 @@ export function ProjectDetailPage() {
                                         <TableRow>
                                             <TableHead>Title</TableHead>
                                             <TableHead>Status</TableHead>
-                                            <TableHead>Model</TableHead>
-                                            <TableHead>Updated</TableHead>
+                                            <TableHead>Agent</TableHead>
+                                            <TableHead>Tokens</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -254,9 +243,8 @@ export function ProjectDetailPage() {
                                         <TableRow>
                                             <TableHead>Title</TableHead>
                                             <TableHead>Status</TableHead>
-                                            <TableHead>Model</TableHead>
+                                            <TableHead>Agent</TableHead>
                                             <TableHead>Tokens</TableHead>
-                                            <TableHead>Updated</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -268,16 +256,13 @@ export function ProjectDetailPage() {
                                             >
                                                 <TableCell className="font-medium">{task.title}</TableCell>
                                                 <TableCell>
-                                                    <Badge className={STATUS_COLORS[task.status ?? ''] || 'bg-gray-500'}>
+                                                    <Badge className={getStatusColor(task.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
                                                         {task.status}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell>{task.model || '-'}</TableCell>
+                                                <TableCell>{task.agent || '-'}</TableCell>
                                                 <TableCell>
                                                     {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {task.updatedAt ? new Date(task.updatedAt).toLocaleDateString() : '-'}
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -303,9 +288,7 @@ export function ProjectDetailPage() {
                     id: project.id ?? '',
                     name: project.name ?? '',
                     description: project.description,
-                    architecture: project.architecture,
-                    memory: project.memory,
-                    githubUrl: project.githubUrl,
+                    repository: project.repository,
                 } : null}
                 onSuccess={() => refetch()}
                 onError={(error) => {
@@ -332,7 +315,7 @@ export function ProjectDetailPage() {
             <CreateAgentTaskDialog
                 open={createAgentTaskDialogOpen}
                 onOpenChange={setCreateAgentTaskDialogOpen}
-                projectId={id ?? ''}
+                deliverableId={id ?? ''}
                 onSuccess={() => {
                     refetchAgentTasks();
                 }}

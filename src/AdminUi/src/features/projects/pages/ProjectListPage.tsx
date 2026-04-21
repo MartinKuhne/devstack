@@ -40,8 +40,7 @@ export function ProjectListPage() {
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Description</TableHead>
-                                    <TableHead>GitHub URL</TableHead>
-                                    <TableHead>Last Updated</TableHead>
+                                    <TableHead>Repository</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -50,7 +49,6 @@ export function ProjectListPage() {
                                         <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -103,12 +101,11 @@ export function ProjectListPage() {
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Description</TableHead>
-                                    <TableHead>GitHub URL</TableHead>
-                                    <TableHead>Last Updated</TableHead>
+                                    <TableHead>Repository</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {projects.map((project) => (
+                                {projects.map((project: { id: string | null; name: string | null; description: string | null; repository: string | null }) => (
                                     <TableRow
                                         key={project.id ?? ''}
                                         className="cursor-pointer hover:bg-muted/50"
@@ -119,20 +116,17 @@ export function ProjectListPage() {
                                             {project.description ?? '-'}
                                         </TableCell>
                                         <TableCell>
-                                            {project.githubUrl ? (
+                                            {project.repository ? (
                                                 <a 
-                                                    href={project.githubUrl} 
+                                                    href={project.repository} 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
                                                     className="text-blue-600 hover:underline"
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
-                                                    {project.githubUrl}
+                                                    {project.repository}
                                                 </a>
                                             ) : '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : '-'}
                                         </TableCell>
                                     </TableRow>
                                 ))}

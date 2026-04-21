@@ -13,9 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 const projectSchema = z.object({
     name: z.string().min(1, 'Name is required').max(200, 'Name must be 200 characters or less'),
     description: z.string().optional(),
-    architecture: z.string().optional(),
-    memory: z.string().optional(),
-    githubUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+    repository: z.string().optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -26,6 +24,9 @@ interface CreateProjectDialogProps {
     onSuccess?: () => void;
 }
 
+/**
+ * Dialog form for creating a new project with validation.
+ */
 export function CreateProjectDialog({ open, onOpenChange, onSuccess }: CreateProjectDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
     const [createProject, { loading }] = useCreateProjectMutation();
@@ -48,9 +49,7 @@ export function CreateProjectDialog({ open, onOpenChange, onSuccess }: CreatePro
                     input: {
                         name: data.name,
                         description: data.description ?? null,
-                        architecture: data.architecture ?? null,
-                        memory: data.memory ?? null,
-                        githubUrl: data.githubUrl || null,
+                        repository: data.repository ?? null,
                     },
                 },
             });
@@ -112,34 +111,14 @@ export function CreateProjectDialog({ open, onOpenChange, onSuccess }: CreatePro
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="architecture">Architecture</Label>
-                            <Textarea
-                                id="architecture"
-                                {...register('architecture')}
-                                placeholder="Technical architecture notes"
-                                rows={3}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="memory">Memory</Label>
-                            <Textarea
-                                id="memory"
-                                {...register('memory')}
-                                placeholder="Project memory/context for AI agents"
-                                rows={3}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="githubUrl">GitHub URL</Label>
+                            <Label htmlFor="repository">Repository URL</Label>
                             <Input
-                                id="githubUrl"
-                                {...register('githubUrl')}
+                                id="repository"
+                                {...register('repository')}
                                 placeholder="https://github.com/user/repo"
                             />
-                            {errors.githubUrl && (
-                                <p className="text-sm text-destructive">{errors.githubUrl.message}</p>
+                            {errors.repository && (
+                                <p className="text-sm text-destructive">{errors.repository.message}</p>
                             )}
                         </div>
 

@@ -20,8 +20,6 @@ interface EditDeliverableDialogProps {
         testPlan?: string | null;
         deploymentPlan?: string | null;
         blocking?: string | null;
-        errors?: string | null;
-        result?: string | null;
     } | null;
     onSuccess: () => void;
 }
@@ -35,48 +33,40 @@ export function EditDeliverableDialog({
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
-    const [plan, setPlan] = useState('');
+    const [executionPlan, setExecutionPlan] = useState('');
     const [securityImpact, setSecurityImpact] = useState('');
     const [performanceImpact, setPerformanceImpact] = useState('');
     const [testPlan, setTestPlan] = useState('');
-   const [deploymentPlan, setDeploymentPlan] = useState('');
-    const [openQuestions, setOpenQuestions] = useState('');
-    const [errors, setErrors] = useState('');
-    const [result, setResult] = useState('');
+    const [deploymentPlan, setDeploymentPlan] = useState('');
+    const [blocking, setBlocking] = useState('');
     const [error, setError] = useState<string | null>(null);
 
     const [updateDeliverable, { loading }] = useUpdateDeliverableMutation();
 
-    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (deliverable) {
             setTitle(deliverable.title ?? '');
             setDescription(deliverable.description ?? '');
             setAcceptanceCriteria(deliverable.acceptanceCriteria ?? '');
-            setPlan(deliverable.executionPlan ?? '');
+            setExecutionPlan(deliverable.executionPlan ?? '');
             setSecurityImpact(deliverable.securityImpact ?? '');
             setPerformanceImpact(deliverable.performanceImpact ?? '');
             setTestPlan(deliverable.testPlan ?? '');
             setDeploymentPlan(deliverable.deploymentPlan ?? '');
-            setOpenQuestions(deliverable.blocking ?? '');
-            setErrors(deliverable.errors ?? '');
-            setResult(deliverable.result ?? '');
+            setBlocking(deliverable.blocking ?? '');
         }
     }, [deliverable]);
-    /* eslint-enable react-hooks/set-state-in-effect */
 
     const resetForm = () => {
         setTitle('');
         setDescription('');
         setAcceptanceCriteria('');
-        setPlan('');
+        setExecutionPlan('');
         setSecurityImpact('');
         setPerformanceImpact('');
         setTestPlan('');
         setDeploymentPlan('');
-        setOpenQuestions('');
-         setErrors('');
-        setResult('');
+        setBlocking('');
         setError(null);
     };
 
@@ -110,14 +100,13 @@ export function EditDeliverableDialog({
                         title,
                         description: description || null,
                         acceptanceCriteria: acceptanceCriteria || null,
-                        plan: plan || null,
+                        executionPlan: executionPlan || null,
                         securityImpact: securityImpact || null,
                         performanceImpact: performanceImpact || null,
                         testPlan: testPlan || null,
                         deploymentPlan: deploymentPlan || null,
-                        openQuestions: openQuestions || null,
-                        errors: errors || null,
-                        result: result || null,
+                        blocking: blocking || null,
+                        agentFeedback: null,
                     },
                 },
             });
@@ -182,11 +171,11 @@ export function EditDeliverableDialog({
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="plan">Execution Plan</Label>
+                            <Label htmlFor="executionPlan">Execution Plan</Label>
                             <Textarea
-                                id="plan"
-                                value={plan}
-                                onChange={(e) => setPlan(e.target.value)}
+                                id="executionPlan"
+                                value={executionPlan}
+                                onChange={(e) => setExecutionPlan(e.target.value)}
                                 rows={3}
                             />
                         </div>
@@ -227,20 +216,11 @@ export function EditDeliverableDialog({
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="openQuestions">Open Questions</Label>
+                            <Label htmlFor="blocking">Blocking</Label>
                             <Textarea
-                                id="openQuestions"
-                                value={openQuestions}
-                                onChange={(e) => setOpenQuestions(e.target.value)}
-                                rows={2}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="errors">Errors</Label>
-                            <Textarea
-                                id="errors"
-                                value={errors}
-                                onChange={(e) => setErrors(e.target.value)}
+                                id="blocking"
+                                value={blocking}
+                                onChange={(e) => setBlocking(e.target.value)}
                                 rows={2}
                             />
                         </div>

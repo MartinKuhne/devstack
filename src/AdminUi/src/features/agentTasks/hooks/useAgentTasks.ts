@@ -1,15 +1,23 @@
 import { useGetAgentTasksQuery } from '@/generated/graphql';
 import type { AgentTaskStatus } from '@/generated/graphql';
 
-export function useAgentTasks(itemId?: string, status?: AgentTaskStatus[]) {
+/**
+ * Fetches agent tasks with optional filtering by status.
+ */
+export function useAgentTasks(statusFilter?: AgentTaskStatus[]) {
     const { data, loading, error, refetch } = useGetAgentTasksQuery({
-        variables: { itemId, status: status ?? null },
+        variables: { projectId: null },
         fetchPolicy: 'cache-and-network',
-        skip: !itemId,
     });
 
+    const allTasks = data?.agentTasks ?? [];
+    
+    const filteredTasks = statusFilter && statusFilter.length > 0
+        ? allTasks.filter(task => statusFilter.includes(task.status as AgentTaskStatus))
+        : allTasks;
+
     return {
-        agentTasks: data?.agentTasks?.nodes ?? [],
+        agentTasks: filteredTasks,
         loading,
         error,
         refetch,
