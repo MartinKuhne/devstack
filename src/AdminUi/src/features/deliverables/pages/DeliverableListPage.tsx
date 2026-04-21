@@ -5,8 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CreateDeliverableDialog } from '../components/CreateDeliverableDialog';
@@ -33,7 +46,10 @@ export function DeliverableListPage() {
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
     const [deleting, setDeleting] = useState(false);
 
-    const { deliverables, loading, error, refetch } = useDeliverables(statusFilter ? [statusFilter] : undefined, typeFilter ? [typeFilter] : undefined);
+    const { deliverables, loading, error, refetch } = useDeliverables(
+        statusFilter ? [statusFilter] : undefined,
+        typeFilter ? [typeFilter] : undefined
+    );
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this deliverable?')) return;
@@ -61,49 +77,58 @@ export function DeliverableListPage() {
         }
     };
 
-    const handleStatusChange = useCallback((value: string) => {
-        const newParams = new URLSearchParams(searchParams);
-        if (value === 'all') {
-            newParams.delete('status');
-        } else {
-            newParams.set('status', value);
-        }
-        setSearchParams(newParams);
-    }, [searchParams, setSearchParams]);
+    const handleStatusChange = useCallback(
+        (value: string) => {
+            const newParams = new URLSearchParams(searchParams);
+            if (value === 'all') {
+                newParams.delete('status');
+            } else {
+                newParams.set('status', value);
+            }
+            setSearchParams(newParams);
+        },
+        [searchParams, setSearchParams]
+    );
 
-    const handleTypeChange = useCallback((value: string) => {
-        const newParams = new URLSearchParams(searchParams);
-        if (value === 'all') {
-            newParams.delete('type');
-        } else {
-            newParams.set('type', value);
-        }
-        setSearchParams(newParams);
-    }, [searchParams, setSearchParams]);
+    const handleTypeChange = useCallback(
+        (value: string) => {
+            const newParams = new URLSearchParams(searchParams);
+            if (value === 'all') {
+                newParams.delete('type');
+            } else {
+                newParams.set('type', value);
+            }
+            setSearchParams(newParams);
+        },
+        [searchParams, setSearchParams]
+    );
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setLocalSearch(e.target.value);
     }, []);
 
-    const handleSearchSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const newParams = new URLSearchParams(searchParams);
-        if (localSearch) {
-            newParams.set('search', localSearch);
-        } else {
-            newParams.delete('search');
-        }
-        setSearchParams(newParams);
-    }, [localSearch, searchParams, setSearchParams]);
+    const handleSearchSubmit = useCallback(
+        (e: React.FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
+            const newParams = new URLSearchParams(searchParams);
+            if (localSearch) {
+                newParams.set('search', localSearch);
+            } else {
+                newParams.delete('search');
+            }
+            setSearchParams(newParams);
+        },
+        [localSearch, searchParams, setSearchParams]
+    );
 
     const handleRowClick = (id: string | null | undefined) => {
         if (id) navigate(`/deliverables/${id}`);
     };
 
-    const filteredDeliverables = deliverables.filter((d: { id: string | null; title: string | null; status: DeliverableStatus | null; type: DeliverableType | null }) => {
+    const filteredDeliverables = deliverables.filter((d) => {
         if (!searchFilter) return true;
         const searchLower = searchFilter.toLowerCase();
-        return (d.title?.toLowerCase().includes(searchLower) ?? false);
+        return d.title?.toLowerCase().includes(searchLower) ?? false;
     });
 
     return (
@@ -111,7 +136,9 @@ export function DeliverableListPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Deliverables</h2>
-                    <p className="text-muted-foreground">Manage deliverables (features, defects, maintenance).</p>
+                    <p className="text-muted-foreground">
+                        Manage deliverables (features, defects, maintenance).
+                    </p>
                 </div>
                 <Button onClick={() => setCreateDialogOpen(true)}>New Deliverable</Button>
             </div>
@@ -155,7 +182,9 @@ export function DeliverableListPage() {
                             value={localSearch}
                             onChange={handleSearchChange}
                         />
-                        <Button type="submit" variant="secondary">Search</Button>
+                        <Button type="submit" variant="secondary">
+                            Search
+                        </Button>
                     </div>
                 </form>
             </div>
@@ -180,10 +209,18 @@ export function DeliverableListPage() {
                             <TableBody>
                                 {[1, 2, 3].map((item) => (
                                     <TableRow key={item}>
-                                        <TableCell><Skeleton className="h-4 w-64" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                                        <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell>
+                                            <Skeleton className="h-4 w-64" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Skeleton className="h-4 w-20" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Skeleton className="h-6 w-20" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Skeleton className="h-4 w-24" />
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -200,26 +237,40 @@ export function DeliverableListPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredDeliverables.map((deliverable: { id: string | null; title: string | null; status: DeliverableStatus | null; type: DeliverableType | null }) => (
+                                {filteredDeliverables.map((deliverable) => (
                                     <TableRow
                                         key={deliverable.id ?? ''}
                                         className="cursor-pointer hover:bg-muted/50"
                                         onClick={() => handleRowClick(deliverable.id ?? undefined)}
                                     >
-                                        <TableCell className="font-medium">{deliverable.title}</TableCell>
-                                        <TableCell>{TYPE_LABELS[deliverable.type ?? ''] ?? deliverable.type}</TableCell>
+                                        <TableCell className="font-medium">
+                                            {deliverable.title}
+                                        </TableCell>
                                         <TableCell>
-                                            <Badge className={getStatusColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_COLORS)}>
+                                            {TYPE_LABELS[deliverable.type ?? ''] ??
+                                                deliverable.type}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className={getStatusColor(
+                                                    deliverable.status ?? undefined,
+                                                    DELIVERABLE_STATUS_COLORS
+                                                )}
+                                            >
                                                 {deliverable.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-xs font-mono">{deliverable.id ?? '-'}</TableCell>
+                                        <TableCell className="text-xs font-mono">
+                                            {deliverable.id ?? '-'}
+                                        </TableCell>
                                         <TableCell onClick={(e) => e.stopPropagation()}>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 className="h-8 w-8 text-destructive hover:text-destructive"
-                                                onClick={() => deliverable.id && handleDelete(deliverable.id)}
+                                                onClick={() =>
+                                                    deliverable.id && handleDelete(deliverable.id)
+                                                }
                                                 disabled={deleting}
                                             >
                                                 <Trash2 className="h-4 w-4" />

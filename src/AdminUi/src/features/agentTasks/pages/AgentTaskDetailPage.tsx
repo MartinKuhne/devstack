@@ -7,7 +7,11 @@ import { Separator } from '@/components/ui/separator';
 import { useAgentTask } from '../hooks/useAgentTask';
 import { UpdateAgentTaskDialog } from '../components/UpdateAgentTaskDialog';
 import { useState } from 'react';
-import { useTransitionAgentTaskStatusMutation, useDeleteAgentTaskMutation, type AgentTaskStatus } from '@/generated/graphql';
+import {
+    useTransitionAgentTaskStatusMutation,
+    useDeleteAgentTaskMutation,
+    type AgentTaskStatus,
+} from '@/generated/graphql';
 import {
     Select,
     SelectContent,
@@ -31,13 +35,19 @@ export function AgentTaskDetailPage() {
     const navigate = useNavigate();
     const { agentTask, loading, error, refetch } = useAgentTask(id ?? '');
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
-    const [transitionAgentTaskStatus, { loading: transitionLoading }] = useTransitionAgentTaskStatusMutation();
+    const [transitionAgentTaskStatus, { loading: transitionLoading }] =
+        useTransitionAgentTaskStatusMutation();
     const [selectedStatus, setSelectedStatus] = useState('');
     const [deleteAgentTask, { loading: deleting }] = useDeleteAgentTaskMutation();
 
     const handleDelete = async () => {
         if (!agentTask?.id) return;
-        if (!confirm('Are you sure you want to delete this agent task? This action cannot be undone.')) return;
+        if (
+            !confirm(
+                'Are you sure you want to delete this agent task? This action cannot be undone.'
+            )
+        )
+            return;
         try {
             const result = await deleteAgentTask({
                 variables: {
@@ -128,8 +138,14 @@ export function AgentTaskDetailPage() {
                         <CardTitle className="text-destructive">Error loading agent task</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-destructive">{error?.message ?? 'Agent task not found'}</p>
-                        <Button variant="outline" className="mt-4" onClick={() => navigate('/agent-tasks')}>
+                        <p className="text-sm text-destructive">
+                            {error?.message ?? 'Agent task not found'}
+                        </p>
+                        <Button
+                            variant="outline"
+                            className="mt-4"
+                            onClick={() => navigate('/agent-tasks')}
+                        >
                             Back to Agent Tasks
                         </Button>
                     </CardContent>
@@ -147,16 +163,16 @@ export function AgentTaskDetailPage() {
                         <Badge className={STATUS_COLORS[agentTask.status ?? ''] || 'bg-gray-500'}>
                             {agentTask.status}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">Deliverable: {agentTask.deliverableId ?? '-'}</span>
+                        <span className="text-sm text-muted-foreground">
+                            Deliverable: {agentTask.deliverableId ?? '-'}
+                        </span>
                     </div>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={() => navigate('/agent-tasks')}>
                         Back to List
                     </Button>
-                    <Button onClick={() => setUpdateDialogOpen(true)}>
-                        Edit
-                    </Button>
+                    <Button onClick={() => setUpdateDialogOpen(true)}>Edit</Button>
                     <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                         Delete
                     </Button>
@@ -226,7 +242,6 @@ export function AgentTaskDetailPage() {
                     <div className="text-sm text-muted-foreground">
                         <p>Complexity Rating: {agentTask.complexityRating ?? '-'}</p>
                         <p>Deliverable ID: {agentTask.deliverableId ?? '-'}</p>
-                        
                     </div>
                 </TabsContent>
 
@@ -238,24 +253,32 @@ export function AgentTaskDetailPage() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                     <p className="text-sm text-muted-foreground">Agent</p>
-                                     <p className="font-medium">{agentTask.agent || '-'}</p>
-                                 </div>
+                                    <p className="text-sm text-muted-foreground">Agent</p>
+                                    <p className="font-medium">{agentTask.agent || '-'}</p>
+                                </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Commit Hash</p>
-                                    <p className="font-medium font-mono text-xs">{agentTask.commitHash || '-'}</p>
+                                    <p className="font-medium font-mono text-xs">
+                                        {agentTask.commitHash || '-'}
+                                    </p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Prompt Tokens</p>
                                     <p className="font-medium">{agentTask.promptTokens ?? 0}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Completion Tokens</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Completion Tokens
+                                    </p>
                                     <p className="font-medium">{agentTask.completionTokens ?? 0}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Execution Duration</p>
-                                    <p className="font-medium">{agentTask.executionDurationInSeconds ?? 0} seconds</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Execution Duration
+                                    </p>
+                                    <p className="font-medium">
+                                        {agentTask.executionDurationInSeconds ?? 0} seconds
+                                    </p>
                                 </div>
                             </div>
                             {agentTask.errors && (
@@ -263,7 +286,9 @@ export function AgentTaskDetailPage() {
                                     <Separator />
                                     <div>
                                         <p className="text-sm text-muted-foreground mb-2">Errors</p>
-                                        <p className="text-sm text-destructive whitespace-pre-wrap">{agentTask.errors}</p>
+                                        <p className="text-sm text-destructive whitespace-pre-wrap">
+                                            {agentTask.errors}
+                                        </p>
                                     </div>
                                 </>
                             )}
@@ -279,7 +304,9 @@ export function AgentTaskDetailPage() {
                         <CardContent>
                             {agentTask.dependsOnAgentTaskId ? (
                                 <div className="flex items-center gap-2 p-2 bg-muted rounded">
-                                    <Badge variant="outline">{agentTask.dependsOnAgentTaskId}</Badge>
+                                    <Badge variant="outline">
+                                        {agentTask.dependsOnAgentTaskId}
+                                    </Badge>
                                     <span className="text-sm">Depends on this task</span>
                                 </div>
                             ) : (
@@ -296,11 +323,11 @@ export function AgentTaskDetailPage() {
                 agentTask={{
                     id: agentTask.id ?? '',
                     title: agentTask.title ?? '',
-                    description: agentTask.description,
+                    description: agentTask.description ?? null,
                     complexityRating: agentTask.complexityRating ?? 0,
-                    result: agentTask.result,
-                    status: agentTask.status,
-                    deliverableId: agentTask.deliverableId,
+                    result: agentTask.result ?? null,
+                    status: agentTask.status ?? null,
+                    deliverableId: agentTask.deliverableId ?? null,
                 }}
                 onSuccess={() => refetch()}
             />

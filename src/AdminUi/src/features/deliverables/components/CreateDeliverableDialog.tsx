@@ -5,11 +5,24 @@ import * as z from 'zod';
 import { useCreateDeliverableMutation } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 const deliverableSchema = z.object({
     title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
@@ -31,7 +44,11 @@ interface CreateDeliverableDialogProps {
     onSuccess?: (deliverableId: string) => void;
 }
 
-export function CreateDeliverableDialog({ open, onOpenChange, onSuccess }: CreateDeliverableDialogProps) {
+export function CreateDeliverableDialog({
+    open,
+    onOpenChange,
+    onSuccess,
+}: CreateDeliverableDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
     const [createDeliverable, { loading }] = useCreateDeliverableMutation();
 
@@ -52,7 +69,7 @@ export function CreateDeliverableDialog({ open, onOpenChange, onSuccess }: Creat
     const onSubmit = async (data: DeliverableFormData) => {
         setServerError(null);
 
-               try {
+        try {
             const result = await createDeliverable({
                 variables: {
                     input: {
@@ -66,9 +83,6 @@ export function CreateDeliverableDialog({ open, onOpenChange, onSuccess }: Creat
                         testPlan: data.testPlan ?? null,
                         deploymentPlan: data.deploymentPlan ?? null,
                         initialStatus: data.initialStatus ?? null,
-                        agentFeedback: null,
-                        blocking: null,
-                        executionPlan: null,
                     },
                 },
             });
@@ -109,7 +123,12 @@ export function CreateDeliverableDialog({ open, onOpenChange, onSuccess }: Creat
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="type">Type *</Label>
-                            <Select defaultValue="FEATURE" onValueChange={(value) => setValue('type', value as DeliverableFormData['type'])}>
+                            <Select
+                                defaultValue="FEATURE"
+                                onValueChange={(value) =>
+                                    setValue('type', value as DeliverableFormData['type'])
+                                }
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
@@ -158,7 +177,15 @@ export function CreateDeliverableDialog({ open, onOpenChange, onSuccess }: Creat
 
                         <div className="grid gap-2">
                             <Label htmlFor="initialStatus">Initial Status</Label>
-                            <Select defaultValue="DRAFT" onValueChange={(value) => setValue('initialStatus', value as DeliverableFormData['initialStatus'])}>
+                            <Select
+                                defaultValue="DRAFT"
+                                onValueChange={(value) =>
+                                    setValue(
+                                        'initialStatus',
+                                        value as DeliverableFormData['initialStatus']
+                                    )
+                                }
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
@@ -170,13 +197,15 @@ export function CreateDeliverableDialog({ open, onOpenChange, onSuccess }: Creat
                             </Select>
                         </div>
 
-                        {serverError && (
-                            <p className="text-sm text-destructive">{serverError}</p>
-                        )}
+                        {serverError && <p className="text-sm text-destructive">{serverError}</p>}
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleOpenChange(false)}
+                        >
                             Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>
