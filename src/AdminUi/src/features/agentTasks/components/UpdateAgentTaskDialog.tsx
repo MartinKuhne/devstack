@@ -66,7 +66,6 @@ export function UpdateAgentTaskDialog({ open, onOpenChange, agentTask, onSuccess
                 complexityRating: agentTask.complexityRating,
                 result: agentTask.result ?? '',
             });
-            setServerError(null);
         }
     }, [agentTask, open, reset]);
 
@@ -118,9 +117,9 @@ export function UpdateAgentTaskDialog({ open, onOpenChange, agentTask, onSuccess
     };
 
     const handleOpenChange = (isOpen: boolean) => {
+        setServerError(null);
         if (!isOpen) {
             reset();
-            setServerError(null);
         }
         onOpenChange(isOpen);
     };

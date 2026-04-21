@@ -1,17 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { AgentTaskListPage, CreateAgentTaskDialog, AgentTaskDetailPage } from '../pages/AgentTaskPage.js';
+import { AgentTaskListPage } from '../pages/AgentTaskPage.js';
 import { NavigationHelper } from '../helpers/NavigationHelper.js';
 
 test.describe('Agent Task CRUD', () => {
     let agentTaskListPage: AgentTaskListPage;
-    let createAgentTaskDialog: CreateAgentTaskDialog;
-    let agentTaskDetailPage: AgentTaskDetailPage;
     let navigationHelper: NavigationHelper;
 
     test.beforeEach(async ({ page }) => {
         agentTaskListPage = new AgentTaskListPage(page);
-        createAgentTaskDialog = new CreateAgentTaskDialog(page);
-        agentTaskDetailPage = new AgentTaskDetailPage(page);
         navigationHelper = new NavigationHelper(page);
     });
 
@@ -92,7 +88,7 @@ test.describe('Agent Task CRUD', () => {
         await expect(page.getByRole('heading', { name: 'Dashboard', level: 2 })).toBeVisible();
     });
 
-    test('should show loading states on task list', async ({ page }) => {
+    test('should show loading states on task list', async () => {
         await agentTaskListPage.navigate();
         
         // Page should eventually load

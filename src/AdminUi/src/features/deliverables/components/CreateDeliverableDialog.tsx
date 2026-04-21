@@ -60,7 +60,7 @@ export function CreateDeliverableDialog({ open, onOpenChange, onSuccess }: Creat
                     input: {
                         projectId: '',
                         epicId: null,
-                        type: data.type as any,
+                        type: data.type,
                         title: data.title,
                         description: data.description ?? null,
                         acceptanceCriteria: data.acceptanceCriteria ?? null,
@@ -70,7 +70,7 @@ export function CreateDeliverableDialog({ open, onOpenChange, onSuccess }: Creat
                         testPlan: data.testPlan ?? null,
                         deploymentPlan: data.deploymentPlan ?? null,
                         openQuestions: data.openQuestions ?? null,
-                        initialStatus: data.initialStatus as any,
+                        initialStatus: data.initialStatus,
                     },
                 },
             });

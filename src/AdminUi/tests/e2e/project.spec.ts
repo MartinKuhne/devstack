@@ -1,17 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { ProjectListPage, CreateProjectDialog, EditProjectDialog } from '../pages/ProjectPage.js';
+import { ProjectListPage, CreateProjectDialog } from '../pages/ProjectPage.js';
 import { NavigationHelper } from '../helpers/NavigationHelper.js';
 
 test.describe('Project CRUD', () => {
     let projectListPage: ProjectListPage;
     let createProjectDialog: CreateProjectDialog;
-    let editProjectDialog: EditProjectDialog;
     let navigationHelper: NavigationHelper;
 
     test.beforeEach(async ({ page }) => {
         projectListPage = new ProjectListPage(page);
         createProjectDialog = new CreateProjectDialog(page);
-        editProjectDialog = new EditProjectDialog(page);
         navigationHelper = new NavigationHelper(page);
     });
 
@@ -120,7 +118,7 @@ test.describe('Project CRUD', () => {
         await expect(page.getByRole('heading', { name: 'Large Language Models', level: 2 })).toBeVisible();
     });
 
-    test('should show empty state when no projects exist', async ({ page }) => {
+    test('should show empty state when no projects exist', async () => {
         await projectListPage.navigate();
         await projectListPage.waitForProjectList();
         

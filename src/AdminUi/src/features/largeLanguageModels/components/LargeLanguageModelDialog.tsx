@@ -49,6 +49,7 @@ export function LargeLanguageModelDialog({
         setError(null);
     };
 
+   /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (open && model) {
             setModelValue(model.model);
@@ -57,13 +58,14 @@ export function LargeLanguageModelDialog({
             setApiKey(model.apiKey ?? '');
             setMaxComplexity(model.maxComplexity.toString());
             setShowApiKey(false);
-            setError(null);
         } else if (open && !model) {
             resetForm();
         }
     }, [open, model]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const handleOpenChange = (newOpen: boolean) => {
+        setError(null);
         if (!newOpen) {
             resetForm();
         }
