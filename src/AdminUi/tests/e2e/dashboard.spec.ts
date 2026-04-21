@@ -20,14 +20,13 @@ test.describe('Dashboard Page', () => {
                 status: 200,
                 body: JSON.stringify({
                     data: {
-                        dashboardSummary: {
-                            projectsInFlight: 1,
-                            featuresInReview: 2,
-                            featuresFailed: 0,
-                            tasksInProgress: 3,
-                            tasksFailed: 0,
-                            recentAuditEvents: [],
-                            __typename: 'DashboardSummary',
+                        items: {
+                            nodes: [
+                                { id: '1', status: 'PLANNING', title: 'Deliverable 1', __typename: 'Deliverable' },
+                                { id: '2', status: 'READY', title: 'Deliverable 2', __typename: 'Deliverable' },
+                                { id: '3', status: 'IN_PROGRESS', title: 'Deliverable 3', __typename: 'Deliverable' },
+                                { id: '4', status: 'NEEDS_REVIEW', title: 'Deliverable 4', __typename: 'Deliverable' },
+                            ],
                         },
                     },
                 }),
@@ -37,9 +36,10 @@ test.describe('Dashboard Page', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboardLoaded();
 
-        await expect(dashboardPage.projectsInFlightCard).toBeVisible();
-        await expect(dashboardPage.featuresInReviewCard).toBeVisible();
-        await expect(dashboardPage.tasksInProgressCard).toBeVisible();
+        await expect(dashboardPage.deliverablesPlanningCard).toBeVisible();
+        await expect(dashboardPage.deliverablesReadyCard).toBeVisible();
+        await expect(dashboardPage.deliverablesInProgressCard).toBeVisible();
+        await expect(dashboardPage.deliverablesNeedsReviewCard).toBeVisible();
     });
 
     test('shows empty state when no data exists', async ({ page }) => {
@@ -48,14 +48,8 @@ test.describe('Dashboard Page', () => {
                 status: 200,
                 body: JSON.stringify({
                     data: {
-                        dashboardSummary: {
-                            projectsInFlight: 0,
-                            featuresInReview: 0,
-                            featuresFailed: 0,
-                            tasksInProgress: 0,
-                            tasksFailed: 0,
-                            recentAuditEvents: [],
-                            __typename: 'DashboardSummary',
+                        items: {
+                            nodes: [],
                         },
                     },
                 }),

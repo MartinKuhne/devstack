@@ -42,13 +42,6 @@ function SidebarContent() {
 
     return (
         <nav className="p-4 space-y-2">
-            <Link to="/">
-                <Button variant="ghost" className="w-full justify-start">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Dashboard
-                </Button>
-            </Link>
-
             <Select value={currentProjectId || ''} onValueChange={handleProjectSelect}>
                 <SelectTrigger className="w-full">
                     <Folder className="mr-2 h-4 w-4" />
@@ -72,6 +65,27 @@ function SidebarContent() {
                 </SelectContent>
             </Select>
 
+            <Link to="/">
+                <Button variant="ghost" className="w-full justify-start">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    Dashboard
+                </Button>
+            </Link>
+
+            <Link to="/models">
+                <Button variant="ghost" className="w-full justify-start">
+                    <Brain className="mr-2 h-4 w-4" />
+                    Large Language Models
+                </Button>
+            </Link>
+
+            <Link to="/projects">
+                <Button variant="ghost" className="w-full justify-start">
+                    <Folder className="mr-2 h-4 w-4" />
+                    Projects
+                </Button>
+            </Link>
+
             {currentProjectId && (
                 <Link to={`/deliverables?project=${currentProjectId}`}>
                     <Button variant="ghost" className="w-full justify-start">
@@ -89,20 +103,6 @@ function SidebarContent() {
                     </Button>
                 </Link>
             )}
-
-            <Link to="/projects">
-                <Button variant="ghost" className="w-full justify-start">
-                    <Folder className="mr-2 h-4 w-4" />
-                    Projects
-                </Button>
-            </Link>
-
-            <Link to="/models">
-                <Button variant="ghost" className="w-full justify-start">
-                    <Brain className="mr-2 h-4 w-4" />
-                    Large Language Models
-                </Button>
-            </Link>
         </nav>
     );
 }
