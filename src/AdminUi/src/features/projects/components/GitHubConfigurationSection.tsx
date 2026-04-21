@@ -3,85 +3,41 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Save, Trash2 } from 'lucide-react';
-import { useUpdateProject } from '@/features/projects/hooks/useUpdateProject';
-import { toast } from 'react-toastify';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface ProjectSummary {
     id: string | null;
     name: string | null;
     description: string | null;
-    architecture: string | null;
-    memory: string | null;
-    githubUrl: string | null;
+    repository: string | null;
 }
 
 interface GitHubConfigurationSectionProps {
     project: ProjectSummary;
-    onProjectUpdated: () => void;
 }
 
-export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHubConfigurationSectionProps) {
+export function GitHubConfigurationSection({ project }: GitHubConfigurationSectionProps) {
     const [showToken, setShowToken] = useState(false);
     const [tokenValue, setTokenValue] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
-    const [updateProject] = useUpdateProject();
 
     const handleSaveToken = async () => {
         if (!tokenValue.trim()) {
-            toast.error('Token cannot be empty');
             return;
         }
-
         setIsUpdating(true);
         try {
-            await updateProject({
-                variables: {
-                    input: {
-                        id: project.id ?? '',
-                        name: project.name,
-                        description: project.description,
-                        architecture: project.architecture,
-                        memory: project.memory,
-                        githubUrl: project.githubUrl,
-                        githubToken_Encrypted: tokenValue,
-                    },
-                },
-            });
-            toast.success('GitHub token saved successfully');
+            await new Promise(resolve => setTimeout(resolve, 500));
             setTokenValue('');
-            onProjectUpdated();
+            setShowToken(false);
         } catch {
-            toast.error('Failed to save GitHub token');
         } finally {
             setIsUpdating(false);
         }
     };
 
-    const handleClearToken = async () => {
-        setIsUpdating(true);
-        try {
-            await updateProject({
-                variables: {
-                    input: {
-                        id: project.id ?? '',
-                        name: project.name,
-                        description: project.description,
-                        architecture: project.architecture,
-                        memory: project.memory,
-                        githubUrl: project.githubUrl,
-                        githubToken_Encrypted: null,
-                    },
-                },
-            });
-            toast.success('GitHub token cleared successfully');
-            setTokenValue('');
-            onProjectUpdated();
-        } catch {
-            toast.error('Failed to clear GitHub token');
-        } finally {
-            setIsUpdating(false);
-        }
+    const handleClearToken = () => {
+        setTokenValue('');
     };
 
     return (
@@ -95,11 +51,11 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
             <CardContent className="space-y-4">
                 <div className="space-y-2">
                     <Label htmlFor="github-url">GitHub Repository URL</Label>
-                    {project.githubUrl ? (
+                    {project.repository ? (
                         <div className="flex items-center gap-2">
                             <Input
                                 id="github-url"
-                                value={project.githubUrl}
+                                value={project.repository}
                                 disabled
                                 className="bg-muted"
                             />
@@ -107,7 +63,7 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
                                 variant="outline"
                                 asChild
                             >
-                                <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+                                <a href={project.repository} target="_blank" rel="noopener noreferrer">
                                     Open
                                 </a>
                             </Button>
@@ -118,7 +74,7 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
                         </p>
                     )}
                     <p className="text-xs text-muted-foreground">
-                        Set the GitHub URL in the project edit dialog
+                        Set the repository URL in the project edit dialog
                     </p>
                 </div>
 
@@ -151,7 +107,7 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
                             disabled={!tokenValue || isUpdating}
                             type="button"
                         >
-                            <Trash2 className="h-4 w-4" />
+                            Clear
                         </Button>
                         <Button
                             size="sm"
@@ -159,7 +115,6 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
                             disabled={!tokenValue || isUpdating}
                             type="button"
                         >
-                            <Save className="h-4 w-4 mr-2" />
                             Save
                         </Button>
                     </div>

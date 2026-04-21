@@ -12,15 +12,7 @@ import { useAgentTasks } from '../hooks/useAgentTasks';
 import { useDeleteAgentTaskMutation } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 import type { AgentTaskStatus } from '@/generated/graphql';
-
-const STATUS_COLORS: Record<string, string> = {
-    READY: 'bg-blue-500',
-    IN_PROGRESS: 'bg-yellow-500',
-    NEEDS_REVIEW: 'bg-purple-500',
-    DONE: 'bg-green-500',
-    FAILED: 'bg-red-500',
-    REJECTED: 'bg-gray-500',
-};
+import { AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
 
 export function AgentTaskListPage() {
     const navigate = useNavigate();
@@ -31,7 +23,7 @@ export function AgentTaskListPage() {
     const searchFilter = searchParams.get('search') || undefined;
     
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
-    const { agentTasks, loading, error, refetch } = useAgentTasks(undefined, statusFilter ? [statusFilter] : undefined);
+    const { agentTasks, loading, error, refetch } = useAgentTasks(statusFilter ? [statusFilter] : undefined);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this agent task?')) return;
@@ -86,7 +78,7 @@ export function AgentTaskListPage() {
         const searchLower = searchFilter.toLowerCase();
         return (
             task.title?.toLowerCase().includes(searchLower) ||
-            task.deliverable?.toLowerCase().includes(searchLower)
+            task.deliverableId?.toLowerCase().includes(searchLower)
         );
     });
 
@@ -176,18 +168,16 @@ export function AgentTaskListPage() {
                                             onClick={() => handleRowClick(task.id)}
                                         >
                                             <TableCell className="font-medium">{task.title}</TableCell>
-                                            <TableCell>
-                                                <Badge className={STATUS_COLORS[task.status ?? ''] || 'bg-gray-500'}>
-                                                    {task.status}
-                                                </Badge>
-                                            </TableCell>
+                                           <TableCell>
+                                                    <Badge className={getStatusColor(task.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
+                                                        {task.status}
+                                                    </Badge>
+                                                </TableCell>
                                             <TableCell>{task.agent || '-'}</TableCell>
                                             <TableCell>
                                                 {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)}
                                             </TableCell>
-                                            <TableCell>
-                                                {task.updatedAt ? new Date(task.updatedAt).toLocaleDateString() : '-'}
-                                            </TableCell>
+                                            <TableCell>-</TableCell>
                                             <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <Button
                                                     variant="ghost"

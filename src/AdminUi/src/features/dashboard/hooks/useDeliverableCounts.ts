@@ -1,17 +1,19 @@
 import { useGetDeliverablesQuery } from '@/generated/graphql';
 
+/**
+ * Fetches all deliverables and returns counts categorized by status.
+ */
 export function useDeliverableCounts() {
     const { data, loading, error, refetch } = useGetDeliverablesQuery({
-        variables: { projectId: null, epicId: null, status: null, type: null },
         fetchPolicy: 'cache-and-network',
     });
 
-    const items = data?.items?.nodes ?? [];
+    const deliverables = data?.deliverables ?? [];
 
-    const deliverablesPlanning = items.filter(item => item.status === 'PLANNING').length;
-    const deliverablesReady = items.filter(item => item.status === 'READY').length;
-    const deliverablesInProgress = items.filter(item => item.status === 'IN_PROGRESS').length;
-    const deliverablesNeedsReview = items.filter(item => String(item.status) === 'NEEDS_REVIEW').length;
+    const deliverablesPlanning = deliverables.filter(d => d.status === 'PLANNING').length;
+    const deliverablesReady = deliverables.filter(d => d.status === 'READY').length;
+    const deliverablesInProgress = deliverables.filter(d => d.status === 'IN_PROGRESS').length;
+    const deliverablesNeedsReview = deliverables.filter(d => d.status === 'NEEDS_REVIEW').length;
 
     return {
         deliverablesPlanning,

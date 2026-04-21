@@ -8,7 +8,7 @@ export function useDeliverable(id: string) {
     });
 
     return {
-        deliverable: data?.getItemById ?? null,
+        deliverable: data?.deliverableById ?? null,
         loading,
         error,
         refetch,

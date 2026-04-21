@@ -1,18 +1,23 @@
-import { useGetAgentTasksQuery } from '@/generated/graphql';
 import type { AgentTaskStatus } from '@/generated/graphql';
+import { useGetAgentTasksQuery } from '@/generated/graphql';
 
-export function useAgentTasksByDeliverable(deliverableId?: string, status?: AgentTaskStatus[]) {
+export function useAgentTasksByDeliverable(deliverableId?: string, statusFilter?: AgentTaskStatus[]) {
     const { data, loading, error, refetch } = useGetAgentTasksQuery({
-        variables: { itemId: deliverableId, status: status ?? null },
+        variables: { projectId: deliverableId ?? null },
         fetchPolicy: 'cache-and-network',
         skip: !deliverableId,
     });
 
-    const allAgentTasks = data?.agentTasks?.nodes ?? [];
-    const filteredAgentTasks = allAgentTasks.filter(task => task.deliverable === deliverableId);
+    const allTasks = data?.agentTasks ?? [];
+    
+    const filteredByDeliverable = allTasks.filter(task => task.deliverableId === deliverableId);
+    
+    const filteredTasks = statusFilter && statusFilter.length > 0
+        ? filteredByDeliverable.filter(task => statusFilter.includes(task.status as AgentTaskStatus))
+        : filteredByDeliverable;
 
     return {
-        agentTasks: filteredAgentTasks,
+        agentTasks: filteredTasks,
         loading,
         error,
         refetch,

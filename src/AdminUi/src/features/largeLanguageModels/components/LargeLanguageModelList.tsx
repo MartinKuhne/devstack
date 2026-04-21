@@ -151,9 +151,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                                         {config.maxComplexity}
                                     </Badge>
                                 </div>
-                                <div className="text-xs text-muted-foreground">
-                                    Updated: {new Date(config.updatedAt).toLocaleDateString()}
-                                </div>
+                                
                             </CardContent>
                         </Card>
                     ))}

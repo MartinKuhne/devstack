@@ -11,7 +11,7 @@ const httpLink = new HttpLink({
 
 let apolloClient: ApolloClient | undefined;
 
-function createApolloClient() {
+function createApolloClient(): ApolloClient {
     const client = new ApolloClient({
         cache: new InMemoryCache(),
         link: httpLink,
@@ -20,7 +20,7 @@ function createApolloClient() {
     return client;
 }
 
-export function logApolloError(error: unknown) {
+export function logApolloError(error: unknown): void {
     const err = error as { graphQLErrors?: unknown[]; networkError?: unknown };
 
     if (err.graphQLErrors?.length) {
@@ -39,7 +39,7 @@ export function logApolloError(error: unknown) {
     }
 }
 
-export function getApolloClient() {
+export function getApolloClient(): ApolloClient {
     if (!apolloClient) {
         apolloClient = createApolloClient();
     }

@@ -12,10 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 const agentTaskSchema = z.object({
     title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
-    deliverable: z.string().optional(),
-    acceptanceCriteria: z.string().optional(),
-    risks: z.string().optional(),
-    requiredFollowUps: z.string().optional(),
+    description: z.string().optional(),
     complexityRating: z.number().min(1, 'Complexity must be at least 1').max(10, 'Complexity must be at most 10'),
     result: z.string().optional(),
 });
@@ -25,14 +22,11 @@ type AgentTaskFormData = z.infer<typeof agentTaskSchema>;
 interface AgentTaskData {
     id: string;
     title: string;
-    deliverable: string | null;
-    acceptanceCriteria: string | null;
-    risks: string | null;
-    requiredFollowUps: string | null;
+    description: string | null;
     complexityRating: number;
     result: string | null;
     status: string | null;
-    itemId: string | null;
+    deliverableId: string | null;
 }
 
 interface UpdateAgentTaskDialogProps {
@@ -59,10 +53,7 @@ export function UpdateAgentTaskDialog({ open, onOpenChange, agentTask, onSuccess
         if (agentTask && open) {
             reset({
                 title: agentTask.title,
-                deliverable: agentTask.deliverable ?? '',
-                acceptanceCriteria: agentTask.acceptanceCriteria ?? '',
-                risks: agentTask.risks ?? '',
-                requiredFollowUps: agentTask.requiredFollowUps ?? '',
+                description: agentTask.description ?? '',
                 complexityRating: agentTask.complexityRating,
                 result: agentTask.result ?? '',
             });
@@ -80,17 +71,15 @@ export function UpdateAgentTaskDialog({ open, onOpenChange, agentTask, onSuccess
                     input: {
                         id: agentTask.id,
                         title: data.title,
-                        deliverable: data.deliverable ?? null,
-                        acceptanceCriteria: data.acceptanceCriteria ?? null,
-                        risks: data.risks ?? null,
-                        requiredFollowUps: data.requiredFollowUps ?? null,
+                        description: data.description ?? null,
                         result: data.result ?? null,
                         complexityRating: Number(data.complexityRating),
+                        agent: null,
                         commitHash: null,
                         completionTokens: null,
+                        dependsOnAgentTaskId: null,
                         errors: null,
                         executionDurationInSeconds: null,
-                        agent: null,
                         promptTokens: null,
                     },
                 },
@@ -165,42 +154,12 @@ export function UpdateAgentTaskDialog({ open, onOpenChange, agentTask, onSuccess
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="deliverable">Deliverable</Label>
+                            <Label htmlFor="description">Description</Label>
                             <Textarea
-                                id="deliverable"
-                                {...register('deliverable')}
-                                placeholder="What will be delivered"
+                                id="description"
+                                {...register('description')}
+                                placeholder="Task description"
                                 rows={3}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label>
-                            <Textarea
-                                id="acceptanceCriteria"
-                                {...register('acceptanceCriteria')}
-                                placeholder="Criteria for completing this task"
-                                rows={3}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="risks">Risks</Label>
-                            <Textarea
-                                id="risks"
-                                {...register('risks')}
-                                placeholder="Identified risks"
-                                rows={2}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="requiredFollowUps">Required Follow-ups</Label>
-                            <Textarea
-                                id="requiredFollowUps"
-                                {...register('requiredFollowUps')}
-                                placeholder="Required follow-up actions"
-                                rows={2}
                             />
                         </div>
 

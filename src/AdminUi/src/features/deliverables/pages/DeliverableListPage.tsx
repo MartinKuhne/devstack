@@ -12,20 +12,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CreateDeliverableDialog } from '../components/CreateDeliverableDialog';
 import { useDeliverables } from '../hooks/useDeliverables';
 import { toast } from 'react-toastify';
-import type { FeatureStatus, ItemSubtype } from '@/generated/graphql';
+import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
+import { DELIVERABLE_STATUS_COLORS, getStatusColor } from '@/lib/constants';
 
-  const STATUS_COLORS: Record<string, string> = {
-    DRAFT: 'bg-gray-500',
-    PLANNING: 'bg-blue-500',
-    READY: 'bg-green-500',
-    IN_PROGRESS: 'bg-yellow-500',
-    IN_REVIEW: 'bg-purple-500',
-    DONE: 'bg-emerald-600',
-    FAILED: 'bg-red-500',
-    REJECTED: 'bg-gray-600',
-};
-
-const SUBTYPE_LABELS: Record<string, string> = {
+const TYPE_LABELS: Record<string, string> = {
     FEATURE: 'Feature',
     DEFECT: 'Defect',
     MAINTENANCE: 'Maintenance',
@@ -35,15 +25,15 @@ export function DeliverableListPage() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const statusFilter = (searchParams.get('status') || undefined) as FeatureStatus | undefined;
-    const typeFilter = (searchParams.get('type') || undefined as unknown) as ItemSubtype | undefined;
+    const statusFilter = (searchParams.get('status') || undefined) as DeliverableStatus | undefined;
+    const typeFilter = (searchParams.get('type') || undefined) as DeliverableType | undefined;
     const searchFilter = searchParams.get('search') || undefined;
 
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
     const [deleting, setDeleting] = useState(false);
 
-    const { deliverables, loading, error, refetch } = useDeliverables(undefined, statusFilter ? [statusFilter] : undefined, typeFilter ? [typeFilter] : undefined);
+    const { deliverables, loading, error, refetch } = useDeliverables(statusFilter ? [statusFilter] : undefined, typeFilter ? [typeFilter] : undefined);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this deliverable?')) return;
@@ -110,7 +100,7 @@ export function DeliverableListPage() {
         if (id) navigate(`/deliverables/${id}`);
     };
 
-    const filteredDeliverables = deliverables.filter(d => {
+    const filteredDeliverables = deliverables.filter((d: { id: string | null; title: string | null; status: DeliverableStatus | null; type: DeliverableType | null }) => {
         if (!searchFilter) return true;
         const searchLower = searchFilter.toLowerCase();
         return (d.title?.toLowerCase().includes(searchLower) ?? false);
@@ -184,7 +174,7 @@ export function DeliverableListPage() {
                                     <TableHead>Title</TableHead>
                                     <TableHead>Type</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Updated</TableHead>
+                                    <TableHead>ID</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -205,27 +195,25 @@ export function DeliverableListPage() {
                                     <TableHead>Title</TableHead>
                                     <TableHead>Type</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Updated</TableHead>
+                                    <TableHead>ID</TableHead>
                                     <TableHead className="w-16"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredDeliverables.map((deliverable) => (
+                                {filteredDeliverables.map((deliverable: { id: string | null; title: string | null; status: DeliverableStatus | null; type: DeliverableType | null }) => (
                                     <TableRow
                                         key={deliverable.id ?? ''}
                                         className="cursor-pointer hover:bg-muted/50"
                                         onClick={() => handleRowClick(deliverable.id ?? undefined)}
                                     >
                                         <TableCell className="font-medium">{deliverable.title}</TableCell>
-                                        <TableCell>{SUBTYPE_LABELS[deliverable.subtype ?? ''] || deliverable.subtype}</TableCell>
+                                        <TableCell>{TYPE_LABELS[deliverable.type ?? ''] ?? deliverable.type}</TableCell>
                                         <TableCell>
-                                            <Badge className={STATUS_COLORS[deliverable.status ?? ''] || 'bg-gray-500'}>
+                                            <Badge className={getStatusColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_COLORS)}>
                                                 {deliverable.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>
-                                            {deliverable.updatedAt ? new Date(deliverable.updatedAt).toLocaleDateString() : '-'}
-                                        </TableCell>
+                                        <TableCell className="text-xs font-mono">{deliverable.id ?? '-'}</TableCell>
                                         <TableCell onClick={(e) => e.stopPropagation()}>
                                             <Button
                                                 variant="ghost"

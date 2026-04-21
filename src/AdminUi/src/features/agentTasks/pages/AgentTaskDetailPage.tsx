@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAgentTask } from '../hooks/useAgentTask';
 import { UpdateAgentTaskDialog } from '../components/UpdateAgentTaskDialog';
 import { useState } from 'react';
-import { useTransitionAgentTaskStatusMutation, useDeleteAgentTaskMutation } from '@/generated/graphql';
+import { useTransitionAgentTaskStatusMutation, useDeleteAgentTaskMutation, type AgentTaskStatus } from '@/generated/graphql';
 import {
     Select,
     SelectContent,
@@ -63,7 +63,7 @@ export function AgentTaskDetailPage() {
                 variables: {
                     input: {
                         id: agentTask.id,
-                        targetStatus: selectedStatus as never,
+                        targetStatus: selectedStatus as AgentTaskStatus,
                         actor: 'admin-ui',
                     },
                 },
@@ -147,7 +147,7 @@ export function AgentTaskDetailPage() {
                         <Badge className={STATUS_COLORS[agentTask.status ?? ''] || 'bg-gray-500'}>
                             {agentTask.status}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">{agentTask.deliverable}</span>
+                        <span className="text-sm text-muted-foreground">Deliverable: {agentTask.deliverableId ?? '-'}</span>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -207,48 +207,26 @@ export function AgentTaskDetailPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm whitespace-pre-wrap">
-                                {agentTask.result ?? 'No result provided.'}
+                                {agentTask.description ?? 'No description provided.'}
                             </p>
                         </CardContent>
                     </Card>
 
-                    {agentTask.acceptanceCriteria && (
+                    {agentTask.result && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>Acceptance Criteria</CardTitle>
+                                <CardTitle>Result</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{agentTask.acceptanceCriteria}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {agentTask.risks && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Risks</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{agentTask.risks}</p>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {agentTask.requiredFollowUps && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Required Follow-ups</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{agentTask.requiredFollowUps}</p>
+                                <p className="text-sm whitespace-pre-wrap">{agentTask.result}</p>
                             </CardContent>
                         </Card>
                     )}
 
                     <div className="text-sm text-muted-foreground">
                         <p>Complexity Rating: {agentTask.complexityRating ?? '-'}</p>
-                        <p>Created: {agentTask.createdAt ? new Date(agentTask.createdAt).toLocaleString() : '-'}</p>
-                        <p>Updated: {agentTask.updatedAt ? new Date(agentTask.updatedAt).toLocaleString() : '-'}</p>
+                        <p>Deliverable ID: {agentTask.deliverableId ?? '-'}</p>
+                        
                     </div>
                 </TabsContent>
 
@@ -299,14 +277,10 @@ export function AgentTaskDetailPage() {
                             <CardTitle>Dependencies</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {agentTask.dependsOnAgentTask && agentTask.dependsOnAgentTask.length > 0 ? (
-                                <div className="space-y-2">
-                                    {agentTask.dependsOnAgentTask.map((dep) => (
-                                        <div key={dep?.id ?? ''} className="flex items-center gap-2 p-2 bg-muted rounded">
-                                            <Badge variant="outline">{dep?.id}</Badge>
-                                            <span className="text-sm">{dep?.title}</span>
-                                        </div>
-                                    ))}
+                            {agentTask.dependsOnAgentTaskId ? (
+                                <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                                    <Badge variant="outline">{agentTask.dependsOnAgentTaskId}</Badge>
+                                    <span className="text-sm">Depends on this task</span>
                                 </div>
                             ) : (
                                 <p className="text-sm text-muted-foreground">No dependencies.</p>
@@ -322,14 +296,11 @@ export function AgentTaskDetailPage() {
                 agentTask={{
                     id: agentTask.id ?? '',
                     title: agentTask.title ?? '',
-                    deliverable: agentTask.deliverable,
-                    acceptanceCriteria: agentTask.acceptanceCriteria,
-                    risks: agentTask.risks,
-                    requiredFollowUps: agentTask.requiredFollowUps,
+                    description: agentTask.description,
                     complexityRating: agentTask.complexityRating ?? 0,
                     result: agentTask.result,
                     status: agentTask.status,
-                    itemId: agentTask.itemId,
+                    deliverableId: agentTask.deliverableId,
                 }}
                 onSuccess={() => refetch()}
             />

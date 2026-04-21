@@ -12,14 +12,11 @@ import { Textarea } from '@/components/ui/textarea';
 
 const agentTaskSchema = z.object({
     title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
-    deliverable: z.string().optional(),
-    acceptanceCriteria: z.string().optional(),
-    risks: z.string().optional(),
-    requiredFollowUps: z.string().optional(),
+    deliverableId: z.string().min(1, 'Deliverable ID is required'),
+    description: z.string().optional(),
     complexityRating: z.number().min(1, 'Complexity must be at least 1').max(10, 'Complexity must be at most 10'),
     result: z.string().optional(),
-    itemId: z.string().min(1, 'Item ID is required'),
-    projectId: z.string().min(1, 'Project ID is required'),
+    dependsOnAgentTaskId: z.string().optional(),
 });
 
 type AgentTaskFormData = z.infer<typeof agentTaskSchema>;
@@ -27,12 +24,11 @@ type AgentTaskFormData = z.infer<typeof agentTaskSchema>;
 interface CreateAgentTaskDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    projectId: string;
-    itemId?: string;
+    deliverableId: string;
     onSuccess?: (agentTaskId: string) => void;
 }
 
-export function CreateAgentTaskDialog({ open, onOpenChange, projectId, itemId, onSuccess }: CreateAgentTaskDialogProps) {
+export function CreateAgentTaskDialog({ open, onOpenChange, deliverableId, onSuccess }: CreateAgentTaskDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
     const [createAgentTask, { loading }] = useCreateAgentTaskMutation();
 
@@ -44,6 +40,7 @@ export function CreateAgentTaskDialog({ open, onOpenChange, projectId, itemId, o
     } = useForm<AgentTaskFormData>({
         resolver: zodResolver(agentTaskSchema),
         defaultValues: {
+            deliverableId,
             complexityRating: 5,
         },
     });
@@ -55,15 +52,18 @@ export function CreateAgentTaskDialog({ open, onOpenChange, projectId, itemId, o
             const result = await createAgentTask({
                 variables: {
                     input: {
-                        projectId,
-                        itemId: itemId ?? data.itemId,
+                        deliverableId: data.deliverableId,
                         title: data.title,
-                        deliverable: data.deliverable ?? null,
-                        acceptanceCriteria: data.acceptanceCriteria ?? null,
-                        risks: data.risks ?? null,
-                        requiredFollowUps: data.requiredFollowUps ?? null,
+                        description: data.description ?? '',
                         complexityRating: Number(data.complexityRating),
                         result: data.result ?? null,
+                        agent: null,
+                        commitHash: null,
+                        completionTokens: null,
+                        dependsOnAgentTaskId: null,
+                        errors: null,
+                        executionDurationInSeconds: null,
+                        promptTokens: null,
                     },
                 },
             });
@@ -75,7 +75,7 @@ export function CreateAgentTaskDialog({ open, onOpenChange, projectId, itemId, o
             }
 
             reset();
-            onSuccess?.(payload?.task?.id ?? '');
+            onSuccess?.(payload?.agentTask?.id ?? '');
             onOpenChange(false);
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Failed to create agent task');
@@ -115,24 +115,15 @@ export function CreateAgentTaskDialog({ open, onOpenChange, projectId, itemId, o
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="deliverable">Deliverable</Label>
+                            <Label htmlFor="deliverableId">Deliverable ID *</Label>
                             <Input
-                                id="deliverable"
-                                {...register('deliverable')}
-                                placeholder="Related deliverable"
+                                id="deliverableId"
+                                {...register('deliverableId')}
+                                placeholder="UUID of the deliverable"
+                                disabled
                             />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="itemId">Item ID *</Label>
-                            <Input
-                                id="itemId"
-                                {...register('itemId')}
-                                placeholder="UUID of the item"
-                                disabled={!!itemId}
-                            />
-                            {errors.itemId && (
-                                <p className="text-sm text-destructive">{errors.itemId.message}</p>
+                            {errors.deliverableId && (
+                                <p className="text-sm text-destructive">{errors.deliverableId.message}</p>
                             )}
                         </div>
 
@@ -151,31 +142,11 @@ export function CreateAgentTaskDialog({ open, onOpenChange, projectId, itemId, o
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label>
+                            <Label htmlFor="description">Description</Label>
                             <Textarea
-                                id="acceptanceCriteria"
-                                {...register('acceptanceCriteria')}
-                                placeholder="Criteria for completion"
-                                rows={3}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="risks">Risks</Label>
-                            <Textarea
-                                id="risks"
-                                {...register('risks')}
-                                placeholder="Identified risks"
-                                rows={3}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="requiredFollowUps">Required Follow-ups</Label>
-                            <Textarea
-                                id="requiredFollowUps"
-                                {...register('requiredFollowUps')}
-                                placeholder="Required follow-up actions"
+                                id="description"
+                                {...register('description')}
+                                placeholder="Task description"
                                 rows={3}
                             />
                         </div>
