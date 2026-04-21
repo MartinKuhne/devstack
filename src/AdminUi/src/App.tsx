@@ -2,15 +2,9 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { createModuleLogger } from './lib/logging';
 
-const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
-const ProjectListPage = lazy(() => import('./features/projects/pages/ProjectListPage').then(module => ({ default: module.ProjectListPage })));
-const ProjectDetailPage = lazy(() => import('./features/projects/pages/ProjectDetailPage').then(module => ({ default: module.ProjectDetailPage })));
-const DeliverableListPage = lazy(() => import('./features/deliverables/pages/DeliverableListPage').then(module => ({ default: module.DeliverableListPage })));
-const AgentTaskListPage = lazy(() => import('./features/agentTasks/pages/AgentTaskListPage').then(module => ({ default: module.AgentTaskListPage })));
-const AgentTaskDetailPage = lazy(() => import('./features/agentTasks/pages/AgentTaskDetailPage').then(module => ({ default: module.AgentTaskDetailPage })));
-const LargeLanguageModelsPage = lazy(() => import('./features/largeLanguageModels/pages/LargeLanguageModelsPage').then(module => ({ default: module.LargeLanguageModelsPage })));
-const DeliverableDetailPage = lazy(() => import('./features/deliverables/pages/DeliverableDetailPage').then(module => ({ default: module.DeliverableDetailPage })));
+const routeLogger = createModuleLogger('App');
 
 function LoadingFallback() {
     return (
@@ -20,52 +14,175 @@ function LoadingFallback() {
     );
 }
 
+const DashboardPage = lazy(() => {
+    routeLogger.debug('Lazy loading DashboardPage');
+    return import('./features/dashboard/pages/DashboardPage').then((module) => {
+        routeLogger.debug('DashboardPage loaded');
+        return { default: module.DashboardPage };
+    });
+});
+const ProjectListPage = lazy(() => {
+    routeLogger.debug('Lazy loading ProjectListPage');
+    return import('./features/projects/pages/ProjectListPage').then((module) => {
+        routeLogger.debug('ProjectListPage loaded');
+        return { default: module.ProjectListPage };
+    });
+});
+const ProjectDetailPage = lazy(() => {
+    routeLogger.debug('Lazy loading ProjectDetailPage');
+    return import('./features/projects/pages/ProjectDetailPage').then((module) => {
+        routeLogger.debug('ProjectDetailPage loaded');
+        return { default: module.ProjectDetailPage };
+    });
+});
+const DeliverableListPage = lazy(() => {
+    routeLogger.debug('Lazy loading DeliverableListPage');
+    return import('./features/deliverables/pages/DeliverableListPage').then((module) => {
+        routeLogger.debug('DeliverableListPage loaded');
+        return { default: module.DeliverableListPage };
+    });
+});
+const DeliverableDetailPage = lazy(() => {
+    routeLogger.debug('Lazy loading DeliverableDetailPage');
+    return import('./features/deliverables/pages/DeliverableDetailPage').then((module) => {
+        routeLogger.debug('DeliverableDetailPage loaded');
+        return { default: module.DeliverableDetailPage };
+    });
+});
+const AgentTaskListPage = lazy(() => {
+    routeLogger.debug('Lazy loading AgentTaskListPage');
+    return import('./features/agentTasks/pages/AgentTaskListPage').then((module) => {
+        routeLogger.debug('AgentTaskListPage loaded');
+        return { default: module.AgentTaskListPage };
+    });
+});
+const AgentTaskDetailPage = lazy(() => {
+    routeLogger.debug('Lazy loading AgentTaskDetailPage');
+    return import('./features/agentTasks/pages/AgentTaskDetailPage').then((module) => {
+        routeLogger.debug('AgentTaskDetailPage loaded');
+        return { default: module.AgentTaskDetailPage };
+    });
+});
+const LargeLanguageModelsPage = lazy(() => {
+    routeLogger.debug('Lazy loading LargeLanguageModelsPage');
+    return import('./features/largeLanguageModels/pages/LargeLanguageModelsPage').then((module) => {
+        routeLogger.debug('LargeLanguageModelsPage loaded');
+        return { default: module.LargeLanguageModelsPage };
+    });
+});
+
+function DashboardPageWithErrorBoundary() {
+    return (
+        <ErrorBoundary name="Dashboard">
+            <Suspense fallback={<LoadingFallback />}>
+                <DashboardPage />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function ProjectListPageWithErrorBoundary() {
+    return (
+        <ErrorBoundary name="Projects">
+            <Suspense fallback={<LoadingFallback />}>
+                <ProjectListPage />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function ProjectDetailPageWithErrorBoundary() {
+    return (
+        <ErrorBoundary name="Project Detail">
+            <Suspense fallback={<LoadingFallback />}>
+                <ProjectDetailPage />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function DeliverableListPageWithErrorBoundary() {
+    return (
+        <ErrorBoundary name="Deliverables">
+            <Suspense fallback={<LoadingFallback />}>
+                <DeliverableListPage />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function DeliverableDetailPageWithErrorBoundary() {
+    return (
+        <ErrorBoundary name="Deliverable Detail">
+            <Suspense fallback={<LoadingFallback />}>
+                <DeliverableDetailPage />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function AgentTaskListPageWithErrorBoundary() {
+    return (
+        <ErrorBoundary name="Agent Tasks">
+            <Suspense fallback={<LoadingFallback />}>
+                <AgentTaskListPage />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function AgentTaskDetailPageWithErrorBoundary() {
+    return (
+        <ErrorBoundary name="Agent Task Detail">
+            <Suspense fallback={<LoadingFallback />}>
+                <AgentTaskDetailPage />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
+function LargeLanguageModelsPageWithErrorBoundary() {
+    return (
+        <ErrorBoundary name="Large Language Models">
+            <Suspense fallback={<LoadingFallback />}>
+                <LargeLanguageModelsPage />
+            </Suspense>
+        </ErrorBoundary>
+    );
+}
+
 function App() {
     return (
         <BrowserRouter>
             <ErrorBoundary>
                 <Routes>
                     <Route path="/" element={<AppShell />}>
-                        <Route index element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <DashboardPage />
-                            </Suspense>
-                        } />
-                        <Route path="projects" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <ProjectListPage />
-                            </Suspense>
-                        } />
-                        <Route path="projects/:id" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <ProjectDetailPage />
-                            </Suspense>
-                        } />
-                        <Route path="deliverables" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <DeliverableListPage />
-                            </Suspense>
-                        } />
-                        <Route path="deliverables/:id" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <DeliverableDetailPage />
-                            </Suspense>
-                        } />
-                        <Route path="agent-tasks" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <AgentTaskListPage />
-                            </Suspense>
-                        } />
-                        <Route path="agent-tasks/:id" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <AgentTaskDetailPage />
-                            </Suspense>
-                        } />
-                        <Route path="models" element={
-                            <Suspense fallback={<LoadingFallback />}>
-                                <LargeLanguageModelsPage />
-                            </Suspense>
-                        } />
+                        <Route index element={<DashboardPageWithErrorBoundary />} />
+                        <Route path="projects" element={<ProjectListPageWithErrorBoundary />} />
+                        <Route
+                            path="projects/:id"
+                            element={<ProjectDetailPageWithErrorBoundary />}
+                        />
+                        <Route
+                            path="deliverables"
+                            element={<DeliverableListPageWithErrorBoundary />}
+                        />
+                        <Route
+                            path="deliverables/:id"
+                            element={<DeliverableDetailPageWithErrorBoundary />}
+                        />
+                        <Route
+                            path="agent-tasks"
+                            element={<AgentTaskListPageWithErrorBoundary />}
+                        />
+                        <Route
+                            path="agent-tasks/:id"
+                            element={<AgentTaskDetailPageWithErrorBoundary />}
+                        />
+                        <Route
+                            path="models"
+                            element={<LargeLanguageModelsPageWithErrorBoundary />}
+                        />
                     </Route>
                 </Routes>
             </ErrorBoundary>

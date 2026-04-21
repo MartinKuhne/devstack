@@ -24,6 +24,9 @@ import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAg
 import { useDeleteProjectMutation } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 import { PROJECT_STATUS_COLORS, AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import { createModuleLogger } from '@/lib/logging';
+
+const logger = createModuleLogger('ProjectDetailPage');
 
 export function ProjectDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -51,6 +54,7 @@ export function ProjectDetailPage() {
         if (!project?.id) return;
         if (!confirm('Are you sure you want to delete this project? This action cannot be undone.'))
             return;
+        logger.info('Deleting project', { id: project.id, name: project.name });
         try {
             const result = await deleteProject({
                 variables: {
@@ -58,12 +62,19 @@ export function ProjectDetailPage() {
                 },
             });
             if (result.data?.deleteProject?.errors?.length) {
-                toast.error(result.data.deleteProject.errors.join(', '));
+                const errorMessage = result.data.deleteProject.errors.join(', ');
+                logger.warn('Failed to delete project', {
+                    id: project.id,
+                    errors: result.data.deleteProject.errors,
+                });
+                toast.error(errorMessage);
             } else {
+                logger.info('Project deleted successfully', { id: project.id });
                 toast.success('Project deleted successfully');
                 navigate('/projects');
             }
         } catch {
+            logger.error('Failed to delete project', { id: project.id });
             toast.error('Failed to delete project');
         }
     };
@@ -95,6 +106,12 @@ export function ProjectDetailPage() {
     }
 
     if (error || !project) {
+        if (error) {
+            logger.error('Failed to load project', {
+                id,
+                message: error.message,
+            });
+        }
         return (
             <div className="space-y-6">
                 <div>
@@ -104,17 +121,26 @@ export function ProjectDetailPage() {
                     <CardHeader>
                         <CardTitle className="text-destructive">Error loading project</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
                         <p className="text-sm text-destructive">
                             {error?.message ?? 'Project not found'}
                         </p>
-                        <Button
-                            variant="outline"
-                            className="mt-4"
-                            onClick={() => navigate('/projects')}
-                        >
-                            Back to Projects
-                        </Button>
+                        <p className="text-sm text-muted-foreground">
+                            This error has been logged. Please try refreshing the page or contact
+                            support if the issue persists.
+                        </p>
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => refetch()}>
+                                Retry
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="mt-4"
+                                onClick={() => navigate('/projects')}
+                            >
+                                Back to Projects
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

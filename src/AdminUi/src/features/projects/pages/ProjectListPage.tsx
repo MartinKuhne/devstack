@@ -13,6 +13,9 @@ import {
 } from '@/components/ui/table';
 import { useProjects } from '@/features/projects/hooks/useProjects';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
+import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
+
+const logger = createModuleLogger('ProjectListPage');
 
 export function ProjectListPage() {
     const navigate = useNavigate();
@@ -20,10 +23,12 @@ export function ProjectListPage() {
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
     const handleRowClick = (id: string) => {
+        logger.debug('Navigating to project', { id });
         navigate(`/projects/${id}`);
     };
 
     const handleSuccess = useCallback(() => {
+        logger.info('Project created, refetching list');
         refetch();
     }, [refetch]);
 
@@ -73,6 +78,11 @@ export function ProjectListPage() {
     }
 
     if (error) {
+        const errorInfo = formatGraphQLError(error);
+        logger.error('Failed to load projects', {
+            message: errorInfo.message,
+            details: errorInfo.details,
+        });
         return (
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -80,14 +90,21 @@ export function ProjectListPage() {
                         <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
                         <p className="text-muted-foreground">Manage your development projects.</p>
                     </div>
-                    <Button>New Project</Button>
+                    <Button onClick={() => refetch()}>Retry</Button>
                 </div>
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-destructive">Error loading projects</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
                         <p className="text-sm text-destructive">{error.message}</p>
+                        <p className="text-sm text-muted-foreground">
+                            This error has been logged. Please try refreshing the page or contact
+                            support if the issue persists.
+                        </p>
+                        <Button variant="outline" onClick={() => refetch()}>
+                            Retry
+                        </Button>
                     </CardContent>
                 </Card>
             </div>

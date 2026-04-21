@@ -27,6 +27,9 @@ import { useDeliverables } from '../hooks/useDeliverables';
 import { toast } from 'react-toastify';
 import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
 import { DELIVERABLE_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import { createModuleLogger } from '@/lib/logging';
+
+const logger = createModuleLogger('DeliverableListPage');
 
 const TYPE_LABELS: Record<string, string> = {
     FEATURE: 'Feature',
@@ -54,6 +57,7 @@ export function DeliverableListPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this deliverable?')) return;
         setDeleting(true);
+        logger.info('Deleting deliverable', { id });
         try {
             const response = await fetch('/graphql', {
                 method: 'POST',
@@ -65,12 +69,22 @@ export function DeliverableListPage() {
             });
             const result = await response.json();
             if (result?.data?.deleteDeliverable?.errors?.length) {
-                toast.error(result.data.deleteDeliverable.errors.join(', '));
+                const errorMessage = result.data.deleteDeliverable.errors.join(', ');
+                logger.warn('Failed to delete deliverable', {
+                    id,
+                    errors: result.data.deleteDeliverable.errors,
+                });
+                toast.error(errorMessage);
             } else {
+                logger.info('Deliverable deleted successfully', { id });
                 toast.success('Deliverable deleted successfully');
                 refetch();
             }
         } catch (err) {
+            logger.error('Failed to delete deliverable', {
+                id,
+                error: err instanceof Error ? err.message : String(err),
+            });
             toast.error(err instanceof Error ? err.message : 'Failed to delete deliverable');
         } finally {
             setDeleting(false);
@@ -195,7 +209,16 @@ export function DeliverableListPage() {
                 </CardHeader>
                 <CardContent>
                     {error ? (
-                        <p className="text-sm text-destructive">{error.message}</p>
+                        <div className="space-y-4">
+                            <p className="text-sm text-destructive">{error.message}</p>
+                            <p className="text-sm text-muted-foreground">
+                                This error has been logged. Please try refreshing the page or
+                                contact support.
+                            </p>
+                            <Button variant="outline" onClick={() => refetch()}>
+                                Retry
+                            </Button>
+                        </div>
                     ) : loading ? (
                         <Table>
                             <TableHeader>

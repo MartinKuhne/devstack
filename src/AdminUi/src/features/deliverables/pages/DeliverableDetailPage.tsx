@@ -6,7 +6,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useDeliverable } from '../hooks/useDeliverable';
 import { EditDeliverableDialog } from '../components/EditDeliverableDialog';
 import { useState } from 'react';
-import { useTransitionDeliverableStatusMutation, type DeliverableStatus } from '@/generated/graphql';
+import {
+    useTransitionDeliverableStatusMutation,
+    type DeliverableStatus,
+} from '@/generated/graphql';
 import {
     Select,
     SelectContent,
@@ -17,23 +20,42 @@ import {
 import { toast } from 'react-toastify';
 import { useAgentTasksByDeliverable } from '@/features/agentTasks/hooks/useAgentTasksByDeliverable';
 import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
-import { DELIVERABLE_STATUS_COLORS, AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import {
+    DELIVERABLE_STATUS_COLORS,
+    AGENT_TASK_STATUS_COLORS,
+    getStatusColor,
+} from '@/lib/constants';
+import { createModuleLogger } from '@/lib/logging';
+
+const logger = createModuleLogger('DeliverableDetailPage');
 
 export function DeliverableDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { deliverable, loading, error, refetch } = useDeliverable(id ?? '');
-    const { agentTasks, loading: agentTasksLoading, error: agentTasksError, refetch: refetchAgentTasks } = useAgentTasksByDeliverable(id ?? '');
+    const {
+        agentTasks,
+        loading: agentTasksLoading,
+        error: agentTasksError,
+        refetch: refetchAgentTasks,
+    } = useAgentTasksByDeliverable(id ?? '');
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
-    const [transitionDeliverableStatus, { loading: transitionLoading }] = useTransitionDeliverableStatusMutation();
+    const [transitionDeliverableStatus, { loading: transitionLoading }] =
+        useTransitionDeliverableStatusMutation();
     const [selectedStatus, setSelectedStatus] = useState('');
     const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
     const handleDelete = async () => {
         if (!deliverable?.id) return;
-        if (!confirm('Are you sure you want to delete this deliverable? This action cannot be undone.')) return;
+        if (
+            !confirm(
+                'Are you sure you want to delete this deliverable? This action cannot be undone.'
+            )
+        )
+            return;
         setDeleting(true);
+        logger.info('Deleting deliverable', { id: deliverable.id, title: deliverable.title });
         try {
             const response = await fetch('/graphql', {
                 method: 'POST',
@@ -45,8 +67,14 @@ export function DeliverableDetailPage() {
             });
             const result = await response.json();
             if (result?.data?.deleteDeliverable?.errors?.length) {
-                toast.error(result.data.deleteDeliverable.errors.join(', '));
+                const errorMessage = result.data.deleteDeliverable.errors.join(', ');
+                logger.warn('Failed to delete deliverable', {
+                    id: deliverable.id,
+                    errors: result.data.deleteDeliverable.errors,
+                });
+                toast.error(errorMessage);
             } else {
+                logger.info('Deliverable deleted successfully', { id: deliverable.id });
                 toast.success('Deliverable deleted successfully');
                 navigate('/deliverables');
             }
@@ -85,11 +113,19 @@ export function DeliverableDetailPage() {
                 </div>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-destructive">Error loading deliverable</CardTitle>
+                        <CardTitle className="text-destructive">
+                            Error loading deliverable
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-destructive">{error?.message ?? 'Deliverable not found'}</p>
-                        <Button variant="outline" className="mt-4" onClick={() => navigate('/deliverables')}>
+                        <p className="text-sm text-destructive">
+                            {error?.message ?? 'Deliverable not found'}
+                        </p>
+                        <Button
+                            variant="outline"
+                            className="mt-4"
+                            onClick={() => navigate('/deliverables')}
+                        >
                             Back to Deliverables
                         </Button>
                     </CardContent>
@@ -138,7 +174,7 @@ export function DeliverableDetailPage() {
         }
     };
 
-   return (
+    return (
         <div className="space-y-6">
             <div className="grid grid-cols-[1fr_auto_auto] gap-4 items-center border-b pb-4">
                 <h1 className="text-2xl font-bold">{deliverable.title}</h1>
@@ -147,8 +183,15 @@ export function DeliverableDetailPage() {
                     <span>{deliverable.type}</span>
                 </div>
                 <div className="text-center">
-                    <span className="text-xs uppercase text-muted-foreground block mb-1">Status</span>
-                    <Badge className={getStatusColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_COLORS)}>
+                    <span className="text-xs uppercase text-muted-foreground block mb-1">
+                        Status
+                    </span>
+                    <Badge
+                        className={getStatusColor(
+                            deliverable.status ?? undefined,
+                            DELIVERABLE_STATUS_COLORS
+                        )}
+                    >
                         {deliverable.status}
                     </Badge>
                 </div>
@@ -158,9 +201,7 @@ export function DeliverableDetailPage() {
                 <Button variant="outline" onClick={() => navigate('/deliverables')}>
                     Back to List
                 </Button>
-                <Button onClick={() => setUpdateDialogOpen(true)}>
-                    Edit
-                </Button>
+                <Button onClick={() => setUpdateDialogOpen(true)}>Edit</Button>
                 <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                     Delete
                 </Button>
@@ -204,7 +245,9 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Description</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.description}</p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.description}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -215,7 +258,9 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Acceptance Criteria</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.acceptanceCriteria}</p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.acceptanceCriteria}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -226,7 +271,9 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Execution Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.executionPlan}</p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.executionPlan}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -237,7 +284,9 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Security Impact</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.securityImpact}</p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.securityImpact}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -248,7 +297,9 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Performance Impact</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.performanceImpact}</p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.performanceImpact}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -259,7 +310,9 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Test Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.testPlan}</p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.testPlan}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -270,7 +323,9 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Deployment Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.deploymentPlan}</p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.deploymentPlan}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -281,7 +336,9 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Agent Feedback</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.agentFeedback}</p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.agentFeedback}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -292,7 +349,9 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Blocking</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{deliverable.blocking}</p>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.blocking}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -303,14 +362,19 @@ export function DeliverableDetailPage() {
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Agent Tasks</CardTitle>
-                                <Button onClick={() => setCreateAgentTaskDialogOpen(true)} size="sm">
+                                <Button
+                                    onClick={() => setCreateAgentTaskDialogOpen(true)}
+                                    size="sm"
+                                >
                                     New
                                 </Button>
                             </div>
                         </CardHeader>
                         <CardContent>
                             {agentTasksError ? (
-                                <p className="text-sm text-destructive">{agentTasksError.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {agentTasksError.message}
+                                </p>
                             ) : agentTasksLoading ? (
                                 <div className="space-y-2">
                                     {[1, 2, 3].map((item) => (
@@ -323,22 +387,35 @@ export function DeliverableDetailPage() {
                                         <div
                                             key={task.id ?? ''}
                                             className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 cursor-pointer"
-                                            onClick={() => task.id && navigate(`/agent-tasks/${task.id}`)}
+                                            onClick={() =>
+                                                task.id && navigate(`/agent-tasks/${task.id}`)
+                                            }
                                         >
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium truncate">{task.title}</p>
+                                                <p className="text-sm font-medium truncate">
+                                                    {task.title}
+                                                </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)} tokens
+                                                    {(task.promptTokens ?? 0) +
+                                                        (task.completionTokens ?? 0)}{' '}
+                                                    tokens
                                                 </p>
                                             </div>
-                                            <Badge className={getStatusColor(task.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
+                                            <Badge
+                                                className={getStatusColor(
+                                                    task.status ?? undefined,
+                                                    AGENT_TASK_STATUS_COLORS
+                                                )}
+                                            >
                                                 {task.status}
                                             </Badge>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-muted-foreground text-sm">No agent tasks for this deliverable.</p>
+                                <p className="text-muted-foreground text-sm">
+                                    No agent tasks for this deliverable.
+                                </p>
                             )}
                         </CardContent>
                     </Card>

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useCreateDeliverableMutation } from '@/generated/graphql';
+import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +24,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+
+const logger = createModuleLogger('CreateDeliverableDialog');
 
 const deliverableSchema = z.object({
     title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
@@ -68,6 +71,7 @@ export function CreateDeliverableDialog({
 
     const onSubmit = async (data: DeliverableFormData) => {
         setServerError(null);
+        logger.info('Creating deliverable', { type: data.type, title: data.title });
 
         try {
             const result = await createDeliverable({
@@ -89,14 +93,31 @@ export function CreateDeliverableDialog({
 
             const payload = result.data?.createDeliverable;
             if (payload?.errors?.length) {
-                setServerError(payload.errors.join(', '));
+                const errorMessage = payload.errors.join(', ');
+                logger.warn('Failed to create deliverable', {
+                    type: data.type,
+                    title: data.title,
+                    errors: payload.errors,
+                });
+                setServerError(errorMessage);
                 return;
             }
 
+            logger.info('Deliverable created successfully', {
+                id: payload?.deliverable?.id,
+                title: data.title,
+            });
             reset();
             onSuccess?.(payload?.deliverable?.id ?? '');
             onOpenChange(false);
         } catch (err) {
+            const errorInfo = formatGraphQLError(err);
+            logger.error('Failed to create deliverable', {
+                type: data.type,
+                title: data.title,
+                error: errorInfo.message,
+                details: errorInfo.details,
+            });
             setServerError(err instanceof Error ? err.message : 'Failed to create deliverable');
         }
     };

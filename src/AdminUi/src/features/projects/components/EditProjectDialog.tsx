@@ -3,12 +3,22 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUpdateProjectMutation } from '@/generated/graphql';
+import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+
+const logger = createModuleLogger('EditProjectDialog');
 
 const projectSchema = z.object({
     name: z.string().min(1, 'Name is required').max(200, 'Name must be 200 characters or less'),
@@ -33,7 +43,13 @@ interface EditProjectDialogProps {
     onError?: (error: string) => void;
 }
 
-export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onError }: EditProjectDialogProps) {
+export function EditProjectDialog({
+    open,
+    onOpenChange,
+    project,
+    onSuccess,
+    onError,
+}: EditProjectDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
     const [updateProject, { loading }] = useUpdateProjectMutation();
 
@@ -60,6 +76,7 @@ export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onEr
         if (!project) return;
 
         setServerError(null);
+        logger.info('Updating project', { id: project.id, name: data.name });
 
         try {
             const result = await updateProject({
@@ -76,21 +93,32 @@ export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onEr
             const payload = result.data?.updateProject;
             if (payload?.errors?.length) {
                 const errorMessage = payload.errors.join(', ');
+                logger.warn('Failed to update project', { id: project.id, errors: payload.errors });
                 if (errorMessage.includes('NOT_FOUND')) {
                     onError?.('Project not found. It may have been deleted.');
                     onOpenChange(false);
                 } else if (errorMessage.includes('CONCURRENCY_CONFLICT')) {
-                    setServerError('The project was modified by another process. Please refresh and try again.');
+                    setServerError(
+                        'The project was modified by another process. Please refresh and try again.'
+                    );
                 } else {
                     setServerError(errorMessage);
                 }
                 return;
             }
 
+            logger.info('Project updated successfully', { id: project.id, name: data.name });
             reset();
             onSuccess?.();
             onOpenChange(false);
         } catch (err) {
+            const errorInfo = formatGraphQLError(err);
+            logger.error('Failed to update project', {
+                id: project.id,
+                name: data.name,
+                error: errorInfo.message,
+                details: errorInfo.details,
+            });
             setServerError(err instanceof Error ? err.message : 'Failed to update project');
         }
     };
@@ -119,11 +147,7 @@ export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onEr
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="name">Name *</Label>
-                            <Input
-                                id="name"
-                                {...register('name')}
-                                placeholder="My Project"
-                            />
+                            <Input id="name" {...register('name')} placeholder="My Project" />
                             {errors.name && (
                                 <p className="text-sm text-destructive">{errors.name.message}</p>
                             )}
@@ -147,17 +171,21 @@ export function EditProjectDialog({ open, onOpenChange, project, onSuccess, onEr
                                 placeholder="https://github.com/user/repo"
                             />
                             {errors.repository && (
-                                <p className="text-sm text-destructive">{errors.repository.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {errors.repository.message}
+                                </p>
                             )}
                         </div>
 
-                        {serverError && (
-                            <p className="text-sm text-destructive">{serverError}</p>
-                        )}
+                        {serverError && <p className="text-sm text-destructive">{serverError}</p>}
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleOpenChange(false)}
+                        >
                             Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>

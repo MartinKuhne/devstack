@@ -12,6 +12,9 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useProjects } from '@/features/projects/hooks/useProjects';
+import { createModuleLogger } from '@/lib/logging';
+
+const logger = createModuleLogger('AppShell');
 
 function getInitialDarkMode() {
     if (typeof window !== 'undefined') {
@@ -33,28 +36,33 @@ function SidebarContent() {
     const currentDeliverableId = location.pathname.match(/\/deliverables\/([^/]+)/)?.[1] ?? '';
 
     const handleProjectSelect = (value: string) => {
-        if (value) {
-            navigate(`/projects/${value}`);
-        } else {
+        logger.debug('Project selection changed', { projectId: value });
+        if (value === 'all') {
             navigate('/projects');
+        } else {
+            navigate(`/projects/${value}`);
         }
     };
 
     return (
         <nav className="p-4 space-y-2">
-            <Select value={currentProjectId || ''} onValueChange={handleProjectSelect}>
+            <Select value={currentProjectId || 'all'} onValueChange={handleProjectSelect}>
                 <SelectTrigger className="w-full">
                     <Folder className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Select Project" />
                 </SelectTrigger>
                 <SelectContent>
                     {loading ? (
-                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                        <SelectItem value="loading" disabled>
+                            Loading...
+                        </SelectItem>
                     ) : projects.length === 0 ? (
-                        <SelectItem value="none" disabled>No projects</SelectItem>
+                        <SelectItem value="none" disabled>
+                            No projects
+                        </SelectItem>
                     ) : (
                         <>
-                            <SelectItem value="">All Projects</SelectItem>
+                            <SelectItem value="all">All Projects</SelectItem>
                             {projects.map((project) => (
                                 <SelectItem key={project.id ?? ''} value={project.id ?? ''}>
                                     {project.name ?? 'Unnamed Project'}
@@ -175,7 +183,11 @@ export function AppShell() {
                                         <Menu className="h-5 w-5" />
                                     </Button>
                                 </SheetTrigger>
-                                <SheetContent side="left" className="w-64 p-0" aria-label="Navigation menu">
+                                <SheetContent
+                                    side="left"
+                                    className="w-64 p-0"
+                                    aria-label="Navigation menu"
+                                >
                                     <div className="flex h-16 items-center border-b px-6">
                                         <Link to="/" className="flex items-center gap-2">
                                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
