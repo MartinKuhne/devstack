@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/layout';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, BrainCircuit, Clock } from 'lucide-react';
 import { useDeliverableCounts } from '@/features/dashboard/hooks/useDeliverableCounts';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
@@ -40,20 +41,13 @@ export function DashboardPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-                    <p className="text-muted-foreground">Welcome to your DevStack dashboard.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button onClick={() => setShowCreateProject(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        New Project
-                    </Button>
-                </div>
-            </div>
-            
-            {hasData === false && (
+            <PageHeader
+                title="Dashboard"
+                description="Welcome to your DevStack dashboard."
+                actionSlot={<Button onClick={() => setShowCreateProject(true)}><Plus className="h-4 w-4 mr-2" />New Project</Button>}
+            />
+
+            {!hasData && (
                 <Card>
                     <CardContent className="pt-6">
                         <p className="text-center text-muted-foreground">No data available yet. Create your first project to get started.</p>

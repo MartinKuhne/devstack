@@ -1,10 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    PageHeader,
+    FilterBar,
+    DataPanel,
+    LoadingState,
+    ErrorState,
+} from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import {
     Table,
     TableBody,
@@ -13,15 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { CreateDeliverableDialog } from '../components/CreateDeliverableDialog';
 import { useDeliverables } from '../hooks/useDeliverables';
 import { toast } from 'react-toastify';
@@ -36,6 +33,25 @@ const TYPE_LABELS: Record<string, string> = {
     DEFECT: 'Defect',
     MAINTENANCE: 'Maintenance',
 };
+
+const TYPE_FILTER_OPTIONS = [
+    { value: 'all', label: 'All Types' },
+    { value: 'FEATURE', label: 'Feature' },
+    { value: 'DEFECT', label: 'Defect' },
+    { value: 'MAINTENANCE', label: 'Maintenance' },
+];
+
+const STATUS_FILTER_OPTIONS = [
+    { value: 'all', label: 'All Statuses' },
+    { value: 'DRAFT', label: 'Draft' },
+    { value: 'PLANNING', label: 'Planning' },
+    { value: 'READY', label: 'Ready' },
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'NEEDS_REVIEW', label: 'Needs Review' },
+    { value: 'DONE', label: 'Done' },
+    { value: 'FAILED', label: 'Failed' },
+    { value: 'REJECTED', label: 'Rejected' },
+];
 
 export function DeliverableListPage() {
     const navigate = useNavigate();
@@ -117,23 +133,23 @@ export function DeliverableListPage() {
         [searchParams, setSearchParams]
     );
 
-    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setLocalSearch(e.target.value);
+    const handleSearchChange = useCallback((value: string) => {
+        setLocalSearch(value);
     }, []);
 
-    const handleSearchSubmit = useCallback(
-        (e: React.FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
-            const newParams = new URLSearchParams(searchParams);
-            if (localSearch) {
-                newParams.set('search', localSearch);
-            } else {
-                newParams.delete('search');
-            }
-            setSearchParams(newParams);
-        },
-        [localSearch, searchParams, setSearchParams]
-    );
+    const handleSearchSubmit = useCallback(() => {
+        const newParams = new URLSearchParams(searchParams);
+        if (localSearch) {
+            newParams.set('search', localSearch);
+        } else {
+            newParams.delete('search');
+        }
+        setSearchParams(newParams);
+    }, [localSearch, searchParams, setSearchParams]);
+
+    const handleSearchClear = useCallback(() => {
+        setLocalSearch('');
+    }, []);
 
     const handleRowClick = (id: string | null | undefined) => {
         if (id) navigate(`/deliverables/${id}`);
@@ -145,169 +161,108 @@ export function DeliverableListPage() {
         return d.title?.toLowerCase().includes(searchLower) ?? false;
     });
 
+    const handleCreateDeliverable = useCallback(() => {
+        setCreateDialogOpen(true);
+    }, []);
+
+    const handleRetry = useCallback(() => {
+        refetch();
+    }, [refetch]);
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Deliverables</h2>
-                    <p className="text-muted-foreground">
-                        Manage deliverables (features, defects, maintenance).
-                    </p>
-                </div>
-                <Button onClick={() => setCreateDialogOpen(true)}>New Deliverable</Button>
-            </div>
+            <PageHeader
+                title="Deliverables"
+                description="Manage deliverables (features, defects, maintenance)."
+                actionSlot={<Button onClick={handleCreateDeliverable}>New Deliverable</Button>}
+            />
 
-            <div className="flex gap-4 items-end">
-                <div className="w-48">
-                    <Select value={typeFilter || 'all'} onValueChange={handleTypeChange}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Filter by type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Types</SelectItem>
-                            <SelectItem value="FEATURE">Feature</SelectItem>
-                            <SelectItem value="DEFECT">Defect</SelectItem>
-                            <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="w-48">
-                    <Select value={statusFilter || 'all'} onValueChange={handleStatusChange}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Filter by status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="DRAFT">Draft</SelectItem>
-                            <SelectItem value="PLANNING">Planning</SelectItem>
-                            <SelectItem value="READY">Ready</SelectItem>
-                            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                            <SelectItem value="NEEDS_REVIEW">Needs Review</SelectItem>
-                            <SelectItem value="DONE">Done</SelectItem>
-                            <SelectItem value="FAILED">Failed</SelectItem>
-                            <SelectItem value="REJECTED">Rejected</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <form onSubmit={handleSearchSubmit} className="flex-1 max-w-sm">
-                    <div className="flex gap-2">
-                        <Input
-                            placeholder="Search deliverables..."
-                            value={localSearch}
-                            onChange={handleSearchChange}
-                        />
-                        <Button type="submit" variant="secondary">
-                            Search
-                        </Button>
-                    </div>
-                </form>
-            </div>
+            <FilterBar
+                searchValue={localSearch}
+                onSearchChange={handleSearchChange}
+                onSearchSubmit={handleSearchSubmit}
+                onSearchClear={handleSearchClear}
+                selects={[
+                    {
+                        value: typeFilter || 'all',
+                        onChange: handleTypeChange,
+                        options: TYPE_FILTER_OPTIONS,
+                    },
+                    {
+                        value: statusFilter || 'all',
+                        onChange: handleStatusChange,
+                        options: STATUS_FILTER_OPTIONS,
+                    },
+                ]}
+            />
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Deliverable List</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {error ? (
-                        <div className="space-y-4">
-                            <p className="text-sm text-destructive">{error.message}</p>
-                            <p className="text-sm text-muted-foreground">
-                                This error has been logged. Please try refreshing the page or
-                                contact support.
-                            </p>
-                            <Button variant="outline" onClick={() => refetch()}>
-                                Retry
-                            </Button>
-                        </div>
-                    ) : loading ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>ID</TableHead>
+            <DataPanel title="Deliverable List">
+                {error ? (
+                    <ErrorState
+                        message={error.message}
+                        detail="This error has been logged. Please try refreshing the page or contact support."
+                        onRetry={handleRetry}
+                    />
+                ) : loading ? (
+                    <LoadingState rows={3} />
+                ) : filteredDeliverables.length > 0 ? (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Title</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>ID</TableHead>
+                                <TableHead className="w-16"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredDeliverables.map((deliverable) => (
+                                <TableRow
+                                    key={deliverable.id ?? ''}
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleRowClick(deliverable.id ?? undefined)}
+                                >
+                                    <TableCell className="font-medium">
+                                        {deliverable.title}
+                                    </TableCell>
+                                    <TableCell>
+                                        {TYPE_LABELS[deliverable.type ?? ''] ?? deliverable.type}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            className={getStatusColor(
+                                                deliverable.status ?? undefined,
+                                                DELIVERABLE_STATUS_COLORS
+                                            )}
+                                        >
+                                            {deliverable.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-xs font-mono">
+                                        {deliverable.id ?? '-'}
+                                    </TableCell>
+                                    <TableCell onClick={(e) => e.stopPropagation()}>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-destructive hover:text-destructive"
+                                            onClick={() =>
+                                                deliverable.id && handleDelete(deliverable.id)
+                                            }
+                                            disabled={deleting}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {[1, 2, 3].map((item) => (
-                                    <TableRow key={item}>
-                                        <TableCell>
-                                            <Skeleton className="h-4 w-64" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Skeleton className="h-4 w-20" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Skeleton className="h-6 w-20" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Skeleton className="h-4 w-24" />
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    ) : filteredDeliverables.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>ID</TableHead>
-                                    <TableHead className="w-16"></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredDeliverables.map((deliverable) => (
-                                    <TableRow
-                                        key={deliverable.id ?? ''}
-                                        className="cursor-pointer hover:bg-muted/50"
-                                        onClick={() => handleRowClick(deliverable.id ?? undefined)}
-                                    >
-                                        <TableCell className="font-medium">
-                                            {deliverable.title}
-                                        </TableCell>
-                                        <TableCell>
-                                            {TYPE_LABELS[deliverable.type ?? ''] ??
-                                                deliverable.type}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                className={getStatusColor(
-                                                    deliverable.status ?? undefined,
-                                                    DELIVERABLE_STATUS_COLORS
-                                                )}
-                                            >
-                                                {deliverable.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-xs font-mono">
-                                            {deliverable.id ?? '-'}
-                                        </TableCell>
-                                        <TableCell onClick={(e) => e.stopPropagation()}>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-destructive hover:text-destructive"
-                                                onClick={() =>
-                                                    deliverable.id && handleDelete(deliverable.id)
-                                                }
-                                                disabled={deleting}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        <p className="text-muted-foreground text-sm">No deliverables found.</p>
-                    )}
-                </CardContent>
-            </Card>
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                    <p className="text-muted-foreground text-sm">No deliverables found.</p>
+                )}
+            </DataPanel>
 
             <CreateDeliverableDialog
                 open={createDialogOpen}

@@ -23,6 +23,7 @@
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
 }
 
 html {
@@ -56,6 +57,41 @@ body {
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    --spacing-section: 1.5rem;
+    --spacing-section-sm: 1rem;
+    --spacing-section-lg: 2rem;
+    --spacing-card: 1.5rem;
+    --spacing-card-xs: 0.75rem;
+    --spacing-card-sm: 1rem;
+    --spacing-card-lg: 2rem;
+    --spacing-field: 0.5rem;
+    --spacing-field-xs: 0.25rem;
+    --spacing-field-sm: 0.375rem;
+    --spacing-field-lg: 0.75rem;
+    --spacing-field-xl: 1rem;
+    --spacing-form: 1rem;
+    --spacing-form-sm: 0.75rem;
+    --spacing-form-lg: 1.25rem;
+    --spacing-inline-xs: 0.25rem;
+    --spacing-inline-sm: 0.5rem;
+    --spacing-inline-md: 0.75rem;
+    --spacing-inline-lg: 1rem;
+    --spacing-inline-xl: 1.5rem;
+    --spacing-inline-2xl: 2rem;
+    --spacing-inline-3xl: 2.5rem;
+    --spacing-inline-4xl: 3rem;
+    --density-compact: 0.875;
+    --density-compact-row: 2.25rem;
+    --density-compact-cell: 0.5rem;
+    --density-compact-height: 9;
+    --density-normal: 1;
+    --density-normal-row: 2.5rem;
+    --density-normal-cell: 0.75rem;
+    --density-normal-height: 10;
+    --density-spacious: 1.25;
+    --density-spacious-row: 3rem;
+    --density-spacious-cell: 1rem;
+    --density-spacious-height: 11;
 }
 
 .dark {
