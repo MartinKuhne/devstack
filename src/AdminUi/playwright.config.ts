@@ -11,7 +11,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 export default defineConfig({
     testDir: './tests/e2e',
     testMatch: '**/*.spec.ts',
-    timeout: 60000,
+    timeout: 5000,
     retries: process.env.CI ? 2 : 0,
     reporter: [
         ['html', { outputFolder: './tests/reports' }],

@@ -54,6 +54,7 @@ export function EditDeliverableDialog({
     onSuccess,
 }: EditDeliverableDialogProps) {
     const [submitting, setSubmitting] = useState(false);
+    const [serverError, setServerError] = useState<string | null>(null);
 
     const {
         register,
@@ -97,6 +98,7 @@ export function EditDeliverableDialog({
     const handleOpenChange = (newOpen: boolean) => {
         if (!newOpen) {
             resetForm();
+            setServerError(null);
         }
         onOpenChange(newOpen);
     };
@@ -133,10 +135,12 @@ export function EditDeliverableDialog({
 
             const payload = mutationResult.data?.updateDeliverable;
             if (payload?.errors?.length) {
+                const errorMessage = payload.errors.join(', ');
                 logger.warn('Failed to update deliverable', {
                     id: deliverable.id,
                     errors: payload.errors,
                 });
+                setServerError(errorMessage);
                 setSubmitting(false);
                 return;
             }
@@ -156,6 +160,7 @@ export function EditDeliverableDialog({
                 error: errorInfo.message,
                 details: errorInfo.details,
             });
+            setServerError(errorInfo.message || 'Failed to update deliverable');
         } finally {
             setSubmitting(false);
         }
@@ -174,6 +179,7 @@ export function EditDeliverableDialog({
                 </DialogHeader>
                 <form onSubmit={formHandleSubmit(handleSubmit)}>
                     <div className="grid gap-4 py-4">
+                        {serverError && <p className="text-sm text-destructive">{serverError}</p>}
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title</Label>
                             <Input id="title" {...register('title')} required />

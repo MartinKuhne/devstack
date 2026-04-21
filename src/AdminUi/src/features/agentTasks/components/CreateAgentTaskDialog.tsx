@@ -54,7 +54,7 @@ export function CreateAgentTaskDialog({
         register,
         handleSubmit,
         reset,
-        formState: { errors },
+        formState: { errors, isValid },
     } = useForm<AgentTaskFormData>({
         resolver: zodResolver(agentTaskSchema),
         defaultValues: {
@@ -202,7 +202,7 @@ export function CreateAgentTaskDialog({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={!isValid || loading}>
                             {loading ? 'Creating...' : 'Create Agent Task'}
                         </Button>
                     </DialogFooter>

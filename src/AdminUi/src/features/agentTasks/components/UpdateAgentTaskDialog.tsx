@@ -105,7 +105,12 @@ export function UpdateAgentTaskDialog({
                     errors: payload.errors,
                 });
                 if (errorMessage.includes('NOT_FOUND')) {
-                    setServerError('Agent task not found. It may have been deleted.');
+                    logger.warn('Agent task not found during update, closing dialog', {
+                        id: agentTask.id,
+                    });
+                    onSuccess?.();
+                    onOpenChange(false);
+                    return;
                 } else if (errorMessage.includes('CONCURRENCY_CONFLICT')) {
                     setServerError(
                         'The agent task was modified by another user. Please refresh and try again.'

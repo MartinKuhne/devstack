@@ -54,6 +54,10 @@ export function LargeLanguageModelDialog({
     const [maxComplexity, setMaxComplexity] = useState('3');
     const [showApiKey, setShowApiKey] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [urlError, setUrlError] = useState<string | null>(null);
+    const [modelError, setModelError] = useState<string | null>(null);
+    const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+    const [complexityError, setComplexityError] = useState<string | null>(null);
 
     const [createLargeLanguageModel, { loading: createLoading }] =
         useCreateLargeLanguageModelMutation();
@@ -70,6 +74,10 @@ export function LargeLanguageModelDialog({
         setMaxComplexity('3');
         setShowApiKey(false);
         setError(null);
+        setUrlError(null);
+        setModelError(null);
+        setApiKeyError(null);
+        setComplexityError(null);
     };
 
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -89,6 +97,10 @@ export function LargeLanguageModelDialog({
 
     const handleOpenChange = (newOpen: boolean) => {
         setError(null);
+        setUrlError(null);
+        setModelError(null);
+        setApiKeyError(null);
+        setComplexityError(null);
         if (!newOpen) {
             resetForm();
         }
@@ -96,35 +108,54 @@ export function LargeLanguageModelDialog({
     };
 
     const validateForm = () => {
+        let valid = true;
+        setUrlError(null);
+        setModelError(null);
+        setApiKeyError(null);
+        setComplexityError(null);
+
         if (!url.trim()) {
-            return { valid: false, error: 'URL is required' };
+            setUrlError('URL is required');
+            valid = false;
+        } else {
+            try {
+                new URL(url);
+            } catch {
+                setUrlError('Invalid URL format');
+                valid = false;
+            }
         }
-        try {
-            new URL(url);
-        } catch {
-            return { valid: false, error: 'Invalid URL format' };
-        }
+
         if (!modelValue.trim()) {
-            return { valid: false, error: 'Model name is required' };
+            setModelError('Model name is required');
+            valid = false;
         }
+
         if (!apiKey.trim()) {
-            return { valid: false, error: 'API key is required' };
+            setApiKeyError('API key is required');
+            valid = false;
         }
+
         const complexity = parseInt(maxComplexity, 10);
         if (isNaN(complexity) || complexity < 1 || complexity > 10) {
-            return { valid: false, error: 'Max complexity must be between 1 and 10' };
+            setComplexityError('Max complexity must be between 1 and 10');
+            valid = false;
         }
-        return { valid: true };
+
+        return { valid };
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setUrlError(null);
+        setModelError(null);
+        setApiKeyError(null);
+        setComplexityError(null);
 
         const validationResult = validateForm();
         if (!validationResult.valid) {
-            logger.warn('Validation failed', { error: validationResult.error });
-            setError(validationResult.error!);
+            logger.warn('Validation failed');
             return;
         }
 
@@ -236,6 +267,47 @@ export function LargeLanguageModelDialog({
 
     const isLoading = createLoading || updateLoading || deleteLoading;
 
+    const isFormValid =
+        url.trim() &&
+        modelValue.trim() &&
+        apiKey.trim() &&
+        !urlError &&
+        !modelError &&
+        !apiKeyError &&
+        !complexityError;
+
+    const validateField = (field: string, value: string) => {
+        switch (field) {
+            case 'url':
+                if (!value.trim()) {
+                    setUrlError('URL is required');
+                } else {
+                    try {
+                        new URL(value);
+                        setUrlError(null);
+                    } catch {
+                        setUrlError('Invalid URL format');
+                    }
+                }
+                break;
+            case 'model':
+                setModelError(value.trim() ? null : 'Model name is required');
+                break;
+            case 'apiKey':
+                setApiKeyError(value.trim() ? null : 'API key is required');
+                break;
+            case 'complexity': {
+                const complexity = parseInt(value, 10);
+                setComplexityError(
+                    isNaN(complexity) || complexity < 1 || complexity > 10
+                        ? 'Max complexity must be between 1 and 10'
+                        : null
+                );
+                break;
+            }
+        }
+    };
+
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
@@ -263,20 +335,30 @@ export function LargeLanguageModelDialog({
                             <Input
                                 id="url"
                                 value={url}
-                                onChange={(e) => setUrl(e.target.value)}
+                                onChange={(e) => {
+                                    setUrl(e.target.value);
+                                    validateField('url', e.target.value);
+                                }}
                                 placeholder="https://api.example.com/v1"
-                                required
                             />
+                            {urlError && (
+                                <p className="text-sm text-destructive">{urlError}</p>
+                            )}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="model">Model Name</Label>
                             <Input
                                 id="model"
                                 value={modelValue}
-                                onChange={(e) => setModelValue(e.target.value)}
+                                onChange={(e) => {
+                                    setModelValue(e.target.value);
+                                    validateField('model', e.target.value);
+                                }}
                                 placeholder="gpt-4o-mini"
-                                required
                             />
+                            {modelError && (
+                                <p className="text-sm text-destructive">{modelError}</p>
+                            )}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="alias">Alias (optional)</Label>
@@ -294,9 +376,11 @@ export function LargeLanguageModelDialog({
                                     id="apiKey"
                                     type={showApiKey ? 'text' : 'password'}
                                     value={apiKey}
-                                    onChange={(e) => setApiKey(e.target.value)}
+                                    onChange={(e) => {
+                                        setApiKey(e.target.value);
+                                        validateField('apiKey', e.target.value);
+                                    }}
                                     placeholder="sk-..."
-                                    required
                                 />
                                 <Button
                                     type="button"
@@ -306,10 +390,19 @@ export function LargeLanguageModelDialog({
                                     {showApiKey ? 'Hide' : 'Show'}
                                 </Button>
                             </div>
+                            {apiKeyError && (
+                                <p className="text-sm text-destructive">{apiKeyError}</p>
+                            )}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="complexity">Max Complexity (1-10)</Label>
-                            <Select value={maxComplexity} onValueChange={setMaxComplexity}>
+                            <Select
+                                value={maxComplexity}
+                                onValueChange={(value) => {
+                                    setMaxComplexity(value);
+                                    validateField('complexity', value);
+                                }}
+                            >
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
@@ -321,6 +414,9 @@ export function LargeLanguageModelDialog({
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {complexityError && (
+                                <p className="text-sm text-destructive">{complexityError}</p>
+                            )}
                         </div>
                     </div>
                     <DialogFooter>
@@ -342,7 +438,7 @@ export function LargeLanguageModelDialog({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isLoading}>
+                        <Button type="submit" disabled={isLoading || !isFormValid}>
                             {isLoading
                                 ? isEditMode
                                     ? 'Updating...'
