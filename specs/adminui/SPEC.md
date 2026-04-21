@@ -29,30 +29,30 @@ The scope of this projec
 - Integration tests for the admin UI (run with ```npm run test:e2e```)
   - The integration tests MUST run and MUST PASS do not make excuses about pre existing failures
 
-# Capabilities
+# EARS (Easy Approach to Requirements Syntax) formatted universal functional requirements
 
-Uses the data model provided by the graphql component.
-
-A supervisor can
-- Create a LargeLanguageModel
-- Edit a LargeLanguageModel
-- Delete a LargeLanguageModel
-- Create a Project
-- Edit a Project
-- Delete a Project
-- Create a Deliverable
-- Edit a Deliverable
-- Change the Status of a Deliverable
-- Delete a Deliverable
-- Create an AgentTask
-- Edit an AgentTash
-- Delete an AgentTask
-- Change the Status of an AgentTask
-- View a dashboard
-  - Count of Deliverables in Planning state
-  - Count of Deliverables in Ready state
-  - Count of Deliverables in InProgress state
-  - Count of Deliverables in NeedsReview state
+- [REQ-UI-001] The system shall provide a graphical user interface to Create a LargeLanguageModel
+- [REQ-UI-002] The system shall provide a graphical user interface to Edit a LargeLanguageModel
+- [REQ-UI-003] The system shall provide a graphical user interface to Delete a LargeLanguageModel
+- [REQ-UI-004] The system shall provide a graphical user interface to Create a Project
+- [REQ-UI-005] The system shall provide a graphical user interface to Edit a Project
+- [REQ-UI-006] The system shall provide a graphical user interface to Delete a Project
+- [REQ-UI-007] The system shall provide a graphical user interface to Create a Deliverable
+- [REQ-UI-008] The system shall provide a graphical user interface to Edit a Deliverable
+- [REQ-UI-009] The system shall provide a graphical user interface to Change the Status of a Deliverable to any of the status values that are defined by the GraphQL schema
+- [REQ-UI-010] The system shall provide a graphical user interface to Delete a Deliverable
+- [REQ-UI-011] The system shall provide a graphical user interface to Create an AgentTask
+- [REQ-UI-012] The system shall provide a graphical user interface to Edit an AgentTash
+- [REQ-UI-013] The system shall provide a graphical user interface to Delete an AgentTask
+- [REQ-UI-014] The system shall provide a graphical user interface to Change the Status of an AgentTask to any of the status values that are defined by the GraphQL schema
+- [REQ-UI-015] The system shall provide a graphical user interface to View a dashboard showing the Count of Deliverables per State each
+- [REQ-UI-016] When the user has provided valid input to create an object, the system should enable the Create button
+- [REQ-UI-017] When the user has not provided valid input to create an object, system should display the validation errors and disable the Create button
+- [REQ-UI-100] The system shall have unit tests
+- [REQ-UI-101] The system shall have integration tests that excerise the live instance of the project
+- [REQ-UI-102] When the system creates test data, it shall mark it as such by using the "[DeleteAfterTest]" text in the Title or Name of the object created
+- [REQ-UI-103] When the system is beginning to run integration tests, it shall delete the test data
+- [REQ-UI-104] When the system has finished running integration tests, it shall delete the test data
 
 # Structure
 
@@ -88,7 +88,6 @@ Deliverable detail view
 | Blocking (Text block)                  |               |
 +--------------------------------------------------------+
 
-
 # Maintenance tasks
 - Verify UI visual styles are correct
 - Ensure use of ShadCN matches best practices
@@ -109,3 +108,8 @@ Deliverable detail view
 - shadcn/ui
 - gherkin
 - playwright
+
+# Additional quality gates
+- ```npm rum build```
+- ```npm run test```
+- ```npm rum test:e2e```
