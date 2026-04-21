@@ -19,58 +19,38 @@ query GetProjects($first: Int!) {
 }
 '@
 
-$GetFeaturesQuery = @'
-query GetFeatures($projectId: UUID!, $first: Int!) {
-  features(projectId: $projectId, first: $first) {
-    nodes {
-      id
-      title
-      status
-      description
-      acceptanceCriteria
-      plan
-      featureSubtype
-      epicId
-      type
-      agentFeedback
-      executionPlan
-      securityImpact
-      performanceImpact
-      testPlan
-      deploymentPlan
-      blocking
-    }
+$GetDeliverablesByProjectIdQuery = @'
+query GetDeliverablesByProjectId($projectId: UUID!) {
+  deliverablesByProjectId(projectId: $projectId) {
+    id
+    title
+    status
+    description
+    acceptanceCriteria
+    executionPlan
+    agentFeedback
+    securityImpact
+    performanceImpact
+    testPlan
+    deploymentPlan
+    blocking
   }
 }
 '@
 
-$GetTasksQuery = @'
-query GetTasks($projectId: UUID!, $first: Int!) {
-  tasks(projectId: $projectId, first: $first) {
-    nodes {
-      id
-      title
-      status
-      deliverable
-      acceptanceCriteria
-      risks
-      itemId
-      projectId
-      result
-      errors
-      commitHash
-      complexityRating
-      dependsOnDevTask
-      promptTokens
-      completionTokens
-      executionDurationInSeconds
-      model
-      item {
-        id
-        title
-        description
-      }
-    }
+$GetAgentTasksQuery = @'
+query GetAgentTasks($itemId: UUID!) {
+  agentTasks(itemId: $itemId) {
+    id
+    title
+    status
+    description
+    result
+    errors
+    commitHash
+    complexityRating
+    deliverableId
+    projectId
   }
 }
 '@
@@ -284,15 +264,15 @@ function Invoke-PlanningPhase {
 
     $promptTemplate = Load-PromptFile "planning.prompt"
 
-    # Fetch deliverables (features) in PLANNING status
-    $result = Invoke-GraphQL -Operation $GetFeaturesQuery -Variables @{ projectId = $projectId; first = 100 }
+    # Fetch deliverables in PLANNING status
+    $result = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId }
 
     if ($result.errors) {
-        Log-Error "Failed to query features: $($result.errors -join ', ')"
+        Log-Error "Failed to query deliverables: $($result.errors -join ', ')"
         exit 1
     }
 
-    $deliverables = $result.data.features.nodes | Where-Object { $_.status -eq "PLANNING" }
+    $deliverables = $result.data.deliverablesByProjectId | Where-Object { $_.status -eq "PLANNING" }
 
     if (-not $deliverables) {
         Log-Info "No deliverables in PLANNING status found for project."
@@ -334,24 +314,44 @@ function Invoke-ExecutionPhase {
 
     $promptTemplate = Load-PromptFile "execution.prompt"
 
-    # Fetch AgentTasks (tasks) in READY status
-    $result = Invoke-GraphQL -Operation $GetTasksQuery -Variables @{ projectId = $projectId; first = 100 }
+    # Fetch all deliverables for the project
+    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId }
 
-    if ($result.errors) {
-        Log-Error "Failed to query tasks: $($result.errors -join ', ')"
+    if ($deliverablesResult.errors) {
+        Log-Error "Failed to query deliverables: $($deliverablesResult.errors -join ', ')"
         exit 1
     }
 
-    $tasks = $result.data.tasks.nodes | Where-Object { $_.status -eq "READY" }
+    $allDeliverables = $deliverablesResult.data.deliverablesByProjectId
+    if (-not $allDeliverables) {
+        Log-Info "No deliverables found for project."
+        return
+    }
 
-    if (-not $tasks) {
+    # Fetch AgentTasks for each deliverable and collect READY ones
+    $tasks = @()
+    foreach ($deliverable in $allDeliverables) {
+        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ itemId = $deliverable.id }
+        if ($taskResult.errors) {
+            Log-Error "Failed to query tasks for deliverable $($deliverable.id): $($taskResult.errors -join ', ')"
+            continue
+        }
+        $deliverableTasks = $taskResult.data.agentTasks
+        if ($deliverableTasks) {
+            $tasks += $deliverableTasks
+        }
+    }
+
+    $readyTasks = $tasks | Where-Object { $_.status -eq "READY" }
+
+    if (-not $readyTasks) {
         Log-Info "No AgentTasks in READY status found for project."
         return
     }
 
-    Log-Info "Found $($tasks.Count) AgentTask(s) in READY status."
+    Log-Info "Found $($readyTasks.Count) AgentTask(s) in READY status."
 
-    foreach ($task in $tasks) {
+    foreach ($task in $readyTasks) {
         Log-Info "Executing AgentTask: $($task.title) (ID: $($task.id))"
 
         $prompt = $promptTemplate

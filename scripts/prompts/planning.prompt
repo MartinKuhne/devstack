@@ -2,5 +2,6 @@ Plan the implementation of the Deliverable. Do not make any changes to the proje
 {{Title}}
 {{Description}}
 DeliverableId: {{DeliverableId}}
-Update the deliverable with the Plan and update all the fields with the findings. If architecture and/or technology choices are ambigous, do not create AgentTasks, change the Deliverable status to NeedsReview.
+Update the deliverable with the Plan and update all the fields with the findings. 
+If architecture and/or technology choices are ambigous, do not create AgentTasks, change the Deliverable status to NeedsReview.
 Otherwise, Create AgentTasks that can be completed by an AI agent in less than 60 minutes. Indicate the complexity of the task.
