@@ -1,5 +1,15 @@
 @import 'tailwindcss';
 
+html {
+    min-height: 100%;
+    background-color: hsl(var(--background));
+}
+
+body {
+    min-height: 100vh;
+    background-color: hsl(var(--background));
+}
+
 :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
