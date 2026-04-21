@@ -13,8 +13,10 @@ export class DeliverableListPage extends BasePage {
         this.pageTitle = page.getByRole('heading', { name: 'Deliverables', level: 2 });
         this.newDeliverableButton = page.getByRole('button', { name: /New Deliverable/ });
         this.deliverableTable = page.locator('table');
-        this.statusFilter = page.getByPlaceholder('Filter by status') || page.locator('[class*="select"] select');
-        this.typeFilter = page.getByPlaceholder('Filter by type') || page.locator('[class*="select"]').first();
+        this.statusFilter =
+            page.getByPlaceholder('Filter by status') || page.locator('[class*="select"] select');
+        this.typeFilter =
+            page.getByPlaceholder('Filter by type') || page.locator('[class*="select"]').first();
     }
 
     async navigate(): Promise<void> {
@@ -42,28 +44,32 @@ export class DeliverableListPage extends BasePage {
     async selectStatusFilter(status: string): Promise<void> {
         // Use URL params for status filter since the Select component may be hard to interact with
         if (status === 'all') {
-            await this.navigate('/deliverables');
+            await this.page.goto('/deliverables');
         } else {
-            await this.navigate(`/deliverables?status=${status}`);
+            await this.page.goto(`/deliverables?status=${status}`);
         }
     }
 }
 
 export class CreateDeliverableDialog extends BasePage {
     readonly dialog: Locator;
+    readonly typeSelect: Locator;
     readonly titleInput: Locator;
     readonly descriptionInput: Locator;
-    readonly subtypeSelect: Locator;
+    readonly acceptanceCriteriaInput: Locator;
+    readonly initialStatusSelect: Locator;
     readonly createButton: Locator;
     readonly cancelButton: Locator;
 
     constructor(page: Page) {
         super(page);
-        this.dialog = page.getByRole('dialog').filter({ hasText: /Create|Add/ });
-        this.titleInput = page.getByLabel(/Title|Name/) || page.locator('[id*="title"]') || page.locator('[id*="name"]');
-        this.descriptionInput = page.getByLabel(/Description/) || page.locator('[class*="textarea"] textarea').first();
-        this.subtypeSelect = page.getByRole('combobox').filter({ has: page.getByText(/Type|Subtype/i) }).first() || page.locator('[role="combobox"]').nth(1);
-        this.createButton = page.getByRole('button', { name: /Create|Add/ });
+        this.dialog = page.getByRole('dialog').filter({ hasText: 'Create New Deliverable' });
+        this.typeSelect = page.locator('[id="type"]');
+        this.titleInput = page.getByLabel('Title *');
+        this.descriptionInput = page.getByLabel('Description');
+        this.acceptanceCriteriaInput = page.getByLabel('Acceptance Criteria');
+        this.initialStatusSelect = page.locator('[id="initialStatus"]');
+        this.createButton = page.getByRole('button', { name: 'Create Deliverable' });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     }
 
@@ -71,21 +77,27 @@ export class CreateDeliverableDialog extends BasePage {
         return await this.dialog.isVisible();
     }
 
-    async fillForm(title: string, description?: string, subtype?: string): Promise<void> {
-        await this.titleInput.fill(title);
-        if (description) await this.descriptionInput.fill(description);
-        if (subtype) {
-            try {
-                await this.subtypeSelect.click();
-                await page.getByText(subtype).click();
-            } catch {
-                // subtype select may not be available, continue anyway
-            }
-        }
+    async selectType(type: string): Promise<void> {
+        await this.typeSelect.click();
+        await this.page.getByRole('option', { name: type }).click();
     }
 
-    async createDeliverable(title: string, description?: string): Promise<void> {
-        await this.fillForm(title, description);
+    async fillForm(
+        title: string,
+        description?: string,
+        acceptanceCriteria?: string
+    ): Promise<void> {
+        await this.titleInput.fill(title);
+        if (description) await this.descriptionInput.fill(description);
+        if (acceptanceCriteria) await this.acceptanceCriteriaInput.fill(acceptanceCriteria);
+    }
+
+    async createDeliverable(
+        title: string,
+        description?: string,
+        acceptanceCriteria?: string
+    ): Promise<void> {
+        await this.fillForm(title, description, acceptanceCriteria);
         await this.createButton.click();
     }
 
@@ -112,16 +124,28 @@ export class DeliverableDetailPage extends BasePage {
         this.deleteButton = page.getByRole('button', { name: 'Delete' });
         this.backToListLink = page.getByRole('link', { name: /Back to List|Deliverables/ }).first();
         this.statusBadge = page.locator('[class*="badge"], [class*="Badge"]');
-        this.changeStatusSelect = page.getByPlaceholder('Select new status') || page.locator('[role="combobox"]').filter({ has: page.getByText(/status/i) });
-        this.updateStatusButton = page.getByRole('button', { name: /Update Status|Change Status/ }) || page.getByRole('button', { name: 'Update Status' });
+        this.changeStatusSelect =
+            page.getByPlaceholder('Select new status') ||
+            page.locator('[role="combobox"]').filter({ has: page.getByText(/status/i) });
+        this.updateStatusButton =
+            page.getByRole('button', { name: /Update Status|Change Status/ }) ||
+            page.getByRole('button', { name: 'Update Status' });
         this.descriptionBlock = page.getByRole('heading', { name: 'Description' }).locator('..');
-        this.acceptanceCriteriaBlock = page.getByRole('heading', { name: 'Acceptance Criteria' }).locator('..');
-        this.executionPlanBlock = page.getByRole('heading', { name: 'Execution Plan' }).locator('..');
+        this.acceptanceCriteriaBlock = page
+            .getByRole('heading', { name: 'Acceptance Criteria' })
+            .locator('..');
+        this.executionPlanBlock = page
+            .getByRole('heading', { name: 'Execution Plan' })
+            .locator('..');
         this.agentTasksSection = page.getByRole('heading', { name: /Agent Tasks/ });
     }
 
-    async navigate(deliverableId: string): Promise<void> {
-        await super.navigate(`/deliverables/${deliverableId}`);
+    async navigate(deliverableId?: string): Promise<void> {
+        if (deliverableId) {
+            await super.navigate(`/deliverables/${deliverableId}`);
+        } else {
+            await super.navigate('/deliverables');
+        }
     }
 
     async waitForDetailLoaded(): Promise<void> {
@@ -137,10 +161,22 @@ export class DeliverableDetailPage extends BasePage {
     }
 
     async getStatus(): Promise<string | null> {
-        const badges = page.locator('[class*="badge"], [class*="Badge"]');
-        for (let i = 0; i < await badges.count(); i++) {
+        const badges = this.page.locator('[class*="badge"], [class*="Badge"]');
+        for (let i = 0; i < (await badges.count()); i++) {
             const text = await badges.nth(i).textContent();
-            if (text && ['DRAFT', 'PLANNING', 'READY', 'IN_PROGRESS', 'NEEDS_REVIEW', 'DONE', 'FAILED', 'REJECTED'].includes(text)) {
+            if (
+                text &&
+                [
+                    'DRAFT',
+                    'PLANNING',
+                    'READY',
+                    'IN_PROGRESS',
+                    'NEEDS_REVIEW',
+                    'DONE',
+                    'FAILED',
+                    'REJECTED',
+                ].includes(text)
+            ) {
                 return text;
             }
         }
@@ -150,16 +186,16 @@ export class DeliverableDetailPage extends BasePage {
     async changeStatus(newStatus: string): Promise<void> {
         try {
             await this.changeStatusSelect.click();
-            await page.getByText(newStatus).click();
+            await this.page.getByText(newStatus).click();
             if (await this.updateStatusButton.isVisible()) {
                 await this.updateStatusButton.click();
             } else {
                 // Status might auto-update on select
-                await page.waitForTimeout(1000);
+                await this.page.waitForTimeout(1000);
             }
         } catch {
             // Try alternative approach using the status dropdown in sidebar
-            const statusOption = page.getByRole('option', { name: newStatus }).first();
+            const statusOption = this.page.getByRole('option', { name: newStatus }).first();
             if (await statusOption.isVisible()) {
                 await statusOption.click();
             }
@@ -167,6 +203,9 @@ export class DeliverableDetailPage extends BasePage {
     }
 
     async verifyFieldVisible(fieldName: string): Promise<boolean> {
-        return await page.getByRole('heading', { name: fieldName, level: 3 }).isVisible().catch(() => false);
+        return await this.page
+            .getByRole('heading', { name: fieldName, level: 3 })
+            .isVisible()
+            .catch(() => false);
     }
 }

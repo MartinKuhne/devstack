@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
     Dialog,
     DialogContent,
@@ -12,6 +13,18 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useUpdateDeliverableMutation } from '@/generated/graphql';
+
+interface EditDeliverableFormData {
+    title: string;
+    description: string;
+    acceptanceCriteria: string;
+    executionPlan: string;
+    securityImpact: string;
+    performanceImpact: string;
+    testPlan: string;
+    deploymentPlan: string;
+    blocking: string;
+}
 
 interface EditDeliverableDialogProps {
     open: boolean;
@@ -37,97 +50,96 @@ export function EditDeliverableDialog({
     deliverable,
     onSuccess,
 }: EditDeliverableDialogProps) {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
-    const [executionPlan, setExecutionPlan] = useState('');
-    const [securityImpact, setSecurityImpact] = useState('');
-    const [performanceImpact, setPerformanceImpact] = useState('');
-    const [testPlan, setTestPlan] = useState('');
-    const [deploymentPlan, setDeploymentPlan] = useState('');
-    const [blocking, setBlocking] = useState('');
-    const [error, setError] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
 
-    const [updateDeliverable, { loading }] = useUpdateDeliverableMutation();
+    const {
+        register,
+        handleSubmit: formHandleSubmit,
+        setValue,
+        reset,
+    } = useForm<EditDeliverableFormData>({
+        defaultValues: {
+            title: '',
+            description: '',
+            acceptanceCriteria: '',
+            executionPlan: '',
+            securityImpact: '',
+            performanceImpact: '',
+            testPlan: '',
+            deploymentPlan: '',
+            blocking: '',
+        },
+    });
 
     useEffect(() => {
-        if (deliverable) {
-            setTitle(deliverable.title ?? '');
-            setDescription(deliverable.description ?? '');
-            setAcceptanceCriteria(deliverable.acceptanceCriteria ?? '');
-            setExecutionPlan(deliverable.executionPlan ?? '');
-            setSecurityImpact(deliverable.securityImpact ?? '');
-            setPerformanceImpact(deliverable.performanceImpact ?? '');
-            setTestPlan(deliverable.testPlan ?? '');
-            setDeploymentPlan(deliverable.deploymentPlan ?? '');
-            setBlocking(deliverable.blocking ?? '');
+        if (deliverable && open) {
+            setValue('title', deliverable.title ?? '');
+            setValue('description', deliverable.description ?? '');
+            setValue('acceptanceCriteria', deliverable.acceptanceCriteria ?? '');
+            setValue('executionPlan', deliverable.executionPlan ?? '');
+            setValue('securityImpact', deliverable.securityImpact ?? '');
+            setValue('performanceImpact', deliverable.performanceImpact ?? '');
+            setValue('testPlan', deliverable.testPlan ?? '');
+            setValue('deploymentPlan', deliverable.deploymentPlan ?? '');
+            setValue('blocking', deliverable.blocking ?? '');
         }
-    }, [deliverable]);
+    }, [deliverable, open, setValue]);
+
+    const [updateDeliverable] = useUpdateDeliverableMutation();
 
     const resetForm = () => {
-        setTitle('');
-        setDescription('');
-        setAcceptanceCriteria('');
-        setExecutionPlan('');
-        setSecurityImpact('');
-        setPerformanceImpact('');
-        setTestPlan('');
-        setDeploymentPlan('');
-        setBlocking('');
-        setError(null);
+        reset();
     };
 
     const handleOpenChange = (newOpen: boolean) => {
-        setError(null);
         if (!newOpen) {
             resetForm();
         }
         onOpenChange(newOpen);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-
+    const handleSubmit = async (data: EditDeliverableFormData) => {
         if (!deliverable?.id) {
-            setError('Deliverable ID is required');
             return;
         }
 
-        if (!title.trim()) {
-            setError('Title is required');
+        if (!data.title.trim()) {
             return;
         }
+
+        setSubmitting(true);
 
         try {
             const mutationResult = await updateDeliverable({
                 variables: {
                     input: {
                         id: deliverable.id,
-                        title,
-                        description: description || null,
-                        acceptanceCriteria: acceptanceCriteria || null,
-                        executionPlan: executionPlan || null,
-                        securityImpact: securityImpact || null,
-                        performanceImpact: performanceImpact || null,
-                        testPlan: testPlan || null,
-                        deploymentPlan: deploymentPlan || null,
-                        blocking: blocking || null,
+                        title: data.title,
+                        description: data.description || null,
+                        acceptanceCriteria: data.acceptanceCriteria || null,
+                        executionPlan: data.executionPlan || null,
+                        securityImpact: data.securityImpact || null,
+                        performanceImpact: data.performanceImpact || null,
+                        testPlan: data.testPlan || null,
+                        deploymentPlan: data.deploymentPlan || null,
+                        blocking: data.blocking || null,
                     },
                 },
             });
 
             const payload = mutationResult.data?.updateDeliverable;
             if (payload?.errors?.length) {
-                setError(payload.errors.join(', '));
+                setSubmitting(false);
                 return;
             }
 
             resetForm();
             onOpenChange(false);
             onSuccess();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+        } catch (error) {
+            console.error('Failed to update deliverable:', error);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -142,51 +154,33 @@ export function EditDeliverableDialog({
                     <DialogTitle>Edit Deliverable</DialogTitle>
                     <DialogDescription>Update the deliverable details.</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={formHandleSubmit(handleSubmit)}>
                     <div className="grid gap-4 py-4">
-                        {error && <div className="text-sm text-destructive">{error}</div>}
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title</Label>
-                            <Input
-                                id="title"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                required
-                            />
+                            <Input id="title" {...register('title')} required />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="description">Description</Label>
-                            <Textarea
-                                id="description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                rows={3}
-                            />
+                            <Textarea id="description" {...register('description')} rows={3} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label>
                             <Textarea
                                 id="acceptanceCriteria"
-                                value={acceptanceCriteria}
-                                onChange={(e) => setAcceptanceCriteria(e.target.value)}
+                                {...register('acceptanceCriteria')}
                                 rows={3}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="executionPlan">Execution Plan</Label>
-                            <Textarea
-                                id="executionPlan"
-                                value={executionPlan}
-                                onChange={(e) => setExecutionPlan(e.target.value)}
-                                rows={3}
-                            />
+                            <Textarea id="executionPlan" {...register('executionPlan')} rows={3} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="securityImpact">Security Impact</Label>
                             <Textarea
                                 id="securityImpact"
-                                value={securityImpact}
-                                onChange={(e) => setSecurityImpact(e.target.value)}
+                                {...register('securityImpact')}
                                 rows={2}
                             />
                         </div>
@@ -194,37 +188,25 @@ export function EditDeliverableDialog({
                             <Label htmlFor="performanceImpact">Performance Impact</Label>
                             <Textarea
                                 id="performanceImpact"
-                                value={performanceImpact}
-                                onChange={(e) => setPerformanceImpact(e.target.value)}
+                                {...register('performanceImpact')}
                                 rows={2}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="testPlan">Test Plan</Label>
-                            <Textarea
-                                id="testPlan"
-                                value={testPlan}
-                                onChange={(e) => setTestPlan(e.target.value)}
-                                rows={3}
-                            />
+                            <Textarea id="testPlan" {...register('testPlan')} rows={3} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="deploymentPlan">Deployment Plan</Label>
                             <Textarea
                                 id="deploymentPlan"
-                                value={deploymentPlan}
-                                onChange={(e) => setDeploymentPlan(e.target.value)}
+                                {...register('deploymentPlan')}
                                 rows={3}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="blocking">Blocking</Label>
-                            <Textarea
-                                id="blocking"
-                                value={blocking}
-                                onChange={(e) => setBlocking(e.target.value)}
-                                rows={2}
-                            />
+                            <Textarea id="blocking" {...register('blocking')} rows={2} />
                         </div>
                     </div>
                     <DialogFooter>
@@ -235,8 +217,8 @@ export function EditDeliverableDialog({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? 'Saving...' : 'Save Changes'}
+                        <Button type="submit" disabled={submitting}>
+                            {submitting ? 'Saving...' : 'Save Changes'}
                         </Button>
                     </DialogFooter>
                 </form>

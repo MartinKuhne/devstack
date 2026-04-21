@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { LargeLanguageModelsPage, LargeLanguageModelDialog } from '../pages/LargeLanguageModelsPage.js';
-import { NavigationHelper } from '../helpers/NavigationHelper.js';
+import { LargeLanguageModelsPage, LargeLanguageModelDialog } from './pages/LargeLanguageModelsPage.js';
+import { NavigationHelper } from './helpers/NavigationHelper.js';
 
 test.describe('Large Language Model CRUD', () => {
     let llmPage: LargeLanguageModelsPage;

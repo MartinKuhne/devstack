@@ -28,7 +28,8 @@ export class ProjectListPage extends BasePage {
     }
 
     async clickProjectRow(projectName: string): Promise<void> {
-        const row = this.projectTable.getByRole('row').filter({ hasText: projectName }).first();
+        const row = this.page.getByRole('row').filter({ hasText: projectName }).first();
+        await row.waitFor({ state: 'visible', timeout: 10000 });
         await row.click();
     }
 
@@ -42,9 +43,7 @@ export class CreateProjectDialog extends BasePage {
     readonly dialog: Locator;
     readonly nameInput: Locator;
     readonly descriptionInput: Locator;
-    readonly architectureInput: Locator;
-    readonly memoryInput: Locator;
-    readonly githubUrlInput: Locator;
+    readonly repositoryInput: Locator;
     readonly createButton: Locator;
     readonly cancelButton: Locator;
     readonly nameError: Locator;
@@ -54,28 +53,27 @@ export class CreateProjectDialog extends BasePage {
         this.dialog = page.getByRole('dialog').filter({ hasText: 'Create New Project' });
         this.nameInput = page.getByLabel('Name *');
         this.descriptionInput = page.getByLabel('Description');
-        this.architectureInput = page.getByLabel('Architecture');
-        this.memoryInput = page.getByLabel('Memory');
-        this.githubUrlInput = page.getByLabel('GitHub URL');
+        this.repositoryInput = page.getByLabel('Repository URL');
         this.createButton = page.getByRole('button', { name: 'Create Project' });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
-        this.nameError = page.locator('[class*="text-destructive"]').filter({ hasText: 'Name is required' }).first();
+        this.nameError = page
+            .locator('[class*="text-destructive"]')
+            .filter({ hasText: 'Name is required' })
+            .first();
     }
 
     async isOpen(): Promise<boolean> {
         return await this.dialog.isVisible();
     }
 
-    async fillForm(name: string, description?: string, architecture?: string, memory?: string, githubUrl?: string): Promise<void> {
+    async fillForm(name: string, description?: string, repository?: string): Promise<void> {
         await this.nameInput.fill(name);
         if (description) await this.descriptionInput.fill(description);
-        if (architecture) await this.architectureInput.fill(architecture);
-        if (memory) await this.memoryInput.fill(memory);
-        if (githubUrl) await this.githubUrlInput.fill(githubUrl);
+        if (repository) await this.repositoryInput.fill(repository);
     }
 
-    async createProject(name: string, description?: string, architecture?: string, memory?: string, githubUrl?: string): Promise<void> {
-        await this.fillForm(name, description, architecture, memory, githubUrl);
+    async createProject(name: string, description?: string, repository?: string): Promise<void> {
+        await this.fillForm(name, description, repository);
         await this.createButton.click();
     }
 
@@ -85,15 +83,43 @@ export class CreateProjectDialog extends BasePage {
 }
 
 export class ProjectDetailPage extends BasePage {
+    readonly pageTitle: Locator;
+    readonly repositoryLink: Locator;
     readonly editButton: Locator;
     readonly deleteButton: Locator;
-    readonly backToProjectsLink: Locator;
+    readonly backToProjectsButton: Locator;
+    readonly tabsList: Locator;
+    readonly deliverablesTab: Locator;
+    readonly agentTasksTab: Locator;
+    readonly modelsTab: Locator;
+    readonly deliverablesTabContent: Locator;
+    readonly agentTasksTabContent: Locator;
+    readonly modelsTabContent: Locator;
+    readonly newDeliverableButton: Locator;
+    readonly newAgentTaskButton: Locator;
 
     constructor(page: Page) {
         super(page);
+        this.pageTitle = page.getByRole('heading', { level: 2 }).first();
+        this.repositoryLink = page.locator('a[href^="http"]').first();
         this.editButton = page.getByRole('button', { name: 'Edit' });
         this.deleteButton = page.getByRole('button', { name: 'Delete' });
-        this.backToProjectsLink = page.getByRole('link', { name: /Projects/ }).first();
+        this.backToProjectsButton = page.getByRole('button', { name: 'Back to Projects' });
+        this.tabsList = page.getByRole('tablist').first();
+        this.deliverablesTab = this.page.getByRole('tab', { name: 'Deliverables' });
+        this.agentTasksTab = this.page.getByRole('tab', { name: 'Agent Tasks' });
+        this.modelsTab = this.page.getByRole('tab', { name: 'Models' });
+        this.deliverablesTabContent = this.page
+            .getByRole('tabpanel', { name: 'Deliverables' })
+            .or(this.page.locator('[data-state="active"]').first());
+        this.agentTasksTabContent = this.page
+            .getByRole('tabpanel', { name: 'Agent Tasks' })
+            .or(this.page.locator('[data-state="active"]'));
+        this.modelsTabContent = this.page
+            .getByRole('tabpanel', { name: 'Models' })
+            .or(this.page.locator('[data-state="active"]'));
+        this.newDeliverableButton = this.page.getByRole('button', { name: 'New Deliverable' });
+        this.newAgentTaskButton = this.page.getByRole('button', { name: 'New Agent Task' });
     }
 
     async clickEdit(): Promise<void> {
@@ -101,7 +127,27 @@ export class ProjectDetailPage extends BasePage {
     }
 
     async clickBack(): Promise<void> {
-        await this.backToProjectsLink.click();
+        await this.backToProjectsButton.click();
+    }
+
+    async clickTab(tabName: string): Promise<void> {
+        const tab = this.page.getByRole('tab', { name: tabName });
+        await tab.click();
+        await this.page.waitForTimeout(500);
+    }
+
+    async getProjectName(): Promise<string> {
+        return await this.pageTitle.textContent();
+    }
+
+    async isTabSelected(tabName: string): Promise<boolean> {
+        const tab = this.page.getByRole('tab', { name: tabName });
+        const state = await tab.getAttribute('data-state');
+        return state === 'active';
+    }
+
+    async getTabCount(): Promise<number> {
+        return await this.page.getByRole('tab').count();
     }
 }
 
@@ -115,7 +161,9 @@ export class EditProjectDialog extends BasePage {
         super(page);
         this.dialog = page.getByRole('dialog').filter({ hasText: /Edit Project/i });
         this.nameInput = page.getByLabel('Name *');
-        this.saveButton = page.getByRole('button', { name: /Save|Update/ }) || page.getByRole('button', { name: 'Save Changes' });
+        this.saveButton =
+            page.getByRole('button', { name: /Save|Update/ }) ||
+            page.getByRole('button', { name: 'Save Changes' });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     }
 

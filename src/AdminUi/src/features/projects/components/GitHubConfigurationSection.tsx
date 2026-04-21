@@ -27,10 +27,11 @@ export function GitHubConfigurationSection({ project }: GitHubConfigurationSecti
         }
         setIsUpdating(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 500));
             setTokenValue('');
             setShowToken(false);
-        } catch {
+        } catch (error) {
+            console.error('Failed to refresh token:', error);
         } finally {
             setIsUpdating(false);
         }
@@ -59,11 +60,12 @@ export function GitHubConfigurationSection({ project }: GitHubConfigurationSecti
                                 disabled
                                 className="bg-muted"
                             />
-                            <Button
-                                variant="outline"
-                                asChild
-                            >
-                                <a href={project.repository} target="_blank" rel="noopener noreferrer">
+                            <Button variant="outline" asChild>
+                                <a
+                                    href={project.repository}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
                                     Open
                                 </a>
                             </Button>
@@ -97,7 +99,11 @@ export function GitHubConfigurationSection({ project }: GitHubConfigurationSecti
                                 onClick={() => setShowToken(!showToken)}
                                 type="button"
                             >
-                                {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {showToken ? (
+                                    <EyeOff className="h-4 w-4" />
+                                ) : (
+                                    <Eye className="h-4 w-4" />
+                                )}
                             </Button>
                         </div>
                         <Button
@@ -119,7 +125,8 @@ export function GitHubConfigurationSection({ project }: GitHubConfigurationSecti
                         </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                        Token is encrypted before storage. {showToken ? 'Token is visible.' : 'Token is masked for security.'}
+                        Token is encrypted before storage.{' '}
+                        {showToken ? 'Token is visible.' : 'Token is masked for security.'}
                     </p>
                 </div>
             </CardContent>

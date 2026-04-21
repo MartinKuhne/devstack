@@ -87,7 +87,7 @@ public class SchemaSnapshotTests : IAsyncLifetime
     public async Task Schema_Snapshot_Does_Not_Change_Unintentionally()
     {
         var query = new Query();
-        var mutation = new Mutation();
+        var mutation = new Mutation(_dbContext!);
 
         var projects = query.GetProjects(_dbContext!, first: 10);
 
