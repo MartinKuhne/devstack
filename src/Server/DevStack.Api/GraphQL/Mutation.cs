@@ -124,6 +124,13 @@ public record CleanupTestDataPayload(bool Success, string? Message);
 
 public class Mutation
 {
+    private readonly DevStackDbContext _dbContext;
+
+    public Mutation(DevStackDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
     public async Task<ProjectPayload> CreateProjectAsync(
         CreateProjectInput input,
         [Service] ICreateProjectHandler handler,
@@ -147,7 +154,7 @@ public class Mutation
                 input.Description,
                 input.Repository), cancellationToken);
 
-            var project = new Project { Id = id };
+            var project = await _dbContext.Projects.FindAsync(id, cancellationToken);
             return new ProjectPayload(project, new List<string>());
         }
         catch (Exception ex)
@@ -177,7 +184,7 @@ public class Mutation
                 input.Description,
                 input.Repository), cancellationToken);
 
-            var project = new Project { Id = input.Id };
+            var project = await _dbContext.Projects.FindAsync(input.Id, cancellationToken);
             return new ProjectPayload(project, new List<string>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))

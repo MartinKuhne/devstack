@@ -12,7 +12,10 @@ export class NavigationHelper extends BasePage {
         this.dashboardLink = page.getByRole('link', { name: /Dashboard/ }).first();
         this.projectsLink = page.getByRole('link', { name: /Projects/ }).first();
         this.modelsLink = page.getByRole('link', { name: /Large Language Models/ });
-        this.projectDropdown = page.locator('[role="combobox"]').filter({ has: page.getByText(/Select Project/) }).first();
+        this.projectDropdown = page
+            .locator('[role="combobox"]')
+            .filter({ has: page.getByText(/Select Project/) })
+            .first();
     }
 
     async navigateToDashboard(): Promise<void> {
@@ -27,12 +30,16 @@ export class NavigationHelper extends BasePage {
         await super.navigate('/models');
     }
 
+    async navigateToDeliverables(): Promise<void> {
+        await super.navigate('/deliverables');
+    }
+
     async selectProject(projectName: string): Promise<void> {
         try {
             if (await this.projectDropdown.isVisible()) {
                 await this.projectDropdown.click();
-                await page.getByText(projectName).click();
-                await page.waitForTimeout(500);
+                await this.page.getByText(projectName).click();
+                await this.page.waitForTimeout(500);
             }
         } catch {
             // Project dropdown may not be available on all pages
