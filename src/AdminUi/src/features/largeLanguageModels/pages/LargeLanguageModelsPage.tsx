@@ -4,12 +4,16 @@ import { Button } from '@/components/ui/button';
 import { LargeLanguageModelList } from '../components/LargeLanguageModelList';
 import { LargeLanguageModelDialog } from '../components/LargeLanguageModelDialog';
 import { useLargeLanguageModels } from '../hooks/useLargeLanguageModels';
+import { createModuleLogger } from '@/lib/logging';
+
+const logger = createModuleLogger('LargeLanguageModelsPage');
 
 export function LargeLanguageModelsPage() {
     const [addDialogOpen, setAddDialogOpen] = useState(false);
     const { refetch } = useLargeLanguageModels();
 
     const handleRefetch = useCallback(() => {
+        logger.info('Refetching LLM configurations');
         refetch();
     }, [refetch]);
 
@@ -18,7 +22,9 @@ export function LargeLanguageModelsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Large Language Models</h2>
-                    <p className="text-muted-foreground">Configure AI model endpoints for the automation system.</p>
+                    <p className="text-muted-foreground">
+                        Configure AI model endpoints for the automation system.
+                    </p>
                 </div>
                 <Button onClick={() => setAddDialogOpen(true)}>Add Model</Button>
             </div>

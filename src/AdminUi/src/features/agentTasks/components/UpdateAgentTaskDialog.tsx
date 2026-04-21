@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUpdateAgentTaskMutation } from '@/generated/graphql';
+import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +17,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+
+const logger = createModuleLogger('UpdateAgentTaskDialog');
 
 const agentTaskSchema = z.object({
     title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
@@ -79,6 +82,7 @@ export function UpdateAgentTaskDialog({
         if (!agentTask) return;
 
         setServerError(null);
+        logger.info('Updating agent task', { id: agentTask.id, title: data.title });
 
         try {
             const result = await updateAgentTask({
@@ -96,6 +100,10 @@ export function UpdateAgentTaskDialog({
             const payload = result.data?.updateAgentTask;
             if (payload?.errors?.length) {
                 const errorMessage = payload.errors.join(', ');
+                logger.warn('Failed to update agent task', {
+                    id: agentTask.id,
+                    errors: payload.errors,
+                });
                 if (errorMessage.includes('NOT_FOUND')) {
                     setServerError('Agent task not found. It may have been deleted.');
                 } else if (errorMessage.includes('CONCURRENCY_CONFLICT')) {
@@ -108,9 +116,17 @@ export function UpdateAgentTaskDialog({
                 return;
             }
 
+            logger.info('Agent task updated successfully', { id: agentTask.id, title: data.title });
             onSuccess?.();
             onOpenChange(false);
         } catch (err) {
+            const errorInfo = formatGraphQLError(err);
+            logger.error('Failed to update agent task', {
+                id: agentTask.id,
+                title: data.title,
+                error: errorInfo.message,
+                details: errorInfo.details,
+            });
             setServerError(err instanceof Error ? err.message : 'Failed to update agent task');
         }
     };

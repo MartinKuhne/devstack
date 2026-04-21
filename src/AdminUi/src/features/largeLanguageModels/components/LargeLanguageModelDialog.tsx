@@ -1,10 +1,30 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    DialogDescription,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCreateLargeLanguageModelMutation, useUpdateLargeLanguageModelMutation, useDeleteLargeLanguageModelMutation } from '@/generated/graphql';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    useCreateLargeLanguageModelMutation,
+    useUpdateLargeLanguageModelMutation,
+    useDeleteLargeLanguageModelMutation,
+} from '@/generated/graphql';
+import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
+
+const logger = createModuleLogger('LargeLanguageModelDialog');
 
 interface LargeLanguageModelDialogProps {
     open: boolean;
@@ -35,9 +55,12 @@ export function LargeLanguageModelDialog({
     const [showApiKey, setShowApiKey] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [createLargeLanguageModel, { loading: createLoading }] = useCreateLargeLanguageModelMutation();
-    const [updateLargeLanguageModel, { loading: updateLoading }] = useUpdateLargeLanguageModelMutation();
-    const [deleteLargeLanguageModel, { loading: deleteLoading }] = useDeleteLargeLanguageModelMutation();
+    const [createLargeLanguageModel, { loading: createLoading }] =
+        useCreateLargeLanguageModelMutation();
+    const [updateLargeLanguageModel, { loading: updateLoading }] =
+        useUpdateLargeLanguageModelMutation();
+    const [deleteLargeLanguageModel, { loading: deleteLoading }] =
+        useDeleteLargeLanguageModelMutation();
 
     const resetForm = () => {
         setModelValue('');
@@ -49,7 +72,7 @@ export function LargeLanguageModelDialog({
         setError(null);
     };
 
-   /* eslint-disable react-hooks/set-state-in-effect */
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (open && model) {
             setModelValue(model.model);
@@ -100,12 +123,14 @@ export function LargeLanguageModelDialog({
 
         const validationResult = validateForm();
         if (!validationResult.valid) {
+            logger.warn('Validation failed', { error: validationResult.error });
             setError(validationResult.error!);
             return;
         }
 
         try {
             if (isEditMode && model) {
+                logger.info('Updating LLM model', { id: model.id, model: modelValue });
                 const result = await updateLargeLanguageModel({
                     variables: {
                         input: {
@@ -121,10 +146,17 @@ export function LargeLanguageModelDialog({
                 });
                 const payload = result.data?.updateLargeLanguageModel;
                 if (payload?.errors?.length) {
-                    setError(payload.errors.join(', '));
+                    const errorMessage = payload.errors.join(', ');
+                    logger.warn('Failed to update LLM model', {
+                        id: model.id,
+                        errors: payload.errors,
+                    });
+                    setError(errorMessage);
                     return;
                 }
+                logger.info('LLM model updated successfully', { id: model.id, model: modelValue });
             } else {
+                logger.info('Creating LLM model', { model: modelValue });
                 const result = await createLargeLanguageModel({
                     variables: {
                         input: {
@@ -139,15 +171,30 @@ export function LargeLanguageModelDialog({
                 });
                 const payload = result.data?.createLargeLanguageModel;
                 if (payload?.errors?.length) {
-                    setError(payload.errors.join(', '));
+                    const errorMessage = payload.errors.join(', ');
+                    logger.warn('Failed to create LLM model', {
+                        model: modelValue,
+                        errors: payload.errors,
+                    });
+                    setError(errorMessage);
                     return;
                 }
+                logger.info('LLM model created successfully', {
+                    model: modelValue,
+                });
             }
 
             resetForm();
             onOpenChange(false);
             onSuccess();
         } catch (err) {
+            const errorInfo = formatGraphQLError(err);
+            logger.error('Failed to save LLM model', {
+                isEdit: isEditMode,
+                model: modelValue,
+                error: errorInfo.message,
+                details: errorInfo.details,
+            });
             setError(err instanceof Error ? err.message : 'An unexpected error occurred');
         }
     };
@@ -155,6 +202,8 @@ export function LargeLanguageModelDialog({
     const handleDelete = async () => {
         if (!model) return;
         setError(null);
+
+        logger.info('Deleting LLM model', { id: model.id, model: model.model });
 
         try {
             const result = await deleteLargeLanguageModel({
@@ -164,13 +213,23 @@ export function LargeLanguageModelDialog({
             });
             const payload = result.data?.deleteLargeLanguageModel;
             if (payload?.errors?.length) {
-                setError(payload.errors.join(', '));
+                const errorMessage = payload.errors.join(', ');
+                logger.warn('Failed to delete LLM model', { id: model.id, errors: payload.errors });
+                setError(errorMessage);
                 return;
             }
+            logger.info('LLM model deleted successfully', { id: model.id });
             resetForm();
             onOpenChange(false);
             onSuccess();
         } catch (err) {
+            const errorInfo = formatGraphQLError(err);
+            logger.error('Failed to delete LLM model', {
+                id: model.id,
+                model: model.model,
+                error: errorInfo.message,
+                details: errorInfo.details,
+            });
             setError(err instanceof Error ? err.message : 'Failed to delete model');
         }
     };
@@ -181,7 +240,9 @@ export function LargeLanguageModelDialog({
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>{isEditMode ? 'Edit Large Language Model' : 'Add Large Language Model'}</DialogTitle>
+                    <DialogTitle>
+                        {isEditMode ? 'Edit Large Language Model' : 'Add Large Language Model'}
+                    </DialogTitle>
                     <DialogDescription>
                         {isEditMode
                             ? 'Update the model endpoint configuration. API keys are encrypted server-side.'
@@ -190,7 +251,9 @@ export function LargeLanguageModelDialog({
                 </DialogHeader>
 
                 {error && (
-                    <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
+                    <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                        {error}
+                    </div>
                 )}
 
                 <form onSubmit={handleSubmit}>
@@ -272,13 +335,21 @@ export function LargeLanguageModelDialog({
                                 {deleteLoading ? 'Deleting...' : 'Delete'}
                             </Button>
                         )}
-                        <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleOpenChange(false)}
+                        >
                             Cancel
                         </Button>
                         <Button type="submit" disabled={isLoading}>
                             {isLoading
-                                ? (isEditMode ? 'Updating...' : 'Creating...')
-                                : (isEditMode ? 'Save' : 'Add Model')}
+                                ? isEditMode
+                                    ? 'Updating...'
+                                    : 'Creating...'
+                                : isEditMode
+                                  ? 'Save'
+                                  : 'Add Model'}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useCreateAgentTaskMutation } from '@/generated/graphql';
+import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +17,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+
+const logger = createModuleLogger('CreateAgentTaskDialog');
 
 const agentTaskSchema = z.object({
     title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
@@ -62,6 +65,10 @@ export function CreateAgentTaskDialog({
 
     const onSubmit = async (data: AgentTaskFormData) => {
         setServerError(null);
+        logger.info('Creating agent task', {
+            deliverableId: data.deliverableId,
+            title: data.title,
+        });
 
         try {
             const result = await createAgentTask({
@@ -78,14 +85,31 @@ export function CreateAgentTaskDialog({
 
             const payload = result.data?.createAgentTask;
             if (payload?.errors?.length) {
-                setServerError(payload.errors.join(', '));
+                const errorMessage = payload.errors.join(', ');
+                logger.warn('Failed to create agent task', {
+                    deliverableId: data.deliverableId,
+                    title: data.title,
+                    errors: payload.errors,
+                });
+                setServerError(errorMessage);
                 return;
             }
 
+            logger.info('Agent task created successfully', {
+                id: payload?.agentTask?.id,
+                title: data.title,
+            });
             reset();
             onSuccess?.(payload?.agentTask?.id ?? '');
             onOpenChange(false);
         } catch (err) {
+            const errorInfo = formatGraphQLError(err);
+            logger.error('Failed to create agent task', {
+                deliverableId: data.deliverableId,
+                title: data.title,
+                error: errorInfo.message,
+                details: errorInfo.details,
+            });
             setServerError(err instanceof Error ? err.message : 'Failed to create agent task');
         }
     };

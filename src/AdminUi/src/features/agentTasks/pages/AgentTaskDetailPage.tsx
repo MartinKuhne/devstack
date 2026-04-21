@@ -20,6 +20,9 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'react-toastify';
+import { createModuleLogger } from '@/lib/logging';
+
+const logger = createModuleLogger('AgentTaskDetailPage');
 
 const STATUS_COLORS: Record<string, string> = {
     READY: 'bg-blue-500',
@@ -48,6 +51,7 @@ export function AgentTaskDetailPage() {
             )
         )
             return;
+        logger.info('Deleting agent task', { id: agentTask.id, title: agentTask.title });
         try {
             const result = await deleteAgentTask({
                 variables: {
@@ -55,12 +59,19 @@ export function AgentTaskDetailPage() {
                 },
             });
             if (result.data?.deleteAgentTask?.errors?.length) {
-                toast.error(result.data.deleteAgentTask.errors.join(', '));
+                const errorMessage = result.data.deleteAgentTask.errors.join(', ');
+                logger.warn('Failed to delete agent task', {
+                    id: agentTask.id,
+                    errors: result.data.deleteAgentTask.errors,
+                });
+                toast.error(errorMessage);
             } else {
+                logger.info('Agent task deleted successfully', { id: agentTask.id });
                 toast.success('Agent task deleted successfully');
                 navigate('/agent-tasks');
             }
         } catch {
+            logger.error('Failed to delete agent task', { id: agentTask.id });
             toast.error('Failed to delete agent task');
         }
     };

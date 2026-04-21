@@ -1,4 +1,7 @@
 import { useGetDeliverableByIdQuery } from '@/generated/graphql';
+import { createModuleLogger } from '@/lib/logging';
+
+const logger = createModuleLogger('useDeliverable');
 
 export function useDeliverable(id: string) {
     const { data, loading, error, refetch } = useGetDeliverableByIdQuery({
@@ -7,8 +10,25 @@ export function useDeliverable(id: string) {
         skip: !id,
     });
 
+    const deliverable = data?.deliverableById ?? null;
+
+    if (!loading && !deliverable && !error && id) {
+        logger.warn('Deliverable not found', { id });
+    }
+
+    if (error) {
+        logger.error('Failed to fetch deliverable', {
+            id,
+            message: error.message,
+        });
+    }
+
+    if (!loading && deliverable) {
+        logger.debug('Loaded deliverable', { id: deliverable.id, title: deliverable.title });
+    }
+
     return {
-        deliverable: data?.deliverableById ?? null,
+        deliverable,
         loading,
         error,
         refetch,

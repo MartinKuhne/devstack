@@ -13,6 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useUpdateDeliverableMutation } from '@/generated/graphql';
+import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
+
+const logger = createModuleLogger('EditDeliverableDialog');
 
 interface EditDeliverableFormData {
     title: string;
@@ -108,6 +111,7 @@ export function EditDeliverableDialog({
         }
 
         setSubmitting(true);
+        logger.info('Updating deliverable', { id: deliverable.id, title: data.title });
 
         try {
             const mutationResult = await updateDeliverable({
@@ -129,15 +133,29 @@ export function EditDeliverableDialog({
 
             const payload = mutationResult.data?.updateDeliverable;
             if (payload?.errors?.length) {
+                logger.warn('Failed to update deliverable', {
+                    id: deliverable.id,
+                    errors: payload.errors,
+                });
                 setSubmitting(false);
                 return;
             }
 
+            logger.info('Deliverable updated successfully', {
+                id: deliverable.id,
+                title: data.title,
+            });
             resetForm();
             onOpenChange(false);
             onSuccess();
         } catch (error) {
-            console.error('Failed to update deliverable:', error);
+            const errorInfo = formatGraphQLError(error);
+            logger.error('Failed to update deliverable', {
+                id: deliverable.id,
+                title: data.title,
+                error: errorInfo.message,
+                details: errorInfo.details,
+            });
         } finally {
             setSubmitting(false);
         }

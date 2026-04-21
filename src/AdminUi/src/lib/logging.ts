@@ -16,13 +16,63 @@ export const logger = {
     error: log.error.bind(log),
 };
 
+export function createModuleLogger(moduleName: string) {
+    const prefix = `[${moduleName}]`;
+    return {
+        trace: (...args: unknown[]) => logger.trace(prefix, ...args),
+        debug: (...args: unknown[]) => logger.debug(prefix, ...args),
+        info: (...args: unknown[]) => logger.info(prefix, ...args),
+        warn: (...args: unknown[]) => logger.warn(prefix, ...args),
+        error: (...args: unknown[]) => logger.error(prefix, ...args),
+    };
+}
+
+export function formatGraphQLError(error: unknown): { message: string; details?: unknown } {
+    const err = error as Record<string, unknown> | undefined;
+    const message = err?.message as string | undefined;
+    const graphQLErrors = err?.graphQLErrors as Record<string, unknown>[] | undefined;
+    const networkError = err?.networkError as Record<string, unknown> | undefined;
+
+    if (graphQLErrors && graphQLErrors.length > 0) {
+        const details = graphQLErrors.map((e: Record<string, unknown>) => ({
+            message: e.message,
+            path: e.path,
+            extensions: e.extensions,
+        }));
+        return { message: message ?? 'GraphQL operation failed', details };
+    }
+
+    if (networkError) {
+        return {
+            message: message ?? 'Network error occurred while communicating with the server',
+            details: { type: (networkError as Record<string, unknown>).name },
+        };
+    }
+
+    return { message: message ?? 'An unexpected error occurred' };
+}
+
 export function setupGlobalErrorHandlers() {
     window.onerror = (message, source, lineno, colno, error) => {
-        logger.error('Uncaught error:', { message, source, lineno, colno, error: error?.stack || error });
+        logger.error('Uncaught error:', {
+            message: message instanceof Error ? message.message : String(message),
+            source,
+            lineno,
+            colno,
+            stack: error?.stack || undefined,
+        });
         return false;
     };
 
     window.onunhandledrejection = (event) => {
-        logger.error('Unhandled promise rejection:', event.reason);
+        const reason = event.reason;
+        if (reason instanceof Error) {
+            logger.error('Unhandled promise rejection:', {
+                message: reason.message,
+                stack: reason.stack,
+            });
+        } else {
+            logger.error('Unhandled promise rejection:', reason);
+        }
     };
 }
