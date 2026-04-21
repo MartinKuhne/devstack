@@ -4,7 +4,7 @@
 Work only on the item described in the prompt. Do not modify unrelated code or create unrelated commits.
 
 # Development process
-- Check the quality gats before beginnging work. If deployment or tests do not pass, repair the tests before beginning work (unless instrcutged to pause tests). You are allowed to disable tests that test functionality that is no longer a requirement. If substantial test changes were needed, commit the changes and exit.
+- Check the quality gats before beginnging work. If there are compilation errors or tests fail, repair the tests before beginning work (unless instrcutged to pause tests). You are allowed to disable tests that test functionality that is no longer a requirement. If substantial test changes were needed, commit the changes and exit.
 - Create a detailed plan and decompose implementations steps into units of work that can be done by an AI agent in less than 20 minutes
 - Specify dependencies, test impact, architecture changes, risk
 - Specify complexity on a scale of 1 to 10
