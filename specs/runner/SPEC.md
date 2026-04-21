@@ -34,12 +34,24 @@ Execute prompts with OpenCode
     if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
     & npx @npxArgs
 ```
+# Functional Requirements (EARS Format)
+
+## Ubiquitous Requirements
+- REQ-AG-001: The system shall determine the current repository upon startup using the github repository name (if available)
+
+## Event-Driven Requirements  
+- REQ-AG-002: When there is no project matching the current repository in GraphQL, the system shall create it
+- REQ-AG-003: When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
+
+## State-Driven Requirements
+- REQ-AG-003: While there are Deliverables for the Project in Status = PLANNING, the system shall execute the Planning Phase (below)
+- REQ-AG-004: While there are Deliverables for the Project in Status = READY, the system shall execute the Execution Phase (below)
+
+## Unwanted Behavior Requirements
+- REQ-AG-005: Dot not delete or overwrite or delete existing content from ```opencode.json```
 
 # Operation
 
-- Determine the current project from the github repository name
-- Create a project if it does not exist
-- Add the MCP server to opencode.json in the repository root, like so
 - Retrieve the Project ID
 
 ```
@@ -54,11 +66,10 @@ Execute prompts with OpenCode
     }
 }
 ```
-Edit but do not overwrite the file
 
-- Query the Deliverables for the Project in Status = PLANNING
+- Query the 
 - For each Deliverable, execute the Planning phase (below)
-- Query the Deliverables for the Project in Status = READY
+- Query the 
 - For each Deliverable, execute the Execution phase (below)
 
 ## Planning phase
