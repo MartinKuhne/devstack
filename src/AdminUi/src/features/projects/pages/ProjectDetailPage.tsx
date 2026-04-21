@@ -5,7 +5,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { useProject } from '@/features/projects/hooks/useProject';
 import { EditProjectDialog } from '@/features/projects/components/EditProjectDialog';
 import { LargeLanguageModelList } from '@/features/largeLanguageModels/components/LargeLanguageModelList';
@@ -14,7 +21,7 @@ import { useDeliverables } from '@/features/deliverables/hooks/useDeliverables';
 import { CreateDeliverableDialog } from '@/features/deliverables/components/CreateDeliverableDialog';
 import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
 import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
-import { useDeleteProjectMutation, type DeliverableStatus, type DeliverableType } from '@/generated/graphql';
+import { useDeleteProjectMutation } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 import { PROJECT_STATUS_COLORS, AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
 
@@ -22,8 +29,18 @@ export function ProjectDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { project, loading, error, refetch } = useProject(id ?? '');
-    const { deliverables, loading: deliverablesLoading, error: deliverablesError, refetch: refetchDeliverables } = useDeliverables();
-    const { agentTasks, loading: agentTasksLoading, error: agentTasksError, refetch: refetchAgentTasks } = useAgentTasks();
+    const {
+        deliverables,
+        loading: deliverablesLoading,
+        error: deliverablesError,
+        refetch: refetchDeliverables,
+    } = useDeliverables();
+    const {
+        agentTasks,
+        loading: agentTasksLoading,
+        error: agentTasksError,
+        refetch: refetchAgentTasks,
+    } = useAgentTasks();
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [addModelDialogOpen, setAddModelDialogOpen] = useState(false);
     const [createDeliverableDialogOpen, setCreateDeliverableDialogOpen] = useState(false);
@@ -32,7 +49,8 @@ export function ProjectDetailPage() {
 
     const handleDelete = async () => {
         if (!project?.id) return;
-        if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) return;
+        if (!confirm('Are you sure you want to delete this project? This action cannot be undone.'))
+            return;
         try {
             const result = await deleteProject({
                 variables: {
@@ -87,8 +105,14 @@ export function ProjectDetailPage() {
                         <CardTitle className="text-destructive">Error loading project</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-destructive">{error?.message ?? 'Project not found'}</p>
-                        <Button variant="outline" className="mt-4" onClick={() => navigate('/projects')}>
+                        <p className="text-sm text-destructive">
+                            {error?.message ?? 'Project not found'}
+                        </p>
+                        <Button
+                            variant="outline"
+                            className="mt-4"
+                            onClick={() => navigate('/projects')}
+                        >
                             Back to Projects
                         </Button>
                     </CardContent>
@@ -117,9 +141,7 @@ export function ProjectDetailPage() {
                     <Button variant="outline" onClick={() => navigate('/projects')}>
                         Back to Projects
                     </Button>
-                    <Button onClick={() => setEditDialogOpen(true)}>
-                        Edit
-                    </Button>
+                    <Button onClick={() => setEditDialogOpen(true)}>Edit</Button>
                     <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                         Delete
                     </Button>
@@ -145,7 +167,9 @@ export function ProjectDetailPage() {
                         </CardHeader>
                         <CardContent>
                             {deliverablesError ? (
-                                <p className="text-sm text-destructive">{deliverablesError.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {deliverablesError.message}
+                                </p>
                             ) : deliverablesLoading ? (
                                 <Table>
                                     <TableHeader>
@@ -159,10 +183,18 @@ export function ProjectDetailPage() {
                                     <TableBody>
                                         {[1, 2, 3].map((item) => (
                                             <TableRow key={item}>
-                                                <TableCell><Skeleton className="h-4 w-64" /></TableCell>
-                                                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                                                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-64" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-20" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-6 w-20" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-24" />
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -178,26 +210,40 @@ export function ProjectDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {deliverables.map((deliverable: { id: string | null; title: string | null; status: DeliverableStatus | null; type: DeliverableType | null }) => (
+                                        {deliverables.map((deliverable) => (
                                             <TableRow
                                                 key={deliverable.id ?? ''}
                                                 className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() => deliverable.id && navigate(`/deliverables/${deliverable.id}`)}
+                                                onClick={() =>
+                                                    deliverable.id &&
+                                                    navigate(`/deliverables/${deliverable.id}`)
+                                                }
                                             >
-                                                <TableCell className="font-medium">{deliverable.title}</TableCell>
+                                                <TableCell className="font-medium">
+                                                    {deliverable.title}
+                                                </TableCell>
                                                 <TableCell>{deliverable.type}</TableCell>
                                                 <TableCell>
-                                                    <Badge className={getStatusColor(deliverable.status ?? undefined, PROJECT_STATUS_COLORS)}>
+                                                    <Badge
+                                                        className={getStatusColor(
+                                                            deliverable.status ?? undefined,
+                                                            PROJECT_STATUS_COLORS
+                                                        )}
+                                                    >
                                                         {deliverable.status}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="text-xs font-mono">{deliverable.id ?? '-'}</TableCell>
+                                                <TableCell className="text-xs font-mono">
+                                                    {deliverable.id ?? '-'}
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
                             ) : (
-                                <p className="text-muted-foreground text-sm">No deliverables yet.</p>
+                                <p className="text-muted-foreground text-sm">
+                                    No deliverables yet.
+                                </p>
                             )}
                         </CardContent>
                     </Card>
@@ -215,7 +261,9 @@ export function ProjectDetailPage() {
                         </CardHeader>
                         <CardContent>
                             {agentTasksError ? (
-                                <p className="text-sm text-destructive">{agentTasksError.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {agentTasksError.message}
+                                </p>
                             ) : agentTasksLoading ? (
                                 <Table>
                                     <TableHeader>
@@ -229,10 +277,18 @@ export function ProjectDetailPage() {
                                     <TableBody>
                                         {[1, 2, 3].map((item) => (
                                             <TableRow key={item}>
-                                                <TableCell><Skeleton className="h-4 w-64" /></TableCell>
-                                                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-64" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-6 w-20" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-24" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-24" />
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -252,17 +308,27 @@ export function ProjectDetailPage() {
                                             <TableRow
                                                 key={task.id ?? ''}
                                                 className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() => task.id && navigate(`/agent-tasks/${task.id}`)}
+                                                onClick={() =>
+                                                    task.id && navigate(`/agent-tasks/${task.id}`)
+                                                }
                                             >
-                                                <TableCell className="font-medium">{task.title}</TableCell>
+                                                <TableCell className="font-medium">
+                                                    {task.title}
+                                                </TableCell>
                                                 <TableCell>
-                                                    <Badge className={getStatusColor(task.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
+                                                    <Badge
+                                                        className={getStatusColor(
+                                                            task.status ?? undefined,
+                                                            AGENT_TASK_STATUS_COLORS
+                                                        )}
+                                                    >
                                                         {task.status}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>{task.agent || '-'}</TableCell>
                                                 <TableCell>
-                                                    {(task.promptTokens ?? 0) + (task.completionTokens ?? 0)}
+                                                    {(task.promptTokens ?? 0) +
+                                                        (task.completionTokens ?? 0)}
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -276,20 +342,22 @@ export function ProjectDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="models">
-                    <LargeLanguageModelList
-                        onAddModel={() => setAddModelDialogOpen(true)}
-                    />
+                    <LargeLanguageModelList onAddModel={() => setAddModelDialogOpen(true)} />
                 </TabsContent>
             </Tabs>
             <EditProjectDialog
                 open={editDialogOpen}
                 onOpenChange={setEditDialogOpen}
-                project={project ? {
-                    id: project.id ?? '',
-                    name: project.name ?? '',
-                    description: project.description,
-                    repository: project.repository,
-                } : null}
+                project={
+                    project
+                        ? {
+                              id: project.id ?? '',
+                              name: project.name ?? '',
+                              description: project.description ?? null,
+                              repository: project.repository ?? null,
+                          }
+                        : null
+                }
                 onSuccess={() => refetch()}
                 onError={(error) => {
                     if (error.includes('deleted')) {

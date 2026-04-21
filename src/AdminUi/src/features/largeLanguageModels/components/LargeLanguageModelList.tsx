@@ -25,7 +25,13 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
     } | null>(null);
     const [deleteLargeLanguageModel, { loading: deleting }] = useDeleteLargeLanguageModelMutation();
 
-    const handleEdit = (model: { id: string | null; model: string | null; modelAlias: string | null; url: string | null; maxComplexity: number | null }) => {
+    const handleEdit = (model: {
+        id?: string | null | undefined;
+        model?: string | null | undefined;
+        modelAlias?: string | null | undefined;
+        url?: string | null | undefined;
+        maxComplexity?: number | null | undefined;
+    }) => {
         setEditingModel({
             id: model.id ?? '',
             model: model.model ?? '',
@@ -85,7 +91,9 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-destructive">Error loading large language models</CardTitle>
+                    <CardTitle className="text-destructive">
+                        Error loading large language models
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-destructive">{error.message}</p>
@@ -104,7 +112,8 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                 <Card>
                     <CardContent className="pt-6">
                         <p className="text-muted-foreground text-sm">
-                            No large language models yet. Click &quot;Add Model&quot; to get started.
+                            No large language models yet. Click &quot;Add Model&quot; to get
+                            started.
                         </p>
                     </CardContent>
                 </Card>
@@ -113,7 +122,9 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                     {largeLanguageModels.map((config) => (
                         <Card key={config.id}>
                             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                                <CardTitle className="text-base">{config.modelAlias ?? config.model ?? ''}</CardTitle>
+                                <CardTitle className="text-base">
+                                    {config.modelAlias ?? config.model ?? ''}
+                                </CardTitle>
                                 <div className="flex gap-1">
                                     <Button
                                         variant="ghost"
@@ -147,11 +158,12 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-xs text-muted-foreground">Max Complexity</p>
-                                    <Badge variant={getComplexityVariant(config.maxComplexity ?? 0)}>
+                                    <Badge
+                                        variant={getComplexityVariant(config.maxComplexity ?? 0)}
+                                    >
                                         {config.maxComplexity}
                                     </Badge>
                                 </div>
-                                
                             </CardContent>
                         </Card>
                     ))}
@@ -172,7 +184,9 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
     );
 }
 
-function getComplexityVariant(maxComplexity: number): 'default' | 'secondary' | 'destructive' | 'outline' {
+function getComplexityVariant(
+    maxComplexity: number
+): 'default' | 'secondary' | 'destructive' | 'outline' {
     if (maxComplexity <= 2) return 'secondary';
     if (maxComplexity <= 4) return 'default';
     if (maxComplexity <= 6) return 'outline';

@@ -5,7 +5,14 @@ import * as z from 'zod';
 import { useCreateAgentTaskMutation } from '@/generated/graphql';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +21,10 @@ const agentTaskSchema = z.object({
     title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
     deliverableId: z.string().min(1, 'Deliverable ID is required'),
     description: z.string().optional(),
-    complexityRating: z.number().min(1, 'Complexity must be at least 1').max(10, 'Complexity must be at most 10'),
+    complexityRating: z
+        .number()
+        .min(1, 'Complexity must be at least 1')
+        .max(10, 'Complexity must be at most 10'),
     result: z.string().optional(),
     dependsOnAgentTaskId: z.string().optional(),
 });
@@ -28,7 +38,12 @@ interface CreateAgentTaskDialogProps {
     onSuccess?: (agentTaskId: string) => void;
 }
 
-export function CreateAgentTaskDialog({ open, onOpenChange, deliverableId, onSuccess }: CreateAgentTaskDialogProps) {
+export function CreateAgentTaskDialog({
+    open,
+    onOpenChange,
+    deliverableId,
+    onSuccess,
+}: CreateAgentTaskDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
     const [createAgentTask, { loading }] = useCreateAgentTaskMutation();
 
@@ -57,13 +72,6 @@ export function CreateAgentTaskDialog({ open, onOpenChange, deliverableId, onSuc
                         description: data.description ?? '',
                         complexityRating: Number(data.complexityRating),
                         result: data.result ?? null,
-                        agent: null,
-                        commitHash: null,
-                        completionTokens: null,
-                        dependsOnAgentTaskId: null,
-                        errors: null,
-                        executionDurationInSeconds: null,
-                        promptTokens: null,
                     },
                 },
             });
@@ -95,20 +103,14 @@ export function CreateAgentTaskDialog({ open, onOpenChange, deliverableId, onSuc
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Create New Agent Task</DialogTitle>
-                    <DialogDescription>
-                        Add a new agent task for execution.
-                    </DialogDescription>
+                    <DialogDescription>Add a new agent task for execution.</DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title *</Label>
-                            <Input
-                                id="title"
-                                {...register('title')}
-                                placeholder="Task title"
-                            />
+                            <Input id="title" {...register('title')} placeholder="Task title" />
                             {errors.title && (
                                 <p className="text-sm text-destructive">{errors.title.message}</p>
                             )}
@@ -123,7 +125,9 @@ export function CreateAgentTaskDialog({ open, onOpenChange, deliverableId, onSuc
                                 disabled
                             />
                             {errors.deliverableId && (
-                                <p className="text-sm text-destructive">{errors.deliverableId.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {errors.deliverableId.message}
+                                </p>
                             )}
                         </div>
 
@@ -137,7 +141,9 @@ export function CreateAgentTaskDialog({ open, onOpenChange, deliverableId, onSuc
                                 {...register('complexityRating')}
                             />
                             {errors.complexityRating && (
-                                <p className="text-sm text-destructive">{errors.complexityRating.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {errors.complexityRating.message}
+                                </p>
                             )}
                         </div>
 
@@ -161,13 +167,15 @@ export function CreateAgentTaskDialog({ open, onOpenChange, deliverableId, onSuc
                             />
                         </div>
 
-                        {serverError && (
-                            <p className="text-sm text-destructive">{serverError}</p>
-                        )}
+                        {serverError && <p className="text-sm text-destructive">{serverError}</p>}
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleOpenChange(false)}
+                        >
                             Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>

@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    DialogDescription,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -106,7 +113,6 @@ export function EditDeliverableDialog({
                         testPlan: testPlan || null,
                         deploymentPlan: deploymentPlan || null,
                         blocking: blocking || null,
-                        agentFeedback: null,
                     },
                 },
             });
@@ -134,15 +140,11 @@ export function EditDeliverableDialog({
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle>Edit Deliverable</DialogTitle>
-                    <DialogDescription>
-                        Update the deliverable details.
-                    </DialogDescription>
+                    <DialogDescription>Update the deliverable details.</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
-                        {error && (
-                            <div className="text-sm text-destructive">{error}</div>
-                        )}
+                        {error && <div className="text-sm text-destructive">{error}</div>}
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title</Label>
                             <Input
@@ -226,7 +228,11 @@ export function EditDeliverableDialog({
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleOpenChange(false)}
+                        >
                             Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>
