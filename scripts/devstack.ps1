@@ -12,19 +12,31 @@ if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
     $ApiUrl = "http://localhost:8087"
 }
 
-$QueriesPath = Join-Path $PSScriptRoot "queries"
 $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 
-function Load-GraphQLFile {
-    param([string]$FileName)
-
-    $path = Join-Path $QueriesPath $FileName
-    if (-not (Test-Path $path)) {
-        Write-Error "GraphQL file not found: $path"
-        exit 1
+$GetProjectsQuery = @'
+query GetProjects($first: Int!) {
+  projects(first: $first) {
+    nodes {
+      id
+      name
+      description
+      createdAt
     }
-    return Get-Content -Path $path -Raw
+  }
 }
+'@
+
+$CreateProjectMutation = @'
+mutation CreateProject($name: String!, $description: String!) {
+  createProject(input: { name: $name, description: $description }) {
+    project {
+      id
+    }
+    errors
+  }
+}
+'@
 
 function Test-GraphQLEndpoint {
     param([string]$Url)
@@ -113,8 +125,7 @@ function Initialize-Project {
 
     Write-Host "Repository: $repoName"
 
-    $mutation = Load-GraphQLFile "createProject.graphql"
-    $result = Invoke-GraphQL -Operation $mutation -Variables @{ name = $repoName; description = 'Auto-initialized project' } -IsMutation
+    $result = Invoke-GraphQL -Operation $CreateProjectMutation -Variables @{ name = $repoName; description = 'Auto-initialized project' } -IsMutation
 
     if ($result.data.createProject.errors) {
         Write-Error "Failed to create project: $($result.data.createProject.errors -join ', ')"
@@ -124,18 +135,36 @@ function Initialize-Project {
     $projectId = $result.data.createProject.project.id
     Write-Host "Project created with ID: $projectId"
 
-    $config = [ordered]@{
-        '$schema' = "https://opencode.ai/config.json"
-        mcp = @{
-            devstack = @{
-                type    = "remote"
-                url     = "http://localhost:8087/mcp"
-                enabled = "true"
-            }
-        }
+    $opencodePath = Join-Path $PSScriptRoot "opencode.json"
+    $existingConfig = $null
+    if (Test-Path $opencodePath) {
+        $existingConfig = Get-Content $opencodePath -Raw | ConvertFrom-Json
     }
-    $config | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $PSScriptRoot "opencode.json")
-    Write-Host "Created opencode.json"
+
+    if (-not $existingConfig) {
+        $existingConfig = [ordered]@{}
+    }
+
+    if ($existingConfig.PSObject.Properties['$schema'] -eq $null) {
+        $configObj = @{}
+        $configObj | Add-Member '$schema' "https://opencode.ai/config.json" -Force
+        $existingConfig = $configObj
+    }
+
+    $mcpSection = $existingConfig.PSObject.Properties['mcp']
+    if (-not $mcpSection) {
+        $mcpSection = @{}
+        $existingConfig | Add-Member 'mcp' $mcpSection -Force
+    }
+
+    $mcpSection.PSObject.Properties['devstack'] = @{
+        type    = "remote"
+        url     = "http://localhost:8088/mcp"
+        enabled = $true
+    }
+
+    $existingConfig | ConvertTo-Json -Depth 10 | Set-Content $opencodePath
+    Write-Host "Updated opencode.json"
     Write-Host "Initialization complete!"
 }
 
@@ -146,8 +175,7 @@ function Get-CurrentProjectId {
         exit 1
     }
 
-    $query  = Load-GraphQLFile "getProjects.graphql"
-    $result = Invoke-GraphQL -Operation $query -Variables @{ first = 100 }
+    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100 }
 
     if ($result.errors) {
         Write-Error "Failed to query projects: $($result.errors -join ', ')"

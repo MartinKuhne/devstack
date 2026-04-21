@@ -1,11 +1,79 @@
 $ErrorActionPreference = 'Continue'
 
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$QueriesPath = Join-Path $PSScriptRoot "queries"
 $PromptsPath = Join-Path $PSScriptRoot "prompts"
 $SpecsPath   = Join-Path $ProjectRoot "specs"
 $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 $DelaySeconds = 2
+
+$GetProjectsQuery = @'
+query GetProjects($first: Int!) {
+  projects(first: $first) {
+    nodes {
+      id
+      name
+      description
+      createdAt
+    }
+  }
+}
+'@
+
+$GetFeaturesQuery = @'
+query GetFeatures($projectId: UUID!, $first: Int!) {
+  features(projectId: $projectId, first: $first) {
+    nodes {
+      id
+      title
+      status
+      description
+      acceptanceCriteria
+      plan
+      featureSubtype
+      epicId
+      type
+      agentFeedback
+      executionPlan
+      securityImpact
+      performanceImpact
+      testPlan
+      deploymentPlan
+      blocking
+    }
+  }
+}
+'@
+
+$GetTasksQuery = @'
+query GetTasks($projectId: UUID!, $first: Int!) {
+  tasks(projectId: $projectId, first: $first) {
+    nodes {
+      id
+      title
+      status
+      deliverable
+      acceptanceCriteria
+      risks
+      itemId
+      projectId
+      result
+      errors
+      commitHash
+      complexityRating
+      dependsOnDevTask
+      promptTokens
+      completionTokens
+      executionDurationInSeconds
+      model
+      item {
+        id
+        title
+        description
+      }
+    }
+  }
+}
+'@
 
 # API endpoint configuration
 $ApiUrl = $env:DEVSTACK_API_URL
@@ -30,17 +98,6 @@ function Log-Phase {
     Write-Host "`n========================================" -ForegroundColor Cyan
     Write-Host "  Phase: $Name" -ForegroundColor Cyan
     Write-Host "========================================" -ForegroundColor Cyan
-}
-
-function Load-GraphQLFile {
-    param([string]$FileName)
-
-    $path = Join-Path $QueriesPath $FileName
-    if (-not (Test-Path $path)) {
-        Log-Error "GraphQL file not found: $path"
-        exit 1
-    }
-    return Get-Content -Path $path -Raw
 }
 
 function Load-PromptFile {
@@ -127,8 +184,7 @@ function Get-CurrentProjectId {
 
     Log-Info "Repository: $repoName"
 
-    $query  = Load-GraphQLFile "getProjects.graphql"
-    $result = Invoke-GraphQL -Operation $query -Variables @{ first = 100 }
+    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100 }
 
     if ($result.errors) {
         Log-Error "Failed to query projects: $($result.errors -join ', ')"
@@ -229,8 +285,7 @@ function Invoke-PlanningPhase {
     $promptTemplate = Load-PromptFile "planning.prompt"
 
     # Fetch deliverables (features) in PLANNING status
-    $query = Load-GraphQLFile "getFeatures.graphql"
-    $result = Invoke-GraphQL -Operation $query -Variables @{ projectId = $projectId; first = 100 }
+    $result = Invoke-GraphQL -Operation $GetFeaturesQuery -Variables @{ projectId = $projectId; first = 100 }
 
     if ($result.errors) {
         Log-Error "Failed to query features: $($result.errors -join ', ')"
@@ -249,24 +304,10 @@ function Invoke-PlanningPhase {
     foreach ($deliverable in $deliverables) {
         Log-Info "Planning deliverable: $($deliverable.title) (ID: $($deliverable.id))"
 
-        # Append all Deliverable fields to the prompt
-        $prompt = "$promptTemplate`n"
-        $prompt += "Deliverable ID: $($deliverable.id)`n"
-        $prompt += "Title: $($deliverable.title)`n"
-        $prompt += "Status: $($deliverable.status)`n"
-        $prompt += "Description: $($deliverable.description)`n"
-        $prompt += "AcceptanceCriteria: $($deliverable.acceptanceCriteria)`n"
-        $prompt += "Plan: $($deliverable.plan)`n"
-        $prompt += "FeatureSubtype: $($deliverable.featureSubtype)`n"
-        $prompt += "EpicId: $($deliverable.epicId)`n"
-        $prompt += "Type: $($deliverable.type)`n"
-        $prompt += "AgentFeedback: $($deliverable.agentFeedback)`n"
-        $prompt += "ExecutionPlan: $($deliverable.executionPlan)`n"
-        $prompt += "SecurityImpact: $($deliverable.securityImpact)`n"
-        $prompt += "PerformanceImpact: $($deliverable.performanceImpact)`n"
-        $prompt += "TestPlan: $($deliverable.testPlan)`n"
-        $prompt += "DeploymentPlan: $($deliverable.deploymentPlan)`n"
-        $prompt += "Blocking: $($deliverable.blocking)`n"
+        $prompt = $promptTemplate
+        $prompt = $prompt -replace '\{\{Title\}\}', $deliverable.title
+        $prompt = $prompt -replace '\{\{Description\}\}', $deliverable.description
+        $prompt = $prompt -replace '\{\{DeliverableId\}\}', $deliverable.id
 
         Log-Info "Prompt: $prompt"
 
@@ -294,8 +335,7 @@ function Invoke-ExecutionPhase {
     $promptTemplate = Load-PromptFile "execution.prompt"
 
     # Fetch AgentTasks (tasks) in READY status
-    $query = Load-GraphQLFile "getTasks.graphql"
-    $result = Invoke-GraphQL -Operation $query -Variables @{ projectId = $projectId; first = 100 }
+    $result = Invoke-GraphQL -Operation $GetTasksQuery -Variables @{ projectId = $projectId; first = 100 }
 
     if ($result.errors) {
         Log-Error "Failed to query tasks: $($result.errors -join ', ')"
@@ -314,30 +354,10 @@ function Invoke-ExecutionPhase {
     foreach ($task in $tasks) {
         Log-Info "Executing AgentTask: $($task.title) (ID: $($task.id))"
 
-        # Append all AgentTask fields to the prompt
-        $prompt = "$promptTemplate`n"
-        $prompt += "Task ID: $($task.id)`n"
-        $prompt += "Title: $($task.title)`n"
-        $prompt += "Status: $($task.status)`n"
-        $prompt += "Deliverable: $($task.deliverable)`n"
-        $prompt += "AcceptanceCriteria: $($task.acceptanceCriteria)`n"
-        $prompt += "Risks: $($task.risks)`n"
-        $prompt += "ItemId: $($task.itemId)`n"
-        $prompt += "ProjectId: $($task.projectId)`n"
-        $prompt += "Result: $($task.result)`n"
-        $prompt += "Errors: $($task.errors)`n"
-        $prompt += "CommitHash: $($task.commitHash)`n"
-        $prompt += "ComplexityRating: $($task.complexityRating)`n"
-        $prompt += "DependsOnDevTask: $($task.dependsOnDevTask)`n"
-        $prompt += "PromptTokens: $($task.promptTokens)`n"
-        $prompt += "CompletionTokens: $($task.completionTokens)`n"
-        $prompt += "ExecutionDurationInSeconds: $($task.executionDurationInSeconds)`n"
-        $prompt += "Model: $($task.model)`n"
-        if ($task.item) {
-            $prompt += "Item Id: $($task.item.id)`n"
-            $prompt += "Item Title: $($task.item.title)`n"
-            $prompt += "Item Description: $($task.item.description)`n"
-        }
+        $prompt = $promptTemplate
+        $prompt = $prompt -replace '\{\{Title\}\}', $task.title
+        $prompt = $prompt -replace '\{\{Description\}\}', $task.description
+        $prompt = $prompt -replace '\{\{AgentTaskId\}\}', $task.id
 
         Log-Info "Prompt: $prompt"
 
