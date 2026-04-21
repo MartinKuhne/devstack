@@ -21,7 +21,6 @@ query GetProjects($first: Int!) {
       id
       name
       description
-      createdAt
     }
   }
 }
@@ -170,7 +169,7 @@ function Initialize-Project {
         $existingConfig | Add-Member 'mcp' $mcpSection -Force
     }
 
-    $mcpSection.PSObject.Properties['devstack'] = @{
+    $mcpSection['devstack'] = @{
         type    = "remote"
         url     = "http://localhost:8088/mcp"
         enabled = $true
