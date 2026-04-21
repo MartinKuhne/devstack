@@ -22,16 +22,18 @@ export type Scalars = {
 
 export type AgentTask = {
   __typename?: 'AgentTask';
+  agent: Maybe<Scalars['String']['output']>;
   commitHash: Maybe<Scalars['String']['output']>;
   completionTokens: Maybe<Scalars['Int']['output']>;
   complexityRating: Maybe<Scalars['Int']['output']>;
   deliverable: Maybe<Deliverable>;
   deliverableId: Maybe<Scalars['ID']['output']>;
-  dependsOnDevTask: Maybe<Scalars['String']['output']>;
+  dependsOnAgentTask: Maybe<AgentTask>;
+  dependsOnAgentTaskId: Maybe<Scalars['ID']['output']>;
+  description: Maybe<Scalars['String']['output']>;
   errors: Maybe<Scalars['String']['output']>;
   executionDurationInSeconds: Maybe<Scalars['Int']['output']>;
   id: Maybe<Scalars['ID']['output']>;
-  model: Maybe<Scalars['String']['output']>;
   project: Maybe<Project>;
   projectId: Scalars['UUID']['output'];
   promptTokens: Maybe<Scalars['Int']['output']>;
@@ -63,14 +65,15 @@ export type CleanupTestDataPayload = {
 };
 
 export type CreateAgentTaskInput = {
+  agent: InputMaybe<Scalars['String']['input']>;
   commitHash: InputMaybe<Scalars['String']['input']>;
   completionTokens: InputMaybe<Scalars['Int']['input']>;
   complexityRating: Scalars['Int']['input'];
   deliverableId: Scalars['UUID']['input'];
-  dependsOnDevTask: InputMaybe<Scalars['String']['input']>;
+  dependsOnAgentTaskId: InputMaybe<Scalars['UUID']['input']>;
+  description: Scalars['String']['input'];
   errors: InputMaybe<Scalars['String']['input']>;
   executionDurationInSeconds: InputMaybe<Scalars['Int']['input']>;
-  model: InputMaybe<Scalars['String']['input']>;
   promptTokens: InputMaybe<Scalars['Int']['input']>;
   result: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
@@ -371,14 +374,15 @@ export type TransitionDeliverableInput = {
 };
 
 export type UpdateAgentTaskInput = {
+  agent: InputMaybe<Scalars['String']['input']>;
   commitHash: InputMaybe<Scalars['String']['input']>;
   completionTokens: InputMaybe<Scalars['Int']['input']>;
   complexityRating: InputMaybe<Scalars['Int']['input']>;
-  dependsOnDevTask: InputMaybe<Scalars['String']['input']>;
+  dependsOnAgentTaskId: InputMaybe<Scalars['UUID']['input']>;
+  description: InputMaybe<Scalars['String']['input']>;
   errors: InputMaybe<Scalars['String']['input']>;
   executionDurationInSeconds: InputMaybe<Scalars['Int']['input']>;
   id: Scalars['UUID']['input'];
-  model: InputMaybe<Scalars['String']['input']>;
   promptTokens: InputMaybe<Scalars['Int']['input']>;
   result: InputMaybe<Scalars['String']['input']>;
   title: InputMaybe<Scalars['String']['input']>;
@@ -420,7 +424,7 @@ export type CreateAgentTaskMutationVariables = Exact<{
 }>;
 
 
-export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverableId: string | null, complexityRating: number | null, result: string | null, errors: string | null, commitHash: string | null, dependsOnDevTask: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null } | null } };
+export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverableId: string | null, description: string | null, complexityRating: number | null, result: string | null, errors: string | null, commitHash: string | null, dependsOnAgentTaskId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, agent: string | null } | null } };
 
 export type CreateDeliverableMutationVariables = Exact<{
   input: CreateDeliverableInput;
@@ -490,7 +494,7 @@ export type UpdateAgentTaskMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverableId: string | null, complexityRating: number | null, result: string | null, errors: string | null, commitHash: string | null, dependsOnDevTask: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null } | null } };
+export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask: { __typename?: 'AgentTask', id: string | null, title: string | null, deliverableId: string | null, description: string | null, complexityRating: number | null, result: string | null, errors: string | null, commitHash: string | null, dependsOnAgentTaskId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, agent: string | null } | null } };
 
 export type UpdateDeliverableMutationVariables = Exact<{
   input: UpdateDeliverableInput;
@@ -518,14 +522,14 @@ export type GetAgentTaskByIdQueryVariables = Exact<{
 }>;
 
 
-export type GetAgentTaskByIdQuery = { __typename?: 'Query', agentTaskById: { __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null, deliverableId: string | null, result: string | null, errors: string | null, commitHash: string | null, complexityRating: number | null, dependsOnDevTask: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null } | null };
+export type GetAgentTaskByIdQuery = { __typename?: 'Query', agentTaskById: { __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null, deliverableId: string | null, description: string | null, result: string | null, errors: string | null, commitHash: string | null, complexityRating: number | null, dependsOnAgentTaskId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, agent: string | null } | null };
 
 export type GetAgentTasksQueryVariables = Exact<{
   projectId: InputMaybe<Scalars['UUID']['input']>;
 }>;
 
 
-export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null, deliverableId: string | null, result: string | null, errors: string | null, commitHash: string | null, complexityRating: number | null, dependsOnDevTask: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, model: string | null }> };
+export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks: Array<{ __typename?: 'AgentTask', id: string | null, title: string | null, status: AgentTaskStatus | null, deliverableId: string | null, description: string | null, result: string | null, errors: string | null, commitHash: string | null, complexityRating: number | null, dependsOnAgentTaskId: string | null, promptTokens: number | null, completionTokens: number | null, executionDurationInSeconds: number | null, agent: string | null }> };
 
 export type GetDeliverablesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -564,15 +568,16 @@ export const CreateAgentTaskDocument = gql`
       id
       title
       deliverableId
+      description
       complexityRating
       result
       errors
       commitHash
-      dependsOnDevTask
+      dependsOnAgentTaskId
       promptTokens
       completionTokens
       executionDurationInSeconds
-      model
+      agent
     }
     errors
   }
@@ -948,15 +953,16 @@ export const UpdateAgentTaskDocument = gql`
       id
       title
       deliverableId
+      description
       complexityRating
       result
       errors
       commitHash
-      dependsOnDevTask
+      dependsOnAgentTaskId
       promptTokens
       completionTokens
       executionDurationInSeconds
-      model
+      agent
     }
     errors
   }
@@ -1113,15 +1119,16 @@ export const GetAgentTaskByIdDocument = gql`
     title
     status
     deliverableId
+    description
     result
     errors
     commitHash
     complexityRating
-    dependsOnDevTask
+    dependsOnAgentTaskId
     promptTokens
     completionTokens
     executionDurationInSeconds
-    model
+    agent
   }
 }
     `;
@@ -1168,15 +1175,16 @@ export const GetAgentTasksDocument = gql`
     title
     status
     deliverableId
+    description
     result
     errors
     commitHash
     complexityRating
-    dependsOnDevTask
+    dependsOnAgentTaskId
     promptTokens
     completionTokens
     executionDurationInSeconds
-    model
+    agent
   }
 }
     `;

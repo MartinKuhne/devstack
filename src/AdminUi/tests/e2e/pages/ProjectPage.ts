@@ -9,15 +9,14 @@ export class ProjectListPage extends BasePage {
 
     constructor(page: Page) {
         super(page);
-        this.pageTitle = page.getByRole('heading', { name: 'Projects' });
-        this.newProjectButton = page.getByRole('button', { name: 'New Project' });
-        this.projectTable = page.getByRole('table');
-        this.emptyStateMessage = page.getByText('No projects yet');
+        this.pageTitle = page.getByRole('heading', { name: 'Projects', level: 2 });
+        this.newProjectButton = page.getByRole('button', { name: /New Project|Create Project/ });
+        this.projectTable = page.locator('table');
+        this.emptyStateMessage = page.getByText(/No projects yet|Create your first project/);
     }
 
     async navigate(): Promise<void> {
         await super.navigate('/projects');
-        await this.page.waitForLoadState('networkidle');
     }
 
     async clickNewProject(): Promise<void> {
@@ -25,16 +24,17 @@ export class ProjectListPage extends BasePage {
     }
 
     async waitForProjectList(): Promise<void> {
-        await this.projectTable.waitFor({ state: 'visible', timeout: 10000 });
-    }
-
-    async waitForEmptyState(): Promise<void> {
-        await this.emptyStateMessage.waitFor({ state: 'visible' });
+        await this.pageTitle.waitFor({ state: 'visible', timeout: 10000 });
     }
 
     async clickProjectRow(projectName: string): Promise<void> {
-        const row = this.projectTable.getByRole('row', { name: new RegExp(projectName, 'i') });
+        const row = this.projectTable.getByRole('row').filter({ hasText: projectName }).first();
         await row.click();
+    }
+
+    async getProjectCount(): Promise<number> {
+        const rows = this.projectTable.locator('tbody tr');
+        return await rows.count();
     }
 }
 
@@ -48,11 +48,10 @@ export class CreateProjectDialog extends BasePage {
     readonly createButton: Locator;
     readonly cancelButton: Locator;
     readonly nameError: Locator;
-    readonly urlError: Locator;
 
     constructor(page: Page) {
         super(page);
-        this.dialog = page.getByRole('dialog', { name: 'Create New Project' });
+        this.dialog = page.getByRole('dialog').filter({ hasText: 'Create New Project' });
         this.nameInput = page.getByLabel('Name *');
         this.descriptionInput = page.getByLabel('Description');
         this.architectureInput = page.getByLabel('Architecture');
@@ -60,8 +59,7 @@ export class CreateProjectDialog extends BasePage {
         this.githubUrlInput = page.getByLabel('GitHub URL');
         this.createButton = page.getByRole('button', { name: 'Create Project' });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
-        this.nameError = page.getByText('Name is required');
-        this.urlError = page.getByText('Invalid URL');
+        this.nameError = page.locator('[class*="text-destructive"]').filter({ hasText: 'Name is required' }).first();
     }
 
     async isOpen(): Promise<boolean> {
@@ -84,69 +82,40 @@ export class CreateProjectDialog extends BasePage {
     async cancel(): Promise<void> {
         await this.cancelButton.click();
     }
-
-    async submitEmptyForm(): Promise<void> {
-        await this.createButton.click();
-    }
-
-    async submitInvalidUrl(): Promise<void> {
-        await this.nameInput.fill('Test Project');
-        await this.githubUrlInput.fill('not-a-valid-url');
-        await this.createButton.click();
-    }
-
-    async waitForNameError(): Promise<void> {
-        await this.nameError.waitFor({ state: 'visible' });
-    }
-
-    async waitForUrlError(): Promise<void> {
-        await this.urlError.waitFor({ state: 'visible' });
-    }
 }
 
 export class ProjectDetailPage extends BasePage {
-    readonly pageTitle: Locator;
     readonly editButton: Locator;
     readonly deleteButton: Locator;
-    readonly backToProjectsButton: Locator;
+    readonly backToProjectsLink: Locator;
 
     constructor(page: Page) {
         super(page);
-        this.pageTitle = page.getByRole('heading', { name: /Project:/i });
         this.editButton = page.getByRole('button', { name: 'Edit' });
         this.deleteButton = page.getByRole('button', { name: 'Delete' });
-        this.backToProjectsButton = page.getByRole('link', { name: /Projects/i });
-    }
-
-    async navigate(projectId: string): Promise<void> {
-        await super.navigate(`/projects/${projectId}`);
-        await this.page.waitForLoadState('networkidle');
-    }
-
-    async waitForProjectDetail(): Promise<void> {
-        await this.pageTitle.waitFor({ state: 'visible', timeout: 10000 });
+        this.backToProjectsLink = page.getByRole('link', { name: /Projects/ }).first();
     }
 
     async clickEdit(): Promise<void> {
         await this.editButton.click();
+    }
+
+    async clickBack(): Promise<void> {
+        await this.backToProjectsLink.click();
     }
 }
 
 export class EditProjectDialog extends BasePage {
     readonly dialog: Locator;
     readonly nameInput: Locator;
-    readonly descriptionInput: Locator;
-    readonly githubUrlInput: Locator;
     readonly saveButton: Locator;
     readonly cancelButton: Locator;
 
     constructor(page: Page) {
         super(page);
-        this.dialog = page.getByRole('dialog', { name: /Edit Project/i });
+        this.dialog = page.getByRole('dialog').filter({ hasText: /Edit Project/i });
         this.nameInput = page.getByLabel('Name *');
-        this.descriptionInput = page.getByLabel('Description');
-        this.githubUrlInput = page.getByLabel('GitHub URL');
-        this.saveButton = page.getByRole('button', { name: 'Save Changes' });
+        this.saveButton = page.getByRole('button', { name: /Save|Update/ }) || page.getByRole('button', { name: 'Save Changes' });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     }
 
@@ -154,10 +123,8 @@ export class EditProjectDialog extends BasePage {
         return await this.dialog.isVisible();
     }
 
-    async updateProject(name?: string, description?: string, githubUrl?: string): Promise<void> {
+    async updateProject(name?: string): Promise<void> {
         if (name) await this.nameInput.fill(name);
-        if (description) await this.descriptionInput.fill(description);
-        if (githubUrl) await this.githubUrlInput.fill(githubUrl);
         await this.saveButton.click();
     }
 

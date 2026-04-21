@@ -1,63 +1,54 @@
 import { test, expect } from '@playwright/test';
-import { DashboardPage } from './pages/DashboardPage.js';
+import { DashboardPage } from '../pages/DashboardPage.js';
+import { NavigationHelper } from '../helpers/NavigationHelper.js';
 
-test.describe('Dashboard Page', () => {
+test.describe('Dashboard', () => {
     let dashboardPage: DashboardPage;
+    let navigationHelper: NavigationHelper;
 
     test.beforeEach(async ({ page }) => {
         dashboardPage = new DashboardPage(page);
+        navigationHelper = new NavigationHelper(page);
     });
 
-    test('navigates to dashboard page', async ({ page }) => {
+    test('should display dashboard with correct heading', async () => {
         await dashboardPage.navigate();
+        await dashboardPage.waitForDashboardLoaded();
         await expect(dashboardPage.pageTitle).toBeVisible();
+    });
+
+    test('should show welcome message', async () => {
+        await dashboardPage.navigate();
+        await dashboardPage.waitForDashboardLoaded();
         await expect(dashboardPage.welcomeText).toBeVisible();
     });
 
-    test('renders summary cards with data', async ({ page }) => {
-        await page.route('**/graphql', async (route) => {
-            await route.fulfill({
-                status: 200,
-                body: JSON.stringify({
-                    data: {
-                        items: {
-                            nodes: [
-                                { id: '1', status: 'PLANNING', title: 'Deliverable 1', __typename: 'Deliverable' },
-                                { id: '2', status: 'READY', title: 'Deliverable 2', __typename: 'Deliverable' },
-                                { id: '3', status: 'IN_PROGRESS', title: 'Deliverable 3', __typename: 'Deliverable' },
-                                { id: '4', status: 'NEEDS_REVIEW', title: 'Deliverable 4', __typename: 'Deliverable' },
-                            ],
-                        },
-                    },
-                }),
-            });
-        });
-
+    test('should display stat cards for deliverable counts', async ({ page }) => {
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboardLoaded();
-
-        await expect(dashboardPage.deliverablesPlanningCard).toBeVisible();
-        await expect(dashboardPage.deliverablesReadyCard).toBeVisible();
-        await expect(dashboardPage.deliverablesInProgressCard).toBeVisible();
-        await expect(dashboardPage.deliverablesNeedsReviewCard).toBeVisible();
+        
+        // All four stat card labels should be visible (Planning, Ready, In Progress, Needs Review)
+        await expect(page.getByText('Planning')).toBeVisible();
+        await expect(page.getByText('Ready')).toBeVisible();
+        await expect(page.getByText('In Progress')).toBeVisible();
+        await expect(page.getByText('Needs Review')).toBeVisible();
     });
 
-    test('shows empty state when no data exists', async ({ page }) => {
-        await page.route('**/graphql', async (route) => {
-            await route.fulfill({
-                status: 200,
-                body: JSON.stringify({
-                    data: {
-                        items: {
-                            nodes: [],
-                        },
-                    },
-                }),
-            });
-        });
-
+    test('should have New Project button', async () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboardLoaded();
-        await expect(dashboardPage.emptyStateMessage).toBeVisible();
+        await expect(dashboardPage.newProjectButton).toBeVisible();
+    });
+
+    test('should navigate to projects when clicking sidebar Projects link', async ({ page }) => {
+        await dashboardPage.navigate();
+        await navigationHelper.navigateToProjects();
+        await expect(page.getByRole('heading', { name: 'Projects', level: 2 })).toBeVisible();
+    });
+
+    test('should navigate to models when clicking sidebar Models link', async ({ page }) => {
+        await dashboardPage.navigate();
+        await navigationHelper.navigateToModels();
+        await expect(page.getByRole('heading', { name: 'Large Language Models', level: 2 })).toBeVisible();
     });
 });

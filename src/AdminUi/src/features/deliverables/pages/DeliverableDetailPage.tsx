@@ -139,29 +139,36 @@ export function DeliverableDetailPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">{deliverable.title}</h2>
-                    <div className="flex items-center gap-2 mt-2">
-                        <Badge className={STATUS_COLORS[deliverable.status ?? ''] || 'bg-gray-500'}>
-                            {deliverable.status}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                            {deliverable.subtype}
-                        </span>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => navigate('/deliverables')}>
-                        Back to List
-                    </Button>
-                    <Button onClick={() => setUpdateDialogOpen(true)}>
-                        Edit
-                    </Button>
-                    <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-                        Delete
-                    </Button>
-                </div>
+            <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+                <thead>
+                    <tr>
+                        <th className="text-left p-2 text-lg font-semibold" colSpan={3} style={{ width: '70%' }}>
+                            {deliverable.title}
+                        </th>
+                        <th className="text-center p-2 border-l">
+                            <span className="text-xs uppercase text-muted-foreground block mb-1">Type</span>
+                            <span>{deliverable.subtype}</span>
+                        </th>
+                        <th className="text-center p-2 border-l">
+                            <span className="text-xs uppercase text-muted-foreground block mb-1">Status</span>
+                            <Badge className={STATUS_COLORS[deliverable.status ?? ''] || 'bg-gray-500'}>
+                                {deliverable.status}
+                            </Badge>
+                        </th>
+                    </tr>
+                </thead>
+            </table>
+
+            <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => navigate('/deliverables')}>
+                    Back to List
+                </Button>
+                <Button onClick={() => setUpdateDialogOpen(true)}>
+                    Edit
+                </Button>
+                <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                    Delete
+                </Button>
             </div>
 
             <Card>
