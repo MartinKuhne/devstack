@@ -125,20 +125,35 @@ function Initialize-Project {
 
     Write-Host "Repository: $repoName"
 
-    $result = Invoke-GraphQL -Operation $CreateProjectMutation -Variables @{ name = $repoName; description = 'Auto-initialized project' } -IsMutation
+    # Check if project already exists
+    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100 }
 
-    if ($result.data.createProject.errors) {
-        Write-Error "Failed to create project: $($result.data.createProject.errors -join ', ')"
+    if ($result.errors) {
+        Write-Error "Failed to query projects: $($result.errors -join ', ')"
         exit 1
     }
 
-    $projectId = $result.data.createProject.project.id
-    Write-Host "Project created with ID: $projectId"
+    $existingProject = $result.data.projects.nodes | Where-Object { $_.name -eq $repoName }
+
+    if ($existingProject) {
+        Write-Host "Project '$repoName' already exists with ID: $($existingProject.id)"
+    }
+    else {
+        $result = Invoke-GraphQL -Operation $CreateProjectMutation -Variables @{ name = $repoName; description = 'Auto-initialized project' } -IsMutation
+
+        if ($result.data.createProject.errors) {
+            Write-Error "Failed to create project: $($result.data.createProject.errors -join ', ')"
+            exit 1
+        }
+
+        $existingProject = $result.data.createProject.project
+        Write-Host "Project created with ID: $($existingProject.id)"
+    }
 
     $opencodePath = Join-Path $PSScriptRoot "opencode.json"
     $existingConfig = $null
     if (Test-Path $opencodePath) {
-        $existingConfig = Get-Content $opencodePath -Raw | ConvertFrom-Json
+        $existingConfig = Get-Content $opencodePath -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
     }
 
     if (-not $existingConfig) {
@@ -146,9 +161,7 @@ function Initialize-Project {
     }
 
     if ($existingConfig.PSObject.Properties['$schema'] -eq $null) {
-        $configObj = @{}
-        $configObj | Add-Member '$schema' "https://opencode.ai/config.json" -Force
-        $existingConfig = $configObj
+        $existingConfig | Add-Member '$schema' "https://opencode.ai/config.json" -Force
     }
 
     $mcpSection = $existingConfig.PSObject.Properties['mcp']
@@ -163,7 +176,7 @@ function Initialize-Project {
         enabled = $true
     }
 
-    $existingConfig | ConvertTo-Json -Depth 10 | Set-Content $opencodePath
+    $existingConfig | ConvertTo-Json -Depth 10 | Set-Content $opencodePath -Encoding UTF8
     Write-Host "Updated opencode.json"
     Write-Host "Initialization complete!"
 }
