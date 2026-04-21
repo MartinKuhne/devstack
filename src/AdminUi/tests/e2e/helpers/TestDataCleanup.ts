@@ -6,6 +6,6 @@ export async function cleanupTestData(): Promise<void> {
     TestDataRegistry.clear();
 }
 
-export function registerEntity(type: 'Project' | 'Feature' | 'Defect' | 'Task' | 'Epic' | 'ModelConfiguration', id: string): void {
+export function registerEntity(type: 'Project' | 'Deliverable' | 'AgentTask' | 'LargeLanguageModel', id: string): void {
     TestDataRegistry.registerEntity(type, id);
 }

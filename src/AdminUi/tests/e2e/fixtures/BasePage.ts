@@ -9,23 +9,14 @@ export class BasePage {
 
     async navigate(path: string): Promise<void> {
         await this.page.goto(path);
+        await this.page.waitForLoadState('networkidle').catch(() => {});
     }
 
     async waitForLoadingSpinner(): Promise<void> {
-        await this.page.waitForSelector('loading-spinner, [data-testid="loading"]', {
-            state: 'detached',
-            timeout: 10000,
-        }).catch(() => {
-        });
+        await this.page.locator('.animate-pulse, [class*="skeleton"]').first().waitFor({ state: 'detached', timeout: 10000 }).catch(() => {});
     }
 
     async waitForElement(selector: string, timeout = 10000): Promise<void> {
         await this.page.waitForSelector(selector, { timeout });
-    }
-
-    async takeScreenshot(name: string): Promise<void> {
-        await this.page.screenshot({
-            path: `../reports/screenshots/${name}-${Date.now()}.png`,
-        });
     }
 }

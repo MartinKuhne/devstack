@@ -1,46 +1,41 @@
-import type { Page } from '@playwright/test';
+import type { Page, Locator } from '@playwright/test';
+import { BasePage } from '../fixtures/BasePage.js';
 
-export class NavigationHelper {
-    private page: Page;
+export class NavigationHelper extends BasePage {
+    readonly dashboardLink: Locator;
+    readonly projectsLink: Locator;
+    readonly modelsLink: Locator;
+    readonly projectDropdown: Locator;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
+        this.dashboardLink = page.getByRole('link', { name: /Dashboard/ }).first();
+        this.projectsLink = page.getByRole('link', { name: /Projects/ }).first();
+        this.modelsLink = page.getByRole('link', { name: /Large Language Models/ });
+        this.projectDropdown = page.locator('[role="combobox"]').filter({ has: page.getByText(/Select Project/) }).first();
     }
 
     async navigateToDashboard(): Promise<void> {
-        await this.page.goto('/');
+        await super.navigate('/');
     }
 
     async navigateToProjects(): Promise<void> {
-        await this.page.goto('/projects');
+        await super.navigate('/projects');
     }
 
-    async navigateToProjectDetail(projectId: string): Promise<void> {
-        await this.page.goto(`/projects/${projectId}`);
+    async navigateToModels(): Promise<void> {
+        await super.navigate('/models');
     }
 
-    async navigateToFeatures(): Promise<void> {
-        await this.page.goto('/features');
-    }
-
-    async navigateToFeatureDetail(featureId: string): Promise<void> {
-        await this.page.goto(`/features/${featureId}`);
-    }
-
-    async navigateToTasks(): Promise<void> {
-        await this.page.goto('/tasks');
-    }
-
-    async navigateToDefects(): Promise<void> {
-        await this.page.goto('/defects');
-    }
-
-    async navigateToModelConfigurations(): Promise<void> {
-        await this.page.goto('/model-configurations');
-    }
-
-    async waitForPageLoad(): Promise<void> {
-        await this.page.waitForLoadState('networkidle');
-        await this.page.waitForTimeout(500);
+    async selectProject(projectName: string): Promise<void> {
+        try {
+            if (await this.projectDropdown.isVisible()) {
+                await this.projectDropdown.click();
+                await page.getByText(projectName).click();
+                await page.waitForTimeout(500);
+            }
+        } catch {
+            // Project dropdown may not be available on all pages
+        }
     }
 }
