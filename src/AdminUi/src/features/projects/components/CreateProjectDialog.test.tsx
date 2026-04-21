@@ -1,6 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
+import { describe, it, expect } from 'vitest';
 import * as z from 'zod';
 
 const projectSchema = z.object({

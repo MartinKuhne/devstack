@@ -51,7 +51,7 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
             toast.success('GitHub token saved successfully');
             setTokenValue('');
             onProjectUpdated();
-        } catch (error) {
+        } catch {
             toast.error('Failed to save GitHub token');
         } finally {
             setIsUpdating(false);
@@ -77,7 +77,7 @@ export function GitHubConfigurationSection({ project, onProjectUpdated }: GitHub
             toast.success('GitHub token cleared successfully');
             setTokenValue('');
             onProjectUpdated();
-        } catch (error) {
+        } catch {
             toast.error('Failed to clear GitHub token');
         } finally {
             setIsUpdating(false);

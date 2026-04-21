@@ -47,6 +47,7 @@ export function EditDeliverableDialog({
 
     const [updateDeliverable, { loading }] = useUpdateDeliverableMutation();
 
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (deliverable) {
             setTitle(deliverable.title ?? '');
@@ -60,9 +61,9 @@ export function EditDeliverableDialog({
             setOpenQuestions(deliverable.blocking ?? '');
             setErrors(deliverable.errors ?? '');
             setResult(deliverable.result ?? '');
-            setError(null);
         }
     }, [deliverable]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const resetForm = () => {
         setTitle('');
@@ -80,6 +81,7 @@ export function EditDeliverableDialog({
     };
 
     const handleOpenChange = (newOpen: boolean) => {
+        setError(null);
         if (!newOpen) {
             resetForm();
         }

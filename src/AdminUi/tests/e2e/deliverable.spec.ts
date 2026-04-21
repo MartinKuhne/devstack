@@ -1,17 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { DeliverableListPage, CreateDeliverableDialog, DeliverableDetailPage } from '../pages/DeliverablePage.js';
+import { DeliverableListPage, CreateDeliverableDialog } from '../pages/DeliverablePage.js';
 import { NavigationHelper } from '../helpers/NavigationHelper.js';
 
 test.describe('Deliverable CRUD', () => {
     let deliverableListPage: DeliverableListPage;
     let createDeliverableDialog: CreateDeliverableDialog;
-    let deliverableDetailPage: DeliverableDetailPage;
     let navigationHelper: NavigationHelper;
 
     test.beforeEach(async ({ page }) => {
         deliverableListPage = new DeliverableListPage(page);
         createDeliverableDialog = new CreateDeliverableDialog(page);
-        deliverableDetailPage = new DeliverableDetailPage(page);
         navigationHelper = new NavigationHelper(page);
     });
 
