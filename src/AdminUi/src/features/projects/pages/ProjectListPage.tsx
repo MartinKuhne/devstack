@@ -1,7 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import {
+    PageHeader,
+    DataPanel,
+    LoadingState,
+    ErrorState,
+} from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -32,47 +36,21 @@ export function ProjectListPage() {
         refetch();
     }, [refetch]);
 
+    const handleCreateProject = useCallback(() => {
+        setCreateDialogOpen(true);
+    }, []);
+
+    const handleRetry = useCallback(() => {
+        refetch();
+    }, [refetch]);
+
     if (loading) {
         return (
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-                        <p className="text-muted-foreground">Manage your development projects.</p>
-                    </div>
-                    <Button>New Project</Button>
-                </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Project List</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead>Repository</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {[1, 2, 3].map((item) => (
-                                    <TableRow key={item}>
-                                        <TableCell>
-                                            <Skeleton className="h-4 w-32" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Skeleton className="h-4 w-48" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Skeleton className="h-4 w-40" />
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                <PageHeader title="Projects" description="Manage your development projects." actionSlot={<Button onClick={handleCreateProject}>New Project</Button>} />
+                <DataPanel>
+                    <LoadingState rows={3} />
+                </DataPanel>
             </div>
         );
     }
@@ -85,96 +63,69 @@ export function ProjectListPage() {
         });
         return (
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-                        <p className="text-muted-foreground">Manage your development projects.</p>
-                    </div>
-                    <Button onClick={() => refetch()}>Retry</Button>
-                </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-destructive">Error loading projects</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <p className="text-sm text-destructive">{error.message}</p>
-                        <p className="text-sm text-muted-foreground">
-                            This error has been logged. Please try refreshing the page or contact
-                            support if the issue persists.
-                        </p>
-                        <Button variant="outline" onClick={() => refetch()}>
-                            Retry
-                        </Button>
-                    </CardContent>
-                </Card>
+                <PageHeader title="Projects" description="Manage your development projects." actionSlot={<Button onClick={handleRetry}>Retry</Button>} />
+                <ErrorState message={error.message} onRetry={handleRetry} />
             </div>
         );
     }
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-                    <p className="text-muted-foreground">Manage your development projects.</p>
-                </div>
-                <Button onClick={() => setCreateDialogOpen(true)}>New Project</Button>
-            </div>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Project List</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {projects && projects.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead>Repository</TableHead>
+            <PageHeader
+                title="Projects"
+                description="Manage your development projects."
+                actionSlot={<Button onClick={handleCreateProject}>New Project</Button>}
+            />
+            <DataPanel title="Project List">
+                {projects && projects.length > 0 ? (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead>Repository</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {projects.map((project) => (
+                                <TableRow
+                                    key={project.id ?? ''}
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleRowClick(project.id ?? '')}
+                                >
+                                    <TableCell className="font-medium">
+                                        {project.name}
+                                    </TableCell>
+                                    <TableCell className="max-w-xs truncate">
+                                        {project.description ?? '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                        {project.repository ? (
+                                            <a
+                                                href={project.repository}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {project.repository}
+                                            </a>
+                                        ) : (
+                                            '-'
+                                        )}
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {projects.map((project) => (
-                                    <TableRow
-                                        key={project.id ?? ''}
-                                        className="cursor-pointer hover:bg-muted/50"
-                                        onClick={() => handleRowClick(project.id ?? '')}
-                                    >
-                                        <TableCell className="font-medium">
-                                            {project.name}
-                                        </TableCell>
-                                        <TableCell className="max-w-xs truncate">
-                                            {project.description ?? '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {project.repository ? (
-                                                <a
-                                                    href={project.repository}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:underline"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    {project.repository}
-                                                </a>
-                                            ) : (
-                                                '-'
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        <div className="py-8 text-center">
-                            <p className="text-muted-foreground">
-                                No projects yet. Create your first project to get started.
-                            </p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                    <div className="py-8 text-center">
+                        <p className="text-muted-foreground">
+                            No projects yet. Create your first project to get started.
+                        </p>
+                    </div>
+                )}
+            </DataPanel>
             <CreateProjectDialog
                 open={createDialogOpen}
                 onOpenChange={setCreateDialogOpen}

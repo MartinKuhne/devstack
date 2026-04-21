@@ -3,9 +3,13 @@ import { Slot } from '@radix-ui/react-slot';
 
 import { cn } from '@/lib/utils';
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-    size?: 'default' | 'sm' | 'lg' | 'icon';
+export type ButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+
+export type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
+
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    variant?: ButtonVariant;
+    size?: ButtonSize;
     asChild?: boolean;
 };
 
