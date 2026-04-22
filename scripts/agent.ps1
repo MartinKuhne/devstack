@@ -55,6 +55,78 @@ query GetAgentTasks($itemId: UUID!) {
 }
 '@
 
+$UpdateDeliverableMutation = @'
+mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
+  updateDeliverable(input: $input) {
+    deliverable {
+      id
+      status
+      executionPlan
+      securityImpact
+      performanceImpact
+      testPlan
+      deploymentPlan
+      blocking
+    }
+    errors
+  }
+}
+'@
+
+$TransitionDeliverableStatusMutation = @'
+mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) {
+  transitionDeliverableStatus(input: $input) {
+    deliverable {
+      id
+      status
+    }
+    errors
+  }
+}
+'@
+
+$CreateAgentTaskMutation = @'
+mutation CreateAgentTask($input: CreateAgentTaskInput!) {
+  createAgentTask(input: $input) {
+    agentTask {
+      id
+      title
+      status
+      description
+      deliverableId
+    }
+    errors
+  }
+}
+'@
+
+$UpdateAgentTaskMutation = @'
+mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
+  updateAgentTask(input: $input) {
+    agentTask {
+      id
+      status
+      result
+      errors
+      commitHash
+    }
+    errors
+  }
+}
+'@
+
+$TransitionAgentTaskStatusMutation = @'
+mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
+  transitionAgentTaskStatus(input: $input) {
+    agentTask {
+      id
+      status
+    }
+    errors
+  }
+}
+'@
+
 # API endpoint configuration
 $ApiUrl = $env:DEVSTACK_API_URL
 if ([string]::IsNullOrWhiteSpace($ApiUrl)) {

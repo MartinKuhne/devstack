@@ -159,20 +159,29 @@ function Initialize-Project {
         $existingConfig = [ordered]@{}
     }
 
-    if ($existingConfig.PSObject.Properties['$schema'] -eq $null) {
+      if ($existingConfig.PSObject.Properties['$schema'] -eq $null) {
         $existingConfig | Add-Member '$schema' "https://opencode.ai/config.json" -Force
     }
 
     $mcpSection = $existingConfig.PSObject.Properties['mcp']
+    $hasDevstackMcp = $false
+    if ($mcpSection) {
+        if ($mcpSection.PSObject.Properties['devstack']) {
+            $hasDevstackMcp = $true
+        }
+    }
+
     if (-not $mcpSection) {
         $mcpSection = @{}
         $existingConfig | Add-Member 'mcp' $mcpSection -Force
     }
 
-    $mcpSection['devstack'] = @{
-        type    = "remote"
-        url     = "http://localhost:8088/mcp"
-        enabled = $true
+    if (-not $hasDevstackMcp) {
+        $mcpSection['devstack'] = @{
+            type    = "remote"
+            url     = "http://localhost:8088/mcp"
+            enabled = $true
+        }
     }
 
     $existingConfig | ConvertTo-Json -Depth 10 | Set-Content $opencodePath -Encoding UTF8
