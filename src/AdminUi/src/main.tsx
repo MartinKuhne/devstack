@@ -1,5 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { ApolloWrapper } from './components/ApolloWrapper.tsx';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import './index.css';
@@ -25,6 +27,7 @@ createRoot(document.getElementById('root')!).render(
                 </a>
             </div>
             <App />
+            <ToastContainer position="top-right" autoClose={3000} />
         </ApolloWrapper>
     </StrictMode>
 );

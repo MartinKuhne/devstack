@@ -11,20 +11,20 @@ async function cleanupTestData(graphqlUrl: string): Promise<boolean> {
         });
         const result = await response.json();
         if (result?.data?.cleanupTestData?.success) {
-            console.log('Test data cleaned up before test suite');
+            console.log('Test data cleaned up after test suite');
             return true;
         }
     } catch {
-        console.log('Backend not available for test data cleanup before suite');
+        console.log('Backend not available for test data cleanup after suite');
     }
     return false;
 }
 
-async function globalSetup(config: FullConfig): Promise<void> {
+async function globalTeardown(config: FullConfig): Promise<void> {
     void config;
     const graphqlUrl =
         process.env.GRAPHQL_API_URL || 'http://localhost:8087/graphql';
     await cleanupTestData(graphqlUrl);
 }
 
-export default globalSetup;
+export default globalTeardown;

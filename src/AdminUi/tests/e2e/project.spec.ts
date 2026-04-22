@@ -17,12 +17,14 @@ test.describe('Project CRUD', () => {
         await projectListPage.navigate();
         await projectListPage.waitForProjectList();
         await expect(projectListPage.pageTitle).toBeVisible();
+        await projectListPage.expectNoErrors();
     });
 
     test('should have New Project button', async () => {
         await projectListPage.navigate();
         await projectListPage.waitForProjectList();
         await expect(projectListPage.newProjectButton).toBeVisible();
+        await projectListPage.expectNoErrors();
     });
 
     test('should open create dialog when clicking New Project', async () => {
@@ -39,6 +41,7 @@ test.describe('Project CRUD', () => {
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
         await createProjectDialog.cancel();
         await expect(createProjectDialog.dialog).not.toBeVisible({ timeout: 5000 });
+        await projectListPage.expectNoErrors();
     });
 
     test('should validate empty project name', async ({ page }) => {
@@ -47,11 +50,11 @@ test.describe('Project CRUD', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        // Try to submit without filling name - button should be disabled
         const createBtn = page.getByRole('button', { name: 'Create Project' });
         await expect(createBtn).toBeDisabled();
 
         await createProjectDialog.cancel();
+        await projectListPage.expectNoErrors();
     });
 
     test('should navigate from projects to dashboard', async ({ page }) => {
@@ -59,6 +62,7 @@ test.describe('Project CRUD', () => {
         await projectListPage.waitForProjectList();
         await navigationHelper.navigateToDashboard();
         await expect(page.getByRole('heading', { name: 'Dashboard', level: 2 })).toBeVisible();
+        await projectListPage.expectNoErrors();
     });
 
     test('should navigate from projects to models', async ({ page }) => {
@@ -68,15 +72,16 @@ test.describe('Project CRUD', () => {
         await expect(
             page.getByRole('heading', { name: 'Large Language Models', level: 2 })
         ).toBeVisible();
+        await projectListPage.expectNoErrors();
     });
 
     test('should show project table with headers', async ({ page }) => {
         await projectListPage.navigate();
         await projectListPage.waitForProjectList();
 
-        // Table header columns should be visible
         await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible();
         await expect(page.getByRole('columnheader', { name: 'Description' })).toBeVisible();
+        await projectListPage.expectNoErrors();
     });
 
     test('should have Create Project button in dialog footer', async ({ page }) => {
@@ -89,6 +94,7 @@ test.describe('Project CRUD', () => {
         await expect(createBtn).toBeVisible();
 
         await createProjectDialog.cancel();
+        await projectListPage.expectNoErrors();
     });
 
     test('should have Cancel button in dialog footer', async ({ page }) => {
@@ -101,6 +107,7 @@ test.describe('Project CRUD', () => {
         await expect(cancelBtn).toBeVisible();
 
         await createProjectDialog.cancel();
+        await projectListPage.expectNoErrors();
     });
 
     test('sidebar navigation - dashboard to projects', async ({ page }) => {
@@ -109,6 +116,7 @@ test.describe('Project CRUD', () => {
 
         await navigationHelper.navigateToProjects();
         await expect(projectListPage.pageTitle).toBeVisible();
+        await projectListPage.expectNoErrors();
     });
 
     test('sidebar navigation - projects to models', async ({ page }) => {
@@ -119,19 +127,18 @@ test.describe('Project CRUD', () => {
         await expect(
             page.getByRole('heading', { name: 'Large Language Models', level: 2 })
         ).toBeVisible();
+        await projectListPage.expectNoErrors();
     });
 
     test('should show empty state when no projects exist', async () => {
         await projectListPage.navigate();
         await projectListPage.waitForProjectList();
 
-        // Either empty state message or table should be visible
-        const hasEmptyState = await projectListPage.emptyStateMessage
-            .isVisible()
-            .catch(() => false);
+        const hasEmptyState = await projectListPage.emptyStateMessage.isVisible().catch(() => false);
         if (hasEmptyState) {
             await expect(projectListPage.emptyStateMessage).toBeVisible();
         }
+        await projectListPage.expectNoErrors();
     });
 });
 

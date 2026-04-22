@@ -20,12 +20,14 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.navigate();
         await llmPage.waitForPageLoaded();
         await expect(llmPage.pageTitle).toBeVisible();
+        await llmPage.expectNoErrors();
     });
 
     test('should have Add Model button', async () => {
         await llmPage.navigate();
         await llmPage.waitForPageLoaded();
         await expect(llmPage.addModelButton).toBeVisible();
+        await llmPage.expectNoErrors();
     });
 
     test('should open dialog when clicking Add Model', async () => {
@@ -42,6 +44,7 @@ test.describe('Large Language Model CRUD', () => {
         await expect(dialog.dialog).toBeVisible({ timeout: 5000 });
         await dialog.cancel();
         await expect(dialog.dialog).not.toBeVisible({ timeout: 5000 });
+        await llmPage.expectNoErrors();
     });
 
     test('should validate required fields are empty', async ({ page }) => {
@@ -50,12 +53,11 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.clickAddModel();
         await expect(dialog.dialog).toBeVisible({ timeout: 5000 });
 
-        // The Add/Save button should be disabled when fields are empty
         const addButton = dialog.dialog.getByRole('button', { name: /Add|Save/ }).first();
         await expect(addButton).toBeDisabled();
 
         await dialog.cancel();
-        await page.waitForTimeout(100);
+        await llmPage.expectNoErrors();
     });
 
     test('should navigate back from models page', async ({ page }) => {
@@ -63,6 +65,7 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.waitForPageLoaded();
         await navigationHelper.navigateToDashboard();
         await expect(page.getByRole('heading', { name: 'Dashboard', level: 2 })).toBeVisible();
+        await llmPage.expectNoErrors();
     });
 
     test('should show/hide API key toggle', async ({ page }) => {
@@ -71,16 +74,15 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.clickAddModel();
         await expect(dialog.dialog).toBeVisible({ timeout: 5000 });
 
-        // The dialog should have an API key input with show/hide button
         const apiKeyInput = page.locator('#apiKey');
         if (await apiKeyInput.isVisible()) {
             const hideButton = page.getByRole('button', { name: 'Hide' });
             const showButton = page.getByRole('button', { name: 'Show' });
-            // Either Hide or Show button should be visible depending on current state
             await expect(hideButton.or(showButton)).toBeVisible();
         }
 
         await dialog.cancel();
+        await llmPage.expectNoErrors();
     });
 
     test('should have complexity dropdown with options 1-10', async ({ page }) => {
@@ -92,11 +94,11 @@ test.describe('Large Language Model CRUD', () => {
         const complexitySelect = page.getByLabel('Max Complexity (1-10)');
         if (await complexitySelect.isVisible()) {
             await complexitySelect.click();
-            // Should show options for numbers 1-10
             await expect(page.locator('[role="option"]')).toHaveCount(10);
         }
 
         await dialog.cancel();
+        await llmPage.expectNoErrors();
     });
 
     test('should navigate between models and projects', async ({ page }) => {
@@ -107,5 +109,6 @@ test.describe('Large Language Model CRUD', () => {
 
         await navigationHelper.navigateToModels();
         await expect(llmPage.pageTitle).toBeVisible();
+        await llmPage.expectNoErrors();
     });
 });

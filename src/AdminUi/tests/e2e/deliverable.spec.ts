@@ -14,12 +14,14 @@ test.describe('Deliverable CRUD', () => {
         await deliverableListPage.navigate();
         await deliverableListPage.waitForDeliverableList();
         await expect(deliverableListPage.pageTitle).toBeVisible();
+        await deliverableListPage.expectNoErrors();
     });
 
     test('should have New Deliverable button', async () => {
         await deliverableListPage.navigate();
         await deliverableListPage.waitForDeliverableList();
         await expect(deliverableListPage.newDeliverableButton).toBeVisible();
+        await deliverableListPage.expectNoErrors();
     });
 
     test('should open create dialog when clicking New Deliverable', async () => {
@@ -36,16 +38,17 @@ test.describe('Deliverable CRUD', () => {
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
         await createDeliverableDialog.cancel();
         await expect(createDeliverableDialog.dialog).not.toBeVisible({ timeout: 5000 });
+        await deliverableListPage.expectNoErrors();
     });
 
     test('should show deliverable table with headers', async ({ page }) => {
         await deliverableListPage.navigate();
         await deliverableListPage.waitForDeliverableList();
 
-        // Table header columns should be visible
         await expect(page.getByRole('columnheader', { name: 'Title' })).toBeVisible();
         await expect(page.getByRole('columnheader', { name: 'Type' })).toBeVisible();
         await expect(page.getByRole('columnheader', { name: 'Status' })).toBeVisible();
+        await deliverableListPage.expectNoErrors();
     });
 
     test('should navigate from deliverables to dashboard', async ({ page }) => {
@@ -53,6 +56,7 @@ test.describe('Deliverable CRUD', () => {
         await deliverableListPage.waitForDeliverableList();
         await page.goto('/');
         await expect(page.getByRole('heading', { name: 'Dashboard', level: 2 })).toBeVisible();
+        await deliverableListPage.expectNoErrors();
     });
 
     test('should navigate from deliverables to projects', async ({ page }) => {
@@ -60,80 +64,62 @@ test.describe('Deliverable CRUD', () => {
         await deliverableListPage.waitForDeliverableList();
         await page.goto('/projects');
         await expect(page.getByRole('heading', { name: 'Projects', level: 2 })).toBeVisible();
+        await deliverableListPage.expectNoErrors();
     });
 
     test('deliverables page shows status filter options', async ({ page }) => {
         await deliverableListPage.navigate();
         await deliverableListPage.waitForDeliverableList();
 
-        // Check that status-related elements are present on the page
-        const hasStatusFilter = await page
-            .getByPlaceholder(/status/i)
-            .isVisible()
-            .catch(() => false);
-        if (hasStatusFilter) {
-            await expect(page.getByPlaceholder(/status/i)).toBeVisible();
+        try {
+            await expect(page.getByPlaceholder(/status/i)).toBeVisible({ timeout: 2000 });
+        } catch {
+            // Status filter may not exist in empty state
         }
+        await deliverableListPage.expectNoErrors();
     });
 
-    test('deliverables detail - back to list navigation', async ({ page }) => {
-        // Navigate directly to a non-existent deliverable and verify error state
+   test('deliverables detail - handle missing deliverable gracefully', async ({ page }) => {
         await page.goto('/deliverables/nonexistent-id');
         await page.waitForTimeout(2000);
 
-        // Should show either an error message or redirect back
-        const hasError = await page
-            .getByText(/error|not found/i)
-            .isVisible()
-            .catch(() => false);
-        if (hasError) {
-            await expect(page.getByText(/error|not found/i)).toBeVisible();
-        } else {
-            // Or we should be on a valid page
-            const hasDashboardOrDeliverables = await page
-                .getByRole('heading', { name: /Dashboard|Deliverables/ })
-                .isVisible()
-                .catch(() => false);
-            if (hasDashboardOrDeliverables) {
-                await expect(
-                    page.getByRole('heading', { name: /Dashboard|Deliverables/ })
-                ).toBeVisible();
-            }
+        const hasErrorHeading = await page.getByRole('heading', { name: /error|not found/i }).isVisible().catch(() => false);
+        const hasDeliverablesHeading = await page.getByRole('heading', { name: /Deliverables/i }).isVisible().catch(() => false);
+        const hasNotFoundHeading = await page.getByRole('heading', { name: /Page Not Found|404/i }).isVisible().catch(() => false);
+
+        if (!hasErrorHeading && !hasDeliverablesHeading && !hasNotFoundHeading) {
+            throw new Error('Expected error state, redirect, or 404 page but found neither');
         }
     });
 
     test('sidebar - navigate to deliverables from projects', async ({ page }) => {
         await page.goto('/projects');
         await expect(page.getByRole('heading', { name: 'Projects', level: 2 })).toBeVisible();
-
-        // Deliverables link in sidebar should be visible when on a project detail page
-        // (it only appears when a project is selected)
+        await deliverableListPage.expectNoErrors();
     });
 
     test('deliverable list shows type filter options', async ({ page }) => {
         await deliverableListPage.navigate();
         await deliverableListPage.waitForDeliverableList();
 
-        const hasTypeFilter = await page
-            .getByPlaceholder(/type/i)
-            .isVisible()
-            .catch(() => false);
-        if (hasTypeFilter) {
-            await expect(page.getByPlaceholder(/type/i)).toBeVisible();
+        try {
+            await expect(page.getByPlaceholder(/type/i)).toBeVisible({ timeout: 2000 });
+        } catch {
+            // Type filter may not exist in empty state
         }
+        await deliverableListPage.expectNoErrors();
     });
 
     test('deliverables list shows search input', async ({ page }) => {
         await deliverableListPage.navigate();
         await deliverableListPage.waitForDeliverableList();
 
-        const hasSearch = await page
-            .getByPlaceholder(/search/i)
-            .isVisible()
-            .catch(() => false);
-        if (hasSearch) {
-            await expect(page.getByPlaceholder(/search/i)).toBeVisible();
+        try {
+            await expect(page.getByPlaceholder(/search/i)).toBeVisible({ timeout: 2000 });
+        } catch {
+            // Search input may not exist
         }
+        await deliverableListPage.expectNoErrors();
     });
 });
 
@@ -247,12 +233,11 @@ test.describe('Deliverable Creation and Detail', () => {
         await deliverableListPage.clickNewDeliverable();
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        // Try to submit without filling title
         await createDeliverableDialog.createButton.click();
-        // Dialog should still be visible due to validation error
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
         await createDeliverableDialog.cancel();
+        await deliverableListPage.expectNoErrors();
     });
 
     test('should create deliverable with acceptance criteria', async ({ page }) => {

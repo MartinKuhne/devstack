@@ -14,6 +14,23 @@ function LoadingFallback() {
     );
 }
 
+function NotFoundPage() {
+    return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+                <h1 className="text-4xl font-bold text-destructive mb-4">404</h1>
+                <h2 className="text-2xl font-semibold mb-2">Page Not Found</h2>
+                <p className="text-muted-foreground mb-4">
+                    The page you are looking for does not exist.
+                </p>
+                <a href="/" className="text-primary underline hover:text-primary/80">
+                    Go back to Dashboard
+                </a>
+            </div>
+        </div>
+    );
+}
+
 const DashboardPage = lazy(() => {
     routeLogger.debug('Lazy loading DashboardPage');
     return import('./features/dashboard/pages/DashboardPage').then((module) => {
@@ -183,6 +200,7 @@ function App() {
                             path="models"
                             element={<LargeLanguageModelsPageWithErrorBoundary />}
                         />
+                        <Route path="*" element={<NotFoundPage />} />
                     </Route>
                 </Routes>
             </ErrorBoundary>

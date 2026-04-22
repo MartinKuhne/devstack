@@ -26,10 +26,6 @@ import {
     AGENT_TASK_STATUS_COLORS,
     getStatusColor,
 } from '@/lib/constants';
-import { createModuleLogger } from '@/lib/logging';
-
-const logger = createModuleLogger('DeliverableDetailPage');
-
 export function DeliverableDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
