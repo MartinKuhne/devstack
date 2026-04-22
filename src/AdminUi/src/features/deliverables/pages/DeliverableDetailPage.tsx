@@ -134,18 +134,17 @@ export function DeliverableDetailPage() {
         );
     }
 
-    const validTransitions: DeliverableStatus[] = [];
-    if (deliverable.status === 'DRAFT') {
-        validTransitions.push('PLANNING');
-    } else if (deliverable.status === 'PLANNING') {
-        validTransitions.push('READY');
-    } else if (deliverable.status === 'READY') {
-        validTransitions.push('IN_PROGRESS');
-    } else if (deliverable.status === 'IN_PROGRESS') {
-        validTransitions.push('NEEDS_REVIEW', 'FAILED');
-    } else if (deliverable.status === 'NEEDS_REVIEW') {
-        validTransitions.push('DONE', 'IN_PROGRESS');
-    }
+    const allStatuses: DeliverableStatus[] = [
+        'DRAFT',
+        'PLANNING',
+        'READY',
+        'IN_PROGRESS',
+        'NEEDS_REVIEW',
+        'DONE',
+        'FAILED',
+        'REJECTED',
+    ];
+    const filteredStatuses = allStatuses.filter((s) => s !== deliverable.status);
 
     const handleStatusChange = async () => {
         if (!selectedStatus || !deliverable.id) return;
@@ -219,9 +218,9 @@ export function DeliverableDetailPage() {
                                     <SelectValue placeholder="Select new status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {validTransitions.map((status) => (
+                                    {filteredStatuses.map((status) => (
                                         <SelectItem key={status} value={status}>
-                                            {status.replace('_', ' ')}
+                                            {status.replace(/_/g, ' ')}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
