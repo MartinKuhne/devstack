@@ -4,7 +4,7 @@ $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $PromptsPath = Join-Path $PSScriptRoot "prompts"
 $SpecsPath   = Join-Path $ProjectRoot "specs"
 $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
-$DelaySeconds = 2
+$DelaySeconds = 5
 
 $GetProjectsQuery = @'
 query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
@@ -174,6 +174,25 @@ mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
 }
 '@
 
+$UpdateAgentTaskWithDurationMutation = @'
+mutation UpdateAgentTaskWithDuration($input: UpdateAgentTaskInput!) {
+  updateAgentTask(input: $input) {
+    agentTask {
+      id
+      status
+      result
+      errors
+      commitHash
+      executionDurationInSeconds
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
+'@
+
 # API endpoint configuration
 $ApiUrl = $env:DEVSTACK_API_URL
 if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
@@ -309,14 +328,16 @@ function Run-OpencodePrompt {
     if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
 
     Log-Info "Executing: npx @npxArgs"
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
     & npx @npxArgs
+    $sw.Stop()
 
     if ($LASTEXITCODE -ne 0) {
         Log-Error "Opencode returned non-zero exit code"
-        return $false
+        return @{ Success = $false; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds }
     }
 
-    return $true
+    return @{ Success = $true; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds }
 }
 
 function Invoke-SpecAnalysisPhase {
@@ -480,9 +501,32 @@ function Invoke-ExecutionPhase {
 
         Log-Info "Prompt: $prompt"
 
-        $success = Run-OpencodePrompt -Prompt $prompt
+        $result = Run-OpencodePrompt -Prompt $prompt
 
-        if (-not $success) {
+        if ($result.Success) {
+            Log-Info "Updating AgentTask $($task.id) with execution duration $($result.ElapsedSeconds)s..."
+
+            $updateVars = @{
+                input = @{
+                    id = $task.id.ToString()
+                    executionDurationInSeconds = $result.ElapsedSeconds
+                }
+            }
+
+            try {
+                $updateResult = Invoke-GraphQL -Operation $UpdateAgentTaskWithDurationMutation -Variables $updateVars -IsMutation
+                if ($updateResult.errors) {
+                    Log-Error "Failed to update AgentTask $($task.id): $($updateResult.errors -join ', ')"
+                }
+                else {
+                    Log-Info "AgentTask $($task.id) updated successfully with duration $($result.ElapsedSeconds)s"
+                }
+            }
+            catch {
+                Log-Error "Error updating AgentTask $($task.id): $_"
+            }
+        }
+        else {
             Log-Error "Execution failed for AgentTask $($task.id)"
         }
 
@@ -504,9 +548,12 @@ if (-not (Test-GraphQLEndpoint -Url $GraphQLEndpoint)) {
 
 Log-Info "GraphQL endpoint validated."
 
-# Run phases
-# Invoke-SpecAnalysisPhase
-Invoke-PlanningPhase
-Invoke-ExecutionPhase
+while ($true) {
+    # Run phases
+    # Invoke-SpecAnalysisPhase
+    Invoke-PlanningPhase
+    Invoke-ExecutionPhase
 
-Log-Info "Runner agent complete."
+    Log-Info "Waiting ${DelaySeconds} seconds before next loop..."
+    Start-Sleep -Seconds $DelaySeconds
+}
