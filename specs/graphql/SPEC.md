@@ -13,7 +13,7 @@ Automated agents MUST NOT:
 Only human maintainers may update this file.
 -->
 
-# Graphql Specification
+# GraphQL Specification
 
 # Goals
 
@@ -22,21 +22,32 @@ Create a data model and API to manage an AI driven development process
 # Components
 
 - Graphql server holding the data model
+- Unit tests
 - Integration tests using Testcontainers for .NET (run with ```dotnet test src/server/```)
 
 # Graphql server
 
 - A graphql server on .net 10, hot chocolate, postgres, containerized
-- Optional querying, sorting, filtering and paging
-- Integration tests create queries and mutations to CRUD operations for all types in the data model
 
-## Data model
+Include [Global non-functional requirements](../NON-FUNCTIONAL.md)
 
-I can create, read, update and delete the entities in the [entity relationship diagram](data-model.mmd)
+# EARS (Easy Approach to Requirements Syntax) formatted functional requirements
+
+- [GRAPHQL-001] The system shall support mutations and queries to create, read, update and delete the entities in the [entity relationship diagram](data-model.mmd)
+- [GRAPHQL-002] The system shall support optional filtering
+- [GRAPHQL-003] The system shall support optional sorting
+- [GRAPHQL-004] The system shall support optional paging
+- [GRAPHQL-005] The system shall expose an HTTP endpoint at the path /graphql
+
+- [GRAPHQL-200] The system shall expose an HTTP GET endpoint at the path /health as a health check
+- [GRAPHQL-201] The system shall return all health check responses in JSON format.
+- [GRAPHQL-202] If the request targets the /health endpoint, the system shall not require authentication or authorization headers.
+- [GRAPHQL-203] While the system and all its critical dependencies are operational, the system shall respond with the HTTP status code 200 OK.
+- [GRAPHQL-204] When the system detects a critical failure (e.g., database connection loss), it shall respond with the HTTP status code 503 Service Unavailable.
+- [GRAPHQL-205] When the health check is executed, the system shall attempt to open a connection to the primary database.
 
 # Technical specification
 
-- Log operations and errors to the console
 - [GraphQL Specification](https://spec.graphql.org/September2025/)
 - [Gherkin](https://cucumber.io/docs/gherkin/reference)
 - [TestContainers](https://dotnet.testcontainers.org/)

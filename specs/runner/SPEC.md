@@ -37,19 +37,19 @@ Execute prompts with OpenCode
 # Functional Requirements (EARS Format)
 
 ## Ubiquitous Requirements
-- REQ-AG-001: The system shall determine the current repository upon startup using the github repository name (if available)
-- REQ-AG-002: The system shall log all prompts and program invocations to the console
+- [REQ-AG-001] The system shall determine the current repository upon startup using the github repository name (if available)
+- [REQ-AG-002] The system shall log all prompts and program invocations to the console
 
 ## Event-Driven Requirements  
-- REQ-AG-100: When there is no project matching the current repository in GraphQL, the system shall create it
-- REQ-AG-101: When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
+- [REQ-AG-100] When there is no project matching the current repository in GraphQL, the system shall create it
+- [REQ-AG-101] When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
 
 ## State-Driven Requirements
-- REQ-AG-200: While there are Deliverables for the Project in Status = PLANNING, the system shall execute the Planning Phase (below)
-- REQ-AG-201: While there are AgentTasks for the Project in Status = READY, the system shall execute the Execution Phase (below)
+- [REQ-AG-200] While there are Deliverables for the Project in Status = PLANNING, the system shall execute the Planning Phase (below)
+- [REQ-AG-201] While there are AgentTasks for the Project in Status = READY, the system shall execute the Execution Phase (below)
 
 ## Unwanted Behavior Requirements
-- REQ-AG-300: Dot not delete or overwrite or delete existing content from ```opencode.json```
+- [REQ-AG-300] When an ```opencode.json``` file is present, the system shall not delete or overwrite the file or delete existing content from it
 
 ## Opencode configuration example
 
@@ -87,11 +87,11 @@ Invoke OpenCode with the following prompt:
 "Implement the change
 {{Description}}
 AgentTaskId: {{AgentTaskId}}
-If successful, update the Result, CommitHash fields and change the AgentTask Status to Done
+If successful, update the Result, CommitHash fields and change the AgentTask Status to Done.
+Commit the changes with a detailed description of what has been changed.
 If not successful, update the Result and Errors fields and change the AgentTask Status to Failed"
 
 Substitute {{Description}}, {{AgentTaskId}} with the fields of the same name from the Deliverable
-
 
 # Technical specification
 

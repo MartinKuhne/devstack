@@ -19,10 +19,6 @@ Only human maintainers may update this file.
 
 The Admin UI supports a human software engineer, software engineering manager or product owner to give input to and manage the software development automation process
 
-# Scope
-
-The scope of this projec
-
 # Components
 
 - A docker container hosting a web interface
@@ -42,17 +38,25 @@ The scope of this projec
 - [REQ-UI-009] The system shall provide a graphical user interface to Change the Status of a Deliverable to any of the status values that are defined by the GraphQL schema
 - [REQ-UI-010] The system shall provide a graphical user interface to Delete a Deliverable
 - [REQ-UI-011] The system shall provide a graphical user interface to Create an AgentTask
-- [REQ-UI-012] The system shall provide a graphical user interface to Edit an AgentTash
+- [REQ-UI-012] The system shall provide a graphical user interface to Edit an AgentTask
 - [REQ-UI-013] The system shall provide a graphical user interface to Delete an AgentTask
 - [REQ-UI-014] The system shall provide a graphical user interface to Change the Status of an AgentTask to any of the status values that are defined by the GraphQL schema
-- [REQ-UI-015] The system shall provide a graphical user interface to View a dashboard showing the Count of Deliverables per State each
-- [REQ-UI-016] When the user has provided valid input to create an object, the system should enable the Create button
-- [REQ-UI-017] When the user has not provided valid input to create an object, system should display the validation errors and disable the Create button
+- [REQ-UI-015] The system shall provide a graphical user interface to View a dashboard showing the Count of Deliverables per Status each
+- [REQ-UI-016] When the user has provided valid input to create an object, the system should [enable the Create button]
+- [REQ-UI-017] When the user input is invalid, the system shall [display validation errors] and [disable the Create button].
+- [REQ-UI-108] The system shall display the [Count of Deliverables] per [Status] using a [Table].
+
+- [REQ-UI-200] The system shall allow the user to search for [Deliverables] by [Title] using the [SearchBar].
+- [REQ-UI-201] When the user selects a [Project] from the [Sidebar], the system shall display the [Deliverables] list for that [Project].
+
+
 - [REQ-UI-100] The system shall have unit tests
 - [REQ-UI-101] The system shall have integration tests that excerise the live instance of the project
 - [REQ-UI-102] When the system creates test data, it shall mark it as such by using the "[DeleteAfterTest]" text in the Title or Name of the object created
 - [REQ-UI-103] When the system is beginning to run integration tests, it shall delete the test data
 - [REQ-UI-104] When the system has finished running integration tests, it shall delete the test data
+
+Include [Global non-functional requirements](../NON-FUNCTIONAL.md)
 
 # Structure
 
@@ -110,6 +114,6 @@ Deliverable detail view
 - playwright
 
 # Additional quality gates
-- ```npm rum build```
+- ```npm run build```
 - ```npm run test```
 - ```npm rum test:e2e```
