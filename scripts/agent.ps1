@@ -391,7 +391,7 @@ function Invoke-PlanningPhase {
         exit 1
     }
 
-    $deliverables = $result.data.deliverablesByProjectId | Where-Object { $_.status -eq "PLANNING" }
+    $deliverables = $result.data.deliverablesByProjectId.nodes | Where-Object { $_.status -eq "PLANNING" }
 
     if (-not $deliverables) {
         Log-Info "No deliverables in PLANNING status found for project."
@@ -442,7 +442,7 @@ function Invoke-ExecutionPhase {
         exit 1
     }
 
-    $allDeliverables = $deliverablesResult.data.deliverablesByProjectId
+    $allDeliverables = $deliverablesResult.data.deliverablesByProjectId.nodes
     if (-not $allDeliverables) {
         Log-Info "No deliverables found for project."
         return
