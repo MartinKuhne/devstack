@@ -10,7 +10,12 @@ export class AgentTaskListPage extends BasePage {
         super(page);
         this.pageTitle = page.getByRole('heading', { name: 'Agent Tasks', level: 2 });
         this.taskTable = page.locator('table');
-        this.statusFilter = page.getByPlaceholder('Filter by status') || page.locator('[role="combobox"]').filter({ has: page.getByText(/status/i) }).first();
+        this.statusFilter =
+            page.getByPlaceholder('Filter by status') ||
+            page
+                .locator('[role="combobox"]')
+                .filter({ has: page.getByText(/status/i) })
+                .first();
     }
 
     async navigate(): Promise<void> {
@@ -51,7 +56,8 @@ export class CreateAgentTaskDialog extends BasePage {
         super(page);
         this.dialog = page.getByRole('dialog').filter({ hasText: /Create.*Agent Task|Add.*Task/i });
         this.titleInput = page.getByLabel(/Title/) || page.locator('[id*="title"]');
-        this.promptTextarea = page.getByLabel(/Prompt/) || page.locator('[class*="textarea"] textarea').first();
+        this.promptTextarea =
+            page.getByLabel(/Prompt/) || page.locator('[class*="textarea"] textarea').first();
         this.createButton = page.getByRole('button', { name: /Create|Add/ });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     }
@@ -85,8 +91,15 @@ export class AgentTaskDetailPage extends BasePage {
     constructor(page: Page) {
         super(page);
         this.statusBadge = page.locator('[class*="badge"], [class*="Badge"]');
-        this.updateStatusButton = page.getByRole('button', { name: /Update Status/ }) || page.getByRole('button', { name: 'Change Status' });
-        this.changeStatusSelect = page.getByPlaceholder('Select new status') || page.locator('[role="combobox"]').filter({ has: page.getByText(/status/i) }).first();
+        this.updateStatusButton =
+            page.getByRole('button', { name: /Update Status/ }) ||
+            page.getByRole('button', { name: 'Change Status' });
+        this.changeStatusSelect =
+            page.getByPlaceholder('Select new status') ||
+            page
+                .locator('[role="combobox"]')
+                .filter({ has: page.getByText(/status/i) })
+                .first();
         this.backToListLink = page.getByRole('link', { name: /Back to List|Agent Tasks/ }).first();
         this.deleteButton = page.getByRole('button', { name: 'Delete' });
     }
@@ -100,10 +113,15 @@ export class AgentTaskDetailPage extends BasePage {
     }
 
     async getStatus(): Promise<string | null> {
-        const badges = page.locator('[class*="badge"], [class*="Badge"]');
-        for (let i = 0; i < await badges.count(); i++) {
+        const badges = this.page.locator('[class*="badge"], [class*="Badge"]');
+        for (let i = 0; i < (await badges.count()); i++) {
             const text = await badges.nth(i).textContent();
-            if (text && ['READY', 'IN_PROGRESS', 'NEEDS_REVIEW', 'DONE', 'FAILED', 'REJECTED'].includes(text)) {
+            if (
+                text &&
+                ['READY', 'IN_PROGRESS', 'NEEDS_REVIEW', 'DONE', 'FAILED', 'REJECTED'].includes(
+                    text
+                )
+            ) {
                 return text;
             }
         }
@@ -113,14 +131,14 @@ export class AgentTaskDetailPage extends BasePage {
     async changeStatus(newStatus: string): Promise<void> {
         try {
             await this.changeStatusSelect.click();
-            await page.getByText(newStatus).click();
+            await this.page.getByText(newStatus).click();
             if (await this.updateStatusButton.isVisible()) {
                 await this.updateStatusButton.click();
             } else {
-                await page.waitForTimeout(1000);
+                await this.page.waitForTimeout(1000);
             }
         } catch {
-            const statusOption = page.getByRole('option', { name: newStatus }).first();
+            const statusOption = this.page.getByRole('option', { name: newStatus }).first();
             if (await statusOption.isVisible()) {
                 await statusOption.click();
             }
@@ -132,6 +150,9 @@ export class AgentTaskDetailPage extends BasePage {
     }
 
     async verifyTitle(title: string): Promise<boolean> {
-        return await page.getByRole('heading', { name: title, level: 2 }).isVisible().catch(() => false);
+        return await this.page
+            .getByRole('heading', { name: title, level: 2 })
+            .isVisible()
+            .catch(() => false);
     }
 }

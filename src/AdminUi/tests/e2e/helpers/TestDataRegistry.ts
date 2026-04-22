@@ -12,7 +12,7 @@ export class TestDataRegistry {
     private static interceptionSetup = false;
 
     constructor() {
-        this.apiUrl = process.env.GRAPHQL_API_URL || 'http://localhost:8087/graphql';
+        TestDataRegistry.apiUrl = process.env.GRAPHQL_API_URL || 'http://localhost:8087/graphql';
     }
 
     static registerEntity(type: CreatedEntity['type'], id: string): void {
@@ -36,8 +36,8 @@ export class TestDataRegistry {
     }
 
     async cleanup(): Promise<void> {
-        const entities = [...this.entities];
-        this.entities = [];
+        const entities = [...TestDataRegistry.entities];
+        TestDataRegistry.entities = [];
 
         for (const entity of entities.reverse()) {
             try {
@@ -73,7 +73,7 @@ export class TestDataRegistry {
         }
 
         try {
-            const response = await fetch(this.apiUrl, {
+            const response = await fetch(TestDataRegistry.apiUrl, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
@@ -88,8 +88,8 @@ export class TestDataRegistry {
                 throw new Error(`Failed to delete ${entity.type}: ${response.statusText}`);
             }
 
-            const result = await response.json();
-            
+            const result = (await response.json()) as { errors?: Array<{ message: string }> };
+
             if (result.errors && result.errors.length > 0) {
                 console.warn(`GraphQL errors deleting ${entity.type}:`, result.errors);
             }
@@ -99,11 +99,17 @@ export class TestDataRegistry {
     }
 
     private static setupInterception(page: Page): void {
-        const mutationMapping: Record<string, { type: CreatedEntity['type']; variableName: string }> = {
+        const mutationMapping: Record<
+            string,
+            { type: CreatedEntity['type']; variableName: string }
+        > = {
             createProject: { type: 'Project', variableName: 'project' },
             createDeliverable: { type: 'Deliverable', variableName: 'deliverable' },
             createAgentTask: { type: 'AgentTask', variableName: 'agentTask' },
-            createLargeLanguageModel: { type: 'LargeLanguageModel', variableName: 'largeLanguageModel' },
+            createLargeLanguageModel: {
+                type: 'LargeLanguageModel',
+                variableName: 'largeLanguageModel',
+            },
         };
 
         page.on('response', async (response) => {

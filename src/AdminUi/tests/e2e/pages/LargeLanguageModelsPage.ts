@@ -10,8 +10,10 @@ export class LargeLanguageModelsPage extends BasePage {
     constructor(page: Page) {
         super(page);
         this.pageTitle = page.getByRole('heading', { name: 'Large Language Models', level: 2 });
-        this.addModelButton = page.getByRole('button', { name: 'Add Model' });
-        this.modelListCard = page.getByRole('heading', { name: 'Model Configurations' }).locator('..');
+        this.addModelButton = page.getByRole('button', { name: 'Add Model' }).first();
+        this.modelListCard = page
+            .getByRole('heading', { name: 'Model Configurations' })
+            .locator('..');
         this.emptyStateMessage = page.getByText(/No model configurations|Configure/);
     }
 
@@ -49,7 +51,9 @@ export class LargeLanguageModelDialog extends BasePage {
         this.apiKeyInput = page.getByLabel('API Key');
         this.complexitySelect = page.getByLabel('Max Complexity (1-10)');
         this.addButton = page.getByRole('button', { name: 'Add Model' });
-        this.saveButton = page.getByRole('button', { name: 'Save' }) || page.getByRole('button', { name: 'Save Changes' });
+        this.saveButton =
+            page.getByRole('button', { name: 'Save' }) ||
+            page.getByRole('button', { name: 'Save Changes' });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
         this.errorMessage = page.locator('[class*="text-destructive"], [class*="bg-destructive"]');
     }
@@ -58,7 +62,13 @@ export class LargeLanguageModelDialog extends BasePage {
         return await this.dialog.isVisible();
     }
 
-    async fillForm(url: string, modelName: string, alias?: string, apiKey?: string, complexity?: string): Promise<void> {
+    async fillForm(
+        url: string,
+        modelName: string,
+        alias?: string,
+        apiKey?: string,
+        complexity?: string
+    ): Promise<void> {
         await this.urlInput.fill(url);
         await this.modelInput.fill(modelName);
         if (alias) await this.aliasInput.fill(alias);
@@ -66,7 +76,13 @@ export class LargeLanguageModelDialog extends BasePage {
         if (complexity) await this.complexitySelect.selectOption(complexity);
     }
 
-    async createModel(url: string, modelName: string, alias?: string, apiKey?: string, complexity?: string): Promise<void> {
+    async createModel(
+        url: string,
+        modelName: string,
+        alias?: string,
+        apiKey?: string,
+        complexity?: string
+    ): Promise<void> {
         await this.fillForm(url, modelName, alias, apiKey, complexity);
         if (await this.addButton.isVisible()) {
             await this.addButton.click();

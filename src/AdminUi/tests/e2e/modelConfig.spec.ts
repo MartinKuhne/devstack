@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { LargeLanguageModelsPage, LargeLanguageModelDialog } from './pages/LargeLanguageModelsPage.js';
+import {
+    LargeLanguageModelsPage,
+    LargeLanguageModelDialog,
+} from './pages/LargeLanguageModelsPage.js';
 import { NavigationHelper } from './helpers/NavigationHelper.js';
 
 test.describe('Large Language Model CRUD', () => {
@@ -41,20 +44,16 @@ test.describe('Large Language Model CRUD', () => {
         await expect(dialog.dialog).not.toBeVisible({ timeout: 5000 });
     });
 
-    test('should validate required fields are empty', async () => {
+    test('should validate required fields are empty', async ({ page }) => {
         await llmPage.navigate();
         await llmPage.waitForPageLoaded();
         await llmPage.clickAddModel();
         await expect(dialog.dialog).toBeVisible({ timeout: 5000 });
-        
-        // Try to submit without filling anything - should show validation errors
+
+        // The Add/Save button should be disabled when fields are empty
         const addButton = dialog.dialog.getByRole('button', { name: /Add|Save/ }).first();
-        if (await addButton.isVisible()) {
-            await addButton.click();
-            // Should still be visible due to validation error
-            await expect(dialog.dialog).toBeVisible({ timeout: 5000 });
-        }
-        
+        await expect(addButton).toBeDisabled();
+
         await dialog.cancel();
     });
 
@@ -70,7 +69,7 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.waitForPageLoaded();
         await llmPage.clickAddModel();
         await expect(dialog.dialog).toBeVisible({ timeout: 5000 });
-        
+
         // The dialog should have an API key input with show/hide button
         const apiKeyInput = page.locator('#apiKey');
         if (await apiKeyInput.isVisible()) {
@@ -79,7 +78,7 @@ test.describe('Large Language Model CRUD', () => {
             // Either Hide or Show button should be visible depending on current state
             await expect(hideButton.or(showButton)).toBeVisible();
         }
-        
+
         await dialog.cancel();
     });
 
@@ -88,14 +87,14 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.waitForPageLoaded();
         await llmPage.clickAddModel();
         await expect(dialog.dialog).toBeVisible({ timeout: 5000 });
-        
+
         const complexitySelect = page.getByLabel('Max Complexity (1-10)');
         if (await complexitySelect.isVisible()) {
             await complexitySelect.click();
             // Should show options for numbers 1-10
             await expect(page.locator('[role="option"]')).toHaveCount(10);
         }
-        
+
         await dialog.cancel();
     });
 
@@ -104,7 +103,7 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.waitForPageLoaded();
         await navigationHelper.navigateToProjects();
         await expect(page.getByRole('heading', { name: 'Projects', level: 2 })).toBeVisible();
-        
+
         await navigationHelper.navigateToModels();
         await expect(llmPage.pageTitle).toBeVisible();
     });
