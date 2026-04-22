@@ -42,10 +42,16 @@ export type AgentTask = {
   title?: Maybe<Scalars['String']['output']>;
 };
 
+export type FieldError = {
+  __typename?: 'FieldError';
+  field: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+};
+
 export type AgentTaskPayload = {
   __typename?: 'AgentTaskPayload';
   agentTask?: Maybe<AgentTask>;
-  errors: Array<Scalars['String']['output']>;
+  errors: Array<FieldError>;
 };
 
 export const AgentTaskStatus = {
@@ -149,7 +155,7 @@ export type Deliverable = {
 export type DeliverablePayload = {
   __typename?: 'DeliverablePayload';
   deliverable?: Maybe<Deliverable>;
-  errors: Array<Scalars['String']['output']>;
+  errors: Array<FieldError>;
 };
 
 export const DeliverableStatus = {
@@ -184,7 +190,7 @@ export type LargeLanguageModel = {
 
 export type LargeLanguageModelPayload = {
   __typename?: 'LargeLanguageModelPayload';
-  errors: Array<Scalars['String']['output']>;
+  errors: Array<FieldError>;
   largeLanguageModel?: Maybe<LargeLanguageModel>;
 };
 
@@ -302,7 +308,7 @@ export type ProjectPageInfo = {
 
 export type ProjectPayload = {
   __typename?: 'ProjectPayload';
-  errors: Array<Scalars['String']['output']>;
+  errors: Array<FieldError>;
   project?: Maybe<Project>;
 };
 
