@@ -1,5 +1,5 @@
 import { Search, Brain, LayoutDashboard, Folder, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
     CommandDialog,
@@ -18,6 +18,7 @@ import {
     DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { useEffect, useState } from 'react';
+import { useGetDeliverablesQuery } from '@/generated/graphql';
 
 const navigationItems = [
     { label: 'Dashboard', to: '/', icon: LayoutDashboard },
@@ -37,7 +38,12 @@ function Logo() {
 }
 
 function SearchBar() {
+    const navigate = useNavigate();
     const [open, setOpen] = useState(false);
+    const { data } = useGetDeliverablesQuery({
+        fetchPolicy: 'cache-only',
+        skip: !open,
+    });
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -50,6 +56,8 @@ function SearchBar() {
         return () => document.removeEventListener('keydown', down);
     }, []);
 
+    const deliverables = (data?.deliverables?.nodes ?? []).filter((d): d is NonNullable<typeof d> => d !== null);
+
     return (
         <div>
             <Button
@@ -58,15 +66,15 @@ function SearchBar() {
                 onClick={() => setOpen(current => !current)}
             >
                 <Search className="mr-2 h-4 w-4" />
-                Search...
+                Search Deliverables...
                 <kbd className="pointer-events-none absolute right-2 top-2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
                     <span className="text-xs">Ctrl</span>K
                 </kbd>
             </Button>
             <CommandDialog open={open} onOpenChange={setOpen}>
-                <CommandInput placeholder="Search pages, projects, deliverables..." />
+                <CommandInput placeholder="Search deliverables by title..." />
                 <CommandList>
-                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandEmpty>No deliverables found.</CommandEmpty>
                     <CommandGroup heading="Navigation">
                         {navigationItems.map(item => (
                             <CommandItem
@@ -82,6 +90,24 @@ function SearchBar() {
                             </CommandItem>
                         ))}
                     </CommandGroup>
+                    {deliverables.length > 0 && (
+                        <CommandGroup heading="Deliverables">
+                            {deliverables.map((deliverable) => (
+                                <CommandItem
+                                    key={deliverable.id ?? ''}
+                                    value={deliverable.title ?? ''}
+                                    onSelect={() => {
+                                        if (deliverable.id) {
+                                            navigate(`/deliverables/${deliverable.id}`);
+                                            setOpen(false);
+                                        }
+                                    }}
+                                >
+                                    {deliverable.title}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    )}
                 </CommandList>
             </CommandDialog>
         </div>

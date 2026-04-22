@@ -10,7 +10,7 @@ import { useState } from 'react';
 import {
     useTransitionAgentTaskStatusMutation,
     useDeleteAgentTaskMutation,
-    type AgentTaskStatus,
+    AgentTaskStatus,
 } from '@/generated/graphql';
 import {
     Select,
@@ -105,20 +105,7 @@ export function AgentTaskDetailPage() {
         }
     };
 
-    const validTransitions: string[] = [];
-    if (agentTask?.status === 'READY') {
-        validTransitions.push('IN_PROGRESS', 'FAILED', 'REJECTED');
-    } else if (agentTask?.status === 'IN_PROGRESS') {
-        validTransitions.push('NEEDS_REVIEW', 'FAILED', 'REJECTED');
-    } else if (agentTask?.status === 'NEEDS_REVIEW') {
-        validTransitions.push('DONE', 'IN_PROGRESS', 'FAILED', 'REJECTED');
-    } else if (agentTask?.status === 'DONE') {
-        validTransitions.push('IN_PROGRESS');
-    } else if (agentTask?.status === 'FAILED') {
-        validTransitions.push('READY');
-    } else if (agentTask?.status === 'REJECTED') {
-        validTransitions.push('READY');
-    }
+ 
 
     if (loading) {
         return (
@@ -204,9 +191,9 @@ export function AgentTaskDetailPage() {
                                     <SelectValue placeholder="Select new status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {validTransitions.map((status) => (
+                                    {Object.values(AgentTaskStatus).map((status) => (
                                         <SelectItem key={status} value={status}>
-                                            {status.replace('_', ' ')}
+                                            {status.replace(/_/g, ' ')}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

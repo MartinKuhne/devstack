@@ -9,7 +9,7 @@ import { EditDeliverableDialog } from '../components/EditDeliverableDialog';
 import { useState } from 'react';
 import {
     useTransitionDeliverableStatusMutation,
-    type DeliverableStatus,
+    DeliverableStatus,
 } from '@/generated/graphql';
 import {
     Select,
@@ -111,16 +111,7 @@ export function DeliverableDetailPage() {
         );
     }
 
-    const allStatuses: DeliverableStatus[] = [
-        'DRAFT',
-        'PLANNING',
-        'READY',
-        'IN_PROGRESS',
-        'NEEDS_REVIEW',
-        'DONE',
-        'FAILED',
-        'REJECTED',
-    ];
+    const allStatuses = Object.values(DeliverableStatus);
     const filteredStatuses = allStatuses.filter((s) => s !== deliverable.status);
 
     const handleStatusChange = async () => {
