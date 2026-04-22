@@ -19,9 +19,41 @@ public sealed class ProjectSteps
         _httpClient = SpecFlowHooks.GetHttpClient(scenarioContext);
     }
 
+    private static JsonElement GetData(JsonElement response)
+    {
+        if (!response.TryGetProperty("data", out var data) || data.ValueKind == JsonValueKind.Null)
+        {
+            throw new InvalidOperationException("GraphQL response has no data: " + response.ToString());
+        }
+        return data;
+    }
+
+    private static JsonElement GetMutationResult(JsonElement data, string mutationName)
+    {
+        if (!data.TryGetProperty(mutationName, out var result) || result.ValueKind == JsonValueKind.Null)
+        {
+            throw new InvalidOperationException($"GraphQL mutation '{mutationName}' returned null: " + data.ToString());
+        }
+        return result;
+    }
+
+    private static JsonElement GetNonNullData(JsonElement parent, string propertyName, string mutationName)
+    {
+        if (!parent.TryGetProperty(propertyName, out var value) || value.ValueKind == JsonValueKind.Null)
+        {
+            var errors = parent.TryGetProperty("errors", out var errorsElem) && errorsElem.ValueKind != JsonValueKind.Null
+                ? string.Join("; ", errorsElem.EnumerateArray().Select(e => $"{e.GetProperty("field")}: {e.GetProperty("message")}".ToString()))
+                : "no errors";
+            throw new InvalidOperationException($"GraphQL mutation '{mutationName}' returned null for '{propertyName}': {errors}. Full response: {parent.ToString()}");
+        }
+        return value;
+    }
+
     private static bool HasErrors(JsonElement response, string mutationName)
     {
-        var errors = response.GetProperty("data").GetProperty(mutationName).GetProperty("errors");
+        var data = GetData(response);
+        var result = GetMutationResult(data, mutationName);
+        var errors = result.GetProperty("errors");
         return errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0;
     }
 
@@ -44,7 +76,7 @@ public sealed class ProjectSteps
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
 
-        var projectData = result.GetProperty("data").GetProperty("createProject").GetProperty("project");
+        var projectData = GetNonNullData(GetMutationResult(GetData(result), "createProject"), "project", "createProject");
         var projectId = projectData.GetProperty("id").ToString();
         _scenarioContext["ProjectId"] = projectId;
     }
@@ -63,7 +95,7 @@ public sealed class ProjectSteps
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
 
-        var projectData = result.GetProperty("data").GetProperty("createProject").GetProperty("project");
+        var projectData = GetNonNullData(GetMutationResult(GetData(result), "createProject"), "project", "createProject");
         var projectId = projectData.GetProperty("id").ToString();
         _scenarioContext["ProjectId"] = projectId;
         _scenarioContext["Response"] = result;
@@ -83,7 +115,7 @@ public sealed class ProjectSteps
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
 
-        var projectData = result.GetProperty("data").GetProperty("createProject").GetProperty("project");
+        var projectData = GetNonNullData(GetMutationResult(GetData(result), "createProject"), "project", "createProject");
         var projectId = projectData.GetProperty("id").ToString();
         _scenarioContext["ProjectId"] = projectId;
         _scenarioContext["Response"] = result;
@@ -199,7 +231,7 @@ public sealed class ProjectSteps
     public void ThenTheProjectShouldExistInTheDatabase()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var project = response.GetProperty("data").GetProperty("createProject").GetProperty("project");
+        var project = GetNonNullData(GetMutationResult(GetData(response), "createProject"), "project", "createProject");
         project.ValueKind.Should().NotBe(JsonValueKind.Null);
         var projectId = project.GetProperty("id").ToString();
         projectId.Should().NotBeNullOrEmpty();
@@ -220,7 +252,7 @@ public sealed class ProjectSteps
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var project = result.GetProperty("data").GetProperty("projectById");
+        var project = GetData(result).GetProperty("projectById");
         project.ValueKind.Should().Be(JsonValueKind.Null);
     }
 
@@ -228,7 +260,7 @@ public sealed class ProjectSteps
     public void ThenTheProjectShouldBeReturnedWithCorrectData()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var project = response.GetProperty("data").GetProperty("projectById");
+        var project = GetData(response).GetProperty("projectById");
         project.ValueKind.Should().NotBe(JsonValueKind.Null);
         var projectId = project.GetProperty("id").ToString();
         projectId.Should().NotBeNullOrEmpty();

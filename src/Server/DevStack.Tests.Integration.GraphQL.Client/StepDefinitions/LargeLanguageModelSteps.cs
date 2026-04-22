@@ -19,9 +19,41 @@ public sealed class LargeLanguageModelSteps
         _httpClient = SpecFlowHooks.GetHttpClient(scenarioContext);
     }
 
+    private static JsonElement GetData(JsonElement response)
+    {
+        if (!response.TryGetProperty("data", out var data) || data.ValueKind == JsonValueKind.Null)
+        {
+            throw new InvalidOperationException("GraphQL response has no data: " + response.ToString());
+        }
+        return data;
+    }
+
+    private static JsonElement GetMutationResult(JsonElement data, string mutationName)
+    {
+        if (!data.TryGetProperty(mutationName, out var result) || result.ValueKind == JsonValueKind.Null)
+        {
+            throw new InvalidOperationException($"GraphQL mutation '{mutationName}' returned null: " + data.ToString());
+        }
+        return result;
+    }
+
+    private static JsonElement GetNonNullData(JsonElement parent, string propertyName, string mutationName)
+    {
+        if (!parent.TryGetProperty(propertyName, out var value) || value.ValueKind == JsonValueKind.Null)
+        {
+            var errors = parent.TryGetProperty("errors", out var errorsElem) && errorsElem.ValueKind != JsonValueKind.Null
+                ? string.Join("; ", errorsElem.EnumerateArray().Select(e => $"{e.GetProperty("field")}: {e.GetProperty("message")}".ToString()))
+                : "no errors";
+            throw new InvalidOperationException($"GraphQL mutation '{mutationName}' returned null for '{propertyName}': {errors}. Full response: {parent.ToString()}");
+        }
+        return value;
+    }
+
     private static bool HasErrors(JsonElement response, string mutationName)
     {
-        var errors = response.GetProperty("data").GetProperty(mutationName).GetProperty("errors");
+        var data = GetData(response);
+        var result = GetMutationResult(data, mutationName);
+        var errors = result.GetProperty("errors");
         return errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0;
     }
 
@@ -38,7 +70,7 @@ public sealed class LargeLanguageModelSteps
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var llmId = result.GetProperty("data").GetProperty("createLargeLanguageModel").GetProperty("largeLanguageModel").GetProperty("id").ToString();
+        var llmId = GetNonNullData(GetMutationResult(GetData(result), "createLargeLanguageModel"), "largeLanguageModel", "createLargeLanguageModel").GetProperty("id").ToString();
         _scenarioContext["LargeLanguageModelId"] = llmId;
     }
 
@@ -55,7 +87,7 @@ public sealed class LargeLanguageModelSteps
         var response1 = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation1), Encoding.UTF8, "application/json")).Result;
         var content1 = response1.Content.ReadAsStringAsync().Result;
         var result1 = JsonSerializer.Deserialize<JsonElement>(content1)!;
-        var llmId1 = result1.GetProperty("data").GetProperty("createLargeLanguageModel").GetProperty("largeLanguageModel").GetProperty("id").ToString();
+        var llmId1 = GetNonNullData(GetMutationResult(GetData(result1), "createLargeLanguageModel"), "largeLanguageModel", "createLargeLanguageModel").GetProperty("id").ToString();
 
         var mutation2 = new
         {
@@ -67,7 +99,7 @@ public sealed class LargeLanguageModelSteps
         var response2 = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation2), Encoding.UTF8, "application/json")).Result;
         var content2 = response2.Content.ReadAsStringAsync().Result;
         var result2 = JsonSerializer.Deserialize<JsonElement>(content2)!;
-        var llmId2 = result2.GetProperty("data").GetProperty("createLargeLanguageModel").GetProperty("largeLanguageModel").GetProperty("id").ToString();
+        var llmId2 = GetNonNullData(GetMutationResult(GetData(result2), "createLargeLanguageModel"), "largeLanguageModel", "createLargeLanguageModel").GetProperty("id").ToString();
 
         _scenarioContext["LargeLanguageModelId"] = llmId1;
         _scenarioContext["LargeLanguageModelId2"] = llmId2;
@@ -87,7 +119,7 @@ public sealed class LargeLanguageModelSteps
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
 
-        var llmData = result.GetProperty("data").GetProperty("createLargeLanguageModel").GetProperty("largeLanguageModel");
+        var llmData = GetNonNullData(GetMutationResult(GetData(result), "createLargeLanguageModel"), "largeLanguageModel", "createLargeLanguageModel");
         var llmId = llmData.GetProperty("id").ToString();
         _scenarioContext["LargeLanguageModelId"] = llmId;
         _scenarioContext["Response"] = result;
@@ -107,7 +139,7 @@ public sealed class LargeLanguageModelSteps
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
 
-        var llmData = result.GetProperty("data").GetProperty("createLargeLanguageModel").GetProperty("largeLanguageModel");
+        var llmData = GetNonNullData(GetMutationResult(GetData(result), "createLargeLanguageModel"), "largeLanguageModel", "createLargeLanguageModel");
         var llmId = llmData.GetProperty("id").ToString();
         _scenarioContext["LargeLanguageModelId"] = llmId;
         _scenarioContext["Response"] = result;
@@ -127,7 +159,7 @@ public sealed class LargeLanguageModelSteps
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
 
-        var llmData = result.GetProperty("data").GetProperty("createLargeLanguageModel").GetProperty("largeLanguageModel");
+        var llmData = GetNonNullData(GetMutationResult(GetData(result), "createLargeLanguageModel"), "largeLanguageModel", "createLargeLanguageModel");
         var llmId = llmData.GetProperty("id").ToString();
         _scenarioContext["LargeLanguageModelId"] = llmId;
         _scenarioContext["Response"] = result;
@@ -292,7 +324,7 @@ public sealed class LargeLanguageModelSteps
     public void ThenTheLargeLanguageModelShouldExistInTheDatabase()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var llm = response.GetProperty("data").GetProperty("createLargeLanguageModel").GetProperty("largeLanguageModel");
+        var llm = GetNonNullData(GetMutationResult(GetData(response), "createLargeLanguageModel"), "largeLanguageModel", "createLargeLanguageModel");
         llm.ValueKind.Should().NotBe(JsonValueKind.Null);
         var llmId = llm.GetProperty("id").ToString();
         llmId.Should().NotBeNullOrEmpty();
