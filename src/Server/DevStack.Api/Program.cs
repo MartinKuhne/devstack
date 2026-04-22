@@ -1,4 +1,5 @@
 using DevStack.Api.GraphQL;
+using DevStack.Api.HealthChecks;
 using Microsoft.FeatureManagement;
 using DevStack.Api.GraphQL.Types;
 using DevStack.Domain.Enums;
@@ -51,7 +52,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
-    .AddCheck("ready", () => HealthCheckResult.Healthy(), tags: ["ready"]);
+    .AddCheck("ready", () => HealthCheckResult.Healthy(), tags: ["ready"])
+    .AddCheck<DatabaseHealthCheck>("db", tags: ["live", "ready"]);
 
 builder.Services.AddRouting();
 

@@ -30,7 +30,7 @@ public sealed class LargeLanguageModelSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { url = "https://api.example.com", model = "gpt-4", modelAlias = (string?)null, apiKey = "test-key-123", maxComplexity = 10, maxConcurrency = (int?)null } },
             operationName = "CreateLargeLanguageModel"
         };
@@ -47,7 +47,7 @@ public sealed class LargeLanguageModelSteps
     {
         var mutation1 = new
         {
-            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { url = "https://api.example.com/1", model = "gpt-4", modelAlias = (string?)null, apiKey = "test-key-1", maxComplexity = 10, maxConcurrency = (int?)null } },
             operationName = "CreateLargeLanguageModel"
         };
@@ -59,7 +59,7 @@ public sealed class LargeLanguageModelSteps
 
         var mutation2 = new
         {
-            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { url = "https://api.example.com/2", model = "claude-3", modelAlias = (string?)null, apiKey = "test-key-2", maxComplexity = 8, maxConcurrency = (int?)null } },
             operationName = "CreateLargeLanguageModel"
         };
@@ -78,7 +78,7 @@ public sealed class LargeLanguageModelSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { url, model, modelAlias = (string?)null, apiKey, maxComplexity, maxConcurrency = (int?)null } },
             operationName = "CreateLargeLanguageModel"
         };
@@ -98,7 +98,7 @@ public sealed class LargeLanguageModelSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { url, model, modelAlias = alias, apiKey, maxComplexity, maxConcurrency = (int?)null } },
             operationName = "CreateLargeLanguageModel"
         };
@@ -118,7 +118,7 @@ public sealed class LargeLanguageModelSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { url, model, modelAlias = (string?)null, apiKey, maxComplexity, maxConcurrency } },
             operationName = "CreateLargeLanguageModel"
         };
@@ -139,7 +139,7 @@ public sealed class LargeLanguageModelSteps
         var llmId = _scenarioContext["LargeLanguageModelId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { id = llmId, url = (string?)null, model = (string?)null, modelAlias, apiKey = (string?)null, maxComplexity = (int?)null, maxConcurrency = (int?)null } },
             operationName = "UpdateLargeLanguageModel"
         };
@@ -156,7 +156,7 @@ public sealed class LargeLanguageModelSteps
         var llmId = _scenarioContext["LargeLanguageModelId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { id = llmId, url, model = (string?)null, modelAlias = (string?)null, apiKey = (string?)null, maxComplexity = (int?)null, maxConcurrency = (int?)null } },
             operationName = "UpdateLargeLanguageModel"
         };
@@ -173,7 +173,7 @@ public sealed class LargeLanguageModelSteps
         var llmId = _scenarioContext["LargeLanguageModelId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { id = llmId, url = (string?)null, model, modelAlias = (string?)null, apiKey = (string?)null, maxComplexity = (int?)null, maxConcurrency = (int?)null } },
             operationName = "UpdateLargeLanguageModel"
         };
@@ -190,7 +190,7 @@ public sealed class LargeLanguageModelSteps
         var llmId = _scenarioContext["LargeLanguageModelId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { id = llmId, url = (string?)null, model = (string?)null, modelAlias = (string?)null, apiKey = (string?)null, maxComplexity, maxConcurrency = (int?)null } },
             operationName = "UpdateLargeLanguageModel"
         };
@@ -207,7 +207,7 @@ public sealed class LargeLanguageModelSteps
         var llmId = _scenarioContext["LargeLanguageModelId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { id = llmId, url = (string?)null, model = (string?)null, modelAlias = (string?)null, apiKey = (string?)null, maxComplexity = (int?)null, maxConcurrency } },
             operationName = "UpdateLargeLanguageModel"
         };
@@ -224,7 +224,7 @@ public sealed class LargeLanguageModelSteps
         var llmId = _scenarioContext["LargeLanguageModelId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation DeleteLargeLanguageModel($input: DeleteLargeLanguageModelInput!) { deleteLargeLanguageModel(input: $input) { largeLanguageModel { id } errors } }",
+            query = @"mutation DeleteLargeLanguageModel($input: DeleteLargeLanguageModelInput!) { deleteLargeLanguageModel(input: $input) { largeLanguageModel { id } errors { field message } } }",
             variables = new { input = new { id = llmId } },
             operationName = "DeleteLargeLanguageModel"
         };

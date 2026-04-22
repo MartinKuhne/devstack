@@ -14,16 +14,31 @@ public class Query
     public ProjectConnection GetProjects(
         [Service] DevStackDbContext dbContext,
         int first = 50,
-        int? skip = null)
+        int? skip = null,
+        string? search = null,
+        string? orderBy = "id")
     {
         var query = dbContext.Projects.AsQueryable();
-        var totalCount = query.Count();
-        query = query.OrderBy(p => p.Id);
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(p => p.Name.Contains(search) || p.Description.Contains(search));
+        }
+
+        int totalCount = query.Count();
+
+        IQueryable<Project> orderedQuery = (orderBy ?? "id").ToLower() switch
+        {
+            "name" => query.OrderBy(p => p.Name!),
+            "repository" => query.OrderBy(p => p.Repository!),
+            _ => query.OrderBy(p => p.Id)
+        };
+
         if (skip.HasValue)
         {
-            query = query.Skip(skip.Value);
+            orderedQuery = orderedQuery.Skip(skip.Value);
         }
-        var nodes = query.Take(first).ToList();
+        var nodes = orderedQuery.Take(first).ToList();
 
         return new ProjectConnection
         {
@@ -43,25 +58,58 @@ public class Query
         return dbContext.LargeLanguageModels.Find(id);
     }
 
-    public List<LargeLanguageModel> GetLargeLanguageModels([Service] DevStackDbContext dbContext)
+    public List<LargeLanguageModel> GetLargeLanguageModels(
+        [Service] DevStackDbContext dbContext,
+        string? search = null)
     {
-        return dbContext.LargeLanguageModels.ToList();
+        var query = dbContext.LargeLanguageModels.AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(m => m.Model.Contains(search) || m.ModelAlias.Contains(search));
+        }
+
+        return query.OrderBy(m => m.Id).ToList();
     }
 
-    public List<Deliverable> GetDeliverablesByProjectId([Service] DevStackDbContext dbContext, Guid projectId)
+    public List<Deliverable> GetDeliverablesByProjectId(
+        [Service] DevStackDbContext dbContext,
+        Guid projectId,
+        string? status = null,
+        string? type = null)
     {
-        return dbContext.Deliverables
+        var query = dbContext.Deliverables
             .Where(d => d.ProjectId == projectId)
-            .OrderBy(d => d.Id)
-            .ToList();
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(d => d.Status.ToString() == status);
+        }
+
+        if (!string.IsNullOrEmpty(type))
+        {
+            query = query.Where(d => d.Type.ToString() == type);
+        }
+
+        return query.OrderBy(d => d.Id).ToList();
     }
 
-    public List<AgentTask> GetAgentTasksByDeliverableId([Service] DevStackDbContext dbContext, Guid deliverableId)
+    public List<AgentTask> GetAgentTasksByDeliverableId(
+        [Service] DevStackDbContext dbContext,
+        Guid deliverableId,
+        string? status = null)
     {
-        return dbContext.AgentTasks
+        var query = dbContext.AgentTasks
             .Where(t => t.DeliverableId == deliverableId)
-            .OrderBy(t => t.Id)
-            .ToList();
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(t => t.Status.ToString() == status);
+        }
+
+        return query.OrderBy(t => t.Id).ToList();
     }
 
     public Deliverable? GetDeliverableById([Service] DevStackDbContext dbContext, Guid id)
@@ -69,9 +117,24 @@ public class Query
         return dbContext.Deliverables.Find(id);
     }
 
-    public List<Deliverable> GetDeliverables([Service] DevStackDbContext dbContext)
+    public List<Deliverable> GetDeliverables(
+        [Service] DevStackDbContext dbContext,
+        string? status = null,
+        string? type = null)
     {
-        return dbContext.Deliverables.OrderBy(d => d.Id).ToList();
+        var query = dbContext.Deliverables.AsQueryable();
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(d => d.Status.ToString() == status);
+        }
+
+        if (!string.IsNullOrEmpty(type))
+        {
+            query = query.Where(d => d.Type.ToString() == type);
+        }
+
+        return query.OrderBy(d => d.Id).ToList();
     }
 
     public AgentTask? GetAgentTaskById([Service] DevStackDbContext dbContext, Guid id)
@@ -81,13 +144,21 @@ public class Query
 
     public List<AgentTask> GetAgentTasks(
         [Service] DevStackDbContext dbContext,
-        Guid? itemId = null)
+        Guid? deliverableId = null,
+        string? status = null)
     {
         var query = dbContext.AgentTasks.AsQueryable();
-        if (itemId.HasValue)
+
+        if (deliverableId.HasValue)
         {
-            query = query.Where(t => t.ProjectId == itemId.Value);
+            query = query.Where(t => t.DeliverableId == deliverableId.Value);
         }
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(t => t.Status.ToString() == status);
+        }
+
         return query.OrderBy(t => t.Id).ToList();
     }
 }
