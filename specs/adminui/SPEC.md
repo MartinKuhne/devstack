@@ -34,6 +34,7 @@ The Admin UI supports a human software engineer, software engineering manager or
 - [REQ-UI-005] The system shall provide a graphical user interface to Edit a Project
 - [REQ-UI-006] The system shall provide a graphical user interface to Delete a Project
 - [REQ-UI-007] The system shall provide a graphical user interface to Create a Deliverable
+- [REQ-UI-007b] When creating a deliverable, the system shall provide a drop-down to select the Deliverable type
 - [REQ-UI-008] The system shall provide a graphical user interface to Edit a Deliverable
 - [REQ-UI-009] The system shall provide a graphical user interface to Change the Status of a Deliverable to any of the status values that are defined by the GraphQL schema
 - [REQ-UI-010] The system shall provide a graphical user interface to Delete a Deliverable
@@ -48,7 +49,6 @@ The Admin UI supports a human software engineer, software engineering manager or
 
 - [REQ-UI-200] The system shall allow the user to search for [Deliverables] by [Title] using the [SearchBar].
 - [REQ-UI-201] When the user selects a [Project] from the [Sidebar], the system shall display the [Deliverables] list for that [Project].
-
 
 - [REQ-UI-100] The system shall have unit tests
 - [REQ-UI-101] The system shall have integration tests that excerise the live instance of the project
