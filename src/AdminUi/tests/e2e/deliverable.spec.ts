@@ -124,7 +124,6 @@ test.describe('Deliverable CRUD', () => {
 });
 
 test.describe('Deliverable Creation and Detail', () => {
-    test.fixme(true, 'Creation tests require working backend API - temporarily disabled');
     let deliverableListPage: DeliverableListPage;
     let createDeliverableDialog: CreateDeliverableDialog;
 
