@@ -140,7 +140,7 @@ public sealed class SpecFlowHooks
         {
             try
             {
-                var response = client.GetAsync($"http://localhost:{port}/mcp").Result;
+                var response = client.GetAsync($"http://localhost:{port}/health").Result;
                 if (response.StatusCode == System.Net.HttpStatusCode.OK ||
                     response.StatusCode == System.Net.HttpStatusCode.BadGateway ||
                     response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable ||
