@@ -143,7 +143,6 @@ test.describe('Project CRUD', () => {
 });
 
 test.describe('Project Detail View', () => {
-    test.fixme(true, 'Creation tests require working backend - temporarily disabled');
     let projectListPage: ProjectListPage;
     let createProjectDialog: CreateProjectDialog;
     let projectDetailPage: ProjectDetailPage;
