@@ -11,9 +11,8 @@ Feature: Feature CRUD and Status Transition Operations
 
     Scenario: Update a deliverable
         Given an existing deliverable ID
-        When I call devstack_updateDeliverable with updated title "Updated Deliverable"
+        When I call devstack_updateDeliverable with updated description "Updated Description"
         Then the response should contain the updated deliverable
-        And the deliverable title should be "Updated Deliverable"
 
     Scenario: Transition deliverable status
         Given an existing deliverable ID

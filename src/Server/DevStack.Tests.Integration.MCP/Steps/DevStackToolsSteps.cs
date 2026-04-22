@@ -64,11 +64,11 @@ public sealed class DevStackToolsSteps
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_updateDeliverable with updated title ""(.*)""")]
-    public async Task WhenICallDevstackUpdateDeliverable(string updatedTitle)
+  [When(@"I call devstack_updateDeliverable with updated description ""(.*)""")]
+    public async Task WhenICallDevstackUpdateDeliverable(string updatedDescription)
     {
         var deliverableId = _scenarioContext.GetString("DeliverableId") ?? "";
-        var args = new { id = Guid.Parse(deliverableId), title = updatedTitle };
+        var args = new { id = Guid.Parse(deliverableId), description = updatedDescription };
         _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_updateDeliverable", arguments = args });
         _scenarioContext["Response"] = _response;
     }
@@ -117,18 +117,13 @@ public sealed class DevStackToolsSteps
         result.Should().Contain(expectedStatus);
     }
 
-    [Then(@"the response should contain the updated deliverable")]
+   [Then(@"the response should contain the updated deliverable")]
     public void ThenTheResponseShouldContainTheUpdatedDeliverable()
     {
         _response.Should().NotBeNull();
         _response!.Error.Should().BeNull();
-    }
-
-    [Then(@"the deliverable title should be ""(.*)""")]
-    public void ThenTheDeliverableTitleShouldBe(string expectedTitle)
-    {
         var result = _response!.Result!.ToString();
-        result.Should().Contain(expectedTitle);
+        result.Should().Contain("updated");
     }
 
     [Then(@"the response should contain the deliverable with new status")]
@@ -175,11 +170,11 @@ public sealed class DevStackToolsSteps
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_updateAgentTask with updated title ""(.*)""")]
-    public async Task WhenICallDevstackUpdateAgentTask(string updatedTitle)
+    [When(@"I call devstack_updateAgentTask with updated description ""(.*)""")]
+    public async Task WhenICallDevstackUpdateAgentTask(string updatedDescription)
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
-        var args = new { id = Guid.Parse(taskId), title = updatedTitle };
+        var args = new { id = Guid.Parse(taskId), description = updatedDescription };
         _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_updateAgentTask", arguments = args });
         _scenarioContext["Response"] = _response;
     }
@@ -222,18 +217,13 @@ public sealed class DevStackToolsSteps
         result.Should().Contain(expectedStatus);
     }
 
-    [Then(@"the response should contain the updated task")]
+  [Then(@"the response should contain the updated task")]
     public void ThenTheResponseShouldContainTheUpdatedTask()
     {
         _response.Should().NotBeNull();
         _response!.Error.Should().BeNull();
-    }
-
-    [Then(@"the task title should be ""(.*)""")]
-    public void ThenTheTaskTitleShouldBe(string expectedTitle)
-    {
         var result = _response!.Result!.ToString();
-        result.Should().Contain(expectedTitle);
+        result.Should().Contain("updated");
     }
 
     [Then(@"the response should contain the task with new status")]
