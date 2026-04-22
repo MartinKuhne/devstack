@@ -38,6 +38,7 @@ Execute prompts with OpenCode
 
 ## Ubiquitous Requirements
 - REQ-AG-001: The system shall determine the current repository upon startup using the github repository name (if available)
+- REQ-AG-005: The system shall log all prompts and program invocations to the console
 
 ## Event-Driven Requirements  
 - REQ-AG-002: When there is no project matching the current repository in GraphQL, the system shall create it
@@ -45,14 +46,12 @@ Execute prompts with OpenCode
 
 ## State-Driven Requirements
 - REQ-AG-003: While there are Deliverables for the Project in Status = PLANNING, the system shall execute the Planning Phase (below)
-- REQ-AG-004: While there are Deliverables for the Project in Status = READY, the system shall execute the Execution Phase (below)
+- REQ-AG-004: While there are AgentTasks for the Project in Status = READY, the system shall execute the Execution Phase (below)
 
 ## Unwanted Behavior Requirements
 - REQ-AG-005: Dot not delete or overwrite or delete existing content from ```opencode.json```
 
-# Operation
-
-- Retrieve the Project ID
+## Opencode configuration example
 
 ```
 {
@@ -67,32 +66,32 @@ Execute prompts with OpenCode
 }
 ```
 
-- Query the 
-- For each Deliverable, execute the Planning phase (below)
-- Query the 
-- For each Deliverable, execute the Execution phase (below)
-
 ## Planning phase
 
-Prompt: Plan the implementation of the Deliverable. Do not make any changes to the project
+Prompt: "Plan the implementation of the Deliverable. Do not make any changes to the project
 {{Title}}
 {{Description}}
+Acceptance Criteria: {{AcceptanceCriteria}}
 DeliverableId: {{DeliverableId}}
-Update the deliverable with the Plan and update all the fields with the findings. 
-If architecture and/or technology choices are ambigous, do not create AgentTasks, change the Deliverable status to NeedsReview.
-Otherwise, Create AgentTasks that can be completed by an AI agent in less than 60 minutes. Indicate the complexity of the task. 
+Update the Deliverable's ExecutionPlan, SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan
+If architecture and/or technology choices are ambigous, change the Deliverable status to NeedsReview, then update the Deliverable's Blocking field and STOP.
+Break the Plan down into Steps that can be completed by an AI agent in less than 20 minutes. Create AgentTask objects with the devstack tool for the steps. Change the Deliverable status to READY"
+
+Substitute {{Title}}, {{Description}}, {{AcceptanceCriteria}}, {{DeliverableId}} with the fields of the same name from the Deliverable
 
 ## Execution phase
 
-Prompt: Implement the change
-{{Title}}
+Prompt: "Implement the change
 {{Description}}
 AgentTaskId: {{AgentTaskId}}
-If successful, change the AgentTask Status to Done
-It not successful, change the AgentTask Status to NeedsReview
+If successful, update the Result, CommitHash fields and change the AgentTask Status to Done
+It not successful, update the Result and Errors fields and change the AgentTask Status to Failed
 
 # Technical specification
 
 - [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-15?view=powershell-7.6)
 - [Powershell guidelines](https://learn.microsoft.com/en-us/powershell/scripting/developer/cmdlet/strongly-encouraged-development-guidelines?view=powershell-7.6)
 
+# Quality gates
+
+```Get-Command -syntax '.\scripts\devstack.ps1'```
