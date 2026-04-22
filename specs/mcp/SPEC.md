@@ -29,11 +29,11 @@ Enable an AI coding agent and coding tool to access the devstack data
 
 # EARS (Easy Approach to Requirements Syntax) formatted functional requirements
 
-- [MCP-001] The MCP server shall support the tool calls as per the Tool call section below
-- [MCP-002] The MCP server shall be deployable as a container
-- [MCP-003] The MCP server shall use the http streamable protocol
-- [MCP-004] The MCP server shall access and store data using the shared DbContext
-- [MCP-005] The MCP server shall create AgentTasks in the READY state
+- [MCP-001] The system shall support the tool calls as per the Tool call section below
+- [MCP-002] The system shall be deployable as a container
+- [MCP-003] The system shall use the http streamable protocol
+- [MCP-004] The system shall access and store data using the shared DbContext
+- [MCP-005] The system shall create AgentTasks in the READY state
 - [MCP-006] The system shall accept MCP requests at the /mcp endpoint
 
 - [MCP-050] The system shall apply [McpServerToolType] on classes containing related tools.
@@ -45,17 +45,21 @@ Enable an AI coding agent and coding tool to access the devstack data
 - [MCP-056] The system shall include usage hints in tool output where applicable.
 - [MCP-057] If a tool needs to interact with the client's LLM, it shall use McpServer.AsSamplingChatClient().
 - [MCP-058] Tools shall support async operations with proper CancellationToken usage.
+- [MCP-059]	The system SHALL use McpProtocolException with appropriate McpErrorCode for protocol errors.
+- [MCP-060]	The system SHALL validate input parameters and provide clear error messages.
+- [MCP-061] The system SHALL handle error scenarios gracefully.
+= [MCP-062] The system SHALL write descriptions that help LLMs understand when and how to use tools effectively.
 
-- [MCP-070] The agent shall apply [McpServerPromptType] on classes containing related prompts.
-- [MCP-071] 5.2	The agent shall apply [McpServerPrompt(Name = "prompt_name")] with snake_case naming convention.
-- [MCP-072] 5.3	One prompt class shall contain only one prompt.
-- [MCP-073] 5.4	Prompt methods shall return ChatMessage (not string).
-- [MCP-074] 5.5	Prompts shall use ChatRole.User to represent user instructions.
-- [MCP-075] 5.6	The agent shall add [Description] attributes to all prompts and their parameters.
-- [MCP-076] 5.7	Prompts shall accept optional parameters with default values for flexible customization.
+- [MCP-070] The system shall apply [McpServerPromptType] on classes containing related prompts.
+- [MCP-071] The system shall apply [McpServerPrompt(Name = "prompt_name")] with snake_case naming convention.
+- [MCP-072] One prompt class shall contain only one prompt.
+- [MCP-073] Prompt methods shall return ChatMessage (not string).
+- [MCP-074] Prompts shall use ChatRole.User to represent user instructions.
+- [MCP-075] The system shall add [Description] attributes to all prompts and their parameters.
+- [MCP-076] Prompts shall accept optional parameters with default values for flexible customization.
 
-- [MCP-100] The MCP Server shall communicate using the JSON-RPC 2.0 protocol format.
-- [MCP-101] The MCP Server shall strictly adhere to the official Model Context Protocol specification for message structure.
+- [MCP-100] The system shall communicate using the JSON-RPC 2.0 protocol format.
+- [MCP-101] The system shall strictly adhere to the official Model Context Protocol specification for message structure.
 - [MCP-102] When the client sends an initialize request, the server shall respond with a ServerCapabilities object defining its supported features (e.g., resources, tools, prompts).
 - [MCP-103] When the client sends an initialized notification, the server shall begin accepting operational requests.
 - [MCP-104] When the client requests the list of available tools, the server shall return an array containing the name, description, and JSON Schema for input validation of each tool.
@@ -79,19 +83,20 @@ Enable an AI coding agent and coding tool to access the devstack data
 - [MCP-401] When the create_task tool is called with a missing, empty, invalid, or not found ProjectId, the system shall fail the tool call
 - [MCP-403] When the create_task tool is called with a missing, empty, invalid, or not found DeliverableId, the system shall fail the tool call
 
+
 # Tool calls
 
 | Name          | Operation                                                 |
 |---------------|-----------------------------------------------------------|
 | get_projects  | Read all Projects (Fields: Name, Id, Repository)  |
 | get_project   | Read project by ID (Fields: Name, Repository) |
-| create_deliverable | Create Deliverable (Fields: ProjectId (required), Status, Title (required), Description (required), AcceptanceCriteria, ExecutionPlan, SecurityImpact PerformanceImpact, TestPlan, DeploymentPlan) |
+| create_deliverable | Create Deliverable (Fields: ProjectId (required), Type (required), Status, Title (required), Description (required), AcceptanceCriteria, ExecutionPlan, SecurityImpact PerformanceImpact, TestPlan, DeploymentPlan) |
 | get_deliverable | Read Deliverable |
 | update_deliverable | Update Deliverable (Fields: Description, AcceptanceCriteria, ExecutionPlan, SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan, AgentFeedback, Blocking) |
 | update_deliverable_state | Change Deliverable state |
 | create_task | Create AgentTask (Fields: ProjectId (required), DeliverableId (required), Title (required), Status, Description (required)) |
 | get_task | Read AgentTask |
-| update_task | Update AgentTask (Fields: Status, Result, Errors, CommitHash, Agent) |
+| update_task | Update AgentTask (Fields: Status, Description, Result, Errors, CommitHash, Agent) |
 | update_task_state: Change AgentTask state |
 
 Include [Global non-functional requirements](../NON-FUNCTIONAL.md)

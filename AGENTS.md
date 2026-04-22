@@ -17,7 +17,7 @@ Work only on the item described in the prompt. Do not modify unrelated code or c
 All quality gates must pass before marking an item done and commiting the changes, unless instructed to pause testing
 - Build and deployment succeeds (```docker compose up --build -d```)
 - Admin UI unit tests pass (```npm rum test --prefix src/adminui```)
-- Server tests pass (```dotnet test src/server```)
+- Server unit tests pass
 - No new lint errors or warnings
 - Every deliverable MUST include automated integration tests that run against the real application container and its real dependencies. A deliverable is not complete unless these integration tests exist, pass, and cover the implemented behavior.
 
