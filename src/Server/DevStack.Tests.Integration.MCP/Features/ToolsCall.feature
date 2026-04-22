@@ -3,7 +3,7 @@ Feature: Tools Call Method
     Verify MCP server tools/call method invokes tools correctly
 
     Scenario: Call a valid tool with parameters
-        Given a valid tools/call request for "devstack_getProjects"
+        Given a valid tools/call request for "get_projects"
         When I send the tools/call request
         Then the response should contain the tool result
 

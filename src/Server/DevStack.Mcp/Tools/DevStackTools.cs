@@ -24,14 +24,14 @@ public class DevStackTools
 
     #region Project Tools
 
-    [McpServerTool(Name = "devstack_getProjects"), Description("Read all projects from DevStack. Returns project name, id, and repository.")]
+    [McpServerTool(Name = "get_projects"), Description("Read all projects from DevStack. Returns project name, id, and repository.")]
     public async Task<string> GetProjects()
     {
         var projects = await _dbContext.Projects.Select(p => new { p.Name, p.Id, p.Repository }).ToListAsync();
         return JsonSerializer.Serialize(projects);
     }
 
-    [McpServerTool(Name = "devstack_getProjectById"), Description("Read a project by its ID. Returns project name and repository.")]
+    [McpServerTool(Name = "get_project"), Description("Read a project by its ID. Returns project name and repository.")]
     public async Task<string> GetProjectById([Description("The project ID")][DefaultValue(null)] Guid? id)
     {
         if (id == null)
@@ -52,7 +52,7 @@ public class DevStackTools
 
     #region Deliverable Tools
 
-    [McpServerTool(Name = "devstack_getDeliverable"), Description("Read a deliverable by its ID.")]
+    [McpServerTool(Name = "get_deliverable"), Description("Read a deliverable by its ID.")]
     public async Task<string> GetDeliverable([Description("The deliverable ID")] Guid id)
     {
         var deliverable = await _dbContext.Deliverables.FindAsync([id]);
@@ -62,7 +62,7 @@ public class DevStackTools
         return JsonSerializer.Serialize(new { id = deliverable.Id.ToString(), projectId = deliverable.ProjectId.ToString(), title = deliverable.Title, description = deliverable.Description, acceptanceCriteria = deliverable.AcceptanceCriteria, executionPlan = deliverable.ExecutionPlan, securityImpact = deliverable.SecurityImpact, performanceImpact = deliverable.PerformanceImpact, testPlan = deliverable.TestPlan, deploymentPlan = deliverable.DeploymentPlan, agentFeedback = deliverable.AgentFeedback, blocking = deliverable.Blocking });
     }
 
-   [McpServerTool(Name = "devstack_createDeliverable"), Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state.")]
+   [McpServerTool(Name = "create_deliverable"), Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state.")]
     public async Task<string> CreateDeliverable(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
         [Description("The deliverable title")] string title,
@@ -115,7 +115,7 @@ public class DevStackTools
         }
     }
 
-    [McpServerTool(Name = "devstack_updateDeliverable"), Description("Modify an existing deliverable in DevStack.")]
+    [McpServerTool(Name = "update_deliverable"), Description("Modify an existing deliverable in DevStack.")]
     public async Task<string> UpdateDeliverable(
         [Description("The deliverable ID")] Guid id,
         [Description("The updated description")][DefaultValue(null)] string? description,
@@ -156,7 +156,7 @@ public class DevStackTools
         }
     }
 
-    [McpServerTool(Name = "devstack_transitionDeliverableStatus"), Description("Change the state of a deliverable in DevStack.")]
+    [McpServerTool(Name = "update_deliverable_state"), Description("Change the state of a deliverable in DevStack.")]
     public async Task<string> TransitionDeliverableStatus(
         [Description("The deliverable ID")] Guid id,
         [Description("The target status")] DeliverableStatus targetStatus,
@@ -190,7 +190,7 @@ public class DevStackTools
 
     #region Agent Task Tools
 
-  [McpServerTool(Name = "devstack_getTask"), Description("Read an agent task by its ID.")]
+  [McpServerTool(Name = "get_task"), Description("Read an agent task by its ID.")]
     public async Task<string> GetTask([Description("The agent task ID")] Guid id)
     {
         var agentTask = await _dbContext.AgentTasks.FindAsync([id]);
@@ -200,7 +200,7 @@ public class DevStackTools
         return JsonSerializer.Serialize(new { id = agentTask.Id.ToString(), projectId = agentTask.ProjectId.ToString(), title = agentTask.Title, status = agentTask.Status.ToString(), description = agentTask.Description, result = agentTask.Result, errors = agentTask.Errors, commitHash = agentTask.CommitHash, agent = agentTask.Agent });
     }
 
-   [McpServerTool(Name = "devstack_createAgentTask"), Description("Create a new agent task in DevStack. New tasks are created in Ready state.")]
+   [McpServerTool(Name = "create_task"), Description("Create a new agent task in DevStack. New tasks are created in Ready state.")]
     public async Task<string> CreateAgentTask(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
         [Description("The deliverable/feature ID")][DefaultValue(null)] Guid? itemId,
@@ -257,7 +257,7 @@ public class DevStackTools
         }
     }
 
-    [McpServerTool(Name = "devstack_updateAgentTask"), Description("Modify an existing agent task in DevStack.")]
+    [McpServerTool(Name = "update_task"), Description("Modify an existing agent task in DevStack.")]
     public async Task<string> UpdateAgentTask(
         [Description("The agent task ID")] Guid id,
         [Description("The updated status")][DefaultValue(null)] AgentTaskStatus? status,
@@ -290,7 +290,7 @@ public class DevStackTools
         }
     }
 
-    [McpServerTool(Name = "devstack_transitionAgentTaskStatus"), Description("Change the state of an agent task in DevStack.")]
+    [McpServerTool(Name = "update_task_state"), Description("Change the state of an agent task in DevStack.")]
     public async Task<string> TransitionAgentTaskStatus(
         [Description("The agent task ID")] Guid id,
         [Description("The target status")] AgentTaskStatus targetStatus,

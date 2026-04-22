@@ -6,14 +6,14 @@ Feature: Tools List Method
         Given a valid tools/list request
         When I send the tools/list request
         Then the response should contain a list of tools
-        And the tools should include "devstack_getProjects"
-        And the tools should include "devstack_getProjectById"
-        And the tools should include "devstack_createDeliverable"
-        And the tools should include "devstack_updateDeliverable"
-        And the tools should include "devstack_transitionDeliverableStatus"
-        And the tools should include "devstack_createAgentTask"
-        And the tools should include "devstack_updateAgentTask"
-        And the tools should include "devstack_transitionAgentTaskStatus"
+        And the tools should include "get_projects"
+        And the tools should include "get_project"
+        And the tools should include "create_deliverable"
+        And the tools should include "update_deliverable"
+        And the tools should include "update_deliverable_state"
+        And the tools should include "create_task"
+        And the tools should include "update_task"
+        And the tools should include "update_task_state"
 
     Scenario: Tool schema is properly defined
         Given a valid tools/list request

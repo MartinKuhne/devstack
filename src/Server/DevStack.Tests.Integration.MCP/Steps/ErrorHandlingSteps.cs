@@ -124,7 +124,7 @@ public sealed class ErrorHandlingSteps
     [Given(@"a tools/call request with unknown parameters")]
     public void GivenAToolsCallRequestWithUnknownParameters()
     {
-        _scenarioContext["ValidRequestWithExtraParams"] = new { name = "devstack_getProjects", arguments = new { }, extraField = "test" };
+        _scenarioContext["ValidRequestWithExtraParams"] = new { name = "get_projects", arguments = new { }, extraField = "test" };
     }
 
     [When(@"I send the request with invalid params")]
@@ -161,7 +161,7 @@ public sealed class ErrorHandlingSteps
         var requests = new object[count];
         for (int i = 0; i < count; i++)
         {
-            requests[i] = new { jsonrpc = "2.0", method = "devstack_getProjects", id = i + 1 };
+            requests[i] = new { jsonrpc = "2.0", method = "get_projects", id = i + 1 };
         }
         _scenarioContext["BatchRequests"] = requests;
     }
@@ -172,7 +172,7 @@ public sealed class ErrorHandlingSteps
         var items = new List<object>();
         for (int i = 0; i < requestCount; i++)
         {
-            items.Add(new { jsonrpc = "2.0", method = "devstack_getProjects", id = i + 1 });
+            items.Add(new { jsonrpc = "2.0", method = "get_projects", id = i + 1 });
         }
         for (int i = 0; i < notificationCount; i++)
         {
@@ -221,7 +221,7 @@ public sealed class ErrorHandlingSteps
         var items = new List<object>();
         for (int i = 0; i < validCount; i++)
         {
-            items.Add(new { jsonrpc = "2.0", method = "devstack_getProjects", id = i + 1 });
+            items.Add(new { jsonrpc = "2.0", method = "get_projects", id = i + 1 });
         }
         for (int i = 0; i < invalidCount; i++)
         {
@@ -305,7 +305,7 @@ public sealed class ErrorHandlingSteps
     [Given(@"a valid JSON-RPC request")]
     public void GivenAValidJSONRPCRequest()
     {
-        _scenarioContext["ValidRequest"] = new { jsonrpc = "2.0", method = "devstack_getProjects", id = 1 };
+        _scenarioContext["ValidRequest"] = new { jsonrpc = "2.0", method = "get_projects", id = 1 };
     }
 
     [When(@"I send the request with Content-Type ""(.*)""")]
