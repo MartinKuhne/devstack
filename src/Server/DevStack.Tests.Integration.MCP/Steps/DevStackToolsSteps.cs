@@ -46,7 +46,7 @@ public sealed class DevStackToolsSteps
         _scenarioContext["DeliverableStatus"] = status;
     }
 
-    [When(@"I call devstack_createDeliverable")]
+    [When(@"I call create_deliverable")]
     public async Task WhenICallDevstackCreateDeliverable()
     {
         var projectId = Guid.Parse(await GetOrCreateTestProjectIdAsync());
@@ -55,7 +55,7 @@ public sealed class DevStackToolsSteps
         var args = new { projectId, title, description = "Test deliverable description" };
         try
         {
-            _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_createDeliverable", arguments = args });
+            _response = await Client.SendRequestAsync("tools/call", new { name = "create_deliverable", arguments = args });
         }
         catch (JsonRpcException ex)
         {
@@ -64,21 +64,21 @@ public sealed class DevStackToolsSteps
         _scenarioContext["Response"] = _response;
     }
 
-  [When(@"I call devstack_updateDeliverable with updated description ""(.*)""")]
+  [When(@"I call update_deliverable with updated description ""(.*)""")]
     public async Task WhenICallDevstackUpdateDeliverable(string updatedDescription)
     {
         var deliverableId = _scenarioContext.GetString("DeliverableId") ?? "";
         var args = new { id = Guid.Parse(deliverableId), description = updatedDescription };
-        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_updateDeliverable", arguments = args });
+        _response = await Client.SendRequestAsync("tools/call", new { name = "update_deliverable", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_transitionDeliverableStatus to ""(.*)""")]
+    [When(@"I call update_deliverable_state to ""(.*)""")]
     public async Task WhenICallDevstackTransitionDeliverableStatus(string targetStatus)
     {
         var deliverableId = _scenarioContext.GetString("DeliverableId") ?? "";
         var args = new { id = Guid.Parse(deliverableId), targetStatus, actor = "test" };
-        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_transitionDeliverableStatus", arguments = args });
+        _response = await Client.SendRequestAsync("tools/call", new { name = "update_deliverable_state", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
@@ -117,7 +117,7 @@ public sealed class DevStackToolsSteps
         result.Should().Contain(expectedStatus);
     }
 
-   [Then(@"the response should contain the updated deliverable")]
+    [Then(@"the response should contain the updated deliverable")]
     public void ThenTheResponseShouldContainTheUpdatedDeliverable()
     {
         _response.Should().NotBeNull();
@@ -159,32 +159,32 @@ public sealed class DevStackToolsSteps
         _scenarioContext["TaskStatus"] = status;
     }
 
-    [When(@"I call devstack_createAgentTask")]
+    [When(@"I call create_task")]
     public async Task WhenICallDevstackCreateAgentTask()
     {
         var projectId = await GetOrCreateTestProjectIdAsync();
         var deliverableId = await GetOrCreateTestDeliverableIdAsync();
         var title = _scenarioContext.GetString("TaskTitle") ?? "Test Task";
         var args = new { projectId, itemId = deliverableId, title, deliverableDescription = "Test deliverable" };
-        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_createAgentTask", arguments = args });
+        _response = await Client.SendRequestAsync("tools/call", new { name = "create_task", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_updateAgentTask with updated description ""(.*)""")]
+    [When(@"I call update_task with updated description ""(.*)""")]
     public async Task WhenICallDevstackUpdateAgentTask(string updatedDescription)
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
         var args = new { id = Guid.Parse(taskId), description = updatedDescription };
-        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_updateAgentTask", arguments = args });
+        _response = await Client.SendRequestAsync("tools/call", new { name = "update_task", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
-    [When(@"I call devstack_transitionAgentTaskStatus to ""(.*)""")]
+    [When(@"I call update_task_state to ""(.*)""")]
     public async Task WhenICallDevstackTransitionAgentTaskStatus(string targetStatus)
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
         var args = new { id = Guid.Parse(taskId), targetStatus, actor = "test" };
-        _response = await Client.SendRequestAsync("tools/call", new { name = "devstack_transitionAgentTaskStatus", arguments = args });
+        _response = await Client.SendRequestAsync("tools/call", new { name = "update_task_state", arguments = args });
         _scenarioContext["Response"] = _response;
     }
 
@@ -252,7 +252,7 @@ public sealed class DevStackToolsSteps
             return projectId;
         }
 
-        var projects = await Client.SendRequestAsync("tools/call", new { name = "devstack_getProjects", arguments = new { } });
+        var projects = await Client.SendRequestAsync("tools/call", new { name = "get_projects", arguments = new { } });
         var result = projects.Result?.ToString() ?? "";
         
         if (string.IsNullOrEmpty(result))
@@ -278,7 +278,7 @@ public sealed class DevStackToolsSteps
     {
         var projectId = Guid.Parse(await GetOrCreateTestProjectIdAsync());
         var args = new { projectId, title = $"Test Deliverable {Guid.NewGuid()}", description = "Auto-generated test deliverable" };
-        var response = await Client.SendRequestAsync("tools/call", new { name = "devstack_createDeliverable", arguments = args });
+        var response = await Client.SendRequestAsync("tools/call", new { name = "create_deliverable", arguments = args });
         var result = response.Result?.ToString() ?? "";
         
         if (response.Error != null)
@@ -331,7 +331,7 @@ public sealed class DevStackToolsSteps
         var projectId = Guid.Parse(await GetOrCreateTestProjectIdAsync());
         var deliverableId = Guid.Parse(await GetOrCreateTestDeliverableIdAsync());
         var args = new { projectId, itemId = deliverableId, title = $"Test Task {Guid.NewGuid()}", deliverableDescription = "Auto-generated test task" };
-        var response = await Client.SendRequestAsync("tools/call", new { name = "devstack_createAgentTask", arguments = args });
+        var response = await Client.SendRequestAsync("tools/call", new { name = "create_task", arguments = args });
         var result = response.Result?.ToString() ?? "";
         if (response.Error != null)
         {

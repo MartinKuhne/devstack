@@ -95,7 +95,7 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a valid tools/call request for \"devstack_getProjects\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.Given("a valid tools/call request for \"get_projects\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.When("I send the tools/call request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the tool result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
             }

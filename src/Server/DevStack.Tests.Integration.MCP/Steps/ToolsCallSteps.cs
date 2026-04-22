@@ -40,7 +40,7 @@ public sealed class ToolsCallSteps
         }
         else
         {
-            var toolName = _scenarioContext.GetString("ToolName") ?? "devstack_getProjects";
+            var toolName = _scenarioContext.GetString("ToolName") ?? "get_projects";
             var request = new { name = toolName, arguments = new { } };
             _response = await Client.SendRequestAsync("tools/call", request);
         }

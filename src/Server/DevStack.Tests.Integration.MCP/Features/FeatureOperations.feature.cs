@@ -96,7 +96,7 @@ namespace DevStack.Tests.Integration.MCP.Features
             {
                 this.ScenarioStart();
                 testRunner.Given("a valid deliverable creation request with title \"Test Deliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_createDeliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I call create_deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the created deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the deliverable should have a valid ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the deliverable status should be \"Ready\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -121,7 +121,7 @@ namespace DevStack.Tests.Integration.MCP.Features
             {
                 this.ScenarioStart();
                 testRunner.Given("an existing deliverable ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_updateDeliverable with updated description \"Updated Description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I call update_deliverable with updated description \"Updated Description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the updated deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
             }
             this.ScenarioCleanup();
@@ -145,7 +145,7 @@ namespace DevStack.Tests.Integration.MCP.Features
                 this.ScenarioStart();
                 testRunner.Given("an existing deliverable ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.And("a deliverable in \"ready\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.When("I call devstack_transitionDeliverableStatus to \"in_progress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I call update_deliverable_state to \"in_progress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the deliverable with new status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
