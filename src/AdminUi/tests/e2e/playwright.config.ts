@@ -32,4 +32,6 @@ export default defineConfig({
     ],
     outputDir: './test-results',
     workers: 1,
+    globalSetup: './testSetup.ts',
+    globalTeardown: './testSetup.ts',
 });

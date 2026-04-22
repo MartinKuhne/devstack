@@ -4,6 +4,14 @@ import { PageHeader } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { Plus, BrainCircuit, Clock } from 'lucide-react';
 import { useDeliverableCounts } from '@/features/dashboard/hooks/useDeliverableCounts';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
@@ -34,10 +42,53 @@ export function StatCard({ title, value, variant, description }: StatCardProps) 
 
 export function DashboardPage() {
     const navigate = useNavigate();
-    const { deliverablesPlanning, deliverablesReady, deliverablesInProgress, deliverablesNeedsReview } = useDeliverableCounts();
+    const {
+        deliverablesDraft,
+        deliverablesPlanning,
+        deliverablesReady,
+        deliverablesInProgress,
+        deliverablesNeedsReview,
+        deliverablesDone,
+        deliverablesFailed,
+        deliverablesRejected,
+    } = useDeliverableCounts();
     const [showCreateProject, setShowCreateProject] = useState(false);
 
-    const hasData = deliverablesPlanning > 0 || deliverablesReady > 0 || deliverablesInProgress > 0 || deliverablesNeedsReview > 0;
+    const hasData = deliverablesDraft > 0 || deliverablesPlanning > 0 || deliverablesReady > 0 || deliverablesInProgress > 0 || deliverablesNeedsReview > 0 || deliverablesDone > 0 || deliverablesFailed > 0 || deliverablesRejected > 0;
+
+    const statusCounts = [
+        { status: 'DRAFT', count: deliverablesDraft },
+        { status: 'PLANNING', count: deliverablesPlanning },
+        { status: 'READY', count: deliverablesReady },
+        { status: 'IN_PROGRESS', count: deliverablesInProgress },
+        { status: 'NEEDS_REVIEW', count: deliverablesNeedsReview },
+        { status: 'DONE', count: deliverablesDone },
+        { status: 'FAILED', count: deliverablesFailed },
+        { status: 'REJECTED', count: deliverablesRejected },
+    ];
+
+    const getStatusColor = (status: string): string => {
+        switch (status) {
+            case 'DRAFT':
+                return 'bg-gray-100 text-gray-800';
+            case 'PLANNING':
+                return 'bg-blue-100 text-blue-800';
+            case 'READY':
+                return 'bg-green-100 text-green-800';
+            case 'IN_PROGRESS':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'NEEDS_REVIEW':
+                return 'bg-purple-100 text-purple-800';
+            case 'DONE':
+                return 'bg-emerald-100 text-emerald-800';
+            case 'FAILED':
+                return 'bg-red-100 text-red-800';
+            case 'REJECTED':
+                return 'bg-gray-100 text-gray-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -71,6 +122,34 @@ export function DashboardPage() {
                     )}
                 </div>
             )}
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Count of Deliverables per Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Count</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {statusCounts.map(({ status, count }) => (
+                                <TableRow key={status}>
+                                    <TableCell>
+                                        <Badge className={getStatusColor(status)}>
+                                            {status.replace('_', ' ')}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium">{count}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard

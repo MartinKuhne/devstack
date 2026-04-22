@@ -153,13 +153,13 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project E2E', 'A test project for e2e tests');
+        await createProjectDialog.createProject('DeleteAfterTest - Project E2E', 'A test project for e2e tests');
 
         await page.waitForTimeout(3000);
-        await projectListPage.clickProjectRow('Test Project E2E');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project E2E');
         await page.waitForURL('/projects/**', { timeout: 10000 });
         await expect(projectDetailPage.pageTitle).toBeVisible({ timeout: 10000 });
-        await expect(page.getByRole('heading', { name: 'Test Project E2E', level: 2 })).toBeVisible(
+        await expect(page.getByRole('heading', { name: 'DeleteAfterTest - Project E2E', level: 2 })).toBeVisible(
             { timeout: 10000 }
         );
     });
@@ -171,13 +171,13 @@ test.describe('Project Detail View', () => {
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
         await createProjectDialog.createProject(
-            'Test Project With Repo',
+            'DeleteAfterTest - Project With Repo',
             'Test description',
             'https://github.com/example/repo'
         );
 
         await page.waitForTimeout(2000);
-        await projectListPage.clickProjectRow('Test Project With Repo');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project With Repo');
         await page.waitForURL('/projects/**');
         await expect(projectDetailPage.pageTitle).toBeVisible();
         await expect(projectDetailPage.repositoryLink).toBeVisible();
@@ -193,10 +193,10 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project Buttons');
+        await createProjectDialog.createProject('DeleteAfterTest - Project Buttons');
 
         await page.waitForTimeout(2000);
-        await projectListPage.clickProjectRow('Test Project Buttons');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project Buttons');
         await page.waitForURL('/projects/**');
         await expect(projectDetailPage.editButton).toBeVisible();
         await expect(projectDetailPage.deleteButton).toBeVisible();
@@ -208,10 +208,10 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project Back');
+        await createProjectDialog.createProject('DeleteAfterTest - Project Back');
 
         await page.waitForTimeout(2000);
-        await projectListPage.clickProjectRow('Test Project Back');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project Back');
         await page.waitForURL('/projects/**');
         await projectDetailPage.clickBack();
         await page.waitForURL('/projects');
@@ -224,10 +224,10 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project Tabs');
+        await createProjectDialog.createProject('DeleteAfterTest - Project Tabs');
 
         await page.waitForTimeout(3000);
-        await projectListPage.clickProjectRow('Test Project Tabs');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project Tabs');
         await page.waitForURL('/projects/**');
         await expect(projectDetailPage.deliverablesTab).toBeVisible();
         await expect(projectDetailPage.agentTasksTab).toBeVisible();
@@ -240,10 +240,10 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project Default Tab');
+        await createProjectDialog.createProject('DeleteAfterTest - Project Default Tab');
 
         await page.waitForTimeout(2000);
-        await projectListPage.clickProjectRow('Test Project Default Tab');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project Default Tab');
         await page.waitForURL('/projects/**');
         const isSelected = await projectDetailPage.isTabSelected('Deliverables');
         expect(isSelected).toBe(true);
@@ -255,10 +255,10 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project Tab Switch');
+        await createProjectDialog.createProject('DeleteAfterTest - Project Tab Switch');
 
         await page.waitForTimeout(2000);
-        await projectListPage.clickProjectRow('Test Project Tab Switch');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project Tab Switch');
         await page.waitForURL('/projects/**');
         await projectDetailPage.clickTab('Agent Tasks');
         const agentTasksSelected = await projectDetailPage.isTabSelected('Agent Tasks');
@@ -279,10 +279,10 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project New Deliverable');
+        await createProjectDialog.createProject('DeleteAfterTest - Project New Deliverable');
 
         await page.waitForTimeout(2000);
-        await projectListPage.clickProjectRow('Test Project New Deliverable');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project New Deliverable');
         await page.waitForURL('/projects/**');
         await expect(projectDetailPage.newDeliverableButton).toBeVisible();
     });
@@ -293,10 +293,10 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project New Agent Task');
+        await createProjectDialog.createProject('DeleteAfterTest - Project New Agent Task');
 
         await page.waitForTimeout(2000);
-        await projectListPage.clickProjectRow('Test Project New Agent Task');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project New Agent Task');
         await page.waitForURL('/projects/**');
         await projectDetailPage.clickTab('Agent Tasks');
         await expect(projectDetailPage.newAgentTaskButton).toBeVisible();
@@ -308,10 +308,10 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project Edit');
+        await createProjectDialog.createProject('DeleteAfterTest - Project Edit');
 
         await page.waitForTimeout(2000);
-        await projectListPage.clickProjectRow('Test Project Edit');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project Edit');
         await page.waitForURL('/projects/**');
         await projectDetailPage.clickEdit();
         const editDialog = page.getByRole('dialog').filter({ hasText: /Edit Project/i });
@@ -332,10 +332,10 @@ test.describe('Project Detail View', () => {
         await projectListPage.clickNewProject();
         await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createProjectDialog.createProject('Test Project Empty Deliverables');
+        await createProjectDialog.createProject('DeleteAfterTest - Project Empty Deliverables');
 
         await page.waitForTimeout(2000);
-        await projectListPage.clickProjectRow('Test Project Empty Deliverables');
+        await projectListPage.clickProjectRow('DeleteAfterTest - Project Empty Deliverables');
         await page.waitForURL('/projects/**');
         await expect(page.getByRole('heading', { name: 'Deliverables', level: 3 })).toBeVisible();
         await expect(page.getByText('No deliverables yet')).toBeVisible();

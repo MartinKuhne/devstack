@@ -38,9 +38,9 @@ export class AgentTaskListPage extends BasePage {
 
     async selectStatusFilter(status: string): Promise<void> {
         if (status === 'all') {
-            await this.navigate('/agent-tasks');
+            await this.page.goto('/agent-tasks');
         } else {
-            await this.navigate(`/agent-tasks?status=${status}`);
+            await this.page.goto(`/agent-tasks?status=${status}`);
         }
     }
 }
