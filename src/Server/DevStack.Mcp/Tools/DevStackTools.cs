@@ -66,7 +66,13 @@ public class DevStackTools
     public async Task<string> CreateDeliverable(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
         [Description("The deliverable title")] string title,
-        [Description("The deliverable description")][DefaultValue(null)] string? description)
+        [Description("The deliverable description")][DefaultValue(null)] string? description,
+        [Description("The acceptance criteria")][DefaultValue(null)] string? acceptanceCriteria,
+        [Description("The execution plan")][DefaultValue(null)] string? executionPlan,
+        [Description("The security impact assessment")][DefaultValue(null)] string? securityImpact,
+        [Description("The performance impact assessment")][DefaultValue(null)] string? performanceImpact,
+        [Description("The test plan")][DefaultValue(null)] string? testPlan,
+        [Description("The deployment plan")][DefaultValue(null)] string? deploymentPlan)
     {
         try
         {
@@ -75,6 +81,12 @@ public class DevStackTools
                 ProjectId = projectId ?? Guid.Empty,
                 Title = title,
                 Description = description,
+                AcceptanceCriteria = acceptanceCriteria,
+                ExecutionPlan = executionPlan,
+                SecurityImpact = securityImpact,
+                PerformanceImpact = performanceImpact,
+                TestPlan = testPlan,
+                DeploymentPlan = deploymentPlan,
                 Type = DeliverableType.Feature,
                 Status = DeliverableStatus.Ready
             };
@@ -95,8 +107,15 @@ public class DevStackTools
     [McpServerTool(Name = "devstack_updateDeliverable"), Description("Modify an existing deliverable in DevStack.")]
     public async Task<string> UpdateDeliverable(
         [Description("The deliverable ID")] Guid id,
-        [Description("The updated title")][DefaultValue(null)] string? title,
-        [Description("The updated description")][DefaultValue(null)] string? description)
+        [Description("The updated description")][DefaultValue(null)] string? description,
+        [Description("The updated acceptance criteria")][DefaultValue(null)] string? acceptanceCriteria,
+        [Description("The updated execution plan")][DefaultValue(null)] string? executionPlan,
+        [Description("The updated security impact assessment")][DefaultValue(null)] string? securityImpact,
+        [Description("The updated performance impact assessment")][DefaultValue(null)] string? performanceImpact,
+        [Description("The updated test plan")][DefaultValue(null)] string? testPlan,
+        [Description("The updated deployment plan")][DefaultValue(null)] string? deploymentPlan,
+        [Description("The updated agent feedback")][DefaultValue(null)] string? agentFeedback,
+        [Description("The updated blocking issues")][DefaultValue(null)] string? blocking)
     {
         try
         {
@@ -104,8 +123,15 @@ public class DevStackTools
             if (deliverable == null)
                 return JsonSerializer.Serialize(new { error = "Deliverable not found" });
 
-            if (title is not null) deliverable.Title = title;
             if (description is not null) deliverable.Description = description;
+            if (acceptanceCriteria is not null) deliverable.AcceptanceCriteria = acceptanceCriteria;
+            if (executionPlan is not null) deliverable.ExecutionPlan = executionPlan;
+            if (securityImpact is not null) deliverable.SecurityImpact = securityImpact;
+            if (performanceImpact is not null) deliverable.PerformanceImpact = performanceImpact;
+            if (testPlan is not null) deliverable.TestPlan = testPlan;
+            if (deploymentPlan is not null) deliverable.DeploymentPlan = deploymentPlan;
+            if (agentFeedback is not null) deliverable.AgentFeedback = agentFeedback;
+            if (blocking is not null) deliverable.Blocking = blocking;
 
             await _dbContext.SaveChangesAsync();
 
@@ -165,9 +191,11 @@ public class DevStackTools
 
     [McpServerTool(Name = "devstack_createAgentTask"), Description("Create a new agent task in DevStack. New tasks are created in Ready state.")]
     public async Task<string> CreateAgentTask(
-        [Description("The project ID")] Guid projectId,
-        [Description("The deliverable/feature ID")] Guid itemId,
+        [Description("The project ID")][DefaultValue(null)] Guid? projectId,
+        [Description("The deliverable/feature ID")][DefaultValue(null)] Guid? itemId,
         [Description("The task title")] string title,
+        [Description("The task status")][DefaultValue(null)] AgentTaskStatus? status,
+        [Description("The task description")][DefaultValue(null)] string? description,
         [Description("The deliverable description")][DefaultValue(null)] string? deliverableDescription,
         [Description("The complexity rating (1-10)")] int complexityRating = 5)
     {
@@ -179,11 +207,12 @@ public class DevStackTools
 
             var agentTask = new AgentTask
             {
-                ProjectId = projectId,
-                DeliverableId = itemId,
+                ProjectId = projectId ?? Guid.Empty,
+                DeliverableId = itemId ?? Guid.Empty,
                 Title = title,
+                Description = description ?? string.Empty,
                 ComplexityRating = complexityRating,
-                Status = AgentTaskStatus.Ready
+                Status = status ?? AgentTaskStatus.Ready
             };
 
             _dbContext.AgentTasks.Add(agentTask);
@@ -202,8 +231,11 @@ public class DevStackTools
     [McpServerTool(Name = "devstack_updateAgentTask"), Description("Modify an existing agent task in DevStack.")]
     public async Task<string> UpdateAgentTask(
         [Description("The agent task ID")] Guid id,
-        [Description("The updated title")][DefaultValue(null)] string? title,
-        [Description("The result")][DefaultValue(null)] string? result)
+        [Description("The updated status")][DefaultValue(null)] AgentTaskStatus? status,
+        [Description("The result")][DefaultValue(null)] string? result,
+        [Description("The errors")][DefaultValue(null)] string? errors,
+        [Description("The commit hash")][DefaultValue(null)] string? commitHash,
+        [Description("The agent")][DefaultValue(null)] string? agent)
     {
         try
         {
@@ -211,8 +243,11 @@ public class DevStackTools
             if (agentTask == null)
                 return JsonSerializer.Serialize(new { error = "AgentTask not found" });
 
-            if (title is not null) agentTask.Title = title;
+            if (status is not null) agentTask.Status = status.Value;
             if (result is not null) agentTask.Result = result;
+            if (errors is not null) agentTask.Errors = errors;
+            if (commitHash is not null) agentTask.CommitHash = commitHash;
+            if (agent is not null) agentTask.Agent = agent;
 
             await _dbContext.SaveChangesAsync();
 
