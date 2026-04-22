@@ -42,6 +42,7 @@ public class AgentTaskType : ObjectType<AgentTask>
     protected override void Configure(IObjectTypeDescriptor<AgentTask> descriptor)
     {
         descriptor.Field(t => t.Id).Type<IdType>().ID();
+        descriptor.Field(t => t.ProjectId).Type<IdType>();
         descriptor.Field(t => t.DeliverableId).Type<IdType>();
         descriptor.Field(t => t.Title).Type<StringType>();
         descriptor.Field(t => t.Status).Type<EnumType<AgentTaskStatus>>();
@@ -51,6 +52,7 @@ public class AgentTaskType : ObjectType<AgentTask>
         descriptor.Field(t => t.CommitHash).Type<StringType>();
         descriptor.Field(t => t.ComplexityRating).Type<IntType>();
         descriptor.Field(t => t.DependsOnAgentTaskId).Type<IdType>();
+        descriptor.Field(t => t.DependsOnAgentTask).Type<AgentTaskType>();
         descriptor.Field(t => t.PromptTokens).Type<IntType>();
         descriptor.Field(t => t.CompletionTokens).Type<IntType>();
         descriptor.Field(t => t.ExecutionDurationInSeconds).Type<IntType>();

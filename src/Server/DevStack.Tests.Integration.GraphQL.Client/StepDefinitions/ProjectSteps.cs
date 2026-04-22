@@ -35,7 +35,7 @@ public sealed class ProjectSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors } }",
+            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors { field message } } }",
             variables = new { input = new { name, description = (string?)null, repository = (string?)null } },
             operationName = "CreateProject"
         };
@@ -54,7 +54,7 @@ public sealed class ProjectSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors } }",
+            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors { field message } } }",
             variables = new { input = new { name, description, repository = (string?)null } },
             operationName = "CreateProject"
         };
@@ -74,7 +74,7 @@ public sealed class ProjectSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors } }",
+            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors { field message } } }",
             variables = new { input = new { name, description = (string?)null, repository = (string?)null } },
             operationName = "CreateProject"
         };
@@ -95,7 +95,7 @@ public sealed class ProjectSteps
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateProject($input: UpdateProjectInput!) { updateProject(input: $input) { project { id } errors } }",
+            query = @"mutation UpdateProject($input: UpdateProjectInput!) { updateProject(input: $input) { project { id } errors { field message } } }",
             variables = new { input = new { id = projectId, name, description = (string?)null, repository = (string?)null } },
             operationName = "UpdateProject"
         };
@@ -112,7 +112,7 @@ public sealed class ProjectSteps
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateProject($input: UpdateProjectInput!) { updateProject(input: $input) { project { id } errors } }",
+            query = @"mutation UpdateProject($input: UpdateProjectInput!) { updateProject(input: $input) { project { id } errors { field message } } }",
             variables = new { input = new { id = projectId, name = (string?)null, description, repository = (string?)null } },
             operationName = "UpdateProject"
         };
@@ -129,7 +129,7 @@ public sealed class ProjectSteps
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateProject($input: UpdateProjectInput!) { updateProject(input: $input) { project { id } errors } }",
+            query = @"mutation UpdateProject($input: UpdateProjectInput!) { updateProject(input: $input) { project { id } errors { field message } } }",
             variables = new { input = new { id = projectId, name = (string?)null, description = (string?)null, repository } },
             operationName = "UpdateProject"
         };
@@ -146,7 +146,7 @@ public sealed class ProjectSteps
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation DeleteProject($input: DeleteProjectInput!) { deleteProject(input: $input) { project { id } errors } }",
+            query = @"mutation DeleteProject($input: DeleteProjectInput!) { deleteProject(input: $input) { project { id } errors { field message } } }",
             variables = new { input = new { id = projectId } },
             operationName = "DeleteProject"
         };

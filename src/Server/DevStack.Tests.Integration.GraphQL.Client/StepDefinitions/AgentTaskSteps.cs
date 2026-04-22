@@ -111,7 +111,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) { transitionAgentTaskStatus(input: $input) { agentTask { id status } errors } }",
+            query = @"mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) { transitionAgentTaskStatus(input: $input) { agentTask { id status } errors { field message } } }",
             variables = new { input = new { id = taskId, targetStatus, actor = "test-user" } },
             operationName = "TransitionAgentTaskStatus"
         };
@@ -148,7 +148,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = "Test error message", commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
@@ -178,7 +178,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { id = taskId, title = (string?)null, result = "Task completed successfully", errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
@@ -206,7 +206,7 @@ public sealed class AgentTaskSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { deliverableId, title, complexityRating, description = "Integration test task", result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, agent = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "CreateAgentTask"
         };
@@ -256,7 +256,7 @@ public sealed class AgentTaskSteps
 
         var mutation = new
         {
-            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { deliverableId, title, description, complexityRating, result, errors, commitHash, dependsOnAgentTaskId, promptTokens, completionTokens, executionDurationInSeconds, agent } },
             operationName = "CreateAgentTask"
         };
@@ -295,7 +295,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { id = taskId, title, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
@@ -312,7 +312,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
@@ -329,7 +329,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { id = taskId, title = (string?)null, result = resultValue, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
@@ -346,7 +346,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
@@ -363,7 +363,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = model, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
             operationName = "UpdateAgentTask"
         };
@@ -381,7 +381,7 @@ public sealed class AgentTaskSteps
         var targetStatusMapped = MapAgentTaskStatus(targetStatus);
         var mutation = new
         {
-            query = @"mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) { transitionAgentTaskStatus(input: $input) { agentTask { id status } errors } }",
+            query = @"mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) { transitionAgentTaskStatus(input: $input) { agentTask { id status } errors { field message } } }",
             variables = new { input = new { id = taskId, targetStatus = targetStatusMapped, actor = "test-user" } },
             operationName = "TransitionAgentTaskStatus"
         };
@@ -414,7 +414,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation DeleteAgentTask($input: DeleteAgentTaskInput!) { deleteAgentTask(input: $input) { agentTask { id } errors } }",
+            query = @"mutation DeleteAgentTask($input: DeleteAgentTaskInput!) { deleteAgentTask(input: $input) { agentTask { id } errors { field message } } }",
             variables = new { input = new { id = taskId } },
             operationName = "DeleteAgentTask"
         };

@@ -31,7 +31,7 @@ public sealed class DeliverableSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors } }",
+            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors { field message } } }",
             variables = new { input = new { name = "Test Project", description = (string?)null, repository = (string?)null } },
             operationName = "CreateProject"
         };
@@ -49,7 +49,7 @@ public sealed class DeliverableSteps
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors } }",
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors { field message } } }",
             variables = new { input = new { projectId, title = "Parent Deliverable", type = "Feature", description = (string?)null, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null, initialStatus = "PLANNING" } },
             operationName = "CreateDeliverable"
         };
@@ -85,7 +85,7 @@ public sealed class DeliverableSteps
         var status = MapStatus(statusStr);
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors } }",
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors { field message } } }",
             variables = new
             {
                 input = new
@@ -141,7 +141,7 @@ public sealed class DeliverableSteps
         _scenarioContext["DeliverableTitle"] = title;
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors } }",
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors { field message } } }",
             variables = new
             {
                 input = new
@@ -180,7 +180,7 @@ public sealed class DeliverableSteps
         var mappedStatus = MapStatus(initialStatus);
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id status } errors } }",
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id status } errors { field message } } }",
             variables = new
             {
                 input = new
@@ -219,7 +219,7 @@ public sealed class DeliverableSteps
         _scenarioContext["DeliverableTitle"] = title;
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors } }",
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors { field message } } }",
             variables = new
             {
                 input = new
@@ -256,7 +256,7 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors } }",
+            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors { field message } } }",
             variables = new { input = new { id = deliverableId, title, description = (string?)null, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
             operationName = "UpdateDeliverable"
         };
@@ -273,7 +273,7 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors } }",
+            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors { field message } } }",
             variables = new { input = new { id = deliverableId, title = (string?)null, description, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
             operationName = "UpdateDeliverable"
         };
@@ -290,7 +290,7 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors } }",
+            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors { field message } } }",
             variables = new { input = new { id = deliverableId, title = (string?)null, description = (string?)null, acceptanceCriteria, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
             operationName = "UpdateDeliverable"
         };
@@ -308,7 +308,7 @@ public sealed class DeliverableSteps
         var mappedStatus = MapStatus(targetStatus);
         var mutation = new
         {
-            query = @"mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) { transitionDeliverableStatus(input: $input) { deliverable { id status } errors } }",
+            query = @"mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) { transitionDeliverableStatus(input: $input) { deliverable { id status } errors { field message } } }",
             variables = new { input = new { id = deliverableId, targetStatus = mappedStatus, actor = "test-user" } },
             operationName = "TransitionDeliverableStatus"
         };
@@ -325,7 +325,7 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation DeleteDeliverable($input: DeleteDeliverableInput!) { deleteDeliverable(input: $input) { deliverable { id } errors } }",
+            query = @"mutation DeleteDeliverable($input: DeleteDeliverableInput!) { deleteDeliverable(input: $input) { deliverable { id } errors { field message } } }",
             variables = new { input = new { id = deliverableId } },
             operationName = "DeleteDeliverable"
         };

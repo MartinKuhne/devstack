@@ -204,9 +204,14 @@ public class Mutation
     {
         try
         {
+            var project = await _dbContext.Projects.FindAsync(input.Id, cancellationToken);
+            if (project == null)
+            {
+                return new ProjectPayload(null, [new FieldError("Server", "Project not found")]);
+            }
+
             await handler.Handle(new DevStack.Infrastructure.Projects.DeleteProjectCommand(input.Id), cancellationToken);
 
-            var project = new Project { Id = input.Id };
             return new ProjectPayload(project, new List<FieldError>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
@@ -514,7 +519,7 @@ public class Mutation
                 input.MaxComplexity,
                 input.MaxConcurrency ?? 0), cancellationToken);
 
-            var model = new LargeLanguageModel { Id = id };
+            var model = await _dbContext.LargeLanguageModels.FindAsync(id, cancellationToken);
             return new LargeLanguageModelPayload(model, new List<FieldError>());
         }
         catch (Exception ex)
@@ -547,7 +552,7 @@ public class Mutation
                 input.MaxComplexity,
                 input.MaxConcurrency), cancellationToken);
 
-            var model = new LargeLanguageModel { Id = input.Id };
+            var model = await _dbContext.LargeLanguageModels.FindAsync(input.Id, cancellationToken);
             return new LargeLanguageModelPayload(model, new List<FieldError>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
@@ -567,9 +572,14 @@ public class Mutation
     {
         try
         {
+            var model = await _dbContext.LargeLanguageModels.FindAsync(input.Id, cancellationToken);
+            if (model == null)
+            {
+                return new LargeLanguageModelPayload(null, [new FieldError("Server", "LargeLanguageModel not found")]);
+            }
+
             await handler.Handle(new DeleteLargeLanguageModelCommand(input.Id), cancellationToken);
 
-            var model = new LargeLanguageModel { Id = input.Id };
             return new LargeLanguageModelPayload(model, new List<FieldError>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
