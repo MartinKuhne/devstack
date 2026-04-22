@@ -63,11 +63,11 @@ function SidebarContent() {
                     ) : (
                         <>
                             <SelectItem value="all">All Projects</SelectItem>
-                            {projects.map((project) => (
+                            {projects.map((project) => project ? (
                                 <SelectItem key={project.id ?? ''} value={project.id ?? ''}>
                                     {project.name ?? 'Unnamed Project'}
                                 </SelectItem>
-                            ))}
+                            ) : null)}
                         </>
                     )}
                 </SelectContent>

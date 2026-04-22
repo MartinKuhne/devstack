@@ -120,7 +120,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                 </Card>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {largeLanguageModels.map((config) => (
+                    {largeLanguageModels.map((config) => config ? (
                         <Card key={config.id}>
                             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                 <CardTitle className="text-base">
@@ -167,7 +167,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                                 </div>
                             </CardContent>
                         </Card>
-                    ))}
+                    ) : null)}
                 </div>
             )}
             <LargeLanguageModelDialog

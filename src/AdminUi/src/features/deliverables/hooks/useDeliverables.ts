@@ -17,23 +17,15 @@ export function useDeliverables(
 
     const allDeliverables = data?.deliverables?.nodes ?? [];
 
-    const filteredDeliverables = allDeliverables.filter((deliverable) => {
-        if (
-            statusFilter &&
-            statusFilter.length > 0 &&
-            !statusFilter.includes(deliverable.status as DeliverableStatus)
-        ) {
-            return false;
-        }
-        if (
-            typeFilter &&
-            typeFilter.length > 0 &&
-            !typeFilter.includes(deliverable.type as DeliverableType)
-        ) {
-            return false;
-        }
-        return true;
-    });
+    const filteredDeliverables = allDeliverables.filter((deliverable): deliverable is NonNullable<typeof deliverable> => deliverable !== null && (
+        !statusFilter ||
+        statusFilter.length === 0 ||
+        statusFilter.includes(deliverable.status as DeliverableStatus)
+    ) && (
+        !typeFilter ||
+        typeFilter.length === 0 ||
+        typeFilter.includes(deliverable.type as DeliverableType)
+    ));
 
     if (!loading && allDeliverables.length > 0) {
         logger.debug('Loaded deliverables', {

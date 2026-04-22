@@ -18,10 +18,8 @@ export function useAgentTasksByDeliverable(
 
     const filteredTasks =
         statusFilter && statusFilter.length > 0
-            ? allTasks.filter((task) =>
-                  statusFilter.includes(task.status as AgentTaskStatus)
-              )
-            : filteredByDeliverable;
+            ? allTasks.filter((task): task is NonNullable<typeof task> => task !== null && statusFilter.includes(task.status as AgentTaskStatus))
+            : allTasks;
 
     if (!loading && allTasks.length > 0) {
         logger.debug('Loaded agent tasks by deliverable', {

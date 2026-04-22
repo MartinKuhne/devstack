@@ -106,14 +106,11 @@ export function AgentTaskListPage() {
         if (id) navigate(`/agent-tasks/${id}`);
     };
 
-    const filteredTasks = agentTasks.filter((task) => {
-        if (!searchFilter) return true;
-        const searchLower = searchFilter.toLowerCase();
-        return (
-            task.title?.toLowerCase().includes(searchLower) ||
-            task.deliverableId?.toLowerCase().includes(searchLower)
-        );
-    });
+    const filteredTasks = agentTasks.filter((task): task is NonNullable<typeof task> => task !== null && (
+        !searchFilter ||
+        !!task.title?.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        !!task.deliverableId?.toLowerCase().includes(searchFilter.toLowerCase())
+    ));
 
     return (
         <div className="space-y-6">

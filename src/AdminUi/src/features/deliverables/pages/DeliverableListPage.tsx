@@ -156,11 +156,10 @@ export function DeliverableListPage() {
         if (id) navigate(`/deliverables/${id}`);
     };
 
-    const filteredDeliverables = deliverables.filter((d) => {
-        if (!searchFilter) return true;
-        const searchLower = searchFilter.toLowerCase();
-        return d.title?.toLowerCase().includes(searchLower) ?? false;
-    });
+    const filteredDeliverables = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && (
+        !searchFilter ||
+        !!d.title?.toLowerCase().includes(searchFilter.toLowerCase())
+    ));
 
     const handleCreateDeliverable = useCallback(() => {
         setCreateDialogOpen(true);

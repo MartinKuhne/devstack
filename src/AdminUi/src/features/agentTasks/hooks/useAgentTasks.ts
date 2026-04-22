@@ -17,7 +17,7 @@ export function useAgentTasks(statusFilter?: AgentTaskStatus[]) {
 
     const filteredTasks =
         statusFilter && statusFilter.length > 0
-            ? allTasks.filter((task) => statusFilter.includes(task.status as AgentTaskStatus))
+            ? allTasks.filter((task): task is NonNullable<typeof task> => task !== null && statusFilter.includes(task.status as AgentTaskStatus))
             : allTasks;
 
     if (!loading && allTasks.length > 0) {

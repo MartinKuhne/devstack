@@ -384,7 +384,7 @@ export function DeliverableDetailPage() {
                                 </div>
                             ) : agentTasks && agentTasks.length > 0 ? (
                                 <div className="space-y-2">
-                                    {agentTasks.map((task) => (
+                                    {agentTasks.map((task) => task ? (
                                         <div
                                             key={task.id ?? ''}
                                             className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 cursor-pointer"
@@ -411,7 +411,7 @@ export function DeliverableDetailPage() {
                                                 {task.status}
                                             </Badge>
                                         </div>
-                                    ))}
+                                    ) : null)}
                                 </div>
                             ) : (
                                 <p className="text-muted-foreground text-sm">
