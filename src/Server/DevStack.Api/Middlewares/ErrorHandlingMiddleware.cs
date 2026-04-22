@@ -77,12 +77,11 @@ public class ErrorHandlingMiddleware
                 Status = (int)HttpStatusCode.InternalServerError,
                 Type = "https://devstack.io/errors/server-error",
                 Title = "An error occurred",
-                Detail = exception.Message,
+                Detail = "An unexpected error occurred. Please try again later.",
                 Instance = context.Request.Path,
                 Extensions =
                 {
-                    ["errorCode"] = "SERVER_ERROR",
-                    ["exceptionType"] = exception.GetType().FullName
+                    ["errorCode"] = "SERVER_ERROR"
                 }
             }
         };
