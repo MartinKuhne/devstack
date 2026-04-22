@@ -400,6 +400,7 @@ export function ProjectDetailPage() {
             <CreateDeliverableDialog
                 open={createDeliverableDialogOpen}
                 onOpenChange={setCreateDeliverableDialogOpen}
+                projectId={project?.id ?? ''}
                 onSuccess={(deliverableId) => {
                     refetchDeliverables();
                     if (deliverableId) {

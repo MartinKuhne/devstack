@@ -28,6 +28,7 @@ describe('CreateDeliverableDialog', () => {
             <CreateDeliverableDialog
                 open={true}
                 onOpenChange={mockOnOpenChange}
+                projectId="test-project-id"
                 onSuccess={mockOnSuccess}
             />
         );
@@ -43,6 +44,7 @@ describe('CreateDeliverableDialog', () => {
             <CreateDeliverableDialog
                 open={true}
                 onOpenChange={mockOnOpenChange}
+                projectId="test-project-id"
                 onSuccess={mockOnSuccess}
             />
         );
@@ -56,6 +58,7 @@ describe('CreateDeliverableDialog', () => {
             <CreateDeliverableDialog
                 open={true}
                 onOpenChange={mockOnOpenChange}
+                projectId="test-project-id"
                 onSuccess={mockOnSuccess}
             />
         );
@@ -70,6 +73,7 @@ describe('CreateDeliverableDialog', () => {
             <CreateDeliverableDialog
                 open={true}
                 onOpenChange={mockOnOpenChange}
+                projectId="test-project-id"
                 onSuccess={mockOnSuccess}
             />
         );
@@ -83,6 +87,7 @@ describe('CreateDeliverableDialog', () => {
             <CreateDeliverableDialog
                 open={true}
                 onOpenChange={mockOnOpenChange}
+                projectId="test-project-id"
                 onSuccess={mockOnSuccess}
             />
         );
