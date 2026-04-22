@@ -15,12 +15,13 @@ if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
 $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 
 $GetProjectsQuery = @'
-query GetProjects($first: Int!) {
-  projects(first: $first) {
+query GetProjects($first: Int, $skip: Int) {
+  projects(first: $first, skip: $skip) {
     nodes {
       id
       name
       description
+      repository
     }
   }
 }
