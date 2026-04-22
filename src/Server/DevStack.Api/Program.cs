@@ -60,13 +60,13 @@ builder.Services.AddRouting();
 builder.Services.AddDbContext<DevStackDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddTransient<ICreateProjectHandler, CreateProjectHandler>();
-builder.Services.AddTransient<IUpdateProjectHandler, UpdateProjectHandler>();
-builder.Services.AddTransient<IDeleteProjectHandler, DeleteProjectHandler>();
-builder.Services.AddTransient<IGetProjectByIdHandler, GetProjectByIdHandler>();
-builder.Services.AddTransient<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
-builder.Services.AddTransient<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
-builder.Services.AddTransient<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
+builder.Services.AddScoped<ICreateProjectHandler, CreateProjectHandler>();
+builder.Services.AddScoped<IUpdateProjectHandler, UpdateProjectHandler>();
+builder.Services.AddScoped<IDeleteProjectHandler, DeleteProjectHandler>();
+builder.Services.AddScoped<IGetProjectByIdHandler, GetProjectByIdHandler>();
+builder.Services.AddScoped<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
+builder.Services.AddScoped<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
+builder.Services.AddScoped<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
