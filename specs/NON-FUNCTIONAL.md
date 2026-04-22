@@ -3,13 +3,11 @@
 ## Logging
 
 - [REQ-NF-001] The system shall write log entries to the console
-- [REQ-NF-002] When the system is a binary executable, if shall write log entries to a file, one file per day, in structured JSON format.
-- [REQ-NF-003] When the system is a binary executable, the log retention period is 7 days
+- [REQ-NF-002] When the system is a binary executable, it shall write log entries to a file, one file per day, in structured JSON format.
+- [REQ-NF-003] When the system is a binary executable, it shall retain logs for 7 days
 - [REQ-NF-004] The system shall include a timestamp in UTC ISO 8601 format for every log entry.
 - [REQ-NF-005] When the system starts up or shuts down gracefully, it shall write a log entry with the level INFO.
 - [REQ-NF-006] When the system encounters an unexpected exception, it shall write a log entry with the level ERROR including the full stack trace.
-- [REQ-NF-007] When the system attempts a retry operation, it shall write a log entry with the level WARN.
-- [REQ-NF-008] While the system is operating in production mode, it shall not log sensitive data (e.g., passwords, credit card numbers, PII).
 
 ## Tracing
 
