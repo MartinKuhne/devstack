@@ -1,5 +1,6 @@
 using DevStack.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using ModelContextProtocol.Server;
 using Serilog;
 
@@ -34,7 +35,18 @@ try
 
     app.MapMcp("/mcp");
 
-    app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+    app.MapGet("/health", async (DevStackDbContext dbContext, CancellationToken ct) =>
+    {
+        try
+        {
+            await dbContext.Database.CanConnectAsync(ct);
+            return Results.Ok(new { status = "healthy", database = "connected" });
+        }
+        catch
+        {
+            return Results.StatusCode(503);
+        }
+    });
 
     app.Run();
 }
