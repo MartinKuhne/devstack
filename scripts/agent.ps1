@@ -302,7 +302,7 @@ function Get-CurrentProjectId {
 
     Log-Info "Repository: $repoName"
 
-    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100 }
+    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100; skip = 0; search = $null; orderBy = "id" }
 
     if ($result.errors) {
         Log-Error "Failed to query projects: $($result.errors -join ', ')"
@@ -405,7 +405,7 @@ function Invoke-PlanningPhase {
     $promptTemplate = Load-PromptFile "planning.prompt"
 
     # Fetch deliverables in PLANNING status
-    $result = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId }
+    $result = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId; first = 100; skip = 0; status = $null; type = $null; orderBy = "id" }
 
     if ($result.errors) {
         Log-Error "Failed to query deliverables: $($result.errors -join ', ')"
@@ -456,7 +456,7 @@ function Invoke-ExecutionPhase {
     $promptTemplate = Load-PromptFile "execution.prompt"
 
     # Fetch all deliverables for the project
-    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId }
+    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId; first = 100; skip = 0; status = $null; type = $null; orderBy = "id" }
 
     if ($deliverablesResult.errors) {
         Log-Error "Failed to query deliverables: $($deliverablesResult.errors -join ', ')"
@@ -472,7 +472,7 @@ function Invoke-ExecutionPhase {
     # Fetch AgentTasks for each deliverable and collect READY ones
     $tasks = @()
     foreach ($deliverable in $allDeliverables) {
-        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ deliverableId = $deliverable.id }
+        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ deliverableId = $deliverable.id; first = 100; skip = 0; status = $null; orderBy = "id" }
         if ($taskResult.errors) {
             Log-Error "Failed to query tasks for deliverable $($deliverable.id): $($taskResult.errors -join ', ')"
             continue

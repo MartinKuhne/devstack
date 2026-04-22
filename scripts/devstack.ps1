@@ -135,10 +135,10 @@ function Initialize-Project {
         exit 1
     }
 
-    Write-Host "Repository: $repoName"
+Write-Host "Repository: $repoName"
 
-    # Check if project already exists
-    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100 }
+     # Check if project already exists
+     $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100; skip = 0; search = $null; orderBy = "id" }
 
     if ($result.errors) {
         Write-Error "Failed to query projects: $($result.errors -join ', ')"
@@ -217,12 +217,12 @@ function Initialize-Project {
 
 function Get-CurrentProjectId {
     $repoName = Get-GitRemoteOrigin
-    if ([string]::IsNullOrWhiteSpace($repoName)) {
-        Write-Error "Could not determine repository name. Please ensure git remote 'origin' is configured."
-        exit 1
-    }
+if ([string]::IsNullOrWhiteSpace($repoName)) {
+         Write-Error "Could not determine repository name. Please ensure git remote 'origin' is configured."
+         exit 1
+     }
 
-    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100 }
+     $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100; skip = 0; search = $null; orderBy = "id" }
 
     if ($result.errors) {
         Write-Error "Failed to query projects: $($result.errors -join ', ')"
