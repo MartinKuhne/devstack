@@ -39,10 +39,13 @@ Execute prompts with OpenCode
 ## Ubiquitous Requirements
 - [REQ-AG-001] The system shall determine the current repository upon startup using the github repository name (if available)
 - [REQ-AG-002] The system shall log all prompts and program invocations to the console
+- [REQ-AG-003] The system shall accept GUIDs in all legal formats: https://learn.microsoft.com/en-us/dotnet/api/system.guid.tostring?view=net-10.0
 
 ## Event-Driven Requirements  
 - [REQ-AG-100] When there is no project matching the current repository in GraphQL, the system shall create it
 - [REQ-AG-101] When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
+- [REQ-AG-102] When the system starts up, it shall update the opencode configuration at the repository root to [deny] the [bash], [question] and [external_directory] permissions.
+- [REQ-AG-103] When an AgentTask execution completes, the system shall update the ExecutionDurationInSeconds of the AgentTask with the time it took to run OpenCode
 
 ## State-Driven Requirements
 - [REQ-AG-200] While there are Deliverables for the Project in Status = PLANNING, the system shall execute the Planning Phase (below)
@@ -95,6 +98,7 @@ Substitute {{Description}}, {{AgentTaskId}} with the fields of the same name fro
 
 # Technical specification
 
+- [OpenCode permissions](https://opencode.ai/docs/permissions)
 - [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-15?view=powershell-7.6)
 - [Powershell guidelines](https://learn.microsoft.com/en-us/powershell/scripting/developer/cmdlet/strongly-encouraged-development-guidelines?view=powershell-7.6)
 
