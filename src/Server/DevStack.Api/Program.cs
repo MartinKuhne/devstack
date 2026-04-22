@@ -104,6 +104,11 @@ builder.Services.AddGraphQLServer()
     .AddType<LargeLanguageModelType>()
     .AddObjectType<ProjectConnection>()
     .AddObjectType<ProjectPageInfo>()
+    .AddType<ProjectConnectionType>()
+    .AddType<DeliverableConnectionType>()
+    .AddType<AgentTaskConnectionType>()
+    .AddType<LargeLanguageModelConnectionType>()
+    .AddType<PageInfoType>()
     .DisableIntrospection(false)
     .AddErrorFilter<GraphQLErrorFilter>();
 

@@ -116,6 +116,6 @@ public class SchemaSnapshotTests : IAsyncLifetime
 
         var models = query.GetLargeLanguageModels(_dbContext!);
 
-        models.Should().BeEmpty();
+        models.Nodes.Should().BeEmpty();
     }
 }
