@@ -19,7 +19,6 @@ export default defineConfig({
     ],
     use: {
         baseURL: process.env.BASE_URL || 'http://localhost:5173',
-        GraphQLEndpoint: process.env.GRAPHQL_API_URL || 'http://localhost:8087/graphql',
         headless: !!process.env.CI,
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',

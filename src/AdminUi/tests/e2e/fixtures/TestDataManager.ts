@@ -1,5 +1,3 @@
-import { gql } from '@apollo/client';
-
 interface TestEntity {
     id: string;
     type: 'project' | 'feature' | 'task' | 'defect' | 'modelConfiguration';
@@ -14,7 +12,7 @@ export class TestDataManager {
     }
 
     async createProject(name: string, url?: string): Promise<{ id: string }> {
-        const mutation = gql`
+        const mutation = `
             mutation CreateProject($name: String!, $url: String) {
                 createProject(input: { name: $name, url: $url }) {
                     project {
@@ -33,15 +31,17 @@ export class TestDataManager {
             }),
         });
 
-        const data = await response.json() as { data: { createProject: { project: { id: string } } } };
+        const data = (await response.json()) as {
+            data: { createProject: { project: { id: string } } };
+        };
         const projectId = data.data.createProject.project.id;
-        
+
         this.createdEntities.push({ id: projectId, type: 'project' });
         return { id: projectId };
     }
 
     async createFeature(projectId: string, title: string): Promise<{ id: string }> {
-        const mutation = gql`
+        const mutation = `
             mutation CreateFeature($projectId: ID!, $title: String!) {
                 createFeature(input: { projectId: $projectId, title: $title }) {
                     feature {
@@ -60,15 +60,17 @@ export class TestDataManager {
             }),
         });
 
-        const data = await response.json() as { data: { createFeature: { feature: { id: string } } } };
+        const data = (await response.json()) as {
+            data: { createFeature: { feature: { id: string } } };
+        };
         const featureId = data.data.createFeature.feature.id;
-        
+
         this.createdEntities.push({ id: featureId, type: 'feature' });
         return { id: featureId };
     }
 
     async createTask(featureId: string, title: string): Promise<{ id: string }> {
-        const mutation = gql`
+        const mutation = `
             mutation CreateTask($featureId: ID!, $title: String!) {
                 createTask(input: { featureId: $featureId, title: $title }) {
                     task {
@@ -87,15 +89,19 @@ export class TestDataManager {
             }),
         });
 
-        const data = await response.json() as { data: { createTask: { task: { id: string } } } };
+        const data = (await response.json()) as { data: { createTask: { task: { id: string } } } };
         const taskId = data.data.createTask.task.id;
-        
+
         this.createdEntities.push({ id: taskId, type: 'task' });
         return { id: taskId };
     }
 
-    async createDefect(featureId: string, title: string, severity: string): Promise<{ id: string }> {
-        const mutation = gql`
+    async createDefect(
+        featureId: string,
+        title: string,
+        severity: string
+    ): Promise<{ id: string }> {
+        const mutation = `
             mutation CreateDefect($featureId: ID!, $title: String!, $severity: Severity!) {
                 createDefect(input: { featureId: $featureId, title: $title, severity: $severity }) {
                     defect {
@@ -114,15 +120,17 @@ export class TestDataManager {
             }),
         });
 
-        const data = await response.json() as { data: { createDefect: { defect: { id: string } } } };
+        const data = (await response.json()) as {
+            data: { createDefect: { defect: { id: string } } };
+        };
         const defectId = data.data.createDefect.defect.id;
-        
+
         this.createdEntities.push({ id: defectId, type: 'defect' });
         return { id: defectId };
     }
 
     async cleanup(): Promise<void> {
-        const deleteMutation = gql`
+        const deleteMutation = `
             mutation DeleteEntity($id: ID!, $type: EntityType!) {
                 deleteEntity(id: $id, type: $type)
             }
@@ -130,10 +138,16 @@ export class TestDataManager {
 
         for (const entity of this.createdEntities.reverse()) {
             try {
-                const entityType = entity.type === 'project' ? 'PROJECT' :
-                    entity.type === 'feature' ? 'FEATURE' :
-                        entity.type === 'task' ? 'TASK' :
-                            entity.type === 'defect' ? 'DEFECT' : 'MODEL_CONFIGURATION';
+                const entityType =
+                    entity.type === 'project'
+                        ? 'PROJECT'
+                        : entity.type === 'feature'
+                          ? 'FEATURE'
+                          : entity.type === 'task'
+                            ? 'TASK'
+                            : entity.type === 'defect'
+                              ? 'DEFECT'
+                              : 'MODEL_CONFIGURATION';
 
                 await fetch(this.apiUrl, {
                     method: 'POST',
