@@ -101,7 +101,7 @@ public class Query
         };
     }
 
-    public List<Deliverable> GetDeliverablesByProjectId(
+    public EntityConnection<Deliverable> GetDeliverablesByProjectId(
         [Service] DevStackDbContext dbContext,
         Guid projectId,
         string? status = null,
@@ -124,6 +124,8 @@ public class Query
             query = query.Where(d => d.Type.ToString() == type);
         }
 
+        int totalCount = query.Count();
+
         IQueryable<Deliverable> orderedQuery = (orderBy ?? "id").ToLower() switch
         {
             "title" => query.OrderBy(d => d.Title),
@@ -137,7 +139,19 @@ public class Query
             orderedQuery = orderedQuery.Skip(skip.Value);
         }
 
-        return orderedQuery.Take(first).ToList();
+        var nodes = orderedQuery.Take(first).ToList();
+
+        return new EntityConnection<Deliverable>
+        {
+            Nodes = nodes,
+            PageInfo = new PageInfo
+            {
+                HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
+                HasPreviousPage = skip > 0,
+                TotalCount = totalCount
+            },
+            TotalCount = totalCount
+        };
     }
 
     public EntityConnection<Deliverable> GetDeliverables(
@@ -189,7 +203,7 @@ public class Query
         };
     }
 
-    public List<AgentTask> GetAgentTasksByDeliverableId(
+    public EntityConnection<AgentTask> GetAgentTasksByDeliverableId(
         [Service] DevStackDbContext dbContext,
         Guid deliverableId,
         string? status = null,
@@ -206,6 +220,8 @@ public class Query
             query = query.Where(t => t.Status.ToString() == status);
         }
 
+        int totalCount = query.Count();
+
         IQueryable<AgentTask> orderedQuery = (orderBy ?? "id").ToLower() switch
         {
             "title" => query.OrderBy(t => t.Title),
@@ -219,7 +235,19 @@ public class Query
             orderedQuery = orderedQuery.Skip(skip.Value);
         }
 
-        return orderedQuery.Take(first).ToList();
+        var nodes = orderedQuery.Take(first).ToList();
+
+        return new EntityConnection<AgentTask>
+        {
+            Nodes = nodes,
+            PageInfo = new PageInfo
+            {
+                HasNextPage = (skip ?? 0) + nodes.Count < totalCount,
+                HasPreviousPage = skip > 0,
+                TotalCount = totalCount
+            },
+            TotalCount = totalCount
+        };
     }
 
     public Deliverable? GetDeliverableById([Service] DevStackDbContext dbContext, Guid id)
