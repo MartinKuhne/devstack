@@ -20,7 +20,7 @@ public sealed class DevStackTestEnv : IDisposable
     private readonly IFutureDockerImage _appImage;
     private bool _disposed;
 
-    internal DevStackTestEnv(DevStackTestEnvBuilder builder)
+    public DevStackTestEnv(DevStackTestEnvBuilder builder)
     {
         string solutionDir = builder.SolutionDir
             ?? DevStackTestEnvFactory.FindSolutionDirectory();
