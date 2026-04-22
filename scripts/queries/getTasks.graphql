@@ -1,28 +1,18 @@
-query GetTasks($projectId: UUID!, $first: Int!) {
-  tasks(projectId: $projectId, first: $first) {
-    nodes {
-      id
-      title
-      status
-      deliverable
-      acceptanceCriteria
-      risks
-      itemId
-      projectId
-      result
-      errors
-      commitHash
-      complexityRating
-      dependsOnDevTask
-      promptTokens
-      completionTokens
-      executionDurationInSeconds
-      model
-      item {
+query GetTasks($itemId: UUID!) {
+    agentTasks(itemId: $itemId) {
         id
         title
+        status
+        deliverableId
         description
-      }
+        result
+        errors
+        commitHash
+        complexityRating
+        dependsOnAgentTaskId
+        promptTokens
+        completionTokens
+        executionDurationInSeconds
+        agent
     }
-  }
 }

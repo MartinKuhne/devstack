@@ -1,10 +1,10 @@
 query GetProjects($first: Int!) {
-  projects(first: $first) {
-    nodes {
-      id
-      name
-      description
-      createdAt
+    projects(first: $first) {
+        nodes {
+            id
+            name
+            description
+            repository
+        }
     }
-  }
 }
