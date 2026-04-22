@@ -19,9 +19,41 @@ public sealed class AgentTaskSteps
         _httpClient = SpecFlowHooks.GetHttpClient(scenarioContext);
     }
 
+    private static JsonElement GetData(JsonElement response)
+    {
+        if (!response.TryGetProperty("data", out var data) || data.ValueKind == JsonValueKind.Null)
+        {
+            throw new InvalidOperationException("GraphQL response has no data: " + response.ToString());
+        }
+        return data;
+    }
+
+    private static JsonElement GetMutationResult(JsonElement data, string mutationName)
+    {
+        if (!data.TryGetProperty(mutationName, out var result) || result.ValueKind == JsonValueKind.Null)
+        {
+            throw new InvalidOperationException($"GraphQL mutation '{mutationName}' returned null: " + data.ToString());
+        }
+        return result;
+    }
+
+    private static JsonElement GetNonNullData(JsonElement parent, string propertyName, string mutationName)
+    {
+        if (!parent.TryGetProperty(propertyName, out var value) || value.ValueKind == JsonValueKind.Null)
+        {
+            var errors = parent.TryGetProperty("errors", out var errorsElem) && errorsElem.ValueKind != JsonValueKind.Null
+                ? string.Join("; ", errorsElem.EnumerateArray().Select(e => $"{e.GetProperty("field")}: {e.GetProperty("message")}".ToString()))
+                : "no errors";
+            throw new InvalidOperationException($"GraphQL mutation '{mutationName}' returned null for '{propertyName}': {errors}. Full response: {parent.ToString()}");
+        }
+        return value;
+    }
+
     private static bool HasErrors(JsonElement response, string mutationName)
     {
-        var errors = response.GetProperty("data").GetProperty(mutationName).GetProperty("errors");
+        var data = GetData(response);
+        var result = GetMutationResult(data, mutationName);
+        var errors = result.GetProperty("errors");
         return errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0;
     }
 
@@ -124,7 +156,7 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var transitionResponse = result.GetProperty("data").GetProperty("transitionAgentTaskStatus");
+        var transitionResponse = GetMutationResult(GetData(result), "transitionAgentTaskStatus");
         var errors = transitionResponse.GetProperty("errors");
         if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
         {
@@ -160,7 +192,7 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var errors = result.GetProperty("data").GetProperty("updateAgentTask").GetProperty("errors");
+        var errors = GetMutationResult(GetData(result), "updateAgentTask").GetProperty("errors");
         if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
         {
             var errorMessages = new StringBuilder();
@@ -190,7 +222,7 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var errors = result.GetProperty("data").GetProperty("updateAgentTask").GetProperty("errors");
+        var errors = GetMutationResult(GetData(result), "updateAgentTask").GetProperty("errors");
         if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
         {
             var errorMessages = new StringBuilder();
@@ -218,7 +250,7 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var agentTask = result.GetProperty("data").GetProperty("createAgentTask").GetProperty("agentTask");
+        var agentTask = GetNonNullData(GetMutationResult(GetData(result), "createAgentTask"), "agentTask", "createAgentTask");
         if (agentTask.ValueKind == JsonValueKind.Null)
         {
             throw new InvalidOperationException("CreateAgentTask returned null agentTask");
@@ -268,7 +300,7 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var resultJson = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var createResult = resultJson.GetProperty("data").GetProperty("createAgentTask");
+        var createResult = GetMutationResult(GetData(resultJson), "createAgentTask");
         var errs = createResult.GetProperty("errors");
         if (errs.ValueKind != JsonValueKind.Null && errs.GetArrayLength() > 0)
         {
@@ -394,7 +426,7 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var transitionResponse = result.GetProperty("data").GetProperty("transitionAgentTaskStatus");
+        var transitionResponse = GetMutationResult(GetData(result), "transitionAgentTaskStatus");
         var errors = transitionResponse.GetProperty("errors");
         if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
         {
@@ -484,7 +516,7 @@ public sealed class AgentTaskSteps
     public void ThenTheAgentTaskShouldExistInTheDatabase()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var agentTask = response.GetProperty("data").GetProperty("createAgentTask").GetProperty("agentTask");
+        var agentTask = GetNonNullData(GetMutationResult(GetData(response), "createAgentTask"), "agentTask", "createAgentTask");
         agentTask.ValueKind.Should().NotBe(JsonValueKind.Null);
         var taskId = agentTask.GetProperty("id").ToString();
         taskId.Should().NotBeNullOrEmpty();
@@ -495,7 +527,7 @@ public sealed class AgentTaskSteps
     public void ThenTheAgentTaskStatusShouldBe(string expectedStatus)
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var agentTask = response.GetProperty("data").GetProperty("transitionAgentTaskStatus").GetProperty("agentTask");
+        var agentTask = GetNonNullData(GetMutationResult(GetData(response), "transitionAgentTaskStatus"), "agentTask", "transitionAgentTaskStatus");
         var status = agentTask.GetProperty("status").ToString();
         var expectedMapped = MapAgentTaskStatus(expectedStatus);
         status.Should().BeEquivalentTo(expectedMapped);
