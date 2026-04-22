@@ -1,5 +1,6 @@
 Implement the change
 {{Description}}
 AgentTaskId: {{AgentTaskId}}
-If successful, update the Result, CommitHash fields and change the AgentTask Status to Done
-It not successful, update the Result and Errors fields and change the AgentTask Status to Failed
+If successful, update the Result, CommitHash fields and change the AgentTask Status to Done.
+Commit the changes with a detailed description of what has been changed.
+If not successful, update the Result and Errors fields and change the AgentTask Status to Failed
