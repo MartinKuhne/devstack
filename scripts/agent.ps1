@@ -7,52 +7,82 @@ $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 $DelaySeconds = 2
 
 $GetProjectsQuery = @'
-query GetProjects($first: Int, $skip: Int) {
-  projects(first: $first, skip: $skip) {
+query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
+  projects(first: $first, skip: $skip, search: $search, orderBy: $orderBy) {
     nodes {
       id
       name
       description
       repository
     }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      totalCount
+    }
+    totalCount
   }
 }
 '@
 
 $GetDeliverablesByProjectIdQuery = @'
-query GetDeliverablesByProjectId($projectId: UUID!) {
-  deliverablesByProjectId(projectId: $projectId) {
-    id
-    title
-    status
-    description
-    acceptanceCriteria
-    executionPlan
-    agentFeedback
-    securityImpact
-    performanceImpact
-    testPlan
-    deploymentPlan
-    blocking
-  }
-}
-'@
-
-$GetAgentTasksQuery = @'
-query GetAgentTasks($deliverableId: UUID!) {
-  agentTasks(deliverableId: $deliverableId) {
+query GetDeliverablesByProjectId($projectId: ID!, $first: Int!, $skip: Int, $status: String, $type: String, $orderBy: String) {
+  deliverablesByProjectId(projectId: $projectId, first: $first, skip: $skip, status: $status, type: $type, orderBy: $orderBy) {
     nodes {
       id
       title
       status
       description
+      acceptanceCriteria
+      executionPlan
+      agentFeedback
+      securityImpact
+      performanceImpact
+      testPlan
+      deploymentPlan
+      blocking
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      totalCount
+    }
+    totalCount
+  }
+}
+'@
+
+$GetAgentTasksQuery = @'
+query GetAgentTasks($deliverableId: ID, $first: Int!, $skip: Int, $status: String, $orderBy: String) {
+  agentTasks(deliverableId: $deliverableId, first: $first, skip: $skip, status: $status, orderBy: $orderBy) {
+    nodes {
+      id
+      title
+      status
+      deliverableId
+      projectId
+      description
       result
       errors
       commitHash
       complexityRating
-      deliverableId
-      projectId
+      dependsOnAgentTaskId
+      dependsOnAgentTask {
+        id
+        title
+        status
+      }
+      promptTokens
+      completionTokens
+      executionDurationInSeconds
+      agent
     }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      totalCount
+    }
+    totalCount
   }
 }
 '@
@@ -70,7 +100,10 @@ mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
       deploymentPlan
       blocking
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
 '@
@@ -82,7 +115,10 @@ mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) {
       id
       status
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
 '@
@@ -97,7 +133,10 @@ mutation CreateAgentTask($input: CreateAgentTaskInput!) {
       description
       deliverableId
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
 '@
@@ -112,7 +151,10 @@ mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
       errors
       commitHash
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
 '@
@@ -124,7 +166,10 @@ mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
       id
       status
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
 '@

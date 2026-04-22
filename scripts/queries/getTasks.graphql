@@ -1,20 +1,32 @@
-query GetAgentTasks($deliverableId: UUID) {
-    agentTasks(deliverableId: $deliverableId) {
+query GetAgentTasks($deliverableId: ID, $first: Int!, $skip: Int, $orderBy: String) {
+    agentTasks(deliverableId: $deliverableId, first: $first, skip: $skip, orderBy: $orderBy) {
         nodes {
             id
             title
             status
             deliverableId
+            projectId
             description
             result
             errors
             commitHash
             complexityRating
             dependsOnAgentTaskId
+            dependsOnAgentTask {
+                id
+                title
+                status
+            }
             promptTokens
             completionTokens
             executionDurationInSeconds
             agent
         }
+        pageInfo {
+            hasNextPage
+            hasPreviousPage
+            totalCount
+        }
+        totalCount
     }
 }
