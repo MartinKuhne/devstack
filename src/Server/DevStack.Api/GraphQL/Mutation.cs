@@ -6,6 +6,9 @@ using DevStack.Persistence;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.ModelConfigurations;
 
+using FluentValidation;
+using FluentValidation.Results;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Api.GraphQL.Types;
@@ -23,7 +26,7 @@ public record UpdateProjectInput(
 
 public record DeleteProjectInput(Guid Id);
 
-public record ProjectPayload(Project? Project, List<string> Errors);
+public record ProjectPayload(Project? Project, List<FieldError> Errors);
 
 public record CreateDeliverableInput(
     Guid ProjectId,
@@ -60,35 +63,35 @@ public record TransitionDeliverableInput(
 
 public record DeleteDeliverableInput(Guid Id);
 
-public record DeliverablePayload(Deliverable? Deliverable, List<string> Errors);
+public record DeliverablePayload(Deliverable? Deliverable, List<FieldError> Errors);
 
-  public record CreateAgentTaskInput(
-     Guid DeliverableId,
-     string Title,
-     string Description,
-     int ComplexityRating,
-     string? Result,
-     string? Errors,
-     string? CommitHash,
-     Guid? DependsOnAgentTaskId,
-     int? PromptTokens,
-     int? CompletionTokens,
-     int? ExecutionDurationInSeconds,
-     string? Agent);
+public record CreateAgentTaskInput(
+    Guid DeliverableId,
+    string Title,
+    string Description,
+    int ComplexityRating,
+    string? Result,
+    string? Errors,
+    string? CommitHash,
+    Guid? DependsOnAgentTaskId,
+    int? PromptTokens,
+    int? CompletionTokens,
+    int? ExecutionDurationInSeconds,
+    string? Agent);
 
- public record UpdateAgentTaskInput(
-     Guid Id,
-     string? Title,
-     string? Description,
-     string? Result,
-     string? Errors,
-     string? CommitHash,
-     Guid? DependsOnAgentTaskId,
-     int? ComplexityRating,
-     int? PromptTokens,
-     int? CompletionTokens,
-     int? ExecutionDurationInSeconds,
-     string? Agent);
+public record UpdateAgentTaskInput(
+    Guid Id,
+    string? Title,
+    string? Description,
+    string? Result,
+    string? Errors,
+    string? CommitHash,
+    Guid? DependsOnAgentTaskId,
+    int? ComplexityRating,
+    int? PromptTokens,
+    int? CompletionTokens,
+    int? ExecutionDurationInSeconds,
+    string? Agent);
 
 public record TransitionAgentTaskInput(
     Guid Id,
@@ -97,9 +100,9 @@ public record TransitionAgentTaskInput(
 
 public record DeleteAgentTaskInput(Guid Id);
 
-public record AgentTaskPayload(AgentTask? AgentTask, List<string> Errors);
+public record AgentTaskPayload(AgentTask? AgentTask, List<FieldError> Errors);
 
- public record CreateLargeLanguageModelInput(
+public record CreateLargeLanguageModelInput(
     string Url,
     string Model,
     string? ModelAlias,
@@ -118,7 +121,7 @@ public record UpdateLargeLanguageModelInput(
 
 public record DeleteLargeLanguageModelInput(Guid Id);
 
-public record LargeLanguageModelPayload(LargeLanguageModel? LargeLanguageModel, List<string> Errors);
+public record LargeLanguageModelPayload(LargeLanguageModel? LargeLanguageModel, List<FieldError> Errors);
 
 public record CleanupTestDataPayload(bool Success, string? Message);
 
@@ -136,16 +139,13 @@ public class Mutation
         [Service] ICreateProjectHandler handler,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
+        var validator = new CreateProjectInputValidator();
+        var validationResult = await validator.ValidateAsync(input, cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(input.Name))
-            errors.Add("Name is required");
-
-        if (!string.IsNullOrEmpty(input.Name) && input.Name.Length > 200)
-            errors.Add("Name must be 200 characters or less");
-
-        if (errors.Count > 0)
-            return new ProjectPayload(null, errors);
+        if (!validationResult.IsValid)
+        {
+            return new ProjectPayload(null, FieldErrorMapper.Map(validationResult));
+        }
 
         try
         {
@@ -155,11 +155,11 @@ public class Mutation
                 input.Repository), cancellationToken);
 
             var project = await _dbContext.Projects.FindAsync(id, cancellationToken);
-            return new ProjectPayload(project, new List<string>());
+            return new ProjectPayload(project, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new ProjectPayload(null, [ex.Message]);
+            return new ProjectPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -168,13 +168,13 @@ public class Mutation
         [Service] IUpdateProjectHandler handler,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
+        var validator = new UpdateProjectInputValidator();
+        var validationResult = await validator.ValidateAsync(input, cancellationToken);
 
-        if (!string.IsNullOrWhiteSpace(input.Name) && input.Name.Length > 200)
-            errors.Add("Name must be 200 characters or less");
-
-        if (errors.Count > 0)
-            return new ProjectPayload(null, errors);
+        if (!validationResult.IsValid)
+        {
+            return new ProjectPayload(null, FieldErrorMapper.Map(validationResult));
+        }
 
         try
         {
@@ -185,15 +185,15 @@ public class Mutation
                 input.Repository), cancellationToken);
 
             var project = await _dbContext.Projects.FindAsync(input.Id, cancellationToken);
-            return new ProjectPayload(project, new List<string>());
+            return new ProjectPayload(project, new List<FieldError>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return new ProjectPayload(null, ["NOT_FOUND: Project not found"]);
+            return new ProjectPayload(null, [new FieldError("Server", "Project not found")]);
         }
         catch (Exception ex)
         {
-            return new ProjectPayload(null, [ex.Message]);
+            return new ProjectPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -207,15 +207,15 @@ public class Mutation
             await handler.Handle(new DevStack.Infrastructure.Projects.DeleteProjectCommand(input.Id), cancellationToken);
 
             var project = new Project { Id = input.Id };
-            return new ProjectPayload(project, new List<string>());
+            return new ProjectPayload(project, new List<FieldError>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return new ProjectPayload(null, ["NOT_FOUND: Project not found"]);
+            return new ProjectPayload(null, [new FieldError("Server", "Project not found")]);
         }
         catch (Exception ex)
         {
-            return new ProjectPayload(null, [ex.Message]);
+            return new ProjectPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -224,13 +224,13 @@ public class Mutation
         [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
+        var validator = new CreateDeliverableInputValidator();
+        var validationResult = await validator.ValidateAsync(input, cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(input.Title))
-            errors.Add("Title is required");
-
-        if (errors.Count > 0)
-            return new DeliverablePayload(null, errors);
+        if (!validationResult.IsValid)
+        {
+            return new DeliverablePayload(null, FieldErrorMapper.Map(validationResult));
+        }
 
         try
         {
@@ -256,11 +256,11 @@ public class Mutation
             dbContext.Deliverables.Add(deliverable);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new DeliverablePayload(deliverable, new List<string>());
+            return new DeliverablePayload(deliverable, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new DeliverablePayload(null, [ex.Message]);
+            return new DeliverablePayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -269,11 +269,19 @@ public class Mutation
         [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
+        var validator = new UpdateDeliverableInputValidator();
+        var validationResult = await validator.ValidateAsync(input, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            return new DeliverablePayload(null, FieldErrorMapper.Map(validationResult));
+        }
+
         try
         {
             var deliverable = await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
             if (deliverable == null)
-                return new DeliverablePayload(null, ["NOT_FOUND: Deliverable not found"]);
+                return new DeliverablePayload(null, [new FieldError("Server", "Deliverable not found")]);
 
             if (input.Title is not null) deliverable.Title = input.Title;
             if (input.Description is not null) deliverable.Description = input.Description;
@@ -288,11 +296,11 @@ public class Mutation
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new DeliverablePayload(deliverable, new List<string>());
+            return new DeliverablePayload(deliverable, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new DeliverablePayload(null, [ex.Message]);
+            return new DeliverablePayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -305,21 +313,21 @@ public class Mutation
         {
             var deliverable = await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
             if (deliverable == null)
-                return new DeliverablePayload(null, ["NOT_FOUND: Deliverable not found"]);
+                return new DeliverablePayload(null, [new FieldError("Server", "Deliverable not found")]);
 
             var service = new DeliverableStatusTransitionService();
             var result = service.Transition(deliverable, input.TargetStatus, input.Actor);
 
             if (!result.IsSuccess)
-                return new DeliverablePayload(null, [result.Errors[0]]);
+                return new DeliverablePayload(null, result.Errors.Select(e => new FieldError("StatusTransition", e)).ToList());
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new DeliverablePayload(deliverable, new List<string>());
+            return new DeliverablePayload(deliverable, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new DeliverablePayload(null, [ex.Message]);
+            return new DeliverablePayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -332,16 +340,16 @@ public class Mutation
         {
             var deliverable = await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
             if (deliverable == null)
-                return new DeliverablePayload(null, ["NOT_FOUND: Deliverable not found"]);
+                return new DeliverablePayload(null, [new FieldError("Server", "Deliverable not found")]);
 
             dbContext.Deliverables.Remove(deliverable);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new DeliverablePayload(deliverable, new List<string>());
+            return new DeliverablePayload(deliverable, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new DeliverablePayload(null, [ex.Message]);
+            return new DeliverablePayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -350,22 +358,19 @@ public class Mutation
         [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
+        var validator = new CreateAgentTaskInputValidator();
+        var validationResult = await validator.ValidateAsync(input, cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(input.Title))
-            errors.Add("Title is required");
-
-        if (input.ComplexityRating < 1 || input.ComplexityRating > 10)
-            errors.Add("ComplexityRating must be between 1 and 10");
-
-        if (errors.Count > 0)
-            return new AgentTaskPayload(null, errors);
+        if (!validationResult.IsValid)
+        {
+            return new AgentTaskPayload(null, FieldErrorMapper.Map(validationResult));
+        }
 
         try
         {
             var deliverable = await dbContext.Deliverables.FindAsync([input.DeliverableId], cancellationToken);
             if (deliverable == null)
-                return new AgentTaskPayload(null, ["NOT_FOUND: Deliverable not found"]);
+                return new AgentTaskPayload(null, [new FieldError("DeliverableId", "Deliverable not found")]);
 
             var agentTask = new AgentTask
             {
@@ -388,11 +393,11 @@ public class Mutation
             dbContext.AgentTasks.Add(agentTask);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new AgentTaskPayload(agentTask, new List<string>());
+            return new AgentTaskPayload(agentTask, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new AgentTaskPayload(null, [ex.Message]);
+            return new AgentTaskPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -401,11 +406,19 @@ public class Mutation
         [Service] DevStackDbContext dbContext,
         CancellationToken cancellationToken)
     {
+        var validator = new UpdateAgentTaskInputValidator();
+        var validationResult = await validator.ValidateAsync(input, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            return new AgentTaskPayload(null, FieldErrorMapper.Map(validationResult));
+        }
+
         try
         {
             var agentTask = await dbContext.AgentTasks.FindAsync([input.Id], cancellationToken);
             if (agentTask == null)
-                return new AgentTaskPayload(null, ["NOT_FOUND: AgentTask not found"]);
+                return new AgentTaskPayload(null, [new FieldError("Server", "AgentTask not found")]);
 
             if (input.Title is not null) agentTask.Title = input.Title;
             if (input.Description is not null) agentTask.Description = input.Description;
@@ -421,11 +434,11 @@ public class Mutation
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new AgentTaskPayload(agentTask, new List<string>());
+            return new AgentTaskPayload(agentTask, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new AgentTaskPayload(null, [ex.Message]);
+            return new AgentTaskPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -438,21 +451,21 @@ public class Mutation
         {
             var agentTask = await dbContext.AgentTasks.FindAsync([input.Id], cancellationToken);
             if (agentTask == null)
-                return new AgentTaskPayload(null, ["NOT_FOUND: AgentTask not found"]);
+                return new AgentTaskPayload(null, [new FieldError("Server", "AgentTask not found")]);
 
             var service = new AgentTaskStatusTransitionService();
             var result = service.Transition(agentTask, input.TargetStatus, input.Actor);
 
             if (!result.IsSuccess)
-                return new AgentTaskPayload(null, [result.Errors[0]]);
+                return new AgentTaskPayload(null, result.Errors.Select(e => new FieldError("StatusTransition", e)).ToList());
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new AgentTaskPayload(agentTask, new List<string>());
+            return new AgentTaskPayload(agentTask, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new AgentTaskPayload(null, [ex.Message]);
+            return new AgentTaskPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -465,16 +478,16 @@ public class Mutation
         {
             var agentTask = await dbContext.AgentTasks.FindAsync([input.Id], cancellationToken);
             if (agentTask == null)
-                return new AgentTaskPayload(null, ["NOT_FOUND: AgentTask not found"]);
+                return new AgentTaskPayload(null, [new FieldError("Server", "AgentTask not found")]);
 
             dbContext.AgentTasks.Remove(agentTask);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new AgentTaskPayload(agentTask, new List<string>());
+            return new AgentTaskPayload(agentTask, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new AgentTaskPayload(null, [ex.Message]);
+            return new AgentTaskPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -483,19 +496,13 @@ public class Mutation
         [Service] ICreateLargeLanguageModelHandler handler,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
+        var validator = new CreateLargeLanguageModelInputValidator();
+        var validationResult = await validator.ValidateAsync(input, cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(input.Url))
-            errors.Add("Url is required");
-
-        if (string.IsNullOrWhiteSpace(input.Model))
-            errors.Add("Model is required");
-
-        if (string.IsNullOrWhiteSpace(input.ApiKey))
-            errors.Add("ApiKey is required");
-
-        if (errors.Count > 0)
-            return new LargeLanguageModelPayload(null, errors);
+        if (!validationResult.IsValid)
+        {
+            return new LargeLanguageModelPayload(null, FieldErrorMapper.Map(validationResult));
+        }
 
         try
         {
@@ -508,11 +515,11 @@ public class Mutation
                 input.MaxConcurrency ?? 0), cancellationToken);
 
             var model = new LargeLanguageModel { Id = id };
-            return new LargeLanguageModelPayload(model, new List<string>());
+            return new LargeLanguageModelPayload(model, new List<FieldError>());
         }
         catch (Exception ex)
         {
-            return new LargeLanguageModelPayload(null, [ex.Message]);
+            return new LargeLanguageModelPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -521,7 +528,13 @@ public class Mutation
         [Service] IUpdateLargeLanguageModelHandler handler,
         CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
+        var validator = new UpdateLargeLanguageModelInputValidator();
+        var validationResult = await validator.ValidateAsync(input, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            return new LargeLanguageModelPayload(null, FieldErrorMapper.Map(validationResult));
+        }
 
         try
         {
@@ -535,15 +548,15 @@ public class Mutation
                 input.MaxConcurrency), cancellationToken);
 
             var model = new LargeLanguageModel { Id = input.Id };
-            return new LargeLanguageModelPayload(model, new List<string>());
+            return new LargeLanguageModelPayload(model, new List<FieldError>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return new LargeLanguageModelPayload(null, ["NOT_FOUND: LargeLanguageModel not found"]);
+            return new LargeLanguageModelPayload(null, [new FieldError("Server", "LargeLanguageModel not found")]);
         }
         catch (Exception ex)
         {
-            return new LargeLanguageModelPayload(null, [ex.Message]);
+            return new LargeLanguageModelPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
@@ -557,15 +570,15 @@ public class Mutation
             await handler.Handle(new DeleteLargeLanguageModelCommand(input.Id), cancellationToken);
 
             var model = new LargeLanguageModel { Id = input.Id };
-            return new LargeLanguageModelPayload(model, new List<string>());
+            return new LargeLanguageModelPayload(model, new List<FieldError>());
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
-            return new LargeLanguageModelPayload(null, ["NOT_FOUND: LargeLanguageModel not found"]);
+            return new LargeLanguageModelPayload(null, [new FieldError("Server", "LargeLanguageModel not found")]);
         }
         catch (Exception ex)
         {
-            return new LargeLanguageModelPayload(null, [ex.Message]);
+            return new LargeLanguageModelPayload(null, [new FieldError("Server", ex.Message)]);
         }
     }
 
