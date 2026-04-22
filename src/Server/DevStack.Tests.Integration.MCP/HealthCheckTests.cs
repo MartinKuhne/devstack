@@ -1,24 +1,20 @@
 using DevStack.Tests.Integration.Shared;
+using DevStack.Tests.Integration.MCP.Hooks;
 using FluentAssertions;
 using Xunit;
 
 namespace DevStack.Tests.Integration.MCP;
 
-public class HealthCheckTests : IClassFixture<DevStackTestEnv>
+public class HealthCheckTests
 {
-    public HealthCheckTests(DevStackTestEnv env)
-    {
-        Env = env;
-    }
-
-    public DevStackTestEnv Env { get; }
-
     [Fact]
     public async Task GetHealth_ReturnsHealthy()
     {
+        var env = SpecFlowHooks.GetTestEnvironment();
+        
         using var httpClient = new HttpClient
         {
-            BaseAddress = new Uri(Env.AppUrl)
+            BaseAddress = new Uri(env.AppUrl)
         };
 
         var response = await httpClient.GetAsync("/health");

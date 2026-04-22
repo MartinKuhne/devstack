@@ -166,4 +166,9 @@ public sealed class SpecFlowHooks
             ? client
             : throw new InvalidOperationException("MCP client not initialized. Ensure BeforeScenario hook has run.");
     }
+
+    public static DevStackTestEnv GetTestEnvironment()
+    {
+        return _env ?? throw new InvalidOperationException("Test environment not initialized. Check BeforeTestRun.");
+    }
 }
