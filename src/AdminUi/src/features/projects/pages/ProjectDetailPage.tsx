@@ -237,7 +237,7 @@ export function ProjectDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {deliverables.map((deliverable) => (
+                                        {deliverables.map((deliverable) => deliverable ? (
                                             <TableRow
                                                 key={deliverable.id ?? ''}
                                                 className="cursor-pointer hover:bg-muted/50"
@@ -264,7 +264,7 @@ export function ProjectDetailPage() {
                                                     {deliverable.id ?? '-'}
                                                 </TableCell>
                                             </TableRow>
-                                        ))}
+                                        ) : null)}
                                     </TableBody>
                                 </Table>
                             ) : (
@@ -331,7 +331,7 @@ export function ProjectDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {agentTasks.map((task) => (
+                                        {agentTasks.map((task) => task ? (
                                             <TableRow
                                                 key={task.id ?? ''}
                                                 className="cursor-pointer hover:bg-muted/50"
@@ -358,7 +358,7 @@ export function ProjectDetailPage() {
                                                         (task.completionTokens ?? 0)}
                                                 </TableCell>
                                             </TableRow>
-                                        ))}
+                                        ) : null)}
                                     </TableBody>
                                 </Table>
                             ) : (

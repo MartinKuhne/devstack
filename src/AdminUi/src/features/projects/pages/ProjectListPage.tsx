@@ -87,7 +87,7 @@ export function ProjectListPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {projects.map((project) => (
+                            {projects.map((project) => project ? (
                                 <TableRow
                                     key={project.id ?? ''}
                                     className="cursor-pointer hover:bg-muted/50"
@@ -115,7 +115,7 @@ export function ProjectListPage() {
                                         )}
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : null)}
                         </TableBody>
                     </Table>
                 ) : (
