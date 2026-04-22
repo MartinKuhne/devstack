@@ -15,25 +15,37 @@ if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
 $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 
 $GetProjectsQuery = @'
-query GetProjects($first: Int, $skip: Int) {
-  projects(first: $first, skip: $skip) {
+query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
+  projects(first: $first, skip: $skip, search: $search, orderBy: $orderBy) {
     nodes {
       id
       name
       description
       repository
     }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      totalCount
+    }
+    totalCount
   }
 }
 '@
 
 $CreateProjectMutation = @'
-mutation CreateProject($name: String!, $description: String!) {
-  createProject(input: { name: $name, description: $description }) {
+mutation CreateProject($input: CreateProjectInput!) {
+  createProject(input: $input) {
     project {
       id
+      name
+      description
+      repository
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
 '@
@@ -139,10 +151,11 @@ function Initialize-Project {
         Write-Host "Project '$repoName' already exists with ID: $($existingProject.id)"
     }
     else {
-        $result = Invoke-GraphQL -Operation $CreateProjectMutation -Variables @{ name = $repoName; description = 'Auto-initialized project' } -IsMutation
+        $result = Invoke-GraphQL -Operation $CreateProjectMutation -Variables @{ input = @{ name = $repoName; description = 'Auto-initialized project'; repository = $repoName } } -IsMutation
 
         if ($result.data.createProject.errors) {
-            Write-Error "Failed to create project: $($result.data.createProject.errors -join ', ')"
+            $errorMessages = $result.data.createProject.errors | ForEach-Object { "$($_.field): $($_.message)" }
+            Write-Error "Failed to create project: $($errorMessages -join ', ')"
             exit 1
         }
 

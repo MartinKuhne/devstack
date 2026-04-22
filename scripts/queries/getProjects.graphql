@@ -1,5 +1,5 @@
-query GetProjects($first: Int, $skip: Int) {
-    projects(first: $first, skip: $skip) {
+query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
+    projects(first: $first, skip: $skip, search: $search, orderBy: $orderBy) {
         nodes {
             id
             name
