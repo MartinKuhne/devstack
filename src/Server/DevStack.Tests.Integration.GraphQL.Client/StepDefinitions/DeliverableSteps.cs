@@ -391,7 +391,7 @@ public sealed class DeliverableSteps
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var query = new
         {
-            query = @"query GetDeliverablesByProjectId($projectId: UUID!) { deliverablesByProjectId(projectId: $projectId) { id title type status } }",
+            query = @"query GetDeliverablesByProjectId($projectId: UUID!) { deliverablesByProjectId(projectId: $projectId) { nodes { id title type status } pageInfo { hasNextPage hasPreviousPage totalCount } totalCount } }",
             variables = new { projectId },
             operationName = "GetDeliverablesByProjectId"
         };
@@ -498,7 +498,8 @@ public sealed class DeliverableSteps
     public void ThenTheDeliverablesListShouldContainTheCreatedDeliverable()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var deliverables = GetData(response).GetProperty("deliverablesByProjectId");
+        var connection = GetData(response).GetProperty("deliverablesByProjectId");
+        var deliverables = connection.GetProperty("nodes");
         deliverables.ValueKind.Should().Be(JsonValueKind.Array);
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString();
         var found = false;
