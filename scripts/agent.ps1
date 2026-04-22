@@ -288,6 +288,7 @@ function Invoke-PlanningPhase {
         $prompt = $prompt -replace '\{\{Title\}\}', $deliverable.title
         $prompt = $prompt -replace '\{\{Description\}\}', $deliverable.description
         $prompt = $prompt -replace '\{\{DeliverableId\}\}', $deliverable.id
+        $prompt = $prompt -replace '\{\{AcceptanceCriteria\}\}', $deliverable.acceptanceCriteria
 
         Log-Info "Prompt: $prompt"
 
@@ -355,7 +356,6 @@ function Invoke-ExecutionPhase {
         Log-Info "Executing AgentTask: $($task.title) (ID: $($task.id))"
 
         $prompt = $promptTemplate
-        $prompt = $prompt -replace '\{\{Title\}\}', $task.title
         $prompt = $prompt -replace '\{\{Description\}\}', $task.description
         $prompt = $prompt -replace '\{\{AgentTaskId\}\}', $task.id
 
@@ -386,7 +386,7 @@ if (-not (Test-GraphQLEndpoint -Url $GraphQLEndpoint)) {
 Log-Info "GraphQL endpoint validated."
 
 # Run phases
-Invoke-SpecAnalysisPhase
+# Invoke-SpecAnalysisPhase
 Invoke-PlanningPhase
 Invoke-ExecutionPhase
 

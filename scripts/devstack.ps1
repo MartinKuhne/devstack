@@ -149,7 +149,7 @@ function Initialize-Project {
         Write-Host "Project created with ID: $($existingProject.id)"
     }
 
-    $opencodePath = Join-Path $PSScriptRoot "opencode.json"
+    $opencodePath = Join-Path (Split-Path $PSScriptRoot -Parent) "opencode.json"
     $existingConfig = $null
     if (Test-Path $opencodePath) {
         $existingConfig = Get-Content $opencodePath -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
