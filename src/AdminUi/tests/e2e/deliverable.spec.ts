@@ -154,7 +154,7 @@ test.describe('Deliverable Creation and Detail', () => {
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
         await createDeliverableDialog.createDeliverable(
-            'Test Deliverable E2E',
+            'DeleteAfterTest - Deliverable E2E',
             'This is a test deliverable description'
         );
 
@@ -167,11 +167,11 @@ test.describe('Deliverable Creation and Detail', () => {
         await deliverableListPage.clickNewDeliverable();
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createDeliverableDialog.createDeliverable('My Test Deliverable');
+        await createDeliverableDialog.createDeliverable('DeleteAfterTest - Deliverable');
 
         await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
         await expect(
-            page.getByRole('heading', { name: 'My Test Deliverable', level: 2 })
+            page.getByRole('heading', { name: 'DeleteAfterTest - Deliverable', level: 2 })
         ).toBeVisible();
     });
 
@@ -182,7 +182,7 @@ test.describe('Deliverable Creation and Detail', () => {
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
         await createDeliverableDialog.createDeliverable(
-            'Deliverable With Description',
+            'DeleteAfterTest - Deliverable',
             'This is the detailed description of the test deliverable'
         );
 
@@ -196,7 +196,7 @@ test.describe('Deliverable Creation and Detail', () => {
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
         await createDeliverableDialog.selectType('DEFECT');
-        await createDeliverableDialog.createDeliverable('Test Defect Deliverable');
+        await createDeliverableDialog.createDeliverable('DeleteAfterTest - Deliverable');
 
         await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
         const typeBadge = page.getByText('DEFECT');
@@ -213,7 +213,7 @@ test.describe('Deliverable Creation and Detail', () => {
         await deliverableListPage.clickNewDeliverable();
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createDeliverableDialog.createDeliverable('Deliverable Visible On Project');
+        await createDeliverableDialog.createDeliverable('DeleteAfterTest - Deliverable');
 
         await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
     });
@@ -224,7 +224,7 @@ test.describe('Deliverable Creation and Detail', () => {
         await deliverableListPage.clickNewDeliverable();
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createDeliverableDialog.createDeliverable('Test Edit Delete Buttons');
+        await createDeliverableDialog.createDeliverable('DeleteAfterTest - Deliverable');
 
         await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
         await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible();
@@ -236,7 +236,7 @@ test.describe('Deliverable Creation and Detail', () => {
         await deliverableListPage.clickNewDeliverable();
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createDeliverableDialog.createDeliverable('Test Back Navigation');
+        await createDeliverableDialog.createDeliverable('DeleteAfterTest - Deliverable');
 
         await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
     });
@@ -262,7 +262,7 @@ test.describe('Deliverable Creation and Detail', () => {
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
         await createDeliverableDialog.createDeliverable(
-            'Deliverable With Acceptance Criteria',
+            'DeleteAfterTest - Deliverable',
             'Description here',
             'Given I have a feature, When I implement it, Then it should work'
         );
@@ -276,7 +276,7 @@ test.describe('Deliverable Creation and Detail', () => {
         await deliverableListPage.clickNewDeliverable();
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createDeliverableDialog.createDeliverable('Test Agent Tasks Section');
+        await createDeliverableDialog.createDeliverable('DeleteAfterTest - Deliverable');
 
         await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
     });

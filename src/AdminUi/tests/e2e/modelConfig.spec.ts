@@ -55,6 +55,7 @@ test.describe('Large Language Model CRUD', () => {
         await expect(addButton).toBeDisabled();
 
         await dialog.cancel();
+        await page.waitForTimeout(100);
     });
 
     test('should navigate back from models page', async ({ page }) => {
