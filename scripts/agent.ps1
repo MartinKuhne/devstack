@@ -26,7 +26,7 @@ query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
 '@
 
 $GetDeliverablesByProjectIdQuery = @'
-query GetDeliverablesByProjectId($projectId: ID!, $first: Int!, $skip: Int, $status: String, $type: String, $orderBy: String) {
+query GetDeliverablesByProjectId($projectId: UUID!, $first: Int!, $skip: Int, $status: String, $type: String, $orderBy: String) {
   deliverablesByProjectId(projectId: $projectId, first: $first, skip: $skip, status: $status, type: $type, orderBy: $orderBy) {
     nodes {
       id
