@@ -85,11 +85,12 @@ export function CreateAgentTaskDialog({
 
             const payload = result.data?.createAgentTask;
             if (payload?.errors?.length) {
-                const errorMessage = payload.errors.join(', ');
+                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
                 logger.warn('Failed to create agent task', {
                     deliverableId: data.deliverableId,
                     title: data.title,
-                    errors: payload.errors,
+                    errors: errorMessages,
                 });
                 setServerError(errorMessage);
                 return;

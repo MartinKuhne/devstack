@@ -6,6 +6,9 @@ mutation UpdateProject($input: UpdateProjectInput!) {
             description
             repository
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

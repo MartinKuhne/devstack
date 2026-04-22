@@ -93,11 +93,12 @@ export function CreateDeliverableDialog({
 
             const payload = result.data?.createDeliverable;
             if (payload?.errors?.length) {
-                const errorMessage = payload.errors.join(', ');
+                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
                 logger.warn('Failed to create deliverable', {
                     type: data.type,
                     title: data.title,
-                    errors: payload.errors,
+                    errors: errorMessages,
                 });
                 setServerError(errorMessage);
                 return;

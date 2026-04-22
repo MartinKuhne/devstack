@@ -3,6 +3,9 @@ mutation DeleteProject($input: DeleteProjectInput!) {
         project {
             id
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

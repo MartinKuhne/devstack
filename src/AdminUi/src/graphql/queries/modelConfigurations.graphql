@@ -1,11 +1,13 @@
 query ModelConfigurations {
     largeLanguageModels {
-        id
-        url
-        model
-        modelAlias
-        apiKey
-        maxComplexity
-        maxConcurrency
+        nodes {
+            id
+            url
+            model
+            modelAlias
+            apiKey
+            maxComplexity
+            maxConcurrency
+        }
     }
 }

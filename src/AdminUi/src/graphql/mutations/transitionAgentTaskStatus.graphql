@@ -5,6 +5,9 @@ mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
             title
             status
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

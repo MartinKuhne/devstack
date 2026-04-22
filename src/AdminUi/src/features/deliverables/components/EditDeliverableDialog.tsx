@@ -135,10 +135,11 @@ export function EditDeliverableDialog({
 
             const payload = mutationResult.data?.updateDeliverable;
             if (payload?.errors?.length) {
-                const errorMessage = payload.errors.join(', ');
+                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
                 logger.warn('Failed to update deliverable', {
                     id: deliverable.id,
-                    errors: payload.errors,
+                    errors: errorMessages,
                 });
                 setServerError(errorMessage);
                 setSubmitting(false);

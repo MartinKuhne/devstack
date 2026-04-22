@@ -3,6 +3,9 @@ mutation DeleteDeliverable($input: DeleteDeliverableInput!) {
         deliverable {
             id
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

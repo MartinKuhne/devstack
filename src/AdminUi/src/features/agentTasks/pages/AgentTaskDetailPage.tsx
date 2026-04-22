@@ -59,10 +59,11 @@ export function AgentTaskDetailPage() {
                 },
             });
             if (result.data?.deleteAgentTask?.errors?.length) {
-                const errorMessage = result.data.deleteAgentTask.errors.join(', ');
+                const errorMessages = result.data.deleteAgentTask.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
                 logger.warn('Failed to delete agent task', {
                     id: agentTask.id,
-                    errors: result.data.deleteAgentTask.errors,
+                    errors: errorMessages,
                 });
                 toast.error(errorMessage);
             } else {
@@ -91,7 +92,8 @@ export function AgentTaskDetailPage() {
             });
 
             if (result.data?.transitionAgentTaskStatus?.errors?.length) {
-                toast.error(result.data.transitionAgentTaskStatus.errors.join(', '));
+                const errorMessages = result.data.transitionAgentTaskStatus.errors.map((e: { field: string; message: string }) => e.message);
+                toast.error(errorMessages.join(', '));
                 return;
             }
 

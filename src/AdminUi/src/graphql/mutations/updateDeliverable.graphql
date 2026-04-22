@@ -5,6 +5,9 @@ mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
             title
             status
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

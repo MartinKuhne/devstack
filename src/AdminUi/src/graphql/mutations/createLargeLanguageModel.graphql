@@ -8,6 +8,9 @@ mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) {
             maxComplexity
             maxConcurrency
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

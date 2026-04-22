@@ -6,6 +6,9 @@ mutation CreateProject($input: CreateProjectInput!) {
             description
             repository
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

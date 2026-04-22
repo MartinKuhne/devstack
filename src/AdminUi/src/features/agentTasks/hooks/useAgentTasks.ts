@@ -9,11 +9,11 @@ const logger = createModuleLogger('useAgentTasks');
  */
 export function useAgentTasks(statusFilter?: AgentTaskStatus[]) {
     const { data, loading, error, refetch } = useGetAgentTasksQuery({
-        variables: { projectId: null },
+        variables: { deliverableId: null },
         fetchPolicy: 'cache-and-network',
     });
 
-    const allTasks = data?.agentTasks ?? [];
+    const allTasks = data?.agentTasks?.nodes ?? [];
 
     const filteredTasks =
         statusFilter && statusFilter.length > 0

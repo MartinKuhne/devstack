@@ -3,6 +3,9 @@ mutation DeleteAgentTask($input: DeleteAgentTaskInput!) {
         agentTask {
             id
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

@@ -62,10 +62,11 @@ export function ProjectDetailPage() {
                 },
             });
             if (result.data?.deleteProject?.errors?.length) {
-                const errorMessage = result.data.deleteProject.errors.join(', ');
+                const errorMessages = result.data.deleteProject.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
                 logger.warn('Failed to delete project', {
                     id: project.id,
-                    errors: result.data.deleteProject.errors,
+                    errors: errorMessages,
                 });
                 toast.error(errorMessage);
             } else {

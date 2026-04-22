@@ -5,6 +5,9 @@ mutation CreateDeliverable($input: CreateDeliverableInput!) {
             title
             status
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

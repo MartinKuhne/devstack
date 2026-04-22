@@ -8,6 +8,9 @@ mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) {
             maxComplexity
             maxConcurrency
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

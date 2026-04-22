@@ -177,10 +177,11 @@ export function LargeLanguageModelDialog({
                 });
                 const payload = result.data?.updateLargeLanguageModel;
                 if (payload?.errors?.length) {
-                    const errorMessage = payload.errors.join(', ');
+                    const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
+                    const errorMessage = errorMessages.join(', ');
                     logger.warn('Failed to update LLM model', {
                         id: model.id,
-                        errors: payload.errors,
+                        errors: errorMessages,
                     });
                     setError(errorMessage);
                     return;
@@ -202,10 +203,11 @@ export function LargeLanguageModelDialog({
                 });
                 const payload = result.data?.createLargeLanguageModel;
                 if (payload?.errors?.length) {
-                    const errorMessage = payload.errors.join(', ');
+                    const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
+                    const errorMessage = errorMessages.join(', ');
                     logger.warn('Failed to create LLM model', {
                         model: modelValue,
-                        errors: payload.errors,
+                        errors: errorMessages,
                     });
                     setError(errorMessage);
                     return;
@@ -244,8 +246,9 @@ export function LargeLanguageModelDialog({
             });
             const payload = result.data?.deleteLargeLanguageModel;
             if (payload?.errors?.length) {
-                const errorMessage = payload.errors.join(', ');
-                logger.warn('Failed to delete LLM model', { id: model.id, errors: payload.errors });
+                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
+                logger.warn('Failed to delete LLM model', { id: model.id, errors: errorMessages });
                 setError(errorMessage);
                 return;
             }

@@ -15,7 +15,7 @@ export function useDeliverables(
         fetchPolicy: 'cache-and-network',
     });
 
-    const allDeliverables = data?.deliverables ?? [];
+    const allDeliverables = data?.deliverables?.nodes ?? [];
 
     const filteredDeliverables = allDeliverables.filter((deliverable) => {
         if (

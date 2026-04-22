@@ -4,6 +4,9 @@ mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) {
             id
             status
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

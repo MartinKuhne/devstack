@@ -67,10 +67,11 @@ export function CreateProjectDialog({ open, onOpenChange, onSuccess }: CreatePro
 
             const payload = result.data?.createProject;
             if (payload?.errors?.length) {
-                const errorMessage = payload.errors.join(', ');
+                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
                 logger.warn('Failed to create project: validation error', {
                     name: data.name,
-                    errors: payload.errors,
+                    errors: errorMessages,
                 });
                 setServerError(errorMessage);
                 return;
