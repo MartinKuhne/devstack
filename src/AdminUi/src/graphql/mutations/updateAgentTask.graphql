@@ -15,6 +15,9 @@ mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
             executionDurationInSeconds
             agent
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

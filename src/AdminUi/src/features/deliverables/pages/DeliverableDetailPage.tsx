@@ -61,16 +61,17 @@ export function DeliverableDetailPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    query: 'mutation DeleteDeliverable($input: DeleteDeliverableInput!) { deleteDeliverable(input: $input) { deliverable { id } errors } }',
+                    query: 'mutation DeleteDeliverable($input: DeleteDeliverableInput!) { deleteDeliverable(input: $input) { deliverable { id } errors { field message } } }',
                     variables: { input: { id: deliverable.id } },
                 }),
             });
             const result = await response.json();
             if (result?.data?.deleteDeliverable?.errors?.length) {
-                const errorMessage = result.data.deleteDeliverable.errors.join(', ');
+                const errorMessages = result.data.deleteDeliverable.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
                 logger.warn('Failed to delete deliverable', {
                     id: deliverable.id,
-                    errors: result.data.deleteDeliverable.errors,
+                    errors: errorMessages,
                 });
                 toast.error(errorMessage);
             } else {
@@ -161,7 +162,8 @@ export function DeliverableDetailPage() {
             });
 
             if (result.data?.transitionDeliverableStatus?.errors?.length) {
-                toast.error(result.data.transitionDeliverableStatus.errors.join(', '));
+                const errorMessages = result.data.transitionDeliverableStatus.errors.map((e: { field: string; message: string }) => e.message);
+                toast.error(errorMessages.join(', '));
                 return;
             }
 

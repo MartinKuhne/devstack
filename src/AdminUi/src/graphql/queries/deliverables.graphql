@@ -1,18 +1,20 @@
 query GetDeliverables {
     deliverables {
-        id
-        title
-        description
-        status
-        type
-        acceptanceCriteria
-        executionPlan
-        agentFeedback
-        securityImpact
-        performanceImpact
-        testPlan
-        deploymentPlan
-        blocking
+        nodes {
+            id
+            title
+            description
+            status
+            type
+            acceptanceCriteria
+            executionPlan
+            agentFeedback
+            securityImpact
+            performanceImpact
+            testPlan
+            deploymentPlan
+            blocking
+        }
     }
 }
 

@@ -99,10 +99,11 @@ export function UpdateAgentTaskDialog({
 
             const payload = result.data?.updateAgentTask;
             if (payload?.errors?.length) {
-                const errorMessage = payload.errors.join(', ');
+                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
                 logger.warn('Failed to update agent task', {
                     id: agentTask.id,
-                    errors: payload.errors,
+                    errors: errorMessages,
                 });
                 if (errorMessage.includes('NOT_FOUND')) {
                     logger.warn('Agent task not found during update, closing dialog', {

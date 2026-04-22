@@ -9,18 +9,16 @@ export function useAgentTasksByDeliverable(
     statusFilter?: AgentTaskStatus[]
 ) {
     const { data, loading, error, refetch } = useGetAgentTasksQuery({
-        variables: { projectId: deliverableId ?? null },
+        variables: { deliverableId },
         fetchPolicy: 'cache-and-network',
         skip: !deliverableId,
     });
 
-    const allTasks = data?.agentTasks ?? [];
-
-    const filteredByDeliverable = allTasks.filter((task) => task.deliverableId === deliverableId);
+   const allTasks = data?.agentTasks?.nodes ?? [];
 
     const filteredTasks =
         statusFilter && statusFilter.length > 0
-            ? filteredByDeliverable.filter((task) =>
+            ? allTasks.filter((task) =>
                   statusFilter.includes(task.status as AgentTaskStatus)
               )
             : filteredByDeliverable;

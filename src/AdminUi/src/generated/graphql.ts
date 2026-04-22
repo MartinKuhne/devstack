@@ -35,17 +35,11 @@ export type AgentTask = {
   executionDurationInSeconds?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   project?: Maybe<Project>;
-  projectId: Scalars['UUID']['output'];
+  projectId?: Maybe<Scalars['ID']['output']>;
   promptTokens?: Maybe<Scalars['Int']['output']>;
   result?: Maybe<Scalars['String']['output']>;
   status?: Maybe<AgentTaskStatus>;
   title?: Maybe<Scalars['String']['output']>;
-};
-
-export type FieldError = {
-  __typename?: 'FieldError';
-  field: Scalars['String']['output'];
-  message: Scalars['String']['output'];
 };
 
 export type AgentTaskPayload = {
@@ -177,6 +171,40 @@ export const DeliverableType = {
 } as const;
 
 export type DeliverableType = typeof DeliverableType[keyof typeof DeliverableType];
+export type EntityConnectionOfAgentTask = {
+  __typename?: 'EntityConnectionOfAgentTask';
+  nodes?: Maybe<Array<Maybe<AgentTask>>>;
+  pageInfo?: Maybe<PageInfo>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export type EntityConnectionOfDeliverable = {
+  __typename?: 'EntityConnectionOfDeliverable';
+  nodes?: Maybe<Array<Maybe<Deliverable>>>;
+  pageInfo?: Maybe<PageInfo>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export type EntityConnectionOfLargeLanguageModel = {
+  __typename?: 'EntityConnectionOfLargeLanguageModel';
+  nodes?: Maybe<Array<Maybe<LargeLanguageModel>>>;
+  pageInfo?: Maybe<PageInfo>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export type EntityConnectionOfProject = {
+  __typename?: 'EntityConnectionOfProject';
+  nodes?: Maybe<Array<Maybe<Project>>>;
+  pageInfo?: Maybe<PageInfo>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export type FieldError = {
+  __typename?: 'FieldError';
+  field: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+};
+
 export type LargeLanguageModel = {
   __typename?: 'LargeLanguageModel';
   apiKey?: Maybe<Scalars['String']['output']>;
@@ -283,6 +311,13 @@ export type MutationupdateProjectArgs = {
   input: UpdateProjectInput;
 };
 
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  totalCount: Scalars['Int']['output'];
+};
+
 export type Project = {
   __typename?: 'Project';
   deliverables: Array<Deliverable>;
@@ -315,15 +350,15 @@ export type ProjectPayload = {
 export type Query = {
   __typename?: 'Query';
   agentTaskById?: Maybe<AgentTask>;
-  agentTasks: Array<AgentTask>;
+  agentTasks: EntityConnectionOfAgentTask;
   agentTasksByDeliverableId: Array<AgentTask>;
   deliverableById?: Maybe<Deliverable>;
-  deliverables: Array<Deliverable>;
+  deliverables: EntityConnectionOfDeliverable;
   deliverablesByProjectId: Array<Deliverable>;
   largeLanguageModelById?: Maybe<LargeLanguageModel>;
-  largeLanguageModels: Array<LargeLanguageModel>;
+  largeLanguageModels: EntityConnectionOfLargeLanguageModel;
   projectById?: Maybe<Project>;
-  projects: ProjectConnection;
+  projects: EntityConnectionOfProject;
 };
 
 
@@ -333,12 +368,20 @@ export type QueryagentTaskByIdArgs = {
 
 
 export type QueryagentTasksArgs = {
-  itemId?: InputMaybe<Scalars['UUID']['input']>;
+  deliverableId?: InputMaybe<Scalars['UUID']['input']>;
+  first?: Scalars['Int']['input'];
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type QueryagentTasksByDeliverableIdArgs = {
   deliverableId: Scalars['UUID']['input'];
+  first?: Scalars['Int']['input'];
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -347,13 +390,35 @@ export type QuerydeliverableByIdArgs = {
 };
 
 
+export type QuerydeliverablesArgs = {
+  first?: Scalars['Int']['input'];
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  type?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QuerydeliverablesByProjectIdArgs = {
+  first?: Scalars['Int']['input'];
+  orderBy?: InputMaybe<Scalars['String']['input']>;
   projectId: Scalars['UUID']['input'];
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  type?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type QuerylargeLanguageModelByIdArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QuerylargeLanguageModelsArgs = {
+  first?: Scalars['Int']['input'];
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -364,6 +429,8 @@ export type QueryprojectByIdArgs = {
 
 export type QueryprojectsArgs = {
   first?: Scalars['Int']['input'];
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -430,98 +497,98 @@ export type CreateAgentTaskMutationVariables = Exact<{
 }>;
 
 
-export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask?: { __typename?: 'AgentTask', id?: string | null, title?: string | null, deliverableId?: string | null, description?: string | null, complexityRating?: number | null, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: string | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null } };
+export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTaskPayload', agentTask?: { __typename?: 'AgentTask', id?: string | null, title?: string | null, deliverableId?: string | null, description?: string | null, complexityRating?: number | null, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: string | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type CreateDeliverableMutationVariables = Exact<{
   input: CreateDeliverableInput;
 }>;
 
 
-export type CreateDeliverableMutation = { __typename?: 'Mutation', createDeliverable: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable?: { __typename?: 'Deliverable', id?: string | null, title?: string | null, status?: DeliverableStatus | null } | null } };
+export type CreateDeliverableMutation = { __typename?: 'Mutation', createDeliverable: { __typename?: 'DeliverablePayload', deliverable?: { __typename?: 'Deliverable', id?: string | null, title?: string | null, status?: DeliverableStatus | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type CreateLargeLanguageModelMutationVariables = Exact<{
   input: CreateLargeLanguageModelInput;
 }>;
 
 
-export type CreateLargeLanguageModelMutation = { __typename?: 'Mutation', createLargeLanguageModel: { __typename?: 'LargeLanguageModelPayload', errors: Array<string>, largeLanguageModel?: { __typename?: 'LargeLanguageModel', id?: string | null, url?: string | null, model?: string | null, modelAlias?: string | null, maxComplexity?: number | null, maxConcurrency?: number | null } | null } };
+export type CreateLargeLanguageModelMutation = { __typename?: 'Mutation', createLargeLanguageModel: { __typename?: 'LargeLanguageModelPayload', largeLanguageModel?: { __typename?: 'LargeLanguageModel', id?: string | null, url?: string | null, model?: string | null, modelAlias?: string | null, maxComplexity?: number | null, maxConcurrency?: number | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
 }>;
 
 
-export type CreateProjectMutation = { __typename?: 'Mutation', createProject: { __typename?: 'ProjectPayload', errors: Array<string>, project?: { __typename?: 'Project', id?: string | null, name?: string | null, description?: string | null, repository?: string | null } | null } };
+export type CreateProjectMutation = { __typename?: 'Mutation', createProject: { __typename?: 'ProjectPayload', project?: { __typename?: 'Project', id?: string | null, name?: string | null, description?: string | null, repository?: string | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type DeleteAgentTaskMutationVariables = Exact<{
   input: DeleteAgentTaskInput;
 }>;
 
 
-export type DeleteAgentTaskMutation = { __typename?: 'Mutation', deleteAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask?: { __typename?: 'AgentTask', id?: string | null } | null } };
+export type DeleteAgentTaskMutation = { __typename?: 'Mutation', deleteAgentTask: { __typename?: 'AgentTaskPayload', agentTask?: { __typename?: 'AgentTask', id?: string | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type DeleteDeliverableMutationVariables = Exact<{
   input: DeleteDeliverableInput;
 }>;
 
 
-export type DeleteDeliverableMutation = { __typename?: 'Mutation', deleteDeliverable: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable?: { __typename?: 'Deliverable', id?: string | null } | null } };
+export type DeleteDeliverableMutation = { __typename?: 'Mutation', deleteDeliverable: { __typename?: 'DeliverablePayload', deliverable?: { __typename?: 'Deliverable', id?: string | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type DeleteLargeLanguageModelMutationVariables = Exact<{
   input: DeleteLargeLanguageModelInput;
 }>;
 
 
-export type DeleteLargeLanguageModelMutation = { __typename?: 'Mutation', deleteLargeLanguageModel: { __typename?: 'LargeLanguageModelPayload', errors: Array<string>, largeLanguageModel?: { __typename?: 'LargeLanguageModel', id?: string | null } | null } };
+export type DeleteLargeLanguageModelMutation = { __typename?: 'Mutation', deleteLargeLanguageModel: { __typename?: 'LargeLanguageModelPayload', largeLanguageModel?: { __typename?: 'LargeLanguageModel', id?: string | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type DeleteProjectMutationVariables = Exact<{
   input: DeleteProjectInput;
 }>;
 
 
-export type DeleteProjectMutation = { __typename?: 'Mutation', deleteProject: { __typename?: 'ProjectPayload', errors: Array<string>, project?: { __typename?: 'Project', id?: string | null } | null } };
+export type DeleteProjectMutation = { __typename?: 'Mutation', deleteProject: { __typename?: 'ProjectPayload', project?: { __typename?: 'Project', id?: string | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type TransitionAgentTaskStatusMutationVariables = Exact<{
   input: TransitionAgentTaskInput;
 }>;
 
 
-export type TransitionAgentTaskStatusMutation = { __typename?: 'Mutation', transitionAgentTaskStatus: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask?: { __typename?: 'AgentTask', id?: string | null, title?: string | null, status?: AgentTaskStatus | null } | null } };
+export type TransitionAgentTaskStatusMutation = { __typename?: 'Mutation', transitionAgentTaskStatus: { __typename?: 'AgentTaskPayload', agentTask?: { __typename?: 'AgentTask', id?: string | null, title?: string | null, status?: AgentTaskStatus | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type TransitionDeliverableStatusMutationVariables = Exact<{
   input: TransitionDeliverableInput;
 }>;
 
 
-export type TransitionDeliverableStatusMutation = { __typename?: 'Mutation', transitionDeliverableStatus: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable?: { __typename?: 'Deliverable', id?: string | null, status?: DeliverableStatus | null } | null } };
+export type TransitionDeliverableStatusMutation = { __typename?: 'Mutation', transitionDeliverableStatus: { __typename?: 'DeliverablePayload', deliverable?: { __typename?: 'Deliverable', id?: string | null, status?: DeliverableStatus | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type UpdateAgentTaskMutationVariables = Exact<{
   input: UpdateAgentTaskInput;
 }>;
 
 
-export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTaskPayload', errors: Array<string>, agentTask?: { __typename?: 'AgentTask', id?: string | null, title?: string | null, deliverableId?: string | null, description?: string | null, complexityRating?: number | null, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: string | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null } };
+export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTaskPayload', agentTask?: { __typename?: 'AgentTask', id?: string | null, title?: string | null, deliverableId?: string | null, description?: string | null, complexityRating?: number | null, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: string | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type UpdateDeliverableMutationVariables = Exact<{
   input: UpdateDeliverableInput;
 }>;
 
 
-export type UpdateDeliverableMutation = { __typename?: 'Mutation', updateDeliverable: { __typename?: 'DeliverablePayload', errors: Array<string>, deliverable?: { __typename?: 'Deliverable', id?: string | null, title?: string | null, status?: DeliverableStatus | null } | null } };
+export type UpdateDeliverableMutation = { __typename?: 'Mutation', updateDeliverable: { __typename?: 'DeliverablePayload', deliverable?: { __typename?: 'Deliverable', id?: string | null, title?: string | null, status?: DeliverableStatus | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type UpdateLargeLanguageModelMutationVariables = Exact<{
   input: UpdateLargeLanguageModelInput;
 }>;
 
 
-export type UpdateLargeLanguageModelMutation = { __typename?: 'Mutation', updateLargeLanguageModel: { __typename?: 'LargeLanguageModelPayload', errors: Array<string>, largeLanguageModel?: { __typename?: 'LargeLanguageModel', id?: string | null, url?: string | null, model?: string | null, modelAlias?: string | null, maxComplexity?: number | null, maxConcurrency?: number | null } | null } };
+export type UpdateLargeLanguageModelMutation = { __typename?: 'Mutation', updateLargeLanguageModel: { __typename?: 'LargeLanguageModelPayload', largeLanguageModel?: { __typename?: 'LargeLanguageModel', id?: string | null, url?: string | null, model?: string | null, modelAlias?: string | null, maxComplexity?: number | null, maxConcurrency?: number | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type UpdateProjectMutationVariables = Exact<{
   input: UpdateProjectInput;
 }>;
 
 
-export type UpdateProjectMutation = { __typename?: 'Mutation', updateProject: { __typename?: 'ProjectPayload', errors: Array<string>, project?: { __typename?: 'Project', id?: string | null, name?: string | null, description?: string | null, repository?: string | null } | null } };
+export type UpdateProjectMutation = { __typename?: 'Mutation', updateProject: { __typename?: 'ProjectPayload', project?: { __typename?: 'Project', id?: string | null, name?: string | null, description?: string | null, repository?: string | null } | null, errors: Array<{ __typename?: 'FieldError', field: string, message: string }> } };
 
 export type GetAgentTaskByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -531,16 +598,16 @@ export type GetAgentTaskByIdQueryVariables = Exact<{
 export type GetAgentTaskByIdQuery = { __typename?: 'Query', agentTaskById?: { __typename?: 'AgentTask', id?: string | null, title?: string | null, status?: AgentTaskStatus | null, deliverableId?: string | null, description?: string | null, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating?: number | null, dependsOnAgentTaskId?: string | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null };
 
 export type GetAgentTasksQueryVariables = Exact<{
-  projectId?: InputMaybe<Scalars['UUID']['input']>;
+  deliverableId?: InputMaybe<Scalars['UUID']['input']>;
 }>;
 
 
-export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks: Array<{ __typename?: 'AgentTask', id?: string | null, title?: string | null, status?: AgentTaskStatus | null, deliverableId?: string | null, description?: string | null, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating?: number | null, dependsOnAgentTaskId?: string | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null }> };
+export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks: { __typename?: 'EntityConnectionOfAgentTask', nodes?: Array<{ __typename?: 'AgentTask', id?: string | null, title?: string | null, status?: AgentTaskStatus | null, deliverableId?: string | null, description?: string | null, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating?: number | null, dependsOnAgentTaskId?: string | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null> | null } };
 
 export type GetDeliverablesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetDeliverablesQuery = { __typename?: 'Query', deliverables: Array<{ __typename?: 'Deliverable', id?: string | null, title?: string | null, description?: string | null, status?: DeliverableStatus | null, type?: DeliverableType | null, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null }> };
+export type GetDeliverablesQuery = { __typename?: 'Query', deliverables: { __typename?: 'EntityConnectionOfDeliverable', nodes?: Array<{ __typename?: 'Deliverable', id?: string | null, title?: string | null, description?: string | null, status?: DeliverableStatus | null, type?: DeliverableType | null, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null } | null> | null } };
 
 export type GetDeliverableByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -552,7 +619,7 @@ export type GetDeliverableByIdQuery = { __typename?: 'Query', deliverableById?: 
 export type ModelConfigurationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ModelConfigurationsQuery = { __typename?: 'Query', largeLanguageModels: Array<{ __typename?: 'LargeLanguageModel', id?: string | null, url?: string | null, model?: string | null, modelAlias?: string | null, apiKey?: string | null, maxComplexity?: number | null, maxConcurrency?: number | null }> };
+export type ModelConfigurationsQuery = { __typename?: 'Query', largeLanguageModels: { __typename?: 'EntityConnectionOfLargeLanguageModel', nodes?: Array<{ __typename?: 'LargeLanguageModel', id?: string | null, url?: string | null, model?: string | null, modelAlias?: string | null, apiKey?: string | null, maxComplexity?: number | null, maxConcurrency?: number | null } | null> | null } };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -564,7 +631,7 @@ export type GetProjectQuery = { __typename?: 'Query', projectById?: { __typename
 export type GetProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetProjectsQuery = { __typename?: 'Query', projects: { __typename?: 'ProjectConnection', nodes: Array<{ __typename?: 'Project', id?: string | null, name?: string | null, description?: string | null, repository?: string | null }> } };
+export type GetProjectsQuery = { __typename?: 'Query', projects: { __typename?: 'EntityConnectionOfProject', nodes?: Array<{ __typename?: 'Project', id?: string | null, name?: string | null, description?: string | null, repository?: string | null } | null> | null } };
 
 
 export const CreateAgentTaskDocument = gql`
@@ -585,7 +652,10 @@ export const CreateAgentTaskDocument = gql`
       executionDurationInSeconds
       agent
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -623,7 +693,10 @@ export const CreateDeliverableDocument = gql`
       title
       status
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -664,7 +737,10 @@ export const CreateLargeLanguageModelDocument = gql`
       maxComplexity
       maxConcurrency
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -703,7 +779,10 @@ export const CreateProjectDocument = gql`
       description
       repository
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -739,7 +818,10 @@ export const DeleteAgentTaskDocument = gql`
     agentTask {
       id
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -775,7 +857,10 @@ export const DeleteDeliverableDocument = gql`
     deliverable {
       id
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -811,7 +896,10 @@ export const DeleteLargeLanguageModelDocument = gql`
     largeLanguageModel {
       id
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -847,7 +935,10 @@ export const DeleteProjectDocument = gql`
     project {
       id
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -885,7 +976,10 @@ export const TransitionAgentTaskStatusDocument = gql`
       title
       status
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -922,7 +1016,10 @@ export const TransitionDeliverableStatusDocument = gql`
       id
       status
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -970,7 +1067,10 @@ export const UpdateAgentTaskDocument = gql`
       executionDurationInSeconds
       agent
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -1008,7 +1108,10 @@ export const UpdateDeliverableDocument = gql`
       title
       status
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -1049,7 +1152,10 @@ export const UpdateLargeLanguageModelDocument = gql`
       maxComplexity
       maxConcurrency
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -1088,7 +1194,10 @@ export const UpdateProjectDocument = gql`
       description
       repository
     }
-    errors
+    errors {
+      field
+      message
+    }
   }
 }
     `;
@@ -1175,22 +1284,24 @@ export type GetAgentTaskByIdLazyQueryHookResult = ReturnType<typeof useGetAgentT
 export type GetAgentTaskByIdSuspenseQueryHookResult = ReturnType<typeof useGetAgentTaskByIdSuspenseQuery>;
 export type GetAgentTaskByIdQueryResult = Apollo.QueryResult<GetAgentTaskByIdQuery, GetAgentTaskByIdQueryVariables>;
 export const GetAgentTasksDocument = gql`
-    query GetAgentTasks($projectId: UUID) {
-  agentTasks(itemId: $projectId) {
-    id
-    title
-    status
-    deliverableId
-    description
-    result
-    errors
-    commitHash
-    complexityRating
-    dependsOnAgentTaskId
-    promptTokens
-    completionTokens
-    executionDurationInSeconds
-    agent
+    query GetAgentTasks($deliverableId: UUID) {
+  agentTasks(deliverableId: $deliverableId) {
+    nodes {
+      id
+      title
+      status
+      deliverableId
+      description
+      result
+      errors
+      commitHash
+      complexityRating
+      dependsOnAgentTaskId
+      promptTokens
+      completionTokens
+      executionDurationInSeconds
+      agent
+    }
   }
 }
     `;
@@ -1207,7 +1318,7 @@ export const GetAgentTasksDocument = gql`
  * @example
  * const { data, loading, error } = useGetAgentTasksQuery({
  *   variables: {
- *      projectId: // value for 'projectId'
+ *      deliverableId: // value for 'deliverableId'
  *   },
  * });
  */
@@ -1233,19 +1344,21 @@ export type GetAgentTasksQueryResult = Apollo.QueryResult<GetAgentTasksQuery, Ge
 export const GetDeliverablesDocument = gql`
     query GetDeliverables {
   deliverables {
-    id
-    title
-    description
-    status
-    type
-    acceptanceCriteria
-    executionPlan
-    agentFeedback
-    securityImpact
-    performanceImpact
-    testPlan
-    deploymentPlan
-    blocking
+    nodes {
+      id
+      title
+      description
+      status
+      type
+      acceptanceCriteria
+      executionPlan
+      agentFeedback
+      securityImpact
+      performanceImpact
+      testPlan
+      deploymentPlan
+      blocking
+    }
   }
 }
     `;
@@ -1342,13 +1455,15 @@ export type GetDeliverableByIdQueryResult = Apollo.QueryResult<GetDeliverableByI
 export const ModelConfigurationsDocument = gql`
     query ModelConfigurations {
   largeLanguageModels {
-    id
-    url
-    model
-    modelAlias
-    apiKey
-    maxComplexity
-    maxConcurrency
+    nodes {
+      id
+      url
+      model
+      modelAlias
+      apiKey
+      maxComplexity
+      maxConcurrency
+    }
   }
 }
     `;

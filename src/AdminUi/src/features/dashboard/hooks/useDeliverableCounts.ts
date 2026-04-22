@@ -11,7 +11,7 @@ export function useDeliverableCounts() {
         fetchPolicy: 'cache-and-network',
     });
 
-    const deliverables = data?.deliverables ?? [];
+    const deliverables = data?.deliverables?.nodes ?? [];
 
     const deliverablesDraft = deliverables.filter((d) => d.status === 'DRAFT').length;
     const deliverablesPlanning = deliverables.filter((d) => d.status === 'PLANNING').length;

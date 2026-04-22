@@ -92,8 +92,9 @@ export function EditProjectDialog({
 
             const payload = result.data?.updateProject;
             if (payload?.errors?.length) {
-                const errorMessage = payload.errors.join(', ');
-                logger.warn('Failed to update project', { id: project.id, errors: payload.errors });
+                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
+                logger.warn('Failed to update project', { id: project.id, errors: errorMessages });
                 if (errorMessage.includes('NOT_FOUND')) {
                     onError?.('Project not found. It may have been deleted.');
                     onOpenChange(false);

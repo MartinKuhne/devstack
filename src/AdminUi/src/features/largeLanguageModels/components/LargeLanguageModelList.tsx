@@ -49,7 +49,8 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                 },
             });
             if (result.data?.deleteLargeLanguageModel?.errors?.length) {
-                toast.error(result.data.deleteLargeLanguageModel.errors.join(', '));
+                const errorMessages = result.data.deleteLargeLanguageModel.errors.map((e: { field: string; message: string }) => e.message);
+                toast.error(errorMessages.join(', '));
             } else {
                 toast.success('Model deleted successfully');
                 onRefetch?.();

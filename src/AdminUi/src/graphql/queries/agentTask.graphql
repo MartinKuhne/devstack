@@ -17,21 +17,23 @@ query GetAgentTaskById($id: UUID!) {
     }
 }
 
-query GetAgentTasks($projectId: UUID) {
-    agentTasks(itemId: $projectId) {
-        id
-        title
-        status
-        deliverableId
-        description
-        result
-        errors
-        commitHash
-        complexityRating
-        dependsOnAgentTaskId
-        promptTokens
-        completionTokens
-        executionDurationInSeconds
-        agent
+query GetAgentTasks($deliverableId: UUID) {
+    agentTasks(deliverableId: $deliverableId) {
+        nodes {
+            id
+            title
+            status
+            deliverableId
+            description
+            result
+            errors
+            commitHash
+            complexityRating
+            dependsOnAgentTaskId
+            promptTokens
+            completionTokens
+            executionDurationInSeconds
+            agent
+        }
     }
 }

@@ -53,10 +53,11 @@ export function AgentTaskListPage() {
                 },
             });
             if (result.data?.deleteAgentTask?.errors?.length) {
-                const errorMessage = result.data.deleteAgentTask.errors.join(', ');
+                const errorMessages = result.data.deleteAgentTask.errors.map((e: { field: string; message: string }) => e.message);
+                const errorMessage = errorMessages.join(', ');
                 logger.warn('Failed to delete agent task', {
                     id,
-                    errors: result.data.deleteAgentTask.errors,
+                    errors: errorMessages,
                 });
                 toast.error(errorMessage);
             } else {

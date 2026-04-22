@@ -3,6 +3,9 @@ mutation DeleteLargeLanguageModel($input: DeleteLargeLanguageModelInput!) {
         largeLanguageModel {
             id
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }

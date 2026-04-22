@@ -11,7 +11,7 @@ export function useLargeLanguageModels() {
         fetchPolicy: 'cache-and-network',
     });
 
-    const models = data?.largeLanguageModels ?? [];
+    const models = data?.largeLanguageModels?.nodes ?? [];
 
     if (!loading && models.length > 0) {
         logger.debug('Loaded LLM configurations', { count: models.length });

@@ -15,6 +15,9 @@ mutation CreateAgentTask($input: CreateAgentTaskInput!) {
             executionDurationInSeconds
             agent
         }
-        errors
+        errors {
+            field
+            message
+        }
     }
 }
