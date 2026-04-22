@@ -15,41 +15,45 @@ test.describe('Dashboard', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboardLoaded();
         await expect(dashboardPage.pageTitle).toBeVisible();
+        await dashboardPage.expectNoErrors();
     });
 
     test('should show welcome message', async () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboardLoaded();
         await expect(dashboardPage.welcomeText).toBeVisible();
+        await dashboardPage.expectNoErrors();
     });
 
     test('should display stat cards for deliverable counts', async ({ page }) => {
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboardLoaded();
 
-        // Stat cards may not exist without API data, check with fallback
         const statLabels = ['Planning', 'Ready', 'In Progress', 'Needs Review'];
+        let anyStatCardVisible = false;
         for (const label of statLabels) {
-            const visible = await page
-                .getByText(label)
-                .isVisible()
-                .catch(() => false);
-            if (visible) {
-                await expect(page.getByText(label)).toBeVisible();
+            try {
+                await expect(page.getByText(label)).toBeVisible({ timeout: 2000 });
+                anyStatCardVisible = true;
+            } catch {
+                // Stat cards may not exist without API data
             }
         }
+        await dashboardPage.expectNoErrors();
     });
 
     test('should have New Project button', async () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboardLoaded();
         await expect(dashboardPage.newProjectButton).toBeVisible();
+        await dashboardPage.expectNoErrors();
     });
 
     test('should navigate to projects when clicking sidebar Projects link', async ({ page }) => {
         await dashboardPage.navigate();
         await navigationHelper.navigateToProjects();
         await expect(page.getByRole('heading', { name: 'Projects', level: 2 })).toBeVisible();
+        await dashboardPage.expectNoErrors();
     });
 
     test('should navigate to models when clicking sidebar Models link', async ({ page }) => {
@@ -58,5 +62,6 @@ test.describe('Dashboard', () => {
         await expect(
             page.getByRole('heading', { name: 'Large Language Models', level: 2 })
         ).toBeVisible();
+        await dashboardPage.expectNoErrors();
     });
 });
