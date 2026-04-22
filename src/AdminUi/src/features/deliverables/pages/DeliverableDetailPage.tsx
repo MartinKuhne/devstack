@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDeliverable } from '../hooks/useDeliverable';
+import { useDeleteDeliverable } from '../hooks/useDeleteDeliverable';
 import { EditDeliverableDialog } from '../components/EditDeliverableDialog';
 import { useState } from 'react';
 import {
@@ -42,9 +43,9 @@ export function DeliverableDetailPage() {
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
     const [transitionDeliverableStatus, { loading: transitionLoading }] =
         useTransitionDeliverableStatusMutation();
+    const { deleteDeliverable, loading: deleteLoading } = useDeleteDeliverable();
     const [selectedStatus, setSelectedStatus] = useState('');
     const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);
-    const [deleting, setDeleting] = useState(false);
 
     const handleDelete = async () => {
         if (!deliverable?.id) return;
@@ -54,35 +55,14 @@ export function DeliverableDetailPage() {
             )
         )
             return;
-        setDeleting(true);
-        logger.info('Deleting deliverable', { id: deliverable.id, title: deliverable.title });
-        try {
-            const response = await fetch('/graphql', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: 'mutation DeleteDeliverable($input: DeleteDeliverableInput!) { deleteDeliverable(input: $input) { deliverable { id } errors { field message } } }',
-                    variables: { input: { id: deliverable.id } },
-                }),
-            });
-            const result = await response.json();
-            if (result?.data?.deleteDeliverable?.errors?.length) {
-                const errorMessages = result.data.deleteDeliverable.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
-                logger.warn('Failed to delete deliverable', {
-                    id: deliverable.id,
-                    errors: errorMessages,
-                });
-                toast.error(errorMessage);
-            } else {
-                logger.info('Deliverable deleted successfully', { id: deliverable.id });
-                toast.success('Deliverable deleted successfully');
-                navigate('/deliverables');
-            }
-        } catch {
-            toast.error('Failed to delete deliverable');
-        } finally {
-            setDeleting(false);
+
+        const result = await deleteDeliverable(deliverable.id);
+
+        if (result.success) {
+            toast.success('Deliverable deleted successfully');
+            navigate('/deliverables');
+        } else {
+            toast.error(result.errors?.join(', ') ?? 'Failed to delete deliverable');
         }
     };
 
@@ -203,7 +183,7 @@ export function DeliverableDetailPage() {
                     Back to List
                 </Button>
                 <Button onClick={() => setUpdateDialogOpen(true)}>Edit</Button>
-                <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                <Button variant="destructive" onClick={handleDelete} disabled={deleteLoading}>
                     Delete
                 </Button>
             </div>

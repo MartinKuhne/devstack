@@ -21,12 +21,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { CreateDeliverableDialog } from '../components/CreateDeliverableDialog';
 import { useDeliverables } from '../hooks/useDeliverables';
+import { useDeleteDeliverable } from '../hooks/useDeleteDeliverable';
 import { toast } from 'react-toastify';
 import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
 import { DELIVERABLE_STATUS_COLORS, getStatusColor } from '@/lib/constants';
-import { createModuleLogger } from '@/lib/logging';
-
-const logger = createModuleLogger('DeliverableListPage');
 
 const TYPE_LABELS: Record<string, string> = {
     FEATURE: 'Feature',
@@ -63,7 +61,7 @@ export function DeliverableListPage() {
 
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
-    const [deleting, setDeleting] = useState(false);
+    const { deleteDeliverable, loading: deleteLoading } = useDeleteDeliverable();
 
     const { deliverables, loading, error, refetch } = useDeliverables(
         statusFilter ? [statusFilter] : undefined,
@@ -72,39 +70,14 @@ export function DeliverableListPage() {
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this deliverable?')) return;
-        setDeleting(true);
-        logger.info('Deleting deliverable', { id });
-        try {
-            const response = await fetch('/graphql', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: 'mutation DeleteDeliverable($input: DeleteDeliverableInput!) { deleteDeliverable(input: $input) { deliverable { id } errors { field message } } }',
-                    variables: { input: { id } },
-                }),
-            });
-            const result = await response.json();
-            if (result?.data?.deleteDeliverable?.errors?.length) {
-                const errorMessages = result.data.deleteDeliverable.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
-                logger.warn('Failed to delete deliverable', {
-                    id,
-                    errors: errorMessages,
-                });
-                toast.error(errorMessage);
-            } else {
-                logger.info('Deliverable deleted successfully', { id });
-                toast.success('Deliverable deleted successfully');
-                refetch();
-            }
-        } catch (err) {
-            logger.error('Failed to delete deliverable', {
-                id,
-                error: err instanceof Error ? err.message : String(err),
-            });
-            toast.error(err instanceof Error ? err.message : 'Failed to delete deliverable');
-        } finally {
-            setDeleting(false);
+
+        const result = await deleteDeliverable(id);
+
+        if (result.success) {
+            toast.success('Deliverable deleted successfully');
+            refetch();
+        } else {
+            toast.error(result.errors?.join(', ') ?? 'Failed to delete deliverable');
         }
     };
 
@@ -247,10 +220,10 @@ export function DeliverableListPage() {
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8 text-destructive hover:text-destructive"
-                                            onClick={() =>
-                                                deliverable.id && handleDelete(deliverable.id)
-                                            }
-                                            disabled={deleting}
+                                           onClick={() =>
+                                                 deliverable.id && handleDelete(deliverable.id)
+                                             }
+                                            disabled={deleteLoading}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
