@@ -7,13 +7,13 @@ $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 $DelaySeconds = 2
 
 $GetProjectsQuery = @'
-query GetProjects($first: Int!) {
-  projects(first: $first) {
+query GetProjects($first: Int, $skip: Int) {
+  projects(first: $first, skip: $skip) {
     nodes {
       id
       name
       description
-      createdAt
+      repository
     }
   }
 }
@@ -39,18 +39,20 @@ query GetDeliverablesByProjectId($projectId: UUID!) {
 '@
 
 $GetAgentTasksQuery = @'
-query GetAgentTasks($itemId: UUID!) {
-  agentTasks(itemId: $itemId) {
-    id
-    title
-    status
-    description
-    result
-    errors
-    commitHash
-    complexityRating
-    deliverableId
-    projectId
+query GetAgentTasks($deliverableId: UUID!) {
+  agentTasks(deliverableId: $deliverableId) {
+    nodes {
+      id
+      title
+      status
+      description
+      result
+      errors
+      commitHash
+      complexityRating
+      deliverableId
+      projectId
+    }
   }
 }
 '@
@@ -404,12 +406,12 @@ function Invoke-ExecutionPhase {
     # Fetch AgentTasks for each deliverable and collect READY ones
     $tasks = @()
     foreach ($deliverable in $allDeliverables) {
-        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ itemId = $deliverable.id }
+        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ deliverableId = $deliverable.id }
         if ($taskResult.errors) {
             Log-Error "Failed to query tasks for deliverable $($deliverable.id): $($taskResult.errors -join ', ')"
             continue
         }
-        $deliverableTasks = $taskResult.data.agentTasks
+        $deliverableTasks = $taskResult.data.agentTasks.nodes
         if ($deliverableTasks) {
             $tasks += $deliverableTasks
         }
