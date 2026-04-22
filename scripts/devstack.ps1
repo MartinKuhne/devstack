@@ -198,6 +198,18 @@ function Initialize-Project {
         }
     }
 
+    # REQ-AG-102: deny bash, question, external_directory permissions
+    $permissionsSection = $existingConfig.PSObject.Properties['permissions']
+    if (-not $permissionsSection) {
+        $permissionsSection = @{}
+        $existingConfig | Add-Member 'permissions' $permissionsSection -Force
+    }
+
+    $deniedPermissions = @('bash', 'question', 'external_directory')
+    foreach ($perm in $deniedPermissions) {
+        $permissionsSection[$perm] = 'deny'
+    }
+
     $existingConfig | ConvertTo-Json -Depth 10 | Set-Content $opencodePath -Encoding UTF8
     Write-Host "Updated opencode.json"
     Write-Host "Initialization complete!"
