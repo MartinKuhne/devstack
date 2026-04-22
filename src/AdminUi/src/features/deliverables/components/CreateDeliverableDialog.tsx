@@ -44,12 +44,14 @@ type DeliverableFormData = z.infer<typeof deliverableSchema>;
 interface CreateDeliverableDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    projectId: string;
     onSuccess?: (deliverableId: string) => void;
 }
 
 export function CreateDeliverableDialog({
     open,
     onOpenChange,
+    projectId,
     onSuccess,
 }: CreateDeliverableDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export function CreateDeliverableDialog({
             const result = await createDeliverable({
                 variables: {
                     input: {
-                        projectId: '',
+                        projectId: projectId,
                         type: data.type,
                         title: data.title,
                         description: data.description ?? null,

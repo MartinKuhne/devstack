@@ -240,6 +240,7 @@ export function DeliverableListPage() {
             <CreateDeliverableDialog
                 open={createDialogOpen}
                 onOpenChange={setCreateDialogOpen}
+                projectId={searchParams.get('project') ?? ''}
                 onSuccess={(deliverableId) => {
                     refetch();
                     if (deliverableId) {
