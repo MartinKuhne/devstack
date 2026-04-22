@@ -1,6 +1,5 @@
 Implement the change
-{{Title}}
 {{Description}}
 AgentTaskId: {{AgentTaskId}}
-If successful, change the AgentTask Status to Done
-It not successful, change the AgentTask Status to NeedsReview
+If successful, update the Result, CommitHash fields and change the AgentTask Status to Done
+It not successful, update the Result and Errors fields and change the AgentTask Status to Failed

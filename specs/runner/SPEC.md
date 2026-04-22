@@ -38,18 +38,18 @@ Execute prompts with OpenCode
 
 ## Ubiquitous Requirements
 - REQ-AG-001: The system shall determine the current repository upon startup using the github repository name (if available)
-- REQ-AG-005: The system shall log all prompts and program invocations to the console
+- REQ-AG-002: The system shall log all prompts and program invocations to the console
 
 ## Event-Driven Requirements  
-- REQ-AG-002: When there is no project matching the current repository in GraphQL, the system shall create it
-- REQ-AG-003: When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
+- REQ-AG-100: When there is no project matching the current repository in GraphQL, the system shall create it
+- REQ-AG-101: When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
 
 ## State-Driven Requirements
-- REQ-AG-003: While there are Deliverables for the Project in Status = PLANNING, the system shall execute the Planning Phase (below)
-- REQ-AG-004: While there are AgentTasks for the Project in Status = READY, the system shall execute the Execution Phase (below)
+- REQ-AG-200: While there are Deliverables for the Project in Status = PLANNING, the system shall execute the Planning Phase (below)
+- REQ-AG-201: While there are AgentTasks for the Project in Status = READY, the system shall execute the Execution Phase (below)
 
 ## Unwanted Behavior Requirements
-- REQ-AG-005: Dot not delete or overwrite or delete existing content from ```opencode.json```
+- REQ-AG-300: Dot not delete or overwrite or delete existing content from ```opencode.json```
 
 ## Opencode configuration example
 
@@ -68,8 +68,9 @@ Execute prompts with OpenCode
 
 ## Planning phase
 
-Prompt: "Plan the implementation of the Deliverable. Do not make any changes to the project
-{{Title}}
+Invoke OpenCode with the following prompt:
+
+"Plan the implementation of the Deliverable. Do not make any changes to the project
 {{Description}}
 Acceptance Criteria: {{AcceptanceCriteria}}
 DeliverableId: {{DeliverableId}}
@@ -81,11 +82,16 @@ Substitute {{Title}}, {{Description}}, {{AcceptanceCriteria}}, {{DeliverableId}}
 
 ## Execution phase
 
-Prompt: "Implement the change
+Invoke OpenCode with the following prompt:
+
+"Implement the change
 {{Description}}
 AgentTaskId: {{AgentTaskId}}
 If successful, update the Result, CommitHash fields and change the AgentTask Status to Done
-It not successful, update the Result and Errors fields and change the AgentTask Status to Failed
+If not successful, update the Result and Errors fields and change the AgentTask Status to Failed"
+
+Substitute {{Description}}, {{AgentTaskId}} with the fields of the same name from the Deliverable
+
 
 # Technical specification
 
@@ -95,3 +101,5 @@ It not successful, update the Result and Errors fields and change the AgentTask 
 # Quality gates
 
 ```Get-Command -syntax '.\scripts\devstack.ps1'```
+
+Skip any other tests as this is a script
