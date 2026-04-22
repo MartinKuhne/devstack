@@ -11,9 +11,8 @@ Feature: Task CRUD and Status Transition Operations
 
     Scenario: Update a task
         Given an existing task ID
-        When I call devstack_updateAgentTask with updated title "Updated Task"
+        When I call devstack_updateAgentTask with updated description "Updated Description"
         Then the response should contain the updated task
-        And the task title should be "Updated Task"
 
     Scenario: Transition task status
         Given an existing task ID

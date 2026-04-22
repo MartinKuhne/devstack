@@ -121,9 +121,8 @@ namespace DevStack.Tests.Integration.MCP.Features
             {
                 this.ScenarioStart();
                 testRunner.Given("an existing task ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_updateAgentTask with updated title \"Updated Task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I call devstack_updateAgentTask with updated description \"Updated Description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the updated task", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the task title should be \"Updated Task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }

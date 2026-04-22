@@ -36,13 +36,13 @@ public class DevStackTools
     {
         if (id == null)
         {
-            return JsonSerializer.Serialize(new { error = "Project ID is required" });
+            throw new ArgumentException("Project ID is required");
         }
 
-        var project = await _dbContext.Projects.Where(p => p.Id == id.Value).Select(p => new { p.Name, p.Repository }).FirstOrDefaultAsync();
+        var project = await _dbContext.Projects.Where(p => p.Id == id.Value).Select(p => new { p.Name, p.Id, p.Repository }).FirstOrDefaultAsync();
         if (project == null)
         {
-            return JsonSerializer.Serialize(new { error = "Project not found" });
+            throw new KeyNotFoundException($"Project with ID {id.Value} not found");
         }
 
         return JsonSerializer.Serialize(project);
@@ -59,10 +59,10 @@ public class DevStackTools
         if (deliverable == null)
             return JsonSerializer.Serialize(new { error = "Deliverable not found" });
 
-        return JsonSerializer.Serialize(new { id = deliverable.Id.ToString(), title = deliverable.Title, description = deliverable.Description, type = deliverable.Type.ToString(), status = deliverable.Status.ToString() });
+        return JsonSerializer.Serialize(new { id = deliverable.Id.ToString(), projectId = deliverable.ProjectId.ToString(), title = deliverable.Title, description = deliverable.Description, acceptanceCriteria = deliverable.AcceptanceCriteria, executionPlan = deliverable.ExecutionPlan, securityImpact = deliverable.SecurityImpact, performanceImpact = deliverable.PerformanceImpact, testPlan = deliverable.TestPlan, deploymentPlan = deliverable.DeploymentPlan, agentFeedback = deliverable.AgentFeedback, blocking = deliverable.Blocking });
     }
 
-    [McpServerTool(Name = "devstack_createDeliverable"), Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state.")]
+   [McpServerTool(Name = "devstack_createDeliverable"), Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state.")]
     public async Task<string> CreateDeliverable(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
         [Description("The deliverable title")] string title,
@@ -76,9 +76,20 @@ public class DevStackTools
     {
         try
         {
+            if (projectId == null || projectId == Guid.Empty)
+            {
+                throw new ArgumentException("Project ID is required");
+            }
+
+            var project = await _dbContext.Projects.AnyAsync(p => p.Id == projectId.Value);
+            if (!project)
+            {
+                throw new KeyNotFoundException($"Project with ID {projectId.Value} not found");
+            }
+
             var deliverable = new Deliverable
             {
-                ProjectId = projectId ?? Guid.Empty,
+                ProjectId = projectId.Value,
                 Title = title,
                 Description = description,
                 AcceptanceCriteria = acceptanceCriteria,
@@ -95,7 +106,7 @@ public class DevStackTools
             await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Created deliverable with ID: {Id}", deliverable.Id);
-            return JsonSerializer.Serialize(new { id = deliverable.Id.ToString(), type = "Feature", status = "Ready" });
+            return JsonSerializer.Serialize(new { id = deliverable.Id.ToString(), projectId = projectId.Value.ToString(), type = "Feature", status = "Ready" });
         }
         catch (Exception ex)
         {
@@ -179,17 +190,17 @@ public class DevStackTools
 
     #region Agent Task Tools
 
-    [McpServerTool(Name = "devstack_getTask"), Description("Read an agent task by its ID.")]
+  [McpServerTool(Name = "devstack_getTask"), Description("Read an agent task by its ID.")]
     public async Task<string> GetTask([Description("The agent task ID")] Guid id)
     {
         var agentTask = await _dbContext.AgentTasks.FindAsync([id]);
         if (agentTask == null)
-            return JsonSerializer.Serialize(new { error = "AgentTask not found" });
+            throw new KeyNotFoundException($"AgentTask with ID {id} not found");
 
-        return JsonSerializer.Serialize(new { id = agentTask.Id.ToString(), title = agentTask.Title, result = agentTask.Result, complexityRating = agentTask.ComplexityRating, status = agentTask.Status.ToString() });
+        return JsonSerializer.Serialize(new { id = agentTask.Id.ToString(), projectId = agentTask.ProjectId.ToString(), title = agentTask.Title, status = agentTask.Status.ToString(), description = agentTask.Description, result = agentTask.Result, errors = agentTask.Errors, commitHash = agentTask.CommitHash, agent = agentTask.Agent });
     }
 
-    [McpServerTool(Name = "devstack_createAgentTask"), Description("Create a new agent task in DevStack. New tasks are created in Ready state.")]
+   [McpServerTool(Name = "devstack_createAgentTask"), Description("Create a new agent task in DevStack. New tasks are created in Ready state.")]
     public async Task<string> CreateAgentTask(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
         [Description("The deliverable/feature ID")][DefaultValue(null)] Guid? itemId,
@@ -201,14 +212,32 @@ public class DevStackTools
     {
         try
         {
-            var deliverableEntity = await _dbContext.Deliverables.FindAsync([itemId]);
-            if (deliverableEntity == null)
-                return JsonSerializer.Serialize(new { error = "Deliverable not found" });
+            if (projectId == null || projectId == Guid.Empty)
+            {
+                throw new ArgumentException("Project ID is required");
+            }
+
+            var projectExists = await _dbContext.Projects.AnyAsync(p => p.Id == projectId.Value);
+            if (!projectExists)
+            {
+                throw new KeyNotFoundException($"Project with ID {projectId.Value} not found");
+            }
+
+            if (itemId == null || itemId == Guid.Empty)
+            {
+                throw new ArgumentException("Deliverable ID is required");
+            }
+
+            var deliverable = await _dbContext.Deliverables.FindAsync([itemId.Value]);
+            if (deliverable == null)
+            {
+                throw new KeyNotFoundException($"Deliverable with ID {itemId.Value} not found");
+            }
 
             var agentTask = new AgentTask
             {
-                ProjectId = projectId ?? Guid.Empty,
-                DeliverableId = itemId ?? Guid.Empty,
+                ProjectId = projectId.Value,
+                DeliverableId = itemId.Value,
                 Title = title,
                 Description = description ?? string.Empty,
                 ComplexityRating = complexityRating,

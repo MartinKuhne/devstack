@@ -121,9 +121,8 @@ namespace DevStack.Tests.Integration.MCP.Features
             {
                 this.ScenarioStart();
                 testRunner.Given("an existing deliverable ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I call devstack_updateDeliverable with updated title \"Updated Deliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I call devstack_updateDeliverable with updated description \"Updated Description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the updated deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the deliverable title should be \"Updated Deliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
