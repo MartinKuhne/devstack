@@ -111,6 +111,7 @@ describe('useDeliverables', () => {
 
         expect(hooks.useGetDeliverablesQuery).toHaveBeenCalledWith({
             fetchPolicy: 'cache-and-network',
+            skip: true,
         });
     });
 
