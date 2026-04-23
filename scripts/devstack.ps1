@@ -283,13 +283,13 @@ function Update-AgentTask {
     try {
         $result = Invoke-GraphQL -Operation $mutation -Variables $updateVars -IsMutation
         if ($result.errors) {
-            Log-Error "Failed to update AgentTask $TaskId: $($result.errors -join ', ')"
+            Log-Error "Failed to update AgentTask ${TaskId}: $($result.errors -join ', ')"
             return $false
         }
         return $true
     }
     catch {
-        Log-Error "Error updating AgentTask $TaskId: $_"
+        Log-Error "Error updating AgentTask ${TaskId}: $_"
         return $false
     }
 }
@@ -312,14 +312,14 @@ function Transition-AgentTaskStatus {
     try {
         $result = Invoke-GraphQL -Operation $TransitionAgentTaskStatusMutation -Variables $transitionVars -IsMutation
         if ($result.errors) {
-            Log-Error "Failed to transition AgentTask $TaskId to $TargetStatus: $($result.errors -join ', ')"
+            Log-Error "Failed to transition AgentTask ${TaskId} to ${TargetStatus}: $($result.errors -join ', ')"
             return $false
         }
         Log-Info "AgentTask $TaskId transitioned to $TargetStatus"
         return $true
     }
     catch {
-        Log-Error "Error transitioning AgentTask $TaskId to $TargetStatus: $_"
+        Log-Error "Error transitioning AgentTask ${TaskId} to ${TargetStatus}: $_"
         return $false
     }
 }
