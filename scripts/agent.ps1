@@ -329,6 +329,19 @@ function Get-CurrentProjectId {
     return $project.id
 }
 
+function Get-LatestCommitHash {
+    try {
+        $hash = git log -1 --format=%H 2>$null
+        if ($hash) {
+            return $hash
+        }
+    }
+    catch {
+        Log-Error "Failed to get latest commit hash: $_"
+    }
+    return $null
+}
+
 function Run-OpencodePrompt {
     param([string]$Prompt)
 
@@ -339,15 +352,16 @@ function Run-OpencodePrompt {
 
     Log-Info "Executing: npx @npxArgs"
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    & npx @npxArgs
+    $output = & npx @npxArgs 2>&1
     $sw.Stop()
 
     if ($LASTEXITCODE -ne 0) {
+        $errorOutput = $output -join "`n"
         Log-Error "Opencode returned non-zero exit code"
-        return @{ Success = $false; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds }
+        return @{ Success = $false; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds; Output = $errorOutput }
     }
 
-    return @{ Success = $true; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds }
+    return @{ Success = $true; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds; Output = $output -join "`n" }
 }
 
 function Invoke-SpecAnalysisPhase {
@@ -512,11 +526,13 @@ function Invoke-ExecutionPhase {
         $result = Run-OpencodePrompt -Prompt $prompt
 
         if ($result.Success) {
-            Log-Info "Updating AgentTask $($task.id) with execution duration $($result.ElapsedSeconds)s..."
+            $commitHash = Get-LatestCommitHash
 
             $updateVars = @{
                 input = @{
                     id = $task.id.ToString()
+                    result = $result.Output
+                    commitHash = $commitHash
                     executionDurationInSeconds = $result.ElapsedSeconds
                 }
             }
@@ -527,17 +543,78 @@ function Invoke-ExecutionPhase {
                     Log-Error "Failed to update AgentTask $($task.id): $($updateResult.errors -join ', ')"
                 }
                 else {
-                    Log-Info "AgentTask $($task.id) updated successfully with duration $($result.ElapsedSeconds)s"
+                    Log-Info "AgentTask $($task.id) updated successfully with duration $($result.ElapsedSeconds)s, commitHash: $commitHash"
                 }
             }
             catch {
                 Log-Error "Error updating AgentTask $($task.id): $_"
             }
 
+            try {
+                $transitionVars = @{
+                    input = @{
+                        id = $task.id.ToString()
+                        targetStatus = "DONE"
+                        actor = "runner-agent"
+                    }
+                }
+                $transitionResult = Invoke-GraphQL -Operation $TransitionAgentTaskStatusMutation -Variables $transitionVars -IsMutation
+                if ($transitionResult.errors) {
+                    Log-Error "Failed to transition AgentTask $($task.id) to DONE: $($transitionResult.errors -join ', ')"
+                }
+                else {
+                    Log-Info "AgentTask $($task.id) transitioned to DONE"
+                }
+            }
+            catch {
+                Log-Error "Error transitioning AgentTask $($task.id) to DONE: $_"
+            }
+
             Check-And-MarkDeliverableDone -DeliverableId $task.deliverableId
         }
         else {
-            Log-Error "Execution failed for AgentTask $($task.id)"
+            $errorOutput = if ($result.Output) { $result.Output } else { "Opencode returned non-zero exit code" }
+
+            $updateVars = @{
+                input = @{
+                    id = $task.id.ToString()
+                    errors = $errorOutput
+                    executionDurationInSeconds = $result.ElapsedSeconds
+                }
+            }
+
+            try {
+                $updateResult = Invoke-GraphQL -Operation $UpdateAgentTaskWithDurationMutation -Variables $updateVars -IsMutation
+                if ($updateResult.errors) {
+                    Log-Error "Failed to update AgentTask $($task.id): $($updateResult.errors -join ', ')"
+                }
+                else {
+                    Log-Info "AgentTask $($task.id) updated with errors and duration $($result.ElapsedSeconds)s"
+                }
+            }
+            catch {
+                Log-Error "Error updating AgentTask $($task.id): $_"
+            }
+
+            try {
+                $transitionVars = @{
+                    input = @{
+                        id = $task.id.ToString()
+                        targetStatus = "FAILED"
+                        actor = "runner-agent"
+                    }
+                }
+                $transitionResult = Invoke-GraphQL -Operation $TransitionAgentTaskStatusMutation -Variables $transitionVars -IsMutation
+                if ($transitionResult.errors) {
+                    Log-Error "Failed to transition AgentTask $($task.id) to FAILED: $($transitionResult.errors -join ', ')"
+                }
+                else {
+                    Log-Info "AgentTask $($task.id) transitioned to FAILED"
+                }
+            }
+            catch {
+                Log-Error "Error transitioning AgentTask $($task.id) to FAILED: $_"
+            }
         }
 
         Start-Sleep -Seconds $DelaySeconds
