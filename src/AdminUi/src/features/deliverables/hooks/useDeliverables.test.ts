@@ -59,10 +59,59 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables(['DRAFT']));
+        const { result } = renderHook(() => useDeliverables(undefined, ['DRAFT']));
 
         expect(result.current.deliverables).toHaveLength(2);
         expect(result.current.deliverables.every((d) => d.status === 'DRAFT')).toBe(true);
+    });
+
+    it('passes projectId to query variables', async () => {
+        const hooks = await getMockedQuery();
+        hooks.useGetDeliverablesQuery.mockReturnValue({
+            data: {
+                deliverables: {
+                    nodes: [
+                        { id: '1', status: 'DRAFT' as DeliverableStatus, type: 'FEATURE' as DeliverableType, projectId: 'proj-1' },
+                    ],
+                },
+            },
+            loading: false,
+            error: undefined,
+            refetch: vi.fn(),
+        });
+
+        const { useDeliverables } = await import('./useDeliverables');
+        renderHook(() => useDeliverables('proj-123'));
+
+        expect(hooks.useGetDeliverablesQuery).toHaveBeenCalledWith(
+            expect.objectContaining({
+                variables: { projectId: 'proj-123' },
+                fetchPolicy: 'cache-and-network',
+            }),
+        );
+    });
+
+    it('passes no variables when projectId is omitted', async () => {
+        const hooks = await getMockedQuery();
+        hooks.useGetDeliverablesQuery.mockReturnValue({
+            data: {
+                deliverables: {
+                    nodes: [
+                        { id: '1', status: 'DRAFT' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
+                    ],
+                },
+            },
+            loading: false,
+            error: undefined,
+            refetch: vi.fn(),
+        });
+
+        const { useDeliverables } = await import('./useDeliverables');
+        renderHook(() => useDeliverables());
+
+        expect(hooks.useGetDeliverablesQuery).toHaveBeenCalledWith({
+            fetchPolicy: 'cache-and-network',
+        });
     });
 
     it('filters by type', async () => {
@@ -83,7 +132,7 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables(undefined, ['FEATURE']));
+        const { result } = renderHook(() => useDeliverables(undefined, undefined, ['FEATURE']));
 
         expect(result.current.deliverables).toHaveLength(2);
         expect(result.current.deliverables.every((d) => d.type === 'FEATURE')).toBe(true);
@@ -107,7 +156,7 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables(['DRAFT'], ['FEATURE']));
+        const { result } = renderHook(() => useDeliverables(undefined, ['DRAFT'], ['FEATURE']));
 
         expect(result.current.deliverables).toHaveLength(1);
         expect(result.current.deliverables[0]!.id).toBe('1');

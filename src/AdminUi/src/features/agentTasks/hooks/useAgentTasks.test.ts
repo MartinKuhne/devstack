@@ -59,7 +59,7 @@ describe('useAgentTasks', () => {
         });
 
         const { useAgentTasks } = await import('./useAgentTasks');
-        const { result } = renderHook(() => useAgentTasks(['READY']));
+        const { result } = renderHook(() => useAgentTasks(undefined, ['READY']));
 
         expect(result.current.agentTasks).toHaveLength(2);
         expect(result.current.agentTasks.every((t) => t.status === 'READY')).toBe(true);
@@ -101,6 +101,55 @@ describe('useAgentTasks', () => {
         const { result } = renderHook(() => useAgentTasks());
 
         expect(result.current.agentTasks).toHaveLength(0);
+    });
+
+    it('passes deliverableId to query variables', async () => {
+        const hooks = await getMockedQuery();
+        hooks.useGetAgentTasksQuery.mockReturnValue({
+            data: {
+                agentTasks: {
+                    nodes: [
+                        { id: '1', status: 'READY' as AgentTaskStatus, title: 'Task 1' },
+                    ],
+                },
+            },
+            loading: false,
+            error: undefined,
+            refetch: vi.fn(),
+        });
+
+        const { useAgentTasks } = await import('./useAgentTasks');
+        renderHook(() => useAgentTasks('del-123'));
+
+        expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith(
+            expect.objectContaining({
+                variables: { deliverableId: 'del-123' },
+                fetchPolicy: 'cache-and-network',
+            }),
+        );
+    });
+
+    it('passes no variables when deliverableId is omitted', async () => {
+        const hooks = await getMockedQuery();
+        hooks.useGetAgentTasksQuery.mockReturnValue({
+            data: {
+                agentTasks: {
+                    nodes: [
+                        { id: '1', status: 'READY' as AgentTaskStatus, title: 'Task 1' },
+                    ],
+                },
+            },
+            loading: false,
+            error: undefined,
+            refetch: vi.fn(),
+        });
+
+        const { useAgentTasks } = await import('./useAgentTasks');
+        renderHook(() => useAgentTasks());
+
+        expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith({
+            fetchPolicy: 'cache-and-network',
+        });
     });
 
     it('returns loading and error states', async () => {

@@ -23,7 +23,7 @@ describe('useProject', () => {
         const hooks = await getMockedQueries();
         const mockProject = { id: 'proj-1', name: 'Test Project' } as any;
         hooks.useGetProjectQuery.mockReturnValue({
-            data: { projectById: mockProject },
+            data: { project: mockProject },
             loading: false,
             error: undefined,
             refetch: vi.fn(),

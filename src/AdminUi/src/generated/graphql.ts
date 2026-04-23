@@ -7,965 +7,780 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = {
-    [_ in K]?: never;
-};
-export type Incremental<T> =
-    | T
-    | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-    ID: { input: string; output: string };
-    String: { input: string; output: string };
-    Boolean: { input: boolean; output: boolean };
-    Int: { input: number; output: number };
-    Float: { input: number; output: number };
-    UUID: { input: any; output: any };
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
+  UUID: { input: any; output: any; }
 };
 
 export type AgentTask = {
-    __typename?: 'AgentTask';
-    agent?: Maybe<Scalars['String']['output']>;
-    commitHash?: Maybe<Scalars['String']['output']>;
-    completionTokens?: Maybe<Scalars['Int']['output']>;
-    complexityRating: Scalars['Int']['output'];
-    deliverable?: Maybe<Deliverable>;
-    deliverableId: Scalars['UUID']['output'];
-    dependsOnAgentTask?: Maybe<AgentTask>;
-    dependsOnAgentTaskId?: Maybe<Scalars['UUID']['output']>;
-    description: Scalars['String']['output'];
-    errors?: Maybe<Scalars['String']['output']>;
-    executionDurationInSeconds?: Maybe<Scalars['Int']['output']>;
-    id: Scalars['UUID']['output'];
-    project?: Maybe<Project>;
-    projectId: Scalars['UUID']['output'];
-    promptTokens?: Maybe<Scalars['Int']['output']>;
-    result?: Maybe<Scalars['String']['output']>;
-    status: AgentTaskStatus;
-    title: Scalars['String']['output'];
+  __typename?: 'AgentTask';
+  agent?: Maybe<Scalars['String']['output']>;
+  commitHash?: Maybe<Scalars['String']['output']>;
+  completionTokens?: Maybe<Scalars['Int']['output']>;
+  complexityRating: Scalars['Int']['output'];
+  deliverable?: Maybe<Deliverable>;
+  deliverableId: Scalars['UUID']['output'];
+  dependsOnAgentTask?: Maybe<AgentTask>;
+  dependsOnAgentTaskId?: Maybe<Scalars['UUID']['output']>;
+  description: Scalars['String']['output'];
+  errors?: Maybe<Scalars['String']['output']>;
+  executionDurationInSeconds?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['UUID']['output'];
+  project?: Maybe<Project>;
+  projectId: Scalars['UUID']['output'];
+  promptTokens?: Maybe<Scalars['Int']['output']>;
+  result?: Maybe<Scalars['String']['output']>;
+  status: AgentTaskStatus;
+  title: Scalars['String']['output'];
 };
 
 export type AgentTaskFilterInput = {
-    agent?: InputMaybe<StringOperationFilterInput>;
-    and?: InputMaybe<Array<AgentTaskFilterInput>>;
-    commitHash?: InputMaybe<StringOperationFilterInput>;
-    completionTokens?: InputMaybe<IntOperationFilterInput>;
-    complexityRating?: InputMaybe<IntOperationFilterInput>;
-    deliverable?: InputMaybe<DeliverableFilterInput>;
-    deliverableId?: InputMaybe<UuidOperationFilterInput>;
-    dependsOnAgentTask?: InputMaybe<AgentTaskFilterInput>;
-    dependsOnAgentTaskId?: InputMaybe<UuidOperationFilterInput>;
-    description?: InputMaybe<StringOperationFilterInput>;
-    errors?: InputMaybe<StringOperationFilterInput>;
-    executionDurationInSeconds?: InputMaybe<IntOperationFilterInput>;
-    id?: InputMaybe<UuidOperationFilterInput>;
-    or?: InputMaybe<Array<AgentTaskFilterInput>>;
-    project?: InputMaybe<ProjectFilterInput>;
-    projectId?: InputMaybe<UuidOperationFilterInput>;
-    promptTokens?: InputMaybe<IntOperationFilterInput>;
-    result?: InputMaybe<StringOperationFilterInput>;
-    status?: InputMaybe<AgentTaskStatusOperationFilterInput>;
-    title?: InputMaybe<StringOperationFilterInput>;
+  agent?: InputMaybe<StringOperationFilterInput>;
+  and?: InputMaybe<Array<AgentTaskFilterInput>>;
+  commitHash?: InputMaybe<StringOperationFilterInput>;
+  completionTokens?: InputMaybe<IntOperationFilterInput>;
+  complexityRating?: InputMaybe<IntOperationFilterInput>;
+  deliverable?: InputMaybe<DeliverableFilterInput>;
+  deliverableId?: InputMaybe<UuidOperationFilterInput>;
+  dependsOnAgentTask?: InputMaybe<AgentTaskFilterInput>;
+  dependsOnAgentTaskId?: InputMaybe<UuidOperationFilterInput>;
+  description?: InputMaybe<StringOperationFilterInput>;
+  errors?: InputMaybe<StringOperationFilterInput>;
+  executionDurationInSeconds?: InputMaybe<IntOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
+  or?: InputMaybe<Array<AgentTaskFilterInput>>;
+  project?: InputMaybe<ProjectFilterInput>;
+  projectId?: InputMaybe<UuidOperationFilterInput>;
+  promptTokens?: InputMaybe<IntOperationFilterInput>;
+  result?: InputMaybe<StringOperationFilterInput>;
+  status?: InputMaybe<AgentTaskStatusOperationFilterInput>;
+  title?: InputMaybe<StringOperationFilterInput>;
 };
 
 export type AgentTaskSortInput = {
-    agent?: InputMaybe<SortEnumType>;
-    commitHash?: InputMaybe<SortEnumType>;
-    completionTokens?: InputMaybe<SortEnumType>;
-    complexityRating?: InputMaybe<SortEnumType>;
-    deliverable?: InputMaybe<DeliverableSortInput>;
-    deliverableId?: InputMaybe<SortEnumType>;
-    dependsOnAgentTask?: InputMaybe<AgentTaskSortInput>;
-    dependsOnAgentTaskId?: InputMaybe<SortEnumType>;
-    description?: InputMaybe<SortEnumType>;
-    errors?: InputMaybe<SortEnumType>;
-    executionDurationInSeconds?: InputMaybe<SortEnumType>;
-    id?: InputMaybe<SortEnumType>;
-    project?: InputMaybe<ProjectSortInput>;
-    projectId?: InputMaybe<SortEnumType>;
-    promptTokens?: InputMaybe<SortEnumType>;
-    result?: InputMaybe<SortEnumType>;
-    status?: InputMaybe<SortEnumType>;
-    title?: InputMaybe<SortEnumType>;
+  agent?: InputMaybe<SortEnumType>;
+  commitHash?: InputMaybe<SortEnumType>;
+  completionTokens?: InputMaybe<SortEnumType>;
+  complexityRating?: InputMaybe<SortEnumType>;
+  deliverable?: InputMaybe<DeliverableSortInput>;
+  deliverableId?: InputMaybe<SortEnumType>;
+  dependsOnAgentTask?: InputMaybe<AgentTaskSortInput>;
+  dependsOnAgentTaskId?: InputMaybe<SortEnumType>;
+  description?: InputMaybe<SortEnumType>;
+  errors?: InputMaybe<SortEnumType>;
+  executionDurationInSeconds?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  project?: InputMaybe<ProjectSortInput>;
+  projectId?: InputMaybe<SortEnumType>;
+  promptTokens?: InputMaybe<SortEnumType>;
+  result?: InputMaybe<SortEnumType>;
+  status?: InputMaybe<SortEnumType>;
+  title?: InputMaybe<SortEnumType>;
 };
 
 export const AgentTaskStatus = {
-    DONE: 'DONE',
-    FAILED: 'FAILED',
-    IN_PROGRESS: 'IN_PROGRESS',
-    NEEDS_REVIEW: 'NEEDS_REVIEW',
-    READY: 'READY',
-    REJECTED: 'REJECTED',
+  DONE: 'DONE',
+  FAILED: 'FAILED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  NEEDS_REVIEW: 'NEEDS_REVIEW',
+  READY: 'READY',
+  REJECTED: 'REJECTED'
 } as const;
 
-export type AgentTaskStatus = (typeof AgentTaskStatus)[keyof typeof AgentTaskStatus];
+export type AgentTaskStatus = typeof AgentTaskStatus[keyof typeof AgentTaskStatus];
 export type AgentTaskStatusOperationFilterInput = {
-    eq?: InputMaybe<AgentTaskStatus>;
-    in?: InputMaybe<Array<AgentTaskStatus>>;
-    neq?: InputMaybe<AgentTaskStatus>;
-    nin?: InputMaybe<Array<AgentTaskStatus>>;
+  eq?: InputMaybe<AgentTaskStatus>;
+  in?: InputMaybe<Array<AgentTaskStatus>>;
+  neq?: InputMaybe<AgentTaskStatus>;
+  nin?: InputMaybe<Array<AgentTaskStatus>>;
 };
 
 /** A connection to a list of items. */
 export type AgentTasksConnection = {
-    __typename?: 'AgentTasksConnection';
-    /** A list of edges. */
-    edges?: Maybe<Array<AgentTasksEdge>>;
-    /** A flattened list of the nodes. */
-    nodes?: Maybe<Array<AgentTask>>;
-    /** Information to aid in pagination. */
-    pageInfo: PageInfo;
+  __typename?: 'AgentTasksConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<AgentTasksEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<AgentTask>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
 };
 
 /** An edge in a connection. */
 export type AgentTasksEdge = {
-    __typename?: 'AgentTasksEdge';
-    /** A cursor for use in pagination. */
-    cursor: Scalars['String']['output'];
-    /** The item at the end of the edge. */
-    node: AgentTask;
+  __typename?: 'AgentTasksEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: AgentTask;
 };
 
 export type CleanupTestDataPayload = {
-    __typename?: 'CleanupTestDataPayload';
-    message?: Maybe<Scalars['String']['output']>;
-    success: Scalars['Boolean']['output'];
+  __typename?: 'CleanupTestDataPayload';
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
 };
 
 export type CreateAgentTaskInput = {
-    complexityRating?: Scalars['Int']['input'];
-    deliverableId: Scalars['UUID']['input'];
-    dependsOnAgentTaskId?: InputMaybe<Scalars['UUID']['input']>;
-    description: Scalars['String']['input'];
-    projectId: Scalars['UUID']['input'];
-    title: Scalars['String']['input'];
+  complexityRating?: Scalars['Int']['input'];
+  deliverableId: Scalars['UUID']['input'];
+  dependsOnAgentTaskId?: InputMaybe<Scalars['UUID']['input']>;
+  description: Scalars['String']['input'];
+  projectId: Scalars['UUID']['input'];
+  title: Scalars['String']['input'];
 };
 
 export type CreateDeliverableInput = {
-    acceptanceCriteria?: InputMaybe<Scalars['String']['input']>;
-    deploymentPlan?: InputMaybe<Scalars['String']['input']>;
-    description: Scalars['String']['input'];
-    executionPlan?: InputMaybe<Scalars['String']['input']>;
-    initialStatus: DeliverableStatus;
-    performanceImpact?: InputMaybe<Scalars['String']['input']>;
-    projectId: Scalars['UUID']['input'];
-    securityImpact?: InputMaybe<Scalars['String']['input']>;
-    testPlan?: InputMaybe<Scalars['String']['input']>;
-    title: Scalars['String']['input'];
-    type: Scalars['String']['input'];
+  acceptanceCriteria?: InputMaybe<Scalars['String']['input']>;
+  deploymentPlan?: InputMaybe<Scalars['String']['input']>;
+  description: Scalars['String']['input'];
+  executionPlan?: InputMaybe<Scalars['String']['input']>;
+  initialStatus: DeliverableStatus;
+  performanceImpact?: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['UUID']['input'];
+  securityImpact?: InputMaybe<Scalars['String']['input']>;
+  testPlan?: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
+  type: Scalars['String']['input'];
 };
 
 export type CreateLargeLanguageModelInput = {
-    apiKey?: InputMaybe<Scalars['String']['input']>;
-    maxComplexity?: Scalars['Int']['input'];
-    maxConcurrency?: Scalars['Int']['input'];
-    model: Scalars['String']['input'];
-    modelAlias?: InputMaybe<Scalars['String']['input']>;
-    url: Scalars['String']['input'];
+  apiKey?: InputMaybe<Scalars['String']['input']>;
+  maxComplexity?: Scalars['Int']['input'];
+  maxConcurrency?: Scalars['Int']['input'];
+  model: Scalars['String']['input'];
+  modelAlias?: InputMaybe<Scalars['String']['input']>;
+  url: Scalars['String']['input'];
 };
 
 export type CreateProjectInput = {
-    description?: InputMaybe<Scalars['String']['input']>;
-    name: Scalars['String']['input'];
-    repository: Scalars['String']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  repository: Scalars['String']['input'];
 };
 
 export type Deliverable = {
-    __typename?: 'Deliverable';
-    acceptanceCriteria?: Maybe<Scalars['String']['output']>;
-    agentFeedback?: Maybe<Scalars['String']['output']>;
-    agentTasks: Array<AgentTask>;
-    blocking?: Maybe<Scalars['String']['output']>;
-    deploymentPlan?: Maybe<Scalars['String']['output']>;
-    description?: Maybe<Scalars['String']['output']>;
-    executionPlan?: Maybe<Scalars['String']['output']>;
-    id: Scalars['UUID']['output'];
-    performanceImpact?: Maybe<Scalars['String']['output']>;
-    project?: Maybe<Project>;
-    projectId: Scalars['UUID']['output'];
-    securityImpact?: Maybe<Scalars['String']['output']>;
-    status: DeliverableStatus;
-    testPlan?: Maybe<Scalars['String']['output']>;
-    title: Scalars['String']['output'];
-    type: DeliverableType;
+  __typename?: 'Deliverable';
+  acceptanceCriteria?: Maybe<Scalars['String']['output']>;
+  agentFeedback?: Maybe<Scalars['String']['output']>;
+  agentTasks: Array<AgentTask>;
+  blocking?: Maybe<Scalars['String']['output']>;
+  deploymentPlan?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  executionPlan?: Maybe<Scalars['String']['output']>;
+  id: Scalars['UUID']['output'];
+  performanceImpact?: Maybe<Scalars['String']['output']>;
+  project?: Maybe<Project>;
+  projectId: Scalars['UUID']['output'];
+  securityImpact?: Maybe<Scalars['String']['output']>;
+  status: DeliverableStatus;
+  testPlan?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  type: DeliverableType;
 };
 
 export type DeliverableFilterInput = {
-    acceptanceCriteria?: InputMaybe<StringOperationFilterInput>;
-    agentFeedback?: InputMaybe<StringOperationFilterInput>;
-    agentTasks?: InputMaybe<ListFilterInputTypeOfAgentTaskFilterInput>;
-    and?: InputMaybe<Array<DeliverableFilterInput>>;
-    blocking?: InputMaybe<StringOperationFilterInput>;
-    deploymentPlan?: InputMaybe<StringOperationFilterInput>;
-    description?: InputMaybe<StringOperationFilterInput>;
-    executionPlan?: InputMaybe<StringOperationFilterInput>;
-    id?: InputMaybe<UuidOperationFilterInput>;
-    or?: InputMaybe<Array<DeliverableFilterInput>>;
-    performanceImpact?: InputMaybe<StringOperationFilterInput>;
-    project?: InputMaybe<ProjectFilterInput>;
-    projectId?: InputMaybe<UuidOperationFilterInput>;
-    securityImpact?: InputMaybe<StringOperationFilterInput>;
-    status?: InputMaybe<DeliverableStatusOperationFilterInput>;
-    testPlan?: InputMaybe<StringOperationFilterInput>;
-    title?: InputMaybe<StringOperationFilterInput>;
-    type?: InputMaybe<DeliverableTypeOperationFilterInput>;
+  acceptanceCriteria?: InputMaybe<StringOperationFilterInput>;
+  agentFeedback?: InputMaybe<StringOperationFilterInput>;
+  agentTasks?: InputMaybe<ListFilterInputTypeOfAgentTaskFilterInput>;
+  and?: InputMaybe<Array<DeliverableFilterInput>>;
+  blocking?: InputMaybe<StringOperationFilterInput>;
+  deploymentPlan?: InputMaybe<StringOperationFilterInput>;
+  description?: InputMaybe<StringOperationFilterInput>;
+  executionPlan?: InputMaybe<StringOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
+  or?: InputMaybe<Array<DeliverableFilterInput>>;
+  performanceImpact?: InputMaybe<StringOperationFilterInput>;
+  project?: InputMaybe<ProjectFilterInput>;
+  projectId?: InputMaybe<UuidOperationFilterInput>;
+  securityImpact?: InputMaybe<StringOperationFilterInput>;
+  status?: InputMaybe<DeliverableStatusOperationFilterInput>;
+  testPlan?: InputMaybe<StringOperationFilterInput>;
+  title?: InputMaybe<StringOperationFilterInput>;
+  type?: InputMaybe<DeliverableTypeOperationFilterInput>;
 };
 
 export type DeliverableSortInput = {
-    acceptanceCriteria?: InputMaybe<SortEnumType>;
-    agentFeedback?: InputMaybe<SortEnumType>;
-    blocking?: InputMaybe<SortEnumType>;
-    deploymentPlan?: InputMaybe<SortEnumType>;
-    description?: InputMaybe<SortEnumType>;
-    executionPlan?: InputMaybe<SortEnumType>;
-    id?: InputMaybe<SortEnumType>;
-    performanceImpact?: InputMaybe<SortEnumType>;
-    project?: InputMaybe<ProjectSortInput>;
-    projectId?: InputMaybe<SortEnumType>;
-    securityImpact?: InputMaybe<SortEnumType>;
-    status?: InputMaybe<SortEnumType>;
-    testPlan?: InputMaybe<SortEnumType>;
-    title?: InputMaybe<SortEnumType>;
-    type?: InputMaybe<SortEnumType>;
+  acceptanceCriteria?: InputMaybe<SortEnumType>;
+  agentFeedback?: InputMaybe<SortEnumType>;
+  blocking?: InputMaybe<SortEnumType>;
+  deploymentPlan?: InputMaybe<SortEnumType>;
+  description?: InputMaybe<SortEnumType>;
+  executionPlan?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  performanceImpact?: InputMaybe<SortEnumType>;
+  project?: InputMaybe<ProjectSortInput>;
+  projectId?: InputMaybe<SortEnumType>;
+  securityImpact?: InputMaybe<SortEnumType>;
+  status?: InputMaybe<SortEnumType>;
+  testPlan?: InputMaybe<SortEnumType>;
+  title?: InputMaybe<SortEnumType>;
+  type?: InputMaybe<SortEnumType>;
 };
 
 export const DeliverableStatus = {
-    DONE: 'DONE',
-    DRAFT: 'DRAFT',
-    FAILED: 'FAILED',
-    IN_PROGRESS: 'IN_PROGRESS',
-    NEEDS_REVIEW: 'NEEDS_REVIEW',
-    PLANNING: 'PLANNING',
-    READY: 'READY',
-    REJECTED: 'REJECTED',
+  DONE: 'DONE',
+  DRAFT: 'DRAFT',
+  FAILED: 'FAILED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  NEEDS_REVIEW: 'NEEDS_REVIEW',
+  PLANNING: 'PLANNING',
+  READY: 'READY',
+  REJECTED: 'REJECTED'
 } as const;
 
-export type DeliverableStatus = (typeof DeliverableStatus)[keyof typeof DeliverableStatus];
+export type DeliverableStatus = typeof DeliverableStatus[keyof typeof DeliverableStatus];
 export type DeliverableStatusOperationFilterInput = {
-    eq?: InputMaybe<DeliverableStatus>;
-    in?: InputMaybe<Array<DeliverableStatus>>;
-    neq?: InputMaybe<DeliverableStatus>;
-    nin?: InputMaybe<Array<DeliverableStatus>>;
+  eq?: InputMaybe<DeliverableStatus>;
+  in?: InputMaybe<Array<DeliverableStatus>>;
+  neq?: InputMaybe<DeliverableStatus>;
+  nin?: InputMaybe<Array<DeliverableStatus>>;
 };
 
 export const DeliverableType = {
-    DEFECT: 'DEFECT',
-    FEATURE: 'FEATURE',
-    MAINTENANCE: 'MAINTENANCE',
+  DEFECT: 'DEFECT',
+  FEATURE: 'FEATURE',
+  MAINTENANCE: 'MAINTENANCE'
 } as const;
 
-export type DeliverableType = (typeof DeliverableType)[keyof typeof DeliverableType];
+export type DeliverableType = typeof DeliverableType[keyof typeof DeliverableType];
 export type DeliverableTypeOperationFilterInput = {
-    eq?: InputMaybe<DeliverableType>;
-    in?: InputMaybe<Array<DeliverableType>>;
-    neq?: InputMaybe<DeliverableType>;
-    nin?: InputMaybe<Array<DeliverableType>>;
+  eq?: InputMaybe<DeliverableType>;
+  in?: InputMaybe<Array<DeliverableType>>;
+  neq?: InputMaybe<DeliverableType>;
+  nin?: InputMaybe<Array<DeliverableType>>;
 };
 
 /** A connection to a list of items. */
 export type DeliverablesConnection = {
-    __typename?: 'DeliverablesConnection';
-    /** A list of edges. */
-    edges?: Maybe<Array<DeliverablesEdge>>;
-    /** A flattened list of the nodes. */
-    nodes?: Maybe<Array<Deliverable>>;
-    /** Information to aid in pagination. */
-    pageInfo: PageInfo;
+  __typename?: 'DeliverablesConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<DeliverablesEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<Deliverable>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
 };
 
 /** An edge in a connection. */
 export type DeliverablesEdge = {
-    __typename?: 'DeliverablesEdge';
-    /** A cursor for use in pagination. */
-    cursor: Scalars['String']['output'];
-    /** The item at the end of the edge. */
-    node: Deliverable;
+  __typename?: 'DeliverablesEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: Deliverable;
 };
 
 export type IntOperationFilterInput = {
-    eq?: InputMaybe<Scalars['Int']['input']>;
-    gt?: InputMaybe<Scalars['Int']['input']>;
-    gte?: InputMaybe<Scalars['Int']['input']>;
-    in?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
-    lt?: InputMaybe<Scalars['Int']['input']>;
-    lte?: InputMaybe<Scalars['Int']['input']>;
-    neq?: InputMaybe<Scalars['Int']['input']>;
-    ngt?: InputMaybe<Scalars['Int']['input']>;
-    ngte?: InputMaybe<Scalars['Int']['input']>;
-    nin?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
-    nlt?: InputMaybe<Scalars['Int']['input']>;
-    nlte?: InputMaybe<Scalars['Int']['input']>;
+  eq?: InputMaybe<Scalars['Int']['input']>;
+  gt?: InputMaybe<Scalars['Int']['input']>;
+  gte?: InputMaybe<Scalars['Int']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  lt?: InputMaybe<Scalars['Int']['input']>;
+  lte?: InputMaybe<Scalars['Int']['input']>;
+  neq?: InputMaybe<Scalars['Int']['input']>;
+  ngt?: InputMaybe<Scalars['Int']['input']>;
+  ngte?: InputMaybe<Scalars['Int']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  nlt?: InputMaybe<Scalars['Int']['input']>;
+  nlte?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type LargeLanguageModel = {
-    __typename?: 'LargeLanguageModel';
-    apiKey: Scalars['String']['output'];
-    id: Scalars['UUID']['output'];
-    maxComplexity: Scalars['Int']['output'];
-    maxConcurrency: Scalars['Int']['output'];
-    model: Scalars['String']['output'];
-    modelAlias: Scalars['String']['output'];
-    url: Scalars['String']['output'];
+  __typename?: 'LargeLanguageModel';
+  apiKey: Scalars['String']['output'];
+  id: Scalars['UUID']['output'];
+  maxComplexity: Scalars['Int']['output'];
+  maxConcurrency: Scalars['Int']['output'];
+  model: Scalars['String']['output'];
+  modelAlias: Scalars['String']['output'];
+  url: Scalars['String']['output'];
 };
 
 export type ListFilterInputTypeOfAgentTaskFilterInput = {
-    all?: InputMaybe<AgentTaskFilterInput>;
-    any?: InputMaybe<Scalars['Boolean']['input']>;
-    none?: InputMaybe<AgentTaskFilterInput>;
-    some?: InputMaybe<AgentTaskFilterInput>;
+  all?: InputMaybe<AgentTaskFilterInput>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
+  none?: InputMaybe<AgentTaskFilterInput>;
+  some?: InputMaybe<AgentTaskFilterInput>;
 };
 
 export type ListFilterInputTypeOfDeliverableFilterInput = {
-    all?: InputMaybe<DeliverableFilterInput>;
-    any?: InputMaybe<Scalars['Boolean']['input']>;
-    none?: InputMaybe<DeliverableFilterInput>;
-    some?: InputMaybe<DeliverableFilterInput>;
+  all?: InputMaybe<DeliverableFilterInput>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
+  none?: InputMaybe<DeliverableFilterInput>;
+  some?: InputMaybe<DeliverableFilterInput>;
 };
 
 export type Mutation = {
-    __typename?: 'Mutation';
-    cleanupTestData: CleanupTestDataPayload;
-    createAgentTask: AgentTask;
-    createDeliverable?: Maybe<Deliverable>;
-    createLargeLanguageModel?: Maybe<LargeLanguageModel>;
-    createProject?: Maybe<Project>;
-    deleteAgentTask: Scalars['Boolean']['output'];
-    deleteDeliverable: Scalars['Boolean']['output'];
-    deleteLargeLanguageModel: Scalars['Boolean']['output'];
-    deleteProject: Scalars['Boolean']['output'];
-    updateAgentTask: AgentTask;
-    updateAgentTaskStatus: AgentTaskStatus;
-    updateDeliverable: Deliverable;
-    updateDeliverableStatus: DeliverableStatus;
-    updateLargeLanguageModel?: Maybe<LargeLanguageModel>;
-    updateProject?: Maybe<Project>;
+  __typename?: 'Mutation';
+  cleanupTestData: CleanupTestDataPayload;
+  createAgentTask: AgentTask;
+  createDeliverable?: Maybe<Deliverable>;
+  createLargeLanguageModel?: Maybe<LargeLanguageModel>;
+  createProject?: Maybe<Project>;
+  deleteAgentTask: Scalars['Boolean']['output'];
+  deleteDeliverable: Scalars['Boolean']['output'];
+  deleteLargeLanguageModel: Scalars['Boolean']['output'];
+  deleteProject: Scalars['Boolean']['output'];
+  updateAgentTask: AgentTask;
+  updateAgentTaskStatus: AgentTaskStatus;
+  updateDeliverable: Deliverable;
+  updateDeliverableStatus: DeliverableStatus;
+  updateLargeLanguageModel?: Maybe<LargeLanguageModel>;
+  updateProject?: Maybe<Project>;
 };
+
 
 export type MutationcreateAgentTaskArgs = {
-    input: CreateAgentTaskInput;
+  input: CreateAgentTaskInput;
 };
+
 
 export type MutationcreateDeliverableArgs = {
-    input: CreateDeliverableInput;
+  input: CreateDeliverableInput;
 };
+
 
 export type MutationcreateLargeLanguageModelArgs = {
-    input: CreateLargeLanguageModelInput;
+  input: CreateLargeLanguageModelInput;
 };
+
 
 export type MutationcreateProjectArgs = {
-    input: CreateProjectInput;
+  input: CreateProjectInput;
 };
+
 
 export type MutationdeleteAgentTaskArgs = {
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
+
 
 export type MutationdeleteDeliverableArgs = {
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
+
 
 export type MutationdeleteLargeLanguageModelArgs = {
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
+
 
 export type MutationdeleteProjectArgs = {
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
+
 
 export type MutationupdateAgentTaskArgs = {
-    input: UpdateAgentTaskInput;
+  input: UpdateAgentTaskInput;
 };
+
 
 export type MutationupdateAgentTaskStatusArgs = {
-    id: Scalars['UUID']['input'];
-    targetStatus: AgentTaskStatus;
+  id: Scalars['UUID']['input'];
+  targetStatus: AgentTaskStatus;
 };
+
 
 export type MutationupdateDeliverableArgs = {
-    input: UpdateDeliverableInput;
+  input: UpdateDeliverableInput;
 };
+
 
 export type MutationupdateDeliverableStatusArgs = {
-    actor?: InputMaybe<Scalars['String']['input']>;
-    id: Scalars['UUID']['input'];
-    targetStatus: DeliverableStatus;
+  actor?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  targetStatus: DeliverableStatus;
 };
+
 
 export type MutationupdateLargeLanguageModelArgs = {
-    input: UpdateLargeLanguageModelInput;
+  input: UpdateLargeLanguageModelInput;
 };
 
+
 export type MutationupdateProjectArgs = {
-    input: UpdateProjectInput;
+  input: UpdateProjectInput;
 };
 
 /** Information about pagination in a connection. */
 export type PageInfo = {
-    __typename?: 'PageInfo';
-    /** When paginating forwards, the cursor to continue. */
-    endCursor?: Maybe<Scalars['String']['output']>;
-    /** Indicates whether more edges exist following the set defined by the clients arguments. */
-    hasNextPage: Scalars['Boolean']['output'];
-    /** Indicates whether more edges exist prior the set defined by the clients arguments. */
-    hasPreviousPage: Scalars['Boolean']['output'];
-    /** When paginating backwards, the cursor to continue. */
-    startCursor?: Maybe<Scalars['String']['output']>;
+  __typename?: 'PageInfo';
+  /** When paginating forwards, the cursor to continue. */
+  endCursor?: Maybe<Scalars['String']['output']>;
+  /** Indicates whether more edges exist following the set defined by the clients arguments. */
+  hasNextPage: Scalars['Boolean']['output'];
+  /** Indicates whether more edges exist prior the set defined by the clients arguments. */
+  hasPreviousPage: Scalars['Boolean']['output'];
+  /** When paginating backwards, the cursor to continue. */
+  startCursor?: Maybe<Scalars['String']['output']>;
 };
 
 export type Project = {
-    __typename?: 'Project';
-    deliverables: Array<Deliverable>;
-    description: Scalars['String']['output'];
-    id: Scalars['UUID']['output'];
-    name: Scalars['String']['output'];
-    repository: Scalars['String']['output'];
+  __typename?: 'Project';
+  deliverables: Array<Deliverable>;
+  description: Scalars['String']['output'];
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  repository: Scalars['String']['output'];
 };
 
 export type ProjectFilterInput = {
-    and?: InputMaybe<Array<ProjectFilterInput>>;
-    deliverables?: InputMaybe<ListFilterInputTypeOfDeliverableFilterInput>;
-    description?: InputMaybe<StringOperationFilterInput>;
-    id?: InputMaybe<UuidOperationFilterInput>;
-    name?: InputMaybe<StringOperationFilterInput>;
-    or?: InputMaybe<Array<ProjectFilterInput>>;
-    repository?: InputMaybe<StringOperationFilterInput>;
+  and?: InputMaybe<Array<ProjectFilterInput>>;
+  deliverables?: InputMaybe<ListFilterInputTypeOfDeliverableFilterInput>;
+  description?: InputMaybe<StringOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
+  name?: InputMaybe<StringOperationFilterInput>;
+  or?: InputMaybe<Array<ProjectFilterInput>>;
+  repository?: InputMaybe<StringOperationFilterInput>;
 };
 
 export type ProjectSortInput = {
-    description?: InputMaybe<SortEnumType>;
-    id?: InputMaybe<SortEnumType>;
-    name?: InputMaybe<SortEnumType>;
-    repository?: InputMaybe<SortEnumType>;
+  description?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  name?: InputMaybe<SortEnumType>;
+  repository?: InputMaybe<SortEnumType>;
 };
 
 /** A connection to a list of items. */
 export type ProjectsConnection = {
-    __typename?: 'ProjectsConnection';
-    /** A list of edges. */
-    edges?: Maybe<Array<ProjectsEdge>>;
-    /** A flattened list of the nodes. */
-    nodes?: Maybe<Array<Project>>;
-    /** Information to aid in pagination. */
-    pageInfo: PageInfo;
+  __typename?: 'ProjectsConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<ProjectsEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<Project>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
 };
 
 /** An edge in a connection. */
 export type ProjectsEdge = {
-    __typename?: 'ProjectsEdge';
-    /** A cursor for use in pagination. */
-    cursor: Scalars['String']['output'];
-    /** The item at the end of the edge. */
-    node: Project;
+  __typename?: 'ProjectsEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: Project;
 };
 
 export type Query = {
-    __typename?: 'Query';
-    agentTask?: Maybe<AgentTask>;
-    agentTasks?: Maybe<AgentTasksConnection>;
-    deliverable?: Maybe<Deliverable>;
-    deliverables?: Maybe<DeliverablesConnection>;
-    largeLanguageModel?: Maybe<LargeLanguageModel>;
-    largeLanguageModels: Array<LargeLanguageModel>;
-    project?: Maybe<Project>;
-    projects?: Maybe<ProjectsConnection>;
+  __typename?: 'Query';
+  agentTask?: Maybe<AgentTask>;
+  agentTasks?: Maybe<AgentTasksConnection>;
+  deliverable?: Maybe<Deliverable>;
+  deliverables?: Maybe<DeliverablesConnection>;
+  largeLanguageModel?: Maybe<LargeLanguageModel>;
+  largeLanguageModels: Array<LargeLanguageModel>;
+  project?: Maybe<Project>;
+  projects?: Maybe<ProjectsConnection>;
 };
+
 
 export type QueryagentTaskArgs = {
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
+
 
 export type QueryagentTasksArgs = {
-    after?: InputMaybe<Scalars['String']['input']>;
-    before?: InputMaybe<Scalars['String']['input']>;
-    first?: InputMaybe<Scalars['Int']['input']>;
-    last?: InputMaybe<Scalars['Int']['input']>;
-    order?: InputMaybe<Array<AgentTaskSortInput>>;
-    where?: InputMaybe<AgentTaskFilterInput>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Array<AgentTaskSortInput>>;
+  where?: InputMaybe<AgentTaskFilterInput>;
 };
+
 
 export type QuerydeliverableArgs = {
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
+
 
 export type QuerydeliverablesArgs = {
-    after?: InputMaybe<Scalars['String']['input']>;
-    before?: InputMaybe<Scalars['String']['input']>;
-    first?: InputMaybe<Scalars['Int']['input']>;
-    last?: InputMaybe<Scalars['Int']['input']>;
-    order?: InputMaybe<Array<DeliverableSortInput>>;
-    where?: InputMaybe<DeliverableFilterInput>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Array<DeliverableSortInput>>;
+  where?: InputMaybe<DeliverableFilterInput>;
 };
+
 
 export type QuerylargeLanguageModelArgs = {
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
+
 
 export type QueryprojectArgs = {
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
 
+
 export type QueryprojectsArgs = {
-    after?: InputMaybe<Scalars['String']['input']>;
-    before?: InputMaybe<Scalars['String']['input']>;
-    first?: InputMaybe<Scalars['Int']['input']>;
-    last?: InputMaybe<Scalars['Int']['input']>;
-    order?: InputMaybe<Array<ProjectSortInput>>;
-    where?: InputMaybe<ProjectFilterInput>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Array<ProjectSortInput>>;
+  where?: InputMaybe<ProjectFilterInput>;
 };
 
 export const SortEnumType = {
-    ASC: 'ASC',
-    DESC: 'DESC',
+  ASC: 'ASC',
+  DESC: 'DESC'
 } as const;
 
-export type SortEnumType = (typeof SortEnumType)[keyof typeof SortEnumType];
+export type SortEnumType = typeof SortEnumType[keyof typeof SortEnumType];
 export type StringOperationFilterInput = {
-    and?: InputMaybe<Array<StringOperationFilterInput>>;
-    contains?: InputMaybe<Scalars['String']['input']>;
-    endsWith?: InputMaybe<Scalars['String']['input']>;
-    eq?: InputMaybe<Scalars['String']['input']>;
-    in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
-    ncontains?: InputMaybe<Scalars['String']['input']>;
-    nendsWith?: InputMaybe<Scalars['String']['input']>;
-    neq?: InputMaybe<Scalars['String']['input']>;
-    nin?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
-    nstartsWith?: InputMaybe<Scalars['String']['input']>;
-    or?: InputMaybe<Array<StringOperationFilterInput>>;
-    startsWith?: InputMaybe<Scalars['String']['input']>;
+  and?: InputMaybe<Array<StringOperationFilterInput>>;
+  contains?: InputMaybe<Scalars['String']['input']>;
+  endsWith?: InputMaybe<Scalars['String']['input']>;
+  eq?: InputMaybe<Scalars['String']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  ncontains?: InputMaybe<Scalars['String']['input']>;
+  nendsWith?: InputMaybe<Scalars['String']['input']>;
+  neq?: InputMaybe<Scalars['String']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  nstartsWith?: InputMaybe<Scalars['String']['input']>;
+  or?: InputMaybe<Array<StringOperationFilterInput>>;
+  startsWith?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateAgentTaskInput = {
-    agent?: InputMaybe<Scalars['String']['input']>;
-    commitHash?: InputMaybe<Scalars['String']['input']>;
-    completionTokens?: InputMaybe<Scalars['Int']['input']>;
-    complexityRating?: InputMaybe<Scalars['Int']['input']>;
-    dependsOnAgentTaskId?: InputMaybe<Scalars['UUID']['input']>;
-    description?: InputMaybe<Scalars['String']['input']>;
-    errors?: InputMaybe<Scalars['String']['input']>;
-    executionDurationInSeconds?: InputMaybe<Scalars['Int']['input']>;
-    id: Scalars['UUID']['input'];
-    promptTokens?: InputMaybe<Scalars['Int']['input']>;
-    result?: InputMaybe<Scalars['String']['input']>;
-    title?: InputMaybe<Scalars['String']['input']>;
+  agent?: InputMaybe<Scalars['String']['input']>;
+  commitHash?: InputMaybe<Scalars['String']['input']>;
+  completionTokens?: InputMaybe<Scalars['Int']['input']>;
+  complexityRating?: InputMaybe<Scalars['Int']['input']>;
+  dependsOnAgentTaskId?: InputMaybe<Scalars['UUID']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  errors?: InputMaybe<Scalars['String']['input']>;
+  executionDurationInSeconds?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['UUID']['input'];
+  promptTokens?: InputMaybe<Scalars['Int']['input']>;
+  result?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateDeliverableInput = {
-    acceptanceCriteria?: InputMaybe<Scalars['String']['input']>;
-    agentFeedback?: InputMaybe<Scalars['String']['input']>;
-    blocking?: InputMaybe<Scalars['String']['input']>;
-    deploymentPlan?: InputMaybe<Scalars['String']['input']>;
-    description?: InputMaybe<Scalars['String']['input']>;
-    executionPlan?: InputMaybe<Scalars['String']['input']>;
-    id: Scalars['UUID']['input'];
-    performanceImpact?: InputMaybe<Scalars['String']['input']>;
-    securityImpact?: InputMaybe<Scalars['String']['input']>;
-    testPlan?: InputMaybe<Scalars['String']['input']>;
-    title?: InputMaybe<Scalars['String']['input']>;
+  acceptanceCriteria?: InputMaybe<Scalars['String']['input']>;
+  agentFeedback?: InputMaybe<Scalars['String']['input']>;
+  blocking?: InputMaybe<Scalars['String']['input']>;
+  deploymentPlan?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  executionPlan?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  performanceImpact?: InputMaybe<Scalars['String']['input']>;
+  securityImpact?: InputMaybe<Scalars['String']['input']>;
+  testPlan?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateLargeLanguageModelInput = {
-    apiKey?: InputMaybe<Scalars['String']['input']>;
-    id: Scalars['UUID']['input'];
-    maxComplexity?: InputMaybe<Scalars['Int']['input']>;
-    maxConcurrency?: InputMaybe<Scalars['Int']['input']>;
-    model?: InputMaybe<Scalars['String']['input']>;
-    modelAlias?: InputMaybe<Scalars['String']['input']>;
-    url?: InputMaybe<Scalars['String']['input']>;
+  apiKey?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  maxComplexity?: InputMaybe<Scalars['Int']['input']>;
+  maxConcurrency?: InputMaybe<Scalars['Int']['input']>;
+  model?: InputMaybe<Scalars['String']['input']>;
+  modelAlias?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateProjectInput = {
-    description?: InputMaybe<Scalars['String']['input']>;
-    id: Scalars['UUID']['input'];
-    name?: InputMaybe<Scalars['String']['input']>;
-    repository?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  repository?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UuidOperationFilterInput = {
-    eq?: InputMaybe<Scalars['UUID']['input']>;
-    gt?: InputMaybe<Scalars['UUID']['input']>;
-    gte?: InputMaybe<Scalars['UUID']['input']>;
-    in?: InputMaybe<Array<InputMaybe<Scalars['UUID']['input']>>>;
-    lt?: InputMaybe<Scalars['UUID']['input']>;
-    lte?: InputMaybe<Scalars['UUID']['input']>;
-    neq?: InputMaybe<Scalars['UUID']['input']>;
-    ngt?: InputMaybe<Scalars['UUID']['input']>;
-    ngte?: InputMaybe<Scalars['UUID']['input']>;
-    nin?: InputMaybe<Array<InputMaybe<Scalars['UUID']['input']>>>;
-    nlt?: InputMaybe<Scalars['UUID']['input']>;
-    nlte?: InputMaybe<Scalars['UUID']['input']>;
+  eq?: InputMaybe<Scalars['UUID']['input']>;
+  gt?: InputMaybe<Scalars['UUID']['input']>;
+  gte?: InputMaybe<Scalars['UUID']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['UUID']['input']>>>;
+  lt?: InputMaybe<Scalars['UUID']['input']>;
+  lte?: InputMaybe<Scalars['UUID']['input']>;
+  neq?: InputMaybe<Scalars['UUID']['input']>;
+  ngt?: InputMaybe<Scalars['UUID']['input']>;
+  ngte?: InputMaybe<Scalars['UUID']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['UUID']['input']>>>;
+  nlt?: InputMaybe<Scalars['UUID']['input']>;
+  nlte?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 export type CreateAgentTaskMutationVariables = Exact<{
-    input: CreateAgentTaskInput;
+  input: CreateAgentTaskInput;
 }>;
 
-export type CreateAgentTaskMutation = {
-    __typename?: 'Mutation';
-    createAgentTask: {
-        __typename?: 'AgentTask';
-        id: any;
-        title: string;
-        deliverableId: any;
-        description: string;
-        complexityRating: number;
-        result?: string | null;
-        errors?: string | null;
-        commitHash?: string | null;
-        dependsOnAgentTaskId?: any | null;
-        promptTokens?: number | null;
-        completionTokens?: number | null;
-        executionDurationInSeconds?: number | null;
-        agent?: string | null;
-    };
-};
+
+export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTask', id: any, title: string, deliverableId: any, description: string, complexityRating: number, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } };
 
 export type CreateDeliverableMutationVariables = Exact<{
-    input: CreateDeliverableInput;
+  input: CreateDeliverableInput;
 }>;
 
-export type CreateDeliverableMutation = {
-    __typename?: 'Mutation';
-    createDeliverable?: {
-        __typename?: 'Deliverable';
-        id: any;
-        title: string;
-        status: DeliverableStatus;
-    } | null;
-};
+
+export type CreateDeliverableMutation = { __typename?: 'Mutation', createDeliverable?: { __typename?: 'Deliverable', id: any, title: string, status: DeliverableStatus } | null };
 
 export type CreateLargeLanguageModelMutationVariables = Exact<{
-    input: CreateLargeLanguageModelInput;
+  input: CreateLargeLanguageModelInput;
 }>;
 
-export type CreateLargeLanguageModelMutation = {
-    __typename?: 'Mutation';
-    createLargeLanguageModel?: {
-        __typename?: 'LargeLanguageModel';
-        id: any;
-        url: string;
-        model: string;
-        modelAlias: string;
-        maxComplexity: number;
-        maxConcurrency: number;
-    } | null;
-};
+
+export type CreateLargeLanguageModelMutation = { __typename?: 'Mutation', createLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, maxComplexity: number, maxConcurrency: number } | null };
 
 export type CreateProjectMutationVariables = Exact<{
-    input: CreateProjectInput;
+  input: CreateProjectInput;
 }>;
 
-export type CreateProjectMutation = {
-    __typename?: 'Mutation';
-    createProject?: {
-        __typename?: 'Project';
-        id: any;
-        name: string;
-        description: string;
-        repository: string;
-    } | null;
-};
+
+export type CreateProjectMutation = { __typename?: 'Mutation', createProject?: { __typename?: 'Project', id: any, name: string, description: string, repository: string } | null };
 
 export type DeleteAgentTaskMutationVariables = Exact<{
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 }>;
 
-export type DeleteAgentTaskMutation = { __typename?: 'Mutation'; deleteAgentTask: boolean };
+
+export type DeleteAgentTaskMutation = { __typename?: 'Mutation', deleteAgentTask: boolean };
 
 export type DeleteDeliverableMutationVariables = Exact<{
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 }>;
 
-export type DeleteDeliverableMutation = { __typename?: 'Mutation'; deleteDeliverable: boolean };
+
+export type DeleteDeliverableMutation = { __typename?: 'Mutation', deleteDeliverable: boolean };
 
 export type DeleteLargeLanguageModelMutationVariables = Exact<{
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 }>;
 
-export type DeleteLargeLanguageModelMutation = {
-    __typename?: 'Mutation';
-    deleteLargeLanguageModel: boolean;
-};
+
+export type DeleteLargeLanguageModelMutation = { __typename?: 'Mutation', deleteLargeLanguageModel: boolean };
 
 export type DeleteProjectMutationVariables = Exact<{
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 }>;
 
-export type DeleteProjectMutation = { __typename?: 'Mutation'; deleteProject: boolean };
+
+export type DeleteProjectMutation = { __typename?: 'Mutation', deleteProject: boolean };
 
 export type UpdateAgentTaskStatusMutationVariables = Exact<{
-    id: Scalars['UUID']['input'];
-    targetStatus: AgentTaskStatus;
+  id: Scalars['UUID']['input'];
+  targetStatus: AgentTaskStatus;
 }>;
 
-export type UpdateAgentTaskStatusMutation = {
-    __typename?: 'Mutation';
-    updateAgentTaskStatus: AgentTaskStatus;
-};
+
+export type UpdateAgentTaskStatusMutation = { __typename?: 'Mutation', updateAgentTaskStatus: AgentTaskStatus };
 
 export type UpdateDeliverableStatusMutationVariables = Exact<{
-    id: Scalars['UUID']['input'];
-    targetStatus: DeliverableStatus;
-    actor?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  targetStatus: DeliverableStatus;
+  actor?: InputMaybe<Scalars['String']['input']>;
 }>;
 
-export type UpdateDeliverableStatusMutation = {
-    __typename?: 'Mutation';
-    updateDeliverableStatus: DeliverableStatus;
-};
+
+export type UpdateDeliverableStatusMutation = { __typename?: 'Mutation', updateDeliverableStatus: DeliverableStatus };
 
 export type UpdateAgentTaskMutationVariables = Exact<{
-    input: UpdateAgentTaskInput;
+  input: UpdateAgentTaskInput;
 }>;
 
-export type UpdateAgentTaskMutation = {
-    __typename?: 'Mutation';
-    updateAgentTask: {
-        __typename?: 'AgentTask';
-        id: any;
-        title: string;
-        deliverableId: any;
-        description: string;
-        complexityRating: number;
-        result?: string | null;
-        errors?: string | null;
-        commitHash?: string | null;
-        dependsOnAgentTaskId?: any | null;
-        promptTokens?: number | null;
-        completionTokens?: number | null;
-        executionDurationInSeconds?: number | null;
-        agent?: string | null;
-    };
-};
+
+export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTask', id: any, title: string, deliverableId: any, description: string, complexityRating: number, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } };
 
 export type UpdateDeliverableMutationVariables = Exact<{
-    input: UpdateDeliverableInput;
+  input: UpdateDeliverableInput;
 }>;
 
-export type UpdateDeliverableMutation = {
-    __typename?: 'Mutation';
-    updateDeliverable: {
-        __typename?: 'Deliverable';
-        id: any;
-        title: string;
-        description?: string | null;
-        status: DeliverableStatus;
-        type: DeliverableType;
-        acceptanceCriteria?: string | null;
-        executionPlan?: string | null;
-        agentFeedback?: string | null;
-        securityImpact?: string | null;
-        performanceImpact?: string | null;
-        testPlan?: string | null;
-        deploymentPlan?: string | null;
-        blocking?: string | null;
-    };
-};
+
+export type UpdateDeliverableMutation = { __typename?: 'Mutation', updateDeliverable: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null } };
 
 export type UpdateLargeLanguageModelMutationVariables = Exact<{
-    input: UpdateLargeLanguageModelInput;
+  input: UpdateLargeLanguageModelInput;
 }>;
 
-export type UpdateLargeLanguageModelMutation = {
-    __typename?: 'Mutation';
-    updateLargeLanguageModel?: {
-        __typename?: 'LargeLanguageModel';
-        id: any;
-        url: string;
-        model: string;
-        modelAlias: string;
-        maxComplexity: number;
-        maxConcurrency: number;
-    } | null;
-};
+
+export type UpdateLargeLanguageModelMutation = { __typename?: 'Mutation', updateLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, maxComplexity: number, maxConcurrency: number } | null };
 
 export type UpdateProjectMutationVariables = Exact<{
-    input: UpdateProjectInput;
+  input: UpdateProjectInput;
 }>;
 
-export type UpdateProjectMutation = {
-    __typename?: 'Mutation';
-    updateProject?: {
-        __typename?: 'Project';
-        id: any;
-        name: string;
-        description: string;
-        repository: string;
-    } | null;
-};
+
+export type UpdateProjectMutation = { __typename?: 'Mutation', updateProject?: { __typename?: 'Project', id: any, name: string, description: string, repository: string } | null };
 
 export type GetAgentTaskQueryVariables = Exact<{
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 }>;
 
-export type GetAgentTaskQuery = {
-    __typename?: 'Query';
-    agentTask?: {
-        __typename?: 'AgentTask';
-        id: any;
-        title: string;
-        status: AgentTaskStatus;
-        deliverableId: any;
-        description: string;
-        result?: string | null;
-        errors?: string | null;
-        commitHash?: string | null;
-        complexityRating: number;
-        dependsOnAgentTaskId?: any | null;
-        promptTokens?: number | null;
-        completionTokens?: number | null;
-        executionDurationInSeconds?: number | null;
-        agent?: string | null;
-    } | null;
-};
 
-export type GetAgentTasksQueryVariables = Exact<{ [key: string]: never }>;
+export type GetAgentTaskQuery = { __typename?: 'Query', agentTask?: { __typename?: 'AgentTask', id: any, title: string, status: AgentTaskStatus, deliverableId: any, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null };
 
-export type GetAgentTasksQuery = {
-    __typename?: 'Query';
-    agentTasks?: {
-        __typename?: 'AgentTasksConnection';
-        nodes?: Array<{
-            __typename?: 'AgentTask';
-            id: any;
-            title: string;
-            status: AgentTaskStatus;
-            deliverableId: any;
-            description: string;
-            result?: string | null;
-            errors?: string | null;
-            commitHash?: string | null;
-            complexityRating: number;
-            dependsOnAgentTaskId?: any | null;
-            promptTokens?: number | null;
-            completionTokens?: number | null;
-            executionDurationInSeconds?: number | null;
-            agent?: string | null;
-        }> | null;
-    } | null;
-};
+export type GetAgentTasksQueryVariables = Exact<{
+  deliverableId?: InputMaybe<Scalars['UUID']['input']>;
+}>;
 
-export type GetDeliverablesQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetDeliverablesQuery = {
-    __typename?: 'Query';
-    deliverables?: {
-        __typename?: 'DeliverablesConnection';
-        nodes?: Array<{
-            __typename?: 'Deliverable';
-            id: any;
-            title: string;
-            description?: string | null;
-            status: DeliverableStatus;
-            type: DeliverableType;
-            acceptanceCriteria?: string | null;
-            executionPlan?: string | null;
-            agentFeedback?: string | null;
-            securityImpact?: string | null;
-            performanceImpact?: string | null;
-            testPlan?: string | null;
-            deploymentPlan?: string | null;
-            blocking?: string | null;
-        }> | null;
-    } | null;
-};
+export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks?: { __typename?: 'AgentTasksConnection', nodes?: Array<{ __typename?: 'AgentTask', id: any, title: string, status: AgentTaskStatus, deliverableId: any, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null }> | null } | null };
+
+export type GetDeliverablesQueryVariables = Exact<{
+  projectId?: InputMaybe<Scalars['UUID']['input']>;
+}>;
+
+
+export type GetDeliverablesQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null }> | null } | null };
 
 export type GetDeliverableQueryVariables = Exact<{
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 }>;
 
-export type GetDeliverableQuery = {
-    __typename?: 'Query';
-    deliverable?: {
-        __typename?: 'Deliverable';
-        id: any;
-        title: string;
-        description?: string | null;
-        status: DeliverableStatus;
-        type: DeliverableType;
-        acceptanceCriteria?: string | null;
-        executionPlan?: string | null;
-        agentFeedback?: string | null;
-        securityImpact?: string | null;
-        performanceImpact?: string | null;
-        testPlan?: string | null;
-        deploymentPlan?: string | null;
-        blocking?: string | null;
-        projectId: any;
-    } | null;
-};
 
-export type ModelConfigurationsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetDeliverableQuery = { __typename?: 'Query', deliverable?: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null } | null };
 
-export type ModelConfigurationsQuery = {
-    __typename?: 'Query';
-    largeLanguageModels: Array<{
-        __typename?: 'LargeLanguageModel';
-        id: any;
-        url: string;
-        model: string;
-        modelAlias: string;
-        apiKey: string;
-        maxComplexity: number;
-        maxConcurrency: number;
-    }>;
-};
+export type ModelConfigurationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ModelConfigurationsQuery = { __typename?: 'Query', largeLanguageModels: Array<{ __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, apiKey: string, maxComplexity: number, maxConcurrency: number }> };
 
 export type GetProjectQueryVariables = Exact<{
-    id: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 }>;
 
-export type GetProjectQuery = {
-    __typename?: 'Query';
-    project?: {
-        __typename?: 'Project';
-        id: any;
-        name: string;
-        description: string;
-        repository: string;
-    } | null;
-};
 
-export type GetProjectsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetProjectQuery = { __typename?: 'Query', project?: { __typename?: 'Project', id: any, name: string, description: string, repository: string } | null };
 
-export type GetProjectsQuery = {
-    __typename?: 'Query';
-    projects?: {
-        __typename?: 'ProjectsConnection';
-        nodes?: Array<{
-            __typename?: 'Project';
-            id: any;
-            name: string;
-            description: string;
-            repository: string;
-        }> | null;
-    } | null;
-};
+export type GetProjectsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetProjectsQuery = { __typename?: 'Query', projects?: { __typename?: 'ProjectsConnection', nodes?: Array<{ __typename?: 'Project', id: any, name: string, description: string, repository: string }> | null } | null };
+
 
 export const CreateAgentTaskDocument = gql`
     mutation CreateAgentTask($input: CreateAgentTaskInput!) {
-        createAgentTask(input: $input) {
-            id
-            title
-            deliverableId
-            description
-            complexityRating
-            result
-            errors
-            commitHash
-            dependsOnAgentTaskId
-            promptTokens
-            completionTokens
-            executionDurationInSeconds
-            agent
-        }
-    }
-`;
-export type CreateAgentTaskMutationFn = Apollo.MutationFunction<
-    CreateAgentTaskMutation,
-    CreateAgentTaskMutationVariables
->;
+  createAgentTask(input: $input) {
+    id
+    title
+    deliverableId
+    description
+    complexityRating
+    result
+    errors
+    commitHash
+    dependsOnAgentTaskId
+    promptTokens
+    completionTokens
+    executionDurationInSeconds
+    agent
+  }
+}
+    `;
+export type CreateAgentTaskMutationFn = Apollo.MutationFunction<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>;
 
 /**
  * __useCreateAgentTaskMutation__
@@ -984,37 +799,23 @@ export type CreateAgentTaskMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useCreateAgentTaskMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        CreateAgentTaskMutation,
-        CreateAgentTaskMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>(
-        CreateAgentTaskDocument,
-        options
-    );
-}
+export function useCreateAgentTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>(CreateAgentTaskDocument, options);
+      }
 export type CreateAgentTaskMutationHookResult = ReturnType<typeof useCreateAgentTaskMutation>;
 export type CreateAgentTaskMutationResult = Apollo.MutationResult<CreateAgentTaskMutation>;
-export type CreateAgentTaskMutationOptions = Apollo.BaseMutationOptions<
-    CreateAgentTaskMutation,
-    CreateAgentTaskMutationVariables
->;
+export type CreateAgentTaskMutationOptions = Apollo.BaseMutationOptions<CreateAgentTaskMutation, CreateAgentTaskMutationVariables>;
 export const CreateDeliverableDocument = gql`
     mutation CreateDeliverable($input: CreateDeliverableInput!) {
-        createDeliverable(input: $input) {
-            id
-            title
-            status
-        }
-    }
-`;
-export type CreateDeliverableMutationFn = Apollo.MutationFunction<
-    CreateDeliverableMutation,
-    CreateDeliverableMutationVariables
->;
+  createDeliverable(input: $input) {
+    id
+    title
+    status
+  }
+}
+    `;
+export type CreateDeliverableMutationFn = Apollo.MutationFunction<CreateDeliverableMutation, CreateDeliverableMutationVariables>;
 
 /**
  * __useCreateDeliverableMutation__
@@ -1033,40 +834,26 @@ export type CreateDeliverableMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useCreateDeliverableMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        CreateDeliverableMutation,
-        CreateDeliverableMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<
-        CreateDeliverableMutation,
-        CreateDeliverableMutationVariables
-    >(CreateDeliverableDocument, options);
-}
+export function useCreateDeliverableMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateDeliverableMutation, CreateDeliverableMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<CreateDeliverableMutation, CreateDeliverableMutationVariables>(CreateDeliverableDocument, options);
+      }
 export type CreateDeliverableMutationHookResult = ReturnType<typeof useCreateDeliverableMutation>;
 export type CreateDeliverableMutationResult = Apollo.MutationResult<CreateDeliverableMutation>;
-export type CreateDeliverableMutationOptions = Apollo.BaseMutationOptions<
-    CreateDeliverableMutation,
-    CreateDeliverableMutationVariables
->;
+export type CreateDeliverableMutationOptions = Apollo.BaseMutationOptions<CreateDeliverableMutation, CreateDeliverableMutationVariables>;
 export const CreateLargeLanguageModelDocument = gql`
     mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) {
-        createLargeLanguageModel(input: $input) {
-            id
-            url
-            model
-            modelAlias
-            maxComplexity
-            maxConcurrency
-        }
-    }
-`;
-export type CreateLargeLanguageModelMutationFn = Apollo.MutationFunction<
-    CreateLargeLanguageModelMutation,
-    CreateLargeLanguageModelMutationVariables
->;
+  createLargeLanguageModel(input: $input) {
+    id
+    url
+    model
+    modelAlias
+    maxComplexity
+    maxConcurrency
+  }
+}
+    `;
+export type CreateLargeLanguageModelMutationFn = Apollo.MutationFunction<CreateLargeLanguageModelMutation, CreateLargeLanguageModelMutationVariables>;
 
 /**
  * __useCreateLargeLanguageModelMutation__
@@ -1085,41 +872,24 @@ export type CreateLargeLanguageModelMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useCreateLargeLanguageModelMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        CreateLargeLanguageModelMutation,
-        CreateLargeLanguageModelMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<
-        CreateLargeLanguageModelMutation,
-        CreateLargeLanguageModelMutationVariables
-    >(CreateLargeLanguageModelDocument, options);
-}
-export type CreateLargeLanguageModelMutationHookResult = ReturnType<
-    typeof useCreateLargeLanguageModelMutation
->;
-export type CreateLargeLanguageModelMutationResult =
-    Apollo.MutationResult<CreateLargeLanguageModelMutation>;
-export type CreateLargeLanguageModelMutationOptions = Apollo.BaseMutationOptions<
-    CreateLargeLanguageModelMutation,
-    CreateLargeLanguageModelMutationVariables
->;
+export function useCreateLargeLanguageModelMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateLargeLanguageModelMutation, CreateLargeLanguageModelMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<CreateLargeLanguageModelMutation, CreateLargeLanguageModelMutationVariables>(CreateLargeLanguageModelDocument, options);
+      }
+export type CreateLargeLanguageModelMutationHookResult = ReturnType<typeof useCreateLargeLanguageModelMutation>;
+export type CreateLargeLanguageModelMutationResult = Apollo.MutationResult<CreateLargeLanguageModelMutation>;
+export type CreateLargeLanguageModelMutationOptions = Apollo.BaseMutationOptions<CreateLargeLanguageModelMutation, CreateLargeLanguageModelMutationVariables>;
 export const CreateProjectDocument = gql`
     mutation CreateProject($input: CreateProjectInput!) {
-        createProject(input: $input) {
-            id
-            name
-            description
-            repository
-        }
-    }
-`;
-export type CreateProjectMutationFn = Apollo.MutationFunction<
-    CreateProjectMutation,
-    CreateProjectMutationVariables
->;
+  createProject(input: $input) {
+    id
+    name
+    description
+    repository
+  }
+}
+    `;
+export type CreateProjectMutationFn = Apollo.MutationFunction<CreateProjectMutation, CreateProjectMutationVariables>;
 
 /**
  * __useCreateProjectMutation__
@@ -1138,33 +908,19 @@ export type CreateProjectMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useCreateProjectMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        CreateProjectMutation,
-        CreateProjectMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<CreateProjectMutation, CreateProjectMutationVariables>(
-        CreateProjectDocument,
-        options
-    );
-}
+export function useCreateProjectMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateProjectMutation, CreateProjectMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<CreateProjectMutation, CreateProjectMutationVariables>(CreateProjectDocument, options);
+      }
 export type CreateProjectMutationHookResult = ReturnType<typeof useCreateProjectMutation>;
 export type CreateProjectMutationResult = Apollo.MutationResult<CreateProjectMutation>;
-export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<
-    CreateProjectMutation,
-    CreateProjectMutationVariables
->;
+export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<CreateProjectMutation, CreateProjectMutationVariables>;
 export const DeleteAgentTaskDocument = gql`
     mutation DeleteAgentTask($id: UUID!) {
-        deleteAgentTask(id: $id)
-    }
-`;
-export type DeleteAgentTaskMutationFn = Apollo.MutationFunction<
-    DeleteAgentTaskMutation,
-    DeleteAgentTaskMutationVariables
->;
+  deleteAgentTask(id: $id)
+}
+    `;
+export type DeleteAgentTaskMutationFn = Apollo.MutationFunction<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>;
 
 /**
  * __useDeleteAgentTaskMutation__
@@ -1183,33 +939,19 @@ export type DeleteAgentTaskMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteAgentTaskMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        DeleteAgentTaskMutation,
-        DeleteAgentTaskMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>(
-        DeleteAgentTaskDocument,
-        options
-    );
-}
+export function useDeleteAgentTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>(DeleteAgentTaskDocument, options);
+      }
 export type DeleteAgentTaskMutationHookResult = ReturnType<typeof useDeleteAgentTaskMutation>;
 export type DeleteAgentTaskMutationResult = Apollo.MutationResult<DeleteAgentTaskMutation>;
-export type DeleteAgentTaskMutationOptions = Apollo.BaseMutationOptions<
-    DeleteAgentTaskMutation,
-    DeleteAgentTaskMutationVariables
->;
+export type DeleteAgentTaskMutationOptions = Apollo.BaseMutationOptions<DeleteAgentTaskMutation, DeleteAgentTaskMutationVariables>;
 export const DeleteDeliverableDocument = gql`
     mutation DeleteDeliverable($id: UUID!) {
-        deleteDeliverable(id: $id)
-    }
-`;
-export type DeleteDeliverableMutationFn = Apollo.MutationFunction<
-    DeleteDeliverableMutation,
-    DeleteDeliverableMutationVariables
->;
+  deleteDeliverable(id: $id)
+}
+    `;
+export type DeleteDeliverableMutationFn = Apollo.MutationFunction<DeleteDeliverableMutation, DeleteDeliverableMutationVariables>;
 
 /**
  * __useDeleteDeliverableMutation__
@@ -1228,33 +970,19 @@ export type DeleteDeliverableMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteDeliverableMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        DeleteDeliverableMutation,
-        DeleteDeliverableMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<
-        DeleteDeliverableMutation,
-        DeleteDeliverableMutationVariables
-    >(DeleteDeliverableDocument, options);
-}
+export function useDeleteDeliverableMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteDeliverableMutation, DeleteDeliverableMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<DeleteDeliverableMutation, DeleteDeliverableMutationVariables>(DeleteDeliverableDocument, options);
+      }
 export type DeleteDeliverableMutationHookResult = ReturnType<typeof useDeleteDeliverableMutation>;
 export type DeleteDeliverableMutationResult = Apollo.MutationResult<DeleteDeliverableMutation>;
-export type DeleteDeliverableMutationOptions = Apollo.BaseMutationOptions<
-    DeleteDeliverableMutation,
-    DeleteDeliverableMutationVariables
->;
+export type DeleteDeliverableMutationOptions = Apollo.BaseMutationOptions<DeleteDeliverableMutation, DeleteDeliverableMutationVariables>;
 export const DeleteLargeLanguageModelDocument = gql`
     mutation DeleteLargeLanguageModel($id: UUID!) {
-        deleteLargeLanguageModel(id: $id)
-    }
-`;
-export type DeleteLargeLanguageModelMutationFn = Apollo.MutationFunction<
-    DeleteLargeLanguageModelMutation,
-    DeleteLargeLanguageModelMutationVariables
->;
+  deleteLargeLanguageModel(id: $id)
+}
+    `;
+export type DeleteLargeLanguageModelMutationFn = Apollo.MutationFunction<DeleteLargeLanguageModelMutation, DeleteLargeLanguageModelMutationVariables>;
 
 /**
  * __useDeleteLargeLanguageModelMutation__
@@ -1273,36 +1001,19 @@ export type DeleteLargeLanguageModelMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteLargeLanguageModelMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        DeleteLargeLanguageModelMutation,
-        DeleteLargeLanguageModelMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<
-        DeleteLargeLanguageModelMutation,
-        DeleteLargeLanguageModelMutationVariables
-    >(DeleteLargeLanguageModelDocument, options);
-}
-export type DeleteLargeLanguageModelMutationHookResult = ReturnType<
-    typeof useDeleteLargeLanguageModelMutation
->;
-export type DeleteLargeLanguageModelMutationResult =
-    Apollo.MutationResult<DeleteLargeLanguageModelMutation>;
-export type DeleteLargeLanguageModelMutationOptions = Apollo.BaseMutationOptions<
-    DeleteLargeLanguageModelMutation,
-    DeleteLargeLanguageModelMutationVariables
->;
+export function useDeleteLargeLanguageModelMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteLargeLanguageModelMutation, DeleteLargeLanguageModelMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<DeleteLargeLanguageModelMutation, DeleteLargeLanguageModelMutationVariables>(DeleteLargeLanguageModelDocument, options);
+      }
+export type DeleteLargeLanguageModelMutationHookResult = ReturnType<typeof useDeleteLargeLanguageModelMutation>;
+export type DeleteLargeLanguageModelMutationResult = Apollo.MutationResult<DeleteLargeLanguageModelMutation>;
+export type DeleteLargeLanguageModelMutationOptions = Apollo.BaseMutationOptions<DeleteLargeLanguageModelMutation, DeleteLargeLanguageModelMutationVariables>;
 export const DeleteProjectDocument = gql`
     mutation DeleteProject($id: UUID!) {
-        deleteProject(id: $id)
-    }
-`;
-export type DeleteProjectMutationFn = Apollo.MutationFunction<
-    DeleteProjectMutation,
-    DeleteProjectMutationVariables
->;
+  deleteProject(id: $id)
+}
+    `;
+export type DeleteProjectMutationFn = Apollo.MutationFunction<DeleteProjectMutation, DeleteProjectMutationVariables>;
 
 /**
  * __useDeleteProjectMutation__
@@ -1321,33 +1032,19 @@ export type DeleteProjectMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteProjectMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        DeleteProjectMutation,
-        DeleteProjectMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<DeleteProjectMutation, DeleteProjectMutationVariables>(
-        DeleteProjectDocument,
-        options
-    );
-}
+export function useDeleteProjectMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteProjectMutation, DeleteProjectMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<DeleteProjectMutation, DeleteProjectMutationVariables>(DeleteProjectDocument, options);
+      }
 export type DeleteProjectMutationHookResult = ReturnType<typeof useDeleteProjectMutation>;
 export type DeleteProjectMutationResult = Apollo.MutationResult<DeleteProjectMutation>;
-export type DeleteProjectMutationOptions = Apollo.BaseMutationOptions<
-    DeleteProjectMutation,
-    DeleteProjectMutationVariables
->;
+export type DeleteProjectMutationOptions = Apollo.BaseMutationOptions<DeleteProjectMutation, DeleteProjectMutationVariables>;
 export const UpdateAgentTaskStatusDocument = gql`
     mutation UpdateAgentTaskStatus($id: UUID!, $targetStatus: AgentTaskStatus!) {
-        updateAgentTaskStatus(id: $id, targetStatus: $targetStatus)
-    }
-`;
-export type UpdateAgentTaskStatusMutationFn = Apollo.MutationFunction<
-    UpdateAgentTaskStatusMutation,
-    UpdateAgentTaskStatusMutationVariables
->;
+  updateAgentTaskStatus(id: $id, targetStatus: $targetStatus)
+}
+    `;
+export type UpdateAgentTaskStatusMutationFn = Apollo.MutationFunction<UpdateAgentTaskStatusMutation, UpdateAgentTaskStatusMutationVariables>;
 
 /**
  * __useUpdateAgentTaskStatusMutation__
@@ -1367,40 +1064,19 @@ export type UpdateAgentTaskStatusMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateAgentTaskStatusMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        UpdateAgentTaskStatusMutation,
-        UpdateAgentTaskStatusMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<
-        UpdateAgentTaskStatusMutation,
-        UpdateAgentTaskStatusMutationVariables
-    >(UpdateAgentTaskStatusDocument, options);
-}
-export type UpdateAgentTaskStatusMutationHookResult = ReturnType<
-    typeof useUpdateAgentTaskStatusMutation
->;
-export type UpdateAgentTaskStatusMutationResult =
-    Apollo.MutationResult<UpdateAgentTaskStatusMutation>;
-export type UpdateAgentTaskStatusMutationOptions = Apollo.BaseMutationOptions<
-    UpdateAgentTaskStatusMutation,
-    UpdateAgentTaskStatusMutationVariables
->;
+export function useUpdateAgentTaskStatusMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateAgentTaskStatusMutation, UpdateAgentTaskStatusMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateAgentTaskStatusMutation, UpdateAgentTaskStatusMutationVariables>(UpdateAgentTaskStatusDocument, options);
+      }
+export type UpdateAgentTaskStatusMutationHookResult = ReturnType<typeof useUpdateAgentTaskStatusMutation>;
+export type UpdateAgentTaskStatusMutationResult = Apollo.MutationResult<UpdateAgentTaskStatusMutation>;
+export type UpdateAgentTaskStatusMutationOptions = Apollo.BaseMutationOptions<UpdateAgentTaskStatusMutation, UpdateAgentTaskStatusMutationVariables>;
 export const UpdateDeliverableStatusDocument = gql`
-    mutation UpdateDeliverableStatus(
-        $id: UUID!
-        $targetStatus: DeliverableStatus!
-        $actor: String
-    ) {
-        updateDeliverableStatus(id: $id, targetStatus: $targetStatus, actor: $actor)
-    }
-`;
-export type UpdateDeliverableStatusMutationFn = Apollo.MutationFunction<
-    UpdateDeliverableStatusMutation,
-    UpdateDeliverableStatusMutationVariables
->;
+    mutation UpdateDeliverableStatus($id: UUID!, $targetStatus: DeliverableStatus!, $actor: String) {
+  updateDeliverableStatus(id: $id, targetStatus: $targetStatus, actor: $actor)
+}
+    `;
+export type UpdateDeliverableStatusMutationFn = Apollo.MutationFunction<UpdateDeliverableStatusMutation, UpdateDeliverableStatusMutationVariables>;
 
 /**
  * __useUpdateDeliverableStatusMutation__
@@ -1421,50 +1097,33 @@ export type UpdateDeliverableStatusMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateDeliverableStatusMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        UpdateDeliverableStatusMutation,
-        UpdateDeliverableStatusMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<
-        UpdateDeliverableStatusMutation,
-        UpdateDeliverableStatusMutationVariables
-    >(UpdateDeliverableStatusDocument, options);
-}
-export type UpdateDeliverableStatusMutationHookResult = ReturnType<
-    typeof useUpdateDeliverableStatusMutation
->;
-export type UpdateDeliverableStatusMutationResult =
-    Apollo.MutationResult<UpdateDeliverableStatusMutation>;
-export type UpdateDeliverableStatusMutationOptions = Apollo.BaseMutationOptions<
-    UpdateDeliverableStatusMutation,
-    UpdateDeliverableStatusMutationVariables
->;
+export function useUpdateDeliverableStatusMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateDeliverableStatusMutation, UpdateDeliverableStatusMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateDeliverableStatusMutation, UpdateDeliverableStatusMutationVariables>(UpdateDeliverableStatusDocument, options);
+      }
+export type UpdateDeliverableStatusMutationHookResult = ReturnType<typeof useUpdateDeliverableStatusMutation>;
+export type UpdateDeliverableStatusMutationResult = Apollo.MutationResult<UpdateDeliverableStatusMutation>;
+export type UpdateDeliverableStatusMutationOptions = Apollo.BaseMutationOptions<UpdateDeliverableStatusMutation, UpdateDeliverableStatusMutationVariables>;
 export const UpdateAgentTaskDocument = gql`
     mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
-        updateAgentTask(input: $input) {
-            id
-            title
-            deliverableId
-            description
-            complexityRating
-            result
-            errors
-            commitHash
-            dependsOnAgentTaskId
-            promptTokens
-            completionTokens
-            executionDurationInSeconds
-            agent
-        }
-    }
-`;
-export type UpdateAgentTaskMutationFn = Apollo.MutationFunction<
-    UpdateAgentTaskMutation,
-    UpdateAgentTaskMutationVariables
->;
+  updateAgentTask(input: $input) {
+    id
+    title
+    deliverableId
+    description
+    complexityRating
+    result
+    errors
+    commitHash
+    dependsOnAgentTaskId
+    promptTokens
+    completionTokens
+    executionDurationInSeconds
+    agent
+  }
+}
+    `;
+export type UpdateAgentTaskMutationFn = Apollo.MutationFunction<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>;
 
 /**
  * __useUpdateAgentTaskMutation__
@@ -1483,47 +1142,33 @@ export type UpdateAgentTaskMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateAgentTaskMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        UpdateAgentTaskMutation,
-        UpdateAgentTaskMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>(
-        UpdateAgentTaskDocument,
-        options
-    );
-}
+export function useUpdateAgentTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>(UpdateAgentTaskDocument, options);
+      }
 export type UpdateAgentTaskMutationHookResult = ReturnType<typeof useUpdateAgentTaskMutation>;
 export type UpdateAgentTaskMutationResult = Apollo.MutationResult<UpdateAgentTaskMutation>;
-export type UpdateAgentTaskMutationOptions = Apollo.BaseMutationOptions<
-    UpdateAgentTaskMutation,
-    UpdateAgentTaskMutationVariables
->;
+export type UpdateAgentTaskMutationOptions = Apollo.BaseMutationOptions<UpdateAgentTaskMutation, UpdateAgentTaskMutationVariables>;
 export const UpdateDeliverableDocument = gql`
     mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
-        updateDeliverable(input: $input) {
-            id
-            title
-            description
-            status
-            type
-            acceptanceCriteria
-            executionPlan
-            agentFeedback
-            securityImpact
-            performanceImpact
-            testPlan
-            deploymentPlan
-            blocking
-        }
-    }
-`;
-export type UpdateDeliverableMutationFn = Apollo.MutationFunction<
-    UpdateDeliverableMutation,
-    UpdateDeliverableMutationVariables
->;
+  updateDeliverable(input: $input) {
+    id
+    title
+    description
+    status
+    type
+    acceptanceCriteria
+    executionPlan
+    agentFeedback
+    securityImpact
+    performanceImpact
+    testPlan
+    deploymentPlan
+    blocking
+  }
+}
+    `;
+export type UpdateDeliverableMutationFn = Apollo.MutationFunction<UpdateDeliverableMutation, UpdateDeliverableMutationVariables>;
 
 /**
  * __useUpdateDeliverableMutation__
@@ -1542,40 +1187,26 @@ export type UpdateDeliverableMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateDeliverableMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        UpdateDeliverableMutation,
-        UpdateDeliverableMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<
-        UpdateDeliverableMutation,
-        UpdateDeliverableMutationVariables
-    >(UpdateDeliverableDocument, options);
-}
+export function useUpdateDeliverableMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateDeliverableMutation, UpdateDeliverableMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateDeliverableMutation, UpdateDeliverableMutationVariables>(UpdateDeliverableDocument, options);
+      }
 export type UpdateDeliverableMutationHookResult = ReturnType<typeof useUpdateDeliverableMutation>;
 export type UpdateDeliverableMutationResult = Apollo.MutationResult<UpdateDeliverableMutation>;
-export type UpdateDeliverableMutationOptions = Apollo.BaseMutationOptions<
-    UpdateDeliverableMutation,
-    UpdateDeliverableMutationVariables
->;
+export type UpdateDeliverableMutationOptions = Apollo.BaseMutationOptions<UpdateDeliverableMutation, UpdateDeliverableMutationVariables>;
 export const UpdateLargeLanguageModelDocument = gql`
     mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) {
-        updateLargeLanguageModel(input: $input) {
-            id
-            url
-            model
-            modelAlias
-            maxComplexity
-            maxConcurrency
-        }
-    }
-`;
-export type UpdateLargeLanguageModelMutationFn = Apollo.MutationFunction<
-    UpdateLargeLanguageModelMutation,
-    UpdateLargeLanguageModelMutationVariables
->;
+  updateLargeLanguageModel(input: $input) {
+    id
+    url
+    model
+    modelAlias
+    maxComplexity
+    maxConcurrency
+  }
+}
+    `;
+export type UpdateLargeLanguageModelMutationFn = Apollo.MutationFunction<UpdateLargeLanguageModelMutation, UpdateLargeLanguageModelMutationVariables>;
 
 /**
  * __useUpdateLargeLanguageModelMutation__
@@ -1594,41 +1225,24 @@ export type UpdateLargeLanguageModelMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateLargeLanguageModelMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        UpdateLargeLanguageModelMutation,
-        UpdateLargeLanguageModelMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<
-        UpdateLargeLanguageModelMutation,
-        UpdateLargeLanguageModelMutationVariables
-    >(UpdateLargeLanguageModelDocument, options);
-}
-export type UpdateLargeLanguageModelMutationHookResult = ReturnType<
-    typeof useUpdateLargeLanguageModelMutation
->;
-export type UpdateLargeLanguageModelMutationResult =
-    Apollo.MutationResult<UpdateLargeLanguageModelMutation>;
-export type UpdateLargeLanguageModelMutationOptions = Apollo.BaseMutationOptions<
-    UpdateLargeLanguageModelMutation,
-    UpdateLargeLanguageModelMutationVariables
->;
+export function useUpdateLargeLanguageModelMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateLargeLanguageModelMutation, UpdateLargeLanguageModelMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateLargeLanguageModelMutation, UpdateLargeLanguageModelMutationVariables>(UpdateLargeLanguageModelDocument, options);
+      }
+export type UpdateLargeLanguageModelMutationHookResult = ReturnType<typeof useUpdateLargeLanguageModelMutation>;
+export type UpdateLargeLanguageModelMutationResult = Apollo.MutationResult<UpdateLargeLanguageModelMutation>;
+export type UpdateLargeLanguageModelMutationOptions = Apollo.BaseMutationOptions<UpdateLargeLanguageModelMutation, UpdateLargeLanguageModelMutationVariables>;
 export const UpdateProjectDocument = gql`
     mutation UpdateProject($input: UpdateProjectInput!) {
-        updateProject(input: $input) {
-            id
-            name
-            description
-            repository
-        }
-    }
-`;
-export type UpdateProjectMutationFn = Apollo.MutationFunction<
-    UpdateProjectMutation,
-    UpdateProjectMutationVariables
->;
+  updateProject(input: $input) {
+    id
+    name
+    description
+    repository
+  }
+}
+    `;
+export type UpdateProjectMutationFn = Apollo.MutationFunction<UpdateProjectMutation, UpdateProjectMutationVariables>;
 
 /**
  * __useUpdateProjectMutation__
@@ -1647,44 +1261,33 @@ export type UpdateProjectMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateProjectMutation(
-    baseOptions?: ApolloReactHooks.MutationHookOptions<
-        UpdateProjectMutation,
-        UpdateProjectMutationVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useMutation<UpdateProjectMutation, UpdateProjectMutationVariables>(
-        UpdateProjectDocument,
-        options
-    );
-}
+export function useUpdateProjectMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateProjectMutation, UpdateProjectMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateProjectMutation, UpdateProjectMutationVariables>(UpdateProjectDocument, options);
+      }
 export type UpdateProjectMutationHookResult = ReturnType<typeof useUpdateProjectMutation>;
 export type UpdateProjectMutationResult = Apollo.MutationResult<UpdateProjectMutation>;
-export type UpdateProjectMutationOptions = Apollo.BaseMutationOptions<
-    UpdateProjectMutation,
-    UpdateProjectMutationVariables
->;
+export type UpdateProjectMutationOptions = Apollo.BaseMutationOptions<UpdateProjectMutation, UpdateProjectMutationVariables>;
 export const GetAgentTaskDocument = gql`
     query GetAgentTask($id: UUID!) {
-        agentTask(id: $id) {
-            id
-            title
-            status
-            deliverableId
-            description
-            result
-            errors
-            commitHash
-            complexityRating
-            dependsOnAgentTaskId
-            promptTokens
-            completionTokens
-            executionDurationInSeconds
-            agent
-        }
-    }
-`;
+  agentTask(id: $id) {
+    id
+    title
+    status
+    deliverableId
+    description
+    result
+    errors
+    commitHash
+    complexityRating
+    dependsOnAgentTaskId
+    promptTokens
+    completionTokens
+    executionDurationInSeconds
+    agent
+  }
+}
+    `;
 
 /**
  * __useGetAgentTaskQuery__
@@ -1702,86 +1305,47 @@ export const GetAgentTaskDocument = gql`
  *   },
  * });
  */
-export function useGetAgentTaskQuery(
-    baseOptions: ApolloReactHooks.QueryHookOptions<GetAgentTaskQuery, GetAgentTaskQueryVariables> &
-        ({ variables: GetAgentTaskQueryVariables; skip?: boolean } | { skip: boolean })
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useQuery<GetAgentTaskQuery, GetAgentTaskQueryVariables>(
-        GetAgentTaskDocument,
-        options
-    );
-}
-export function useGetAgentTaskLazyQuery(
-    baseOptions?: ApolloReactHooks.LazyQueryHookOptions<
-        GetAgentTaskQuery,
-        GetAgentTaskQueryVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useLazyQuery<GetAgentTaskQuery, GetAgentTaskQueryVariables>(
-        GetAgentTaskDocument,
-        options
-    );
-}
+export function useGetAgentTaskQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetAgentTaskQuery, GetAgentTaskQueryVariables> & ({ variables: GetAgentTaskQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetAgentTaskQuery, GetAgentTaskQueryVariables>(GetAgentTaskDocument, options);
+      }
+export function useGetAgentTaskLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetAgentTaskQuery, GetAgentTaskQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetAgentTaskQuery, GetAgentTaskQueryVariables>(GetAgentTaskDocument, options);
+        }
 // @ts-ignore
-export function useGetAgentTaskSuspenseQuery(
-    baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<
-        GetAgentTaskQuery,
-        GetAgentTaskQueryVariables
-    >
-): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTaskQuery, GetAgentTaskQueryVariables>;
-export function useGetAgentTaskSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTaskQuery, GetAgentTaskQueryVariables>
-): ApolloReactHooks.UseSuspenseQueryResult<
-    GetAgentTaskQuery | undefined,
-    GetAgentTaskQueryVariables
->;
-export function useGetAgentTaskSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTaskQuery, GetAgentTaskQueryVariables>
-) {
-    const options =
-        baseOptions === ApolloReactHooks.skipToken
-            ? baseOptions
-            : { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useSuspenseQuery<GetAgentTaskQuery, GetAgentTaskQueryVariables>(
-        GetAgentTaskDocument,
-        options
-    );
-}
+export function useGetAgentTaskSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTaskQuery, GetAgentTaskQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTaskQuery, GetAgentTaskQueryVariables>;
+export function useGetAgentTaskSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTaskQuery, GetAgentTaskQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTaskQuery | undefined, GetAgentTaskQueryVariables>;
+export function useGetAgentTaskSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTaskQuery, GetAgentTaskQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetAgentTaskQuery, GetAgentTaskQueryVariables>(GetAgentTaskDocument, options);
+        }
 export type GetAgentTaskQueryHookResult = ReturnType<typeof useGetAgentTaskQuery>;
 export type GetAgentTaskLazyQueryHookResult = ReturnType<typeof useGetAgentTaskLazyQuery>;
 export type GetAgentTaskSuspenseQueryHookResult = ReturnType<typeof useGetAgentTaskSuspenseQuery>;
-export type GetAgentTaskQueryResult = Apollo.QueryResult<
-    GetAgentTaskQuery,
-    GetAgentTaskQueryVariables
->;
+export type GetAgentTaskQueryResult = Apollo.QueryResult<GetAgentTaskQuery, GetAgentTaskQueryVariables>;
 export const GetAgentTasksDocument = gql`
-    query GetAgentTasks {
-        agentTasks {
-            nodes {
-                id
-                title
-                status
-                deliverableId
-                description
-                result
-                errors
-                commitHash
-                complexityRating
-                dependsOnAgentTaskId
-                promptTokens
-                completionTokens
-                executionDurationInSeconds
-                agent
-            }
-        }
+    query GetAgentTasks($deliverableId: UUID) {
+  agentTasks(where: {deliverableId: {eq: $deliverableId}}) {
+    nodes {
+      id
+      title
+      status
+      deliverableId
+      description
+      result
+      errors
+      commitHash
+      complexityRating
+      dependsOnAgentTaskId
+      promptTokens
+      completionTokens
+      executionDurationInSeconds
+      agent
     }
-`;
+  }
+}
+    `;
 
 /**
  * __useGetAgentTasksQuery__
@@ -1795,87 +1359,51 @@ export const GetAgentTasksDocument = gql`
  * @example
  * const { data, loading, error } = useGetAgentTasksQuery({
  *   variables: {
+ *      deliverableId: // value for 'deliverableId'
  *   },
  * });
  */
-export function useGetAgentTasksQuery(
-    baseOptions?: ApolloReactHooks.QueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(
-        GetAgentTasksDocument,
-        options
-    );
-}
-export function useGetAgentTasksLazyQuery(
-    baseOptions?: ApolloReactHooks.LazyQueryHookOptions<
-        GetAgentTasksQuery,
-        GetAgentTasksQueryVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useLazyQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(
-        GetAgentTasksDocument,
-        options
-    );
-}
+export function useGetAgentTasksQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(GetAgentTasksDocument, options);
+      }
+export function useGetAgentTasksLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(GetAgentTasksDocument, options);
+        }
 // @ts-ignore
-export function useGetAgentTasksSuspenseQuery(
-    baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<
-        GetAgentTasksQuery,
-        GetAgentTasksQueryVariables
-    >
-): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
-export function useGetAgentTasksSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>
-): ApolloReactHooks.UseSuspenseQueryResult<
-    GetAgentTasksQuery | undefined,
-    GetAgentTasksQueryVariables
->;
-export function useGetAgentTasksSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>
-) {
-    const options =
-        baseOptions === ApolloReactHooks.skipToken
-            ? baseOptions
-            : { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useSuspenseQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(
-        GetAgentTasksDocument,
-        options
-    );
-}
+export function useGetAgentTasksSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
+export function useGetAgentTasksSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAgentTasksQuery | undefined, GetAgentTasksQueryVariables>;
+export function useGetAgentTasksSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(GetAgentTasksDocument, options);
+        }
 export type GetAgentTasksQueryHookResult = ReturnType<typeof useGetAgentTasksQuery>;
 export type GetAgentTasksLazyQueryHookResult = ReturnType<typeof useGetAgentTasksLazyQuery>;
 export type GetAgentTasksSuspenseQueryHookResult = ReturnType<typeof useGetAgentTasksSuspenseQuery>;
-export type GetAgentTasksQueryResult = Apollo.QueryResult<
-    GetAgentTasksQuery,
-    GetAgentTasksQueryVariables
->;
+export type GetAgentTasksQueryResult = Apollo.QueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
 export const GetDeliverablesDocument = gql`
-    query GetDeliverables {
-        deliverables {
-            nodes {
-                id
-                title
-                description
-                status
-                type
-                acceptanceCriteria
-                executionPlan
-                agentFeedback
-                securityImpact
-                performanceImpact
-                testPlan
-                deploymentPlan
-                blocking
-            }
-        }
+    query GetDeliverables($projectId: UUID) {
+  deliverables(where: {projectId: {eq: $projectId}}) {
+    nodes {
+      id
+      title
+      description
+      status
+      type
+      projectId
+      acceptanceCriteria
+      executionPlan
+      agentFeedback
+      securityImpact
+      performanceImpact
+      testPlan
+      deploymentPlan
+      blocking
     }
-`;
+  }
+}
+    `;
 
 /**
  * __useGetDeliverablesQuery__
@@ -1889,97 +1417,49 @@ export const GetDeliverablesDocument = gql`
  * @example
  * const { data, loading, error } = useGetDeliverablesQuery({
  *   variables: {
+ *      projectId: // value for 'projectId'
  *   },
  * });
  */
-export function useGetDeliverablesQuery(
-    baseOptions?: ApolloReactHooks.QueryHookOptions<
-        GetDeliverablesQuery,
-        GetDeliverablesQueryVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(
-        GetDeliverablesDocument,
-        options
-    );
-}
-export function useGetDeliverablesLazyQuery(
-    baseOptions?: ApolloReactHooks.LazyQueryHookOptions<
-        GetDeliverablesQuery,
-        GetDeliverablesQueryVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useLazyQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(
-        GetDeliverablesDocument,
-        options
-    );
-}
+export function useGetDeliverablesQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(GetDeliverablesDocument, options);
+      }
+export function useGetDeliverablesLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(GetDeliverablesDocument, options);
+        }
 // @ts-ignore
-export function useGetDeliverablesSuspenseQuery(
-    baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<
-        GetDeliverablesQuery,
-        GetDeliverablesQueryVariables
-    >
-): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverablesQuery, GetDeliverablesQueryVariables>;
-export function useGetDeliverablesSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<
-              GetDeliverablesQuery,
-              GetDeliverablesQueryVariables
-          >
-): ApolloReactHooks.UseSuspenseQueryResult<
-    GetDeliverablesQuery | undefined,
-    GetDeliverablesQueryVariables
->;
-export function useGetDeliverablesSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<
-              GetDeliverablesQuery,
-              GetDeliverablesQueryVariables
-          >
-) {
-    const options =
-        baseOptions === ApolloReactHooks.skipToken
-            ? baseOptions
-            : { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useSuspenseQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(
-        GetDeliverablesDocument,
-        options
-    );
-}
+export function useGetDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverablesQuery, GetDeliverablesQueryVariables>;
+export function useGetDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverablesQuery | undefined, GetDeliverablesQueryVariables>;
+export function useGetDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(GetDeliverablesDocument, options);
+        }
 export type GetDeliverablesQueryHookResult = ReturnType<typeof useGetDeliverablesQuery>;
 export type GetDeliverablesLazyQueryHookResult = ReturnType<typeof useGetDeliverablesLazyQuery>;
-export type GetDeliverablesSuspenseQueryHookResult = ReturnType<
-    typeof useGetDeliverablesSuspenseQuery
->;
-export type GetDeliverablesQueryResult = Apollo.QueryResult<
-    GetDeliverablesQuery,
-    GetDeliverablesQueryVariables
->;
+export type GetDeliverablesSuspenseQueryHookResult = ReturnType<typeof useGetDeliverablesSuspenseQuery>;
+export type GetDeliverablesQueryResult = Apollo.QueryResult<GetDeliverablesQuery, GetDeliverablesQueryVariables>;
 export const GetDeliverableDocument = gql`
     query GetDeliverable($id: UUID!) {
-        deliverable(id: $id) {
-            id
-            title
-            description
-            status
-            type
-            acceptanceCriteria
-            executionPlan
-            agentFeedback
-            securityImpact
-            performanceImpact
-            testPlan
-            deploymentPlan
-            blocking
-            projectId
-        }
-    }
-`;
+  deliverable(id: $id) {
+    id
+    title
+    description
+    status
+    type
+    projectId
+    acceptanceCriteria
+    executionPlan
+    agentFeedback
+    securityImpact
+    performanceImpact
+    testPlan
+    deploymentPlan
+    blocking
+  }
+}
+    `;
 
 /**
  * __useGetDeliverableQuery__
@@ -1997,88 +1477,38 @@ export const GetDeliverableDocument = gql`
  *   },
  * });
  */
-export function useGetDeliverableQuery(
-    baseOptions: ApolloReactHooks.QueryHookOptions<
-        GetDeliverableQuery,
-        GetDeliverableQueryVariables
-    > &
-        ({ variables: GetDeliverableQueryVariables; skip?: boolean } | { skip: boolean })
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useQuery<GetDeliverableQuery, GetDeliverableQueryVariables>(
-        GetDeliverableDocument,
-        options
-    );
-}
-export function useGetDeliverableLazyQuery(
-    baseOptions?: ApolloReactHooks.LazyQueryHookOptions<
-        GetDeliverableQuery,
-        GetDeliverableQueryVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useLazyQuery<GetDeliverableQuery, GetDeliverableQueryVariables>(
-        GetDeliverableDocument,
-        options
-    );
-}
+export function useGetDeliverableQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetDeliverableQuery, GetDeliverableQueryVariables> & ({ variables: GetDeliverableQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetDeliverableQuery, GetDeliverableQueryVariables>(GetDeliverableDocument, options);
+      }
+export function useGetDeliverableLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetDeliverableQuery, GetDeliverableQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetDeliverableQuery, GetDeliverableQueryVariables>(GetDeliverableDocument, options);
+        }
 // @ts-ignore
-export function useGetDeliverableSuspenseQuery(
-    baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<
-        GetDeliverableQuery,
-        GetDeliverableQueryVariables
-    >
-): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverableQuery, GetDeliverableQueryVariables>;
-export function useGetDeliverableSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<
-              GetDeliverableQuery,
-              GetDeliverableQueryVariables
-          >
-): ApolloReactHooks.UseSuspenseQueryResult<
-    GetDeliverableQuery | undefined,
-    GetDeliverableQueryVariables
->;
-export function useGetDeliverableSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<
-              GetDeliverableQuery,
-              GetDeliverableQueryVariables
-          >
-) {
-    const options =
-        baseOptions === ApolloReactHooks.skipToken
-            ? baseOptions
-            : { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useSuspenseQuery<GetDeliverableQuery, GetDeliverableQueryVariables>(
-        GetDeliverableDocument,
-        options
-    );
-}
+export function useGetDeliverableSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverableQuery, GetDeliverableQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverableQuery, GetDeliverableQueryVariables>;
+export function useGetDeliverableSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverableQuery, GetDeliverableQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverableQuery | undefined, GetDeliverableQueryVariables>;
+export function useGetDeliverableSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverableQuery, GetDeliverableQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetDeliverableQuery, GetDeliverableQueryVariables>(GetDeliverableDocument, options);
+        }
 export type GetDeliverableQueryHookResult = ReturnType<typeof useGetDeliverableQuery>;
 export type GetDeliverableLazyQueryHookResult = ReturnType<typeof useGetDeliverableLazyQuery>;
-export type GetDeliverableSuspenseQueryHookResult = ReturnType<
-    typeof useGetDeliverableSuspenseQuery
->;
-export type GetDeliverableQueryResult = Apollo.QueryResult<
-    GetDeliverableQuery,
-    GetDeliverableQueryVariables
->;
+export type GetDeliverableSuspenseQueryHookResult = ReturnType<typeof useGetDeliverableSuspenseQuery>;
+export type GetDeliverableQueryResult = Apollo.QueryResult<GetDeliverableQuery, GetDeliverableQueryVariables>;
 export const ModelConfigurationsDocument = gql`
     query ModelConfigurations {
-        largeLanguageModels {
-            id
-            url
-            model
-            modelAlias
-            apiKey
-            maxComplexity
-            maxConcurrency
-        }
-    }
-`;
+  largeLanguageModels {
+    id
+    url
+    model
+    modelAlias
+    apiKey
+    maxComplexity
+    maxConcurrency
+  }
+}
+    `;
 
 /**
  * __useModelConfigurationsQuery__
@@ -2095,89 +1525,35 @@ export const ModelConfigurationsDocument = gql`
  *   },
  * });
  */
-export function useModelConfigurationsQuery(
-    baseOptions?: ApolloReactHooks.QueryHookOptions<
-        ModelConfigurationsQuery,
-        ModelConfigurationsQueryVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useQuery<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>(
-        ModelConfigurationsDocument,
-        options
-    );
-}
-export function useModelConfigurationsLazyQuery(
-    baseOptions?: ApolloReactHooks.LazyQueryHookOptions<
-        ModelConfigurationsQuery,
-        ModelConfigurationsQueryVariables
-    >
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useLazyQuery<
-        ModelConfigurationsQuery,
-        ModelConfigurationsQueryVariables
-    >(ModelConfigurationsDocument, options);
-}
+export function useModelConfigurationsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>(ModelConfigurationsDocument, options);
+      }
+export function useModelConfigurationsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>(ModelConfigurationsDocument, options);
+        }
 // @ts-ignore
-export function useModelConfigurationsSuspenseQuery(
-    baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<
-        ModelConfigurationsQuery,
-        ModelConfigurationsQueryVariables
-    >
-): ApolloReactHooks.UseSuspenseQueryResult<
-    ModelConfigurationsQuery,
-    ModelConfigurationsQueryVariables
->;
-export function useModelConfigurationsSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<
-              ModelConfigurationsQuery,
-              ModelConfigurationsQueryVariables
-          >
-): ApolloReactHooks.UseSuspenseQueryResult<
-    ModelConfigurationsQuery | undefined,
-    ModelConfigurationsQueryVariables
->;
-export function useModelConfigurationsSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<
-              ModelConfigurationsQuery,
-              ModelConfigurationsQueryVariables
-          >
-) {
-    const options =
-        baseOptions === ApolloReactHooks.skipToken
-            ? baseOptions
-            : { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useSuspenseQuery<
-        ModelConfigurationsQuery,
-        ModelConfigurationsQueryVariables
-    >(ModelConfigurationsDocument, options);
-}
+export function useModelConfigurationsSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>;
+export function useModelConfigurationsSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<ModelConfigurationsQuery | undefined, ModelConfigurationsQueryVariables>;
+export function useModelConfigurationsSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>(ModelConfigurationsDocument, options);
+        }
 export type ModelConfigurationsQueryHookResult = ReturnType<typeof useModelConfigurationsQuery>;
-export type ModelConfigurationsLazyQueryHookResult = ReturnType<
-    typeof useModelConfigurationsLazyQuery
->;
-export type ModelConfigurationsSuspenseQueryHookResult = ReturnType<
-    typeof useModelConfigurationsSuspenseQuery
->;
-export type ModelConfigurationsQueryResult = Apollo.QueryResult<
-    ModelConfigurationsQuery,
-    ModelConfigurationsQueryVariables
->;
+export type ModelConfigurationsLazyQueryHookResult = ReturnType<typeof useModelConfigurationsLazyQuery>;
+export type ModelConfigurationsSuspenseQueryHookResult = ReturnType<typeof useModelConfigurationsSuspenseQuery>;
+export type ModelConfigurationsQueryResult = Apollo.QueryResult<ModelConfigurationsQuery, ModelConfigurationsQueryVariables>;
 export const GetProjectDocument = gql`
     query GetProject($id: UUID!) {
-        project(id: $id) {
-            id
-            name
-            description
-            repository
-        }
-    }
-`;
+  project(id: $id) {
+    id
+    name
+    description
+    repository
+  }
+}
+    `;
 
 /**
  * __useGetProjectQuery__
@@ -2195,67 +1571,37 @@ export const GetProjectDocument = gql`
  *   },
  * });
  */
-export function useGetProjectQuery(
-    baseOptions: ApolloReactHooks.QueryHookOptions<GetProjectQuery, GetProjectQueryVariables> &
-        ({ variables: GetProjectQueryVariables; skip?: boolean } | { skip: boolean })
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useQuery<GetProjectQuery, GetProjectQueryVariables>(
-        GetProjectDocument,
-        options
-    );
-}
-export function useGetProjectLazyQuery(
-    baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetProjectQuery, GetProjectQueryVariables>
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useLazyQuery<GetProjectQuery, GetProjectQueryVariables>(
-        GetProjectDocument,
-        options
-    );
-}
+export function useGetProjectQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetProjectQuery, GetProjectQueryVariables> & ({ variables: GetProjectQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetProjectQuery, GetProjectQueryVariables>(GetProjectDocument, options);
+      }
+export function useGetProjectLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetProjectQuery, GetProjectQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetProjectQuery, GetProjectQueryVariables>(GetProjectDocument, options);
+        }
 // @ts-ignore
-export function useGetProjectSuspenseQuery(
-    baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<
-        GetProjectQuery,
-        GetProjectQueryVariables
-    >
-): ApolloReactHooks.UseSuspenseQueryResult<GetProjectQuery, GetProjectQueryVariables>;
-export function useGetProjectSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<GetProjectQuery, GetProjectQueryVariables>
-): ApolloReactHooks.UseSuspenseQueryResult<GetProjectQuery | undefined, GetProjectQueryVariables>;
-export function useGetProjectSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<GetProjectQuery, GetProjectQueryVariables>
-) {
-    const options =
-        baseOptions === ApolloReactHooks.skipToken
-            ? baseOptions
-            : { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useSuspenseQuery<GetProjectQuery, GetProjectQueryVariables>(
-        GetProjectDocument,
-        options
-    );
-}
+export function useGetProjectSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetProjectQuery, GetProjectQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetProjectQuery, GetProjectQueryVariables>;
+export function useGetProjectSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetProjectQuery, GetProjectQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetProjectQuery | undefined, GetProjectQueryVariables>;
+export function useGetProjectSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetProjectQuery, GetProjectQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetProjectQuery, GetProjectQueryVariables>(GetProjectDocument, options);
+        }
 export type GetProjectQueryHookResult = ReturnType<typeof useGetProjectQuery>;
 export type GetProjectLazyQueryHookResult = ReturnType<typeof useGetProjectLazyQuery>;
 export type GetProjectSuspenseQueryHookResult = ReturnType<typeof useGetProjectSuspenseQuery>;
 export type GetProjectQueryResult = Apollo.QueryResult<GetProjectQuery, GetProjectQueryVariables>;
 export const GetProjectsDocument = gql`
     query GetProjects {
-        projects {
-            nodes {
-                id
-                name
-                description
-                repository
-            }
-        }
+  projects {
+    nodes {
+      id
+      name
+      description
+      repository
     }
-`;
+  }
+}
+    `;
 
 /**
  * __useGetProjectsQuery__
@@ -2272,54 +1618,22 @@ export const GetProjectsDocument = gql`
  *   },
  * });
  */
-export function useGetProjectsQuery(
-    baseOptions?: ApolloReactHooks.QueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useQuery<GetProjectsQuery, GetProjectsQueryVariables>(
-        GetProjectsDocument,
-        options
-    );
-}
-export function useGetProjectsLazyQuery(
-    baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>
-) {
-    const options = { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useLazyQuery<GetProjectsQuery, GetProjectsQueryVariables>(
-        GetProjectsDocument,
-        options
-    );
-}
+export function useGetProjectsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetProjectsQuery, GetProjectsQueryVariables>(GetProjectsDocument, options);
+      }
+export function useGetProjectsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetProjectsQuery, GetProjectsQueryVariables>(GetProjectsDocument, options);
+        }
 // @ts-ignore
-export function useGetProjectsSuspenseQuery(
-    baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<
-        GetProjectsQuery,
-        GetProjectsQueryVariables
-    >
-): ApolloReactHooks.UseSuspenseQueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
-export function useGetProjectsSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>
-): ApolloReactHooks.UseSuspenseQueryResult<GetProjectsQuery | undefined, GetProjectsQueryVariables>;
-export function useGetProjectsSuspenseQuery(
-    baseOptions?:
-        | ApolloReactHooks.SkipToken
-        | ApolloReactHooks.SuspenseQueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>
-) {
-    const options =
-        baseOptions === ApolloReactHooks.skipToken
-            ? baseOptions
-            : { ...defaultOptions, ...baseOptions };
-    return ApolloReactHooks.useSuspenseQuery<GetProjectsQuery, GetProjectsQueryVariables>(
-        GetProjectsDocument,
-        options
-    );
-}
+export function useGetProjectsSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
+export function useGetProjectsSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetProjectsQuery | undefined, GetProjectsQueryVariables>;
+export function useGetProjectsSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetProjectsQuery, GetProjectsQueryVariables>(GetProjectsDocument, options);
+        }
 export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
 export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLazyQuery>;
 export type GetProjectsSuspenseQueryHookResult = ReturnType<typeof useGetProjectsSuspenseQuery>;
-export type GetProjectsQueryResult = Apollo.QueryResult<
-    GetProjectsQuery,
-    GetProjectsQueryVariables
->;
+export type GetProjectsQueryResult = Apollo.QueryResult<GetProjectsQuery, GetProjectsQueryVariables>;

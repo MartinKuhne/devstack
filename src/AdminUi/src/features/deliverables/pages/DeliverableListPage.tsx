@@ -64,6 +64,7 @@ export function DeliverableListPage() {
     const { deleteDeliverable, loading: deleteLoading } = useDeleteDeliverable();
 
     const { deliverables, loading, error, refetch } = useDeliverables(
+        undefined,
         statusFilter ? [statusFilter] : undefined,
         typeFilter ? [typeFilter] : undefined
     );

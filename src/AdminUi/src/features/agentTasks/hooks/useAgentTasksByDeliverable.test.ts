@@ -18,24 +18,7 @@ describe('useAgentTasksByDeliverable', () => {
         vi.clearAllMocks();
     });
 
-    it('skips query when no deliverableId', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetAgentTasksQuery.mockReturnValue({
-            data: undefined,
-            loading: false,
-            error: undefined,
-            refetch: vi.fn(),
-        });
-
-        const { useAgentTasksByDeliverable } = await import('./useAgentTasksByDeliverable');
-        renderHook(() => useAgentTasksByDeliverable());
-
-        expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith(
-            expect.objectContaining({ skip: true }),
-        );
-    });
-
-    it('runs query when deliverableId is provided', async () => {
+    it('passes deliverableId to useAgentTasks', async () => {
         const hooks = await getMockedQuery();
         hooks.useGetAgentTasksQuery.mockReturnValue({
             data: {
@@ -56,9 +39,32 @@ describe('useAgentTasksByDeliverable', () => {
         expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith(
             expect.objectContaining({
                 variables: { deliverableId: 'del-123' },
-                skip: false,
+                fetchPolicy: 'cache-and-network',
             }),
         );
+    });
+
+    it('fetches all tasks when no deliverableId', async () => {
+        const hooks = await getMockedQuery();
+        hooks.useGetAgentTasksQuery.mockReturnValue({
+            data: {
+                agentTasks: {
+                    nodes: [
+                        { id: '1', status: 'READY' as AgentTaskStatus, title: 'Task 1' },
+                    ],
+                },
+            },
+            loading: false,
+            error: undefined,
+            refetch: vi.fn(),
+        });
+
+        const { useAgentTasksByDeliverable } = await import('./useAgentTasksByDeliverable');
+        renderHook(() => useAgentTasksByDeliverable());
+
+        expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith({
+            fetchPolicy: 'cache-and-network',
+        });
     });
 
     it('returns tasks for a deliverable', async () => {
@@ -105,27 +111,5 @@ describe('useAgentTasksByDeliverable', () => {
 
         expect(result.current.agentTasks).toHaveLength(2);
         expect(result.current.agentTasks.every((t) => t.status === 'READY')).toBe(true);
-    });
-
-    it('includes null tasks when no status filter is applied', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetAgentTasksQuery.mockReturnValue({
-            data: {
-                agentTasks: {
-                    nodes: [
-                        { id: '1', status: 'READY' as AgentTaskStatus, title: 'Task 1' },
-                        null,
-                    ],
-                },
-            },
-            loading: false,
-            error: undefined,
-            refetch: vi.fn(),
-        });
-
-        const { useAgentTasksByDeliverable } = await import('./useAgentTasksByDeliverable');
-        const { result } = renderHook(() => useAgentTasksByDeliverable('del-123'));
-
-        expect(result.current.agentTasks).toHaveLength(2);
     });
 });
