@@ -5,6 +5,7 @@ using DevStack.Persistence;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Domain.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Api.GraphQL.Types;
 
@@ -315,6 +316,12 @@ public class Mutation
             agentTask.Status = targetStatus;            
             await dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        if (targetStatus == AgentTaskStatus.Done)
+        {
+            await CheckAndMarkDeliverableDoneAsync(dbContext, agentTask.DeliverableId, cancellationToken);
+        }
+
         return targetStatus;
     }
 
@@ -402,6 +409,47 @@ public class Mutation
         catch (Exception ex)
         {
             return new CleanupTestDataPayload(false, ex.Message);
+        }
+    }
+
+    public async Task<bool> CheckAndMarkDeliverableDoneAsync(
+        [Service] DevStackDbContext dbContext,
+        Guid deliverableId,
+        CancellationToken cancellationToken)
+    {
+        var deliverable = await dbContext.Deliverables.FindAsync(deliverableId, cancellationToken);
+        if (deliverable == null)
+        {
+            return false;
+        }
+
+        var allTasks = await dbContext.AgentTasks
+            .Where(t => t.DeliverableId == deliverableId)
+            .ToListAsync(cancellationToken);
+
+        if (!allTasks.Any())
+        {
+            await SetDeliverableToDoneAsync(dbContext, deliverableId, cancellationToken);
+            return true;
+        }
+
+        var allDone = allTasks.All(t => t.Status == AgentTaskStatus.Done);
+        if (allDone)
+        {
+            await SetDeliverableToDoneAsync(dbContext, deliverableId, cancellationToken);
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task SetDeliverableToDoneAsync(DevStackDbContext dbContext, Guid deliverableId, CancellationToken cancellationToken)
+    {
+        var deliverable = await dbContext.Deliverables.FindAsync(deliverableId, cancellationToken);
+        if (deliverable != null && deliverable.Status != DeliverableStatus.Done)
+        {
+            deliverable.Status = DeliverableStatus.Done;
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }
