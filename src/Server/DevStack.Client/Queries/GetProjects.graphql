@@ -1,5 +1,5 @@
-query GetProjects($first: Int!) {
-  projects(first: $first) {
+query GetProjects($first: Int!, $repository: String) {
+  projects(first: $first, where: { repository: { eq: $repository } }) {
     nodes {
       id
       name
