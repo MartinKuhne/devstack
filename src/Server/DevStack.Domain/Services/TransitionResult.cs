@@ -14,9 +14,13 @@ public readonly struct TransitionResult<T>
     public T Value { get; }
     public IReadOnlyList<string> Errors { get; }
     public bool IsSuccess { get; }
+    public bool IsFailure => !IsSuccess;
 
-    public static TransitionResult<T> Success(T value) => new(value, Array.Empty<string>());
+    public static implicit operator TransitionResult<T>(T value) => new(value, Array.Empty<string>());
+
+    public static TransitionResult<T> Success(T value) => value;
     public static TransitionResult<T> Failure(IReadOnlyList<string> errors) => new(default!, errors);
+    public static TransitionResult<T> Failure(string errorMessage) => new(default!, [errorMessage]);
 }
 
 public readonly struct Unit
