@@ -1,13 +1,7 @@
 mutation CreateDeliverable($input: CreateDeliverableInput!) {
     createDeliverable(input: $input) {
-        deliverable {
-            id
-            title
-            status
-        }
-        errors {
-            field
-            message
-        }
+        id
+        title
+        status
     }
 }

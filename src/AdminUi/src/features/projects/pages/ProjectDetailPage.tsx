@@ -58,17 +58,13 @@ export function ProjectDetailPage() {
         try {
             const result = await deleteProject({
                 variables: {
-                    input: { id: project.id },
+                    id: project.id,
                 },
             });
-            if (result.data?.deleteProject?.errors?.length) {
-                const errorMessages = result.data.deleteProject.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
-                logger.warn('Failed to delete project', {
-                    id: project.id,
-                    errors: errorMessages,
-                });
-                toast.error(errorMessage);
+            const deleted = result.data?.deleteProject;
+            if (!deleted) {
+                logger.warn('Failed to delete project', { id: project.id });
+                toast.error('Failed to delete project');
             } else {
                 logger.info('Project deleted successfully', { id: project.id });
                 toast.success('Project deleted successfully');
@@ -237,34 +233,36 @@ export function ProjectDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {deliverables.map((deliverable) => deliverable ? (
-                                            <TableRow
-                                                key={deliverable.id ?? ''}
-                                                className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() =>
-                                                    deliverable.id &&
-                                                    navigate(`/deliverables/${deliverable.id}`)
-                                                }
-                                            >
-                                                <TableCell className="font-medium">
-                                                    {deliverable.title}
-                                                </TableCell>
-                                                <TableCell>{deliverable.type}</TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        className={getStatusColor(
-                                                            deliverable.status ?? undefined,
-                                                            PROJECT_STATUS_COLORS
-                                                        )}
-                                                    >
-                                                        {deliverable.status}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-xs font-mono">
-                                                    {deliverable.id ?? '-'}
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : null)}
+                                        {deliverables.map((deliverable) =>
+                                            deliverable ? (
+                                                <TableRow
+                                                    key={deliverable.id ?? ''}
+                                                    className="cursor-pointer hover:bg-muted/50"
+                                                    onClick={() =>
+                                                        deliverable.id &&
+                                                        navigate(`/deliverables/${deliverable.id}`)
+                                                    }
+                                                >
+                                                    <TableCell className="font-medium">
+                                                        {deliverable.title}
+                                                    </TableCell>
+                                                    <TableCell>{deliverable.type}</TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            className={getStatusColor(
+                                                                deliverable.status ?? undefined,
+                                                                PROJECT_STATUS_COLORS
+                                                            )}
+                                                        >
+                                                            {deliverable.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-xs font-mono">
+                                                        {deliverable.id ?? '-'}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : null
+                                        )}
                                     </TableBody>
                                 </Table>
                             ) : (
@@ -331,34 +329,37 @@ export function ProjectDetailPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {agentTasks.map((task) => task ? (
-                                            <TableRow
-                                                key={task.id ?? ''}
-                                                className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() =>
-                                                    task.id && navigate(`/agent-tasks/${task.id}`)
-                                                }
-                                            >
-                                                <TableCell className="font-medium">
-                                                    {task.title}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        className={getStatusColor(
-                                                            task.status ?? undefined,
-                                                            AGENT_TASK_STATUS_COLORS
-                                                        )}
-                                                    >
-                                                        {task.status}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>{task.agent || '-'}</TableCell>
-                                                <TableCell>
-                                                    {(task.promptTokens ?? 0) +
-                                                        (task.completionTokens ?? 0)}
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : null)}
+                                        {agentTasks.map((task) =>
+                                            task ? (
+                                                <TableRow
+                                                    key={task.id ?? ''}
+                                                    className="cursor-pointer hover:bg-muted/50"
+                                                    onClick={() =>
+                                                        task.id &&
+                                                        navigate(`/agent-tasks/${task.id}`)
+                                                    }
+                                                >
+                                                    <TableCell className="font-medium">
+                                                        {task.title}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            className={getStatusColor(
+                                                                task.status ?? undefined,
+                                                                AGENT_TASK_STATUS_COLORS
+                                                            )}
+                                                        >
+                                                            {task.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>{task.agent || '-'}</TableCell>
+                                                    <TableCell>
+                                                        {(task.promptTokens ?? 0) +
+                                                            (task.completionTokens ?? 0)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : null
+                                        )}
                                     </TableBody>
                                 </Table>
                             ) : (
@@ -380,17 +381,12 @@ export function ProjectDetailPage() {
                         ? {
                               id: project.id ?? '',
                               name: project.name ?? '',
-                              description: project.description ?? null,
-                              repository: project.repository ?? null,
+                              description: project.description ?? '',
+                              repository: project.repository ?? '',
                           }
                         : null
                 }
                 onSuccess={() => refetch()}
-                onError={(error) => {
-                    if (error.includes('deleted')) {
-                        navigate('/projects');
-                    }
-                }}
             />
             <LargeLanguageModelDialog
                 open={addModelDialogOpen}
@@ -412,6 +408,7 @@ export function ProjectDetailPage() {
                 open={createAgentTaskDialogOpen}
                 onOpenChange={setCreateAgentTaskDialogOpen}
                 deliverableId={id ?? ''}
+                projectId={project?.id ?? ''}
                 onSuccess={() => {
                     refetchAgentTasks();
                 }}

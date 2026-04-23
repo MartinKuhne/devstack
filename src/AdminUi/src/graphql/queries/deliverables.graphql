@@ -18,8 +18,8 @@ query GetDeliverables {
     }
 }
 
-query GetDeliverableById($id: UUID!) {
-    deliverableById(id: $id) {
+query GetDeliverable($id: UUID!) {
+    deliverable(id: $id) {
         id
         title
         description

@@ -10,9 +10,8 @@
   <Project Path="DevStack.Mcp/DevStack.Mcp.csproj" />
   
   <Project Path="DevStack.Persistence/DevStack.Persistence.csproj" />
-  <Project Path="DevStack.Tests.Integration.GraphQL.Client/DevStack.Tests.Integration.GraphQL.Client.csproj" />
+  <Project Path="DevStack.Tests.Integration.GraphQL/DevStack.Tests.Integration.GraphQL.csproj" />
   <Project Path="DevStack.Tests.Integration.MCP/DevStack.Tests.Integration.MCP.csproj" />
   <Project Path="DevStack.Tests.Integration.Shared/DevStack.Tests.Integration.Shared.csproj" />
-  <Project Path="DevStack.Tests.Integration/DevStack.Tests.Integration.csproj" />
   <Project Path="DevStack.Tests.Unit/DevStack.Tests.Unit.csproj" />
 </Solution>

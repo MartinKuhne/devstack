@@ -1,5 +1,5 @@
 query GetProject($id: UUID!) {
-    projectById(id: $id) {
+    project(id: $id) {
         id
         name
         description

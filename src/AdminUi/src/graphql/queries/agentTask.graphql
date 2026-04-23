@@ -1,5 +1,5 @@
-query GetAgentTaskById($id: UUID!) {
-    agentTaskById(id: $id) {
+query GetAgentTask($id: UUID!) {
+    agentTask(id: $id) {
         id
         title
         status
@@ -17,8 +17,8 @@ query GetAgentTaskById($id: UUID!) {
     }
 }
 
-query GetAgentTasks($deliverableId: UUID) {
-    agentTasks(deliverableId: $deliverableId) {
+query GetAgentTasks {
+    agentTasks {
         nodes {
             id
             title

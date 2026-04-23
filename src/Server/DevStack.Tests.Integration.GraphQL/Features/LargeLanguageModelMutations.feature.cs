@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace DevStack.Tests.Integration.GraphQL.Client.Features
+namespace DevStack.Tests.Integration.GraphQL.Features
 {
     using TechTalk.SpecFlow;
     using System;
@@ -31,7 +31,7 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Features
 #line 1 "LargeLanguageModelMutations.feature"
 #line hidden
         
-        public LargeLanguageModelMutationsFeature(LargeLanguageModelMutationsFeature.FixtureData fixtureData, DevStack_Tests_Integration_GraphQL_Client_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public LargeLanguageModelMutationsFeature(LargeLanguageModelMutationsFeature.FixtureData fixtureData, DevStack_Tests_Integration_GraphQL_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();

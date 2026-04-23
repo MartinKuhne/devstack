@@ -1,16 +1,16 @@
-import { useGetAgentTaskByIdQuery } from '@/generated/graphql';
+import { useGetAgentTaskQuery } from '@/generated/graphql';
 import { createModuleLogger } from '@/lib/logging';
 
 const logger = createModuleLogger('useAgentTask');
 
 export function useAgentTask(id: string) {
-    const { data, loading, error, refetch } = useGetAgentTaskByIdQuery({
+    const { data, loading, error, refetch } = useGetAgentTaskQuery({
         variables: { id },
         fetchPolicy: 'cache-and-network',
         skip: !id,
     });
 
-    const agentTask = data?.agentTaskById ?? null;
+    const agentTask = data?.agentTask ?? null;
 
     if (!loading && !agentTask && !error && id) {
         logger.warn('Agent task not found', { id });

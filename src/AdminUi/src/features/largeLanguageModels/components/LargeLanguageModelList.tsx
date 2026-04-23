@@ -45,12 +45,12 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         try {
             const result = await deleteLargeLanguageModel({
                 variables: {
-                    input: { id: modelId },
+                    id: modelId,
                 },
             });
-            if (result.data?.deleteLargeLanguageModel?.errors?.length) {
-                const errorMessages = result.data.deleteLargeLanguageModel.errors.map((e: { field: string; message: string }) => e.message);
-                toast.error(errorMessages.join(', '));
+            const deleted = result.data?.deleteLargeLanguageModel;
+            if (!deleted) {
+                toast.error('Failed to delete model');
             } else {
                 toast.success('Model deleted successfully');
                 onRefetch?.();
@@ -120,54 +120,72 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                 </Card>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {largeLanguageModels.map((config) => config ? (
-                        <Card key={config.id}>
-                            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                                <CardTitle className="text-base">
-                                    {config.modelAlias ?? config.model ?? ''}
-                                </CardTitle>
-                                <div className="flex gap-1">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => handleEdit(config)}
-                                    >
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-destructive hover:text-destructive"
-                                        onClick={() => config.id && handleDelete(config.id)}
-                                        disabled={deleting}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="space-y-1">
-                                    <p className="text-xs text-muted-foreground">Model</p>
-                                    <p className="text-sm font-medium">{config.model}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-muted-foreground">URL</p>
-                                    <p className="text-sm truncate" title={config.url ?? ''}>
-                                        {config.url}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-muted-foreground">Max Complexity</p>
-                                    <Badge
-                                        variant={getComplexityVariant(config.maxComplexity ?? 0)}
-                                    >
-                                        {config.maxComplexity}
-                                    </Badge>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ) : null)}
+                    {largeLanguageModels.map(
+                        (
+                            config: {
+                                id: any;
+                                model: string;
+                                modelAlias?: string | null;
+                                url: string;
+                                maxComplexity: number;
+                            } | null
+                        ) =>
+                            config ? (
+                                <Card key={config.id}>
+                                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                                        <CardTitle className="text-base">
+                                            {config.modelAlias ?? config.model ?? ''}
+                                        </CardTitle>
+                                        <div className="flex gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8"
+                                                onClick={() => handleEdit(config)}
+                                            >
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                                onClick={() => config.id && handleDelete(config.id)}
+                                                disabled={deleting}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-muted-foreground">Model</p>
+                                            <p className="text-sm font-medium">{config.model}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-muted-foreground">URL</p>
+                                            <p
+                                                className="text-sm truncate"
+                                                title={config.url ?? ''}
+                                            >
+                                                {config.url}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-muted-foreground">
+                                                Max Complexity
+                                            </p>
+                                            <Badge
+                                                variant={getComplexityVariant(
+                                                    config.maxComplexity ?? 0
+                                                )}
+                                            >
+                                                {config.maxComplexity}
+                                            </Badge>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ) : null
+                    )}
                 </div>
             )}
             <LargeLanguageModelDialog

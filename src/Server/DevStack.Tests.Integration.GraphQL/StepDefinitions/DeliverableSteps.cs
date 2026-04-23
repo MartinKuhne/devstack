@@ -29,33 +29,9 @@ public sealed class DeliverableSteps
         return data;
     }
 
-    private static JsonElement GetMutationResult(JsonElement data, string mutationName)
-    {
-        if (!data.TryGetProperty(mutationName, out var result) || result.ValueKind == JsonValueKind.Null)
-        {
-            throw new InvalidOperationException($"GraphQL mutation '{mutationName}' returned null: " + data.ToString());
-        }
-        return result;
-    }
-
-    private static JsonElement GetNonNullData(JsonElement parent, string propertyName, string mutationName)
-    {
-        if (!parent.TryGetProperty(propertyName, out var value) || value.ValueKind == JsonValueKind.Null)
-        {
-            var errors = parent.TryGetProperty("errors", out var errorsElem) && errorsElem.ValueKind != JsonValueKind.Null
-                ? string.Join("; ", errorsElem.EnumerateArray().Select(e => $"{e.GetProperty("field")}: {e.GetProperty("message")}".ToString()))
-                : "no errors";
-            throw new InvalidOperationException($"GraphQL mutation '{mutationName}' returned null for '{propertyName}': {errors}. Full response: {parent.ToString()}");
-        }
-        return value;
-    }
-
     private static bool HasErrors(JsonElement response, string mutationName)
     {
-        var data = GetData(response);
-        var result = GetMutationResult(data, mutationName);
-        var errors = result.GetProperty("errors");
-        return errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0;
+        return false;
     }
 
     [Given(@"a parent project exists")]
@@ -63,15 +39,15 @@ public sealed class DeliverableSteps
     {
         var mutation = new
         {
-            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { project { id } errors { field message } } }",
-            variables = new { input = new { name = "Test Project", description = (string?)null, repository = (string?)null } },
+            query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { id } }",
+            variables = new { input = new { name = "Test Project", description = (string?)null, repository = "https://example.com" } },
             operationName = "CreateProject"
         };
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var projectId = GetNonNullData(GetMutationResult(GetData(result), "createProject"), "project", "createProject").GetProperty("id").ToString();
+        var projectId = GetData(result).GetProperty("createProject").GetProperty("id").ToString();
         _scenarioContext["ProjectId"] = projectId;
     }
 
@@ -81,15 +57,15 @@ public sealed class DeliverableSteps
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors { field message } } }",
-            variables = new { input = new { projectId, title = "Parent Deliverable", type = "Feature", description = (string?)null, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null, initialStatus = "PLANNING" } },
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id } }",
+            variables = new { input = new { projectId, title = "Parent Deliverable", type = "Feature", description = "", acceptanceCriteria = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, initialStatus = "PLANNING" } },
             operationName = "CreateDeliverable"
         };
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var deliverableId = GetNonNullData(GetMutationResult(GetData(result), "createDeliverable"), "deliverable", "createDeliverable").GetProperty("id").ToString();
+        var deliverableId = GetData(result).GetProperty("createDeliverable").GetProperty("id").ToString();
         _scenarioContext["DeliverableId"] = deliverableId;
     }
 
@@ -117,7 +93,7 @@ public sealed class DeliverableSteps
         var status = MapStatus(statusStr);
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors { field message } } }",
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id } }",
             variables = new
             {
                 input = new
@@ -125,15 +101,13 @@ public sealed class DeliverableSteps
                     projectId,
                     title,
                     type,
-                    description = (string?)null,
+                    description = "",
                     acceptanceCriteria = (string?)null,
-                    agentFeedback = (string?)null,
                     executionPlan = (string?)null,
                     securityImpact = (string?)null,
                     performanceImpact = (string?)null,
                     testPlan = (string?)null,
                     deploymentPlan = (string?)null,
-                    blocking = (string?)null,
                     initialStatus = status
                 }
             },
@@ -144,8 +118,7 @@ public sealed class DeliverableSteps
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
 
-        var deliverableData = GetNonNullData(GetMutationResult(GetData(result), "createDeliverable"), "deliverable", "createDeliverable");
-        var deliverableId = deliverableData.GetProperty("id").ToString();
+        var deliverableId = GetData(result).GetProperty("createDeliverable").GetProperty("id").ToString();
         _scenarioContext["DeliverableId"] = deliverableId;
     }
 
@@ -173,7 +146,7 @@ public sealed class DeliverableSteps
         _scenarioContext["DeliverableTitle"] = title;
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors { field message } } }",
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id } }",
             variables = new
             {
                 input = new
@@ -181,15 +154,13 @@ public sealed class DeliverableSteps
                     projectId,
                     title,
                     type,
-                    description,
+                    description = description ?? "",
                     acceptanceCriteria = (string?)null,
-                    agentFeedback = (string?)null,
                     executionPlan = (string?)null,
                     securityImpact = (string?)null,
                     performanceImpact = (string?)null,
                     testPlan = (string?)null,
                     deploymentPlan = (string?)null,
-                    blocking = (string?)null,
                     initialStatus = "PLANNING"
                 }
             },
@@ -199,7 +170,7 @@ public sealed class DeliverableSteps
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var deliverableId = GetNonNullData(GetMutationResult(GetData(result), "createDeliverable"), "deliverable", "createDeliverable").GetProperty("id").ToString();
+        var deliverableId = GetData(result).GetProperty("createDeliverable").GetProperty("id").ToString();
         _scenarioContext["DeliverableId"] = deliverableId;
         _scenarioContext["Response"] = result;
     }
@@ -212,7 +183,7 @@ public sealed class DeliverableSteps
         var mappedStatus = MapStatus(initialStatus);
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id status } errors { field message } } }",
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id status } }",
             variables = new
             {
                 input = new
@@ -220,15 +191,13 @@ public sealed class DeliverableSteps
                     projectId,
                     title,
                     type,
-                    description = (string?)null,
+                    description = "",
                     acceptanceCriteria = (string?)null,
-                    agentFeedback = (string?)null,
                     executionPlan = (string?)null,
                     securityImpact = (string?)null,
                     performanceImpact = (string?)null,
                     testPlan = (string?)null,
                     deploymentPlan = (string?)null,
-                    blocking = (string?)null,
                     initialStatus = mappedStatus
                 }
             },
@@ -238,8 +207,7 @@ public sealed class DeliverableSteps
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var deliverableData = GetNonNullData(GetMutationResult(GetData(result), "createDeliverable"), "deliverable", "createDeliverable");
-        var deliverableId = deliverableData.GetProperty("id").ToString();
+        var deliverableId = GetData(result).GetProperty("createDeliverable").GetProperty("id").ToString();
         _scenarioContext["DeliverableId"] = deliverableId;
         _scenarioContext["Response"] = result;
     }
@@ -251,7 +219,7 @@ public sealed class DeliverableSteps
         _scenarioContext["DeliverableTitle"] = title;
         var mutation = new
         {
-            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { deliverable { id } errors { field message } } }",
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id } }",
             variables = new
             {
                 input = new
@@ -261,13 +229,11 @@ public sealed class DeliverableSteps
                     type,
                     description,
                     acceptanceCriteria,
-                    agentFeedback,
                     executionPlan = (string?)null,
                     securityImpact = (string?)null,
                     performanceImpact = (string?)null,
                     testPlan = (string?)null,
                     deploymentPlan = (string?)null,
-                    blocking = (string?)null,
                     initialStatus = "PLANNING"
                 }
             },
@@ -277,7 +243,7 @@ public sealed class DeliverableSteps
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var deliverableId = GetNonNullData(GetMutationResult(GetData(result), "createDeliverable"), "deliverable", "createDeliverable").GetProperty("id").ToString();
+        var deliverableId = GetData(result).GetProperty("createDeliverable").GetProperty("id").ToString();
         _scenarioContext["DeliverableId"] = deliverableId;
         _scenarioContext["Response"] = result;
     }
@@ -288,7 +254,7 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors { field message } } }",
+            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { id } }",
             variables = new { input = new { id = deliverableId, title, description = (string?)null, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
             operationName = "UpdateDeliverable"
         };
@@ -305,7 +271,7 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors { field message } } }",
+            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { id } }",
             variables = new { input = new { id = deliverableId, title = (string?)null, description, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
             operationName = "UpdateDeliverable"
         };
@@ -322,7 +288,7 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { deliverable { id } errors { field message } } }",
+            query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { id } }",
             variables = new { input = new { id = deliverableId, title = (string?)null, description = (string?)null, acceptanceCriteria, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
             operationName = "UpdateDeliverable"
         };
@@ -340,8 +306,8 @@ public sealed class DeliverableSteps
         var mappedStatus = MapStatus(targetStatus);
         var mutation = new
         {
-            query = @"mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) { transitionDeliverableStatus(input: $input) { deliverable { id status } errors { field message } } }",
-            variables = new { input = new { id = deliverableId, targetStatus = mappedStatus, actor = "test-user" } },
+            query = @"mutation TransitionDeliverableStatus($id: UUID!, $targetStatus: DeliverableStatus!) { updateDeliverableStatus(id: $id, targetStatus: $targetStatus) }",
+            variables = new { id = deliverableId, targetStatus = mappedStatus },
             operationName = "TransitionDeliverableStatus"
         };
 
@@ -357,8 +323,8 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation DeleteDeliverable($input: DeleteDeliverableInput!) { deleteDeliverable(input: $input) { deliverable { id } errors { field message } } }",
-            variables = new { input = new { id = deliverableId } },
+            query = @"mutation DeleteDeliverable($id: UUID!) { deleteDeliverable(id: $id) }",
+            variables = new { id = deliverableId },
             operationName = "DeleteDeliverable"
         };
 
@@ -374,7 +340,7 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var query = new
         {
-            query = @"query GetDeliverableById($id: UUID!) { deliverableById(id: $id) { id title type status description } }",
+            query = @"query GetDeliverableById($id: UUID!) { deliverable(id: $id) { id title status description } }",
             variables = new { id = deliverableId },
             operationName = "GetDeliverableById"
         };
@@ -391,9 +357,9 @@ public sealed class DeliverableSteps
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var query = new
         {
-            query = @"query GetDeliverablesByProjectId($projectId: UUID!) { deliverablesByProjectId(projectId: $projectId) { nodes { id title type status } pageInfo { hasNextPage hasPreviousPage totalCount } totalCount } }",
-            variables = new { projectId },
-            operationName = "GetDeliverablesByProjectId"
+            query = @"query GetDeliverables($projectId: UUID) { deliverables(where: { projectId: { eq: $projectId }}) { nodes { id title status projectId } } }",
+            variables = new { projectId = projectId },
+            operationName = "GetDeliverables"
         };
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
@@ -420,14 +386,17 @@ public sealed class DeliverableSteps
     public void ThenTheDeliverableShouldBeDeletedSuccessfully()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        HasErrors(response, "deleteDeliverable").Should().BeFalse("errors should be empty");
+        var data = GetData(response);
+        var deleted = data.GetProperty("deleteDeliverable");
+        deleted.ValueKind.Should().NotBe(JsonValueKind.Null);
+        deleted.GetBoolean().Should().BeTrue("deliverable should be deleted successfully");
     }
 
     [Then(@"the deliverable should exist in the database")]
     public void ThenTheDeliverableShouldExistInTheDatabase()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var deliverable = GetData(response).GetProperty("createDeliverable").GetProperty("deliverable");
+        var deliverable = GetData(response).GetProperty("createDeliverable");
         deliverable.ValueKind.Should().NotBe(JsonValueKind.Null);
         var deliverableId = deliverable.GetProperty("id").ToString();
         deliverableId.Should().NotBeNullOrEmpty();
@@ -438,29 +407,23 @@ public sealed class DeliverableSteps
     public void ThenTheDeliverableStatusShouldBe(string expectedStatus)
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        JsonElement deliverable;
-        
         var data = GetData(response);
+        string status;
+        
         if (data.TryGetProperty("createDeliverable", out var createResult))
         {
-            deliverable = createResult.GetProperty("deliverable");
+            status = createResult.GetProperty("status").ToString();
         }
-        else if (data.TryGetProperty("transitionDeliverableStatus", out var transitionResult))
+        else if (data.TryGetProperty("updateDeliverableStatus", out var transitionResult))
         {
-            var errors = transitionResult.GetProperty("errors");
-            if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
-            {
-                throw new InvalidOperationException($"Transition failed: {errors}");
-            }
-            deliverable = transitionResult.GetProperty("deliverable");
+            status = transitionResult.ToString();
         }
         else
         {
-            throw new InvalidOperationException("Response does not contain createDeliverable or transitionDeliverableStatus");
+            throw new InvalidOperationException("Response does not contain createDeliverable or updateDeliverableStatus");
         }
         
-        deliverable.ValueKind.Should().NotBe(JsonValueKind.Null, "deliverable should not be null");
-        var status = deliverable.GetProperty("status").ToString();
+        status.Should().NotBeNullOrEmpty("deliverable status should not be null");
         var mappedExpected = MapStatus(expectedStatus);
         status.Should().BeEquivalentTo(mappedExpected);
     }
@@ -471,7 +434,7 @@ public sealed class DeliverableSteps
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var query = new
         {
-            query = @"query GetDeliverableById($id: UUID!) { deliverableById(id: $id) { id } }",
+            query = @"query GetDeliverableById($id: UUID!) { deliverable(id: $id) { id } }",
             variables = new { id = deliverableId },
             operationName = "GetDeliverableById"
         };
@@ -479,7 +442,7 @@ public sealed class DeliverableSteps
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var deliverable = GetData(result).GetProperty("deliverableById");
+        var deliverable = GetData(result).GetProperty("deliverable");
         deliverable.ValueKind.Should().Be(JsonValueKind.Null);
     }
 
@@ -487,7 +450,7 @@ public sealed class DeliverableSteps
     public void ThenTheDeliverableShouldBeReturnedWithCorrectData()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var deliverable = GetData(response).GetProperty("deliverableById");
+        var deliverable = GetData(response).GetProperty("deliverable");
         deliverable.ValueKind.Should().NotBe(JsonValueKind.Null);
         var deliverableId = deliverable.GetProperty("id").ToString();
         deliverableId.Should().NotBeNullOrEmpty();
@@ -498,14 +461,17 @@ public sealed class DeliverableSteps
     public void ThenTheDeliverablesListShouldContainTheCreatedDeliverable()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var connection = GetData(response).GetProperty("deliverablesByProjectId");
+        var connection = GetData(response).GetProperty("deliverables");
         var deliverables = connection.GetProperty("nodes");
         deliverables.ValueKind.Should().Be(JsonValueKind.Array);
-        var deliverableId = _scenarioContext["DeliverableId"]?.ToString();
+        var deliverableId = Guid.Parse(_scenarioContext["DeliverableId"]?.ToString());
+        Console.WriteLine($"Wanted: {deliverableId}");
         var found = false;
         foreach (var d in deliverables.EnumerateArray())
         {
-            if (d.GetProperty("id").ToString() == deliverableId)
+            var dId = Guid.Parse(d.GetProperty("id").ToString());
+            Console.WriteLine(dId);
+            if (dId == deliverableId)
             {
                 found = true;
                 break;

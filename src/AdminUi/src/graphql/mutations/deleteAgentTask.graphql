@@ -1,11 +1,3 @@
-mutation DeleteAgentTask($input: DeleteAgentTaskInput!) {
-    deleteAgentTask(input: $input) {
-        agentTask {
-            id
-        }
-        errors {
-            field
-            message
-        }
-    }
+mutation DeleteAgentTask($id: UUID!) {
+    deleteAgentTask(id: $id)
 }

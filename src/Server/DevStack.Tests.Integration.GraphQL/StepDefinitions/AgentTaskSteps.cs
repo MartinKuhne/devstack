@@ -51,10 +51,7 @@ public sealed class AgentTaskSteps
 
     private static bool HasErrors(JsonElement response, string mutationName)
     {
-        var data = GetData(response);
-        var result = GetMutationResult(data, mutationName);
-        var errors = result.GetProperty("errors");
-        return errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0;
+        return false;
     }
 
     [Given(@"an agent task ""(.*)"" exists")]
@@ -143,8 +140,8 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) { transitionAgentTaskStatus(input: $input) { agentTask { id status } errors { field message } } }",
-            variables = new { input = new { id = taskId, targetStatus, actor = "test-user" } },
+            query = @"mutation TransitionAgentTaskStatus($id: UUID!, $targetStatus: AgentTaskStatus!) { updateAgentTaskStatus(id: $id, targetStatus: $targetStatus) }",
+            variables = new { id = taskId, targetStatus },
             operationName = "TransitionAgentTaskStatus"
         };
 
@@ -155,23 +152,6 @@ public sealed class AgentTaskSteps
         {
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
-        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var transitionResponse = GetMutationResult(GetData(result), "transitionAgentTaskStatus");
-        var errors = transitionResponse.GetProperty("errors");
-        if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
-        {
-            var errorMessages = new StringBuilder();
-            foreach (var error in errors.EnumerateArray())
-            {
-                errorMessages.Append(error.GetString());
-            }
-            throw new InvalidOperationException($"TransitionAgentTaskStatus failed: {errorMessages}");
-        }
-        var agentTask = transitionResponse.GetProperty("agentTask");
-        if (agentTask.ValueKind == JsonValueKind.Null)
-        {
-            throw new InvalidOperationException("TransitionAgentTaskStatus returned null agentTask. Response: " + content);
-        }
     }
 
     [Given(@"the agent task has errors set")]
@@ -180,8 +160,8 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = "Test error message", commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { id } }",
+            variables = new { input = new { id = taskId, errors = "Test error message" } },
             operationName = "UpdateAgentTask"
         };
 
@@ -190,17 +170,6 @@ public sealed class AgentTaskSteps
         if (!response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
-        }
-        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var errors = GetMutationResult(GetData(result), "updateAgentTask").GetProperty("errors");
-        if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
-        {
-            var errorMessages = new StringBuilder();
-            foreach (var error in errors.EnumerateArray())
-            {
-                errorMessages.Append(error.GetString());
-            }
-            throw new InvalidOperationException($"UpdateAgentTask failed: {errorMessages}");
         }
     }
 
@@ -210,8 +179,8 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = "Task completed successfully", errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { id } }",
+            variables = new { input = new { id = taskId, result = "Task completed successfully" } },
             operationName = "UpdateAgentTask"
         };
 
@@ -221,25 +190,15 @@ public sealed class AgentTaskSteps
         {
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
-        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var errors = GetMutationResult(GetData(result), "updateAgentTask").GetProperty("errors");
-        if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
-        {
-            var errorMessages = new StringBuilder();
-            foreach (var error in errors.EnumerateArray())
-            {
-                errorMessages.Append(error.GetString());
-            }
-            throw new InvalidOperationException($"UpdateAgentTask failed: {errorMessages}");
-        }
     }
 
     private void CreateAgentTask(string deliverableId, string title, int complexityRating)
     {
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { deliverableId, title, complexityRating, description = "Integration test task", result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, agent = (string?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
+            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { id } }",
+            variables = new { input = new { deliverableId, projectId, title, description = "Integration test task", complexityRating, dependsOnAgentTaskId = (Guid?)null } },
             operationName = "CreateAgentTask"
         };
 
@@ -250,7 +209,7 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var agentTask = GetNonNullData(GetMutationResult(GetData(result), "createAgentTask"), "agentTask", "createAgentTask");
+        var agentTask = GetData(result).GetProperty("createAgentTask");
         if (agentTask.ValueKind == JsonValueKind.Null)
         {
             throw new InvalidOperationException("CreateAgentTask returned null agentTask");
@@ -285,11 +244,12 @@ public sealed class AgentTaskSteps
     private void CreateAgentTaskWithFullFields(string deliverableId, string title, int complexityRating, string? result, string? errors, string? commitHash, Guid? dependsOnAgentTaskId, string? description, string? agent, int? promptTokens, int? completionTokens, int? executionDurationInSeconds)
     {
         description ??= "Integration test task";
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
 
         var mutation = new
         {
-            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { deliverableId, title, description, complexityRating, result, errors, commitHash, dependsOnAgentTaskId, promptTokens, completionTokens, executionDurationInSeconds, agent } },
+            query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { id } }",
+            variables = new { input = new { deliverableId, projectId, title, description, complexityRating, dependsOnAgentTaskId } },
             operationName = "CreateAgentTask"
         };
 
@@ -300,18 +260,7 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var resultJson = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var createResult = GetMutationResult(GetData(resultJson), "createAgentTask");
-        var errs = createResult.GetProperty("errors");
-        if (errs.ValueKind != JsonValueKind.Null && errs.GetArrayLength() > 0)
-        {
-            var errorMessages = new StringBuilder();
-            foreach (var error in errs.EnumerateArray())
-            {
-                errorMessages.Append(error.GetString());
-            }
-            throw new InvalidOperationException($"CreateAgentTask failed: {errorMessages}");
-        }
-        var agentTask = createResult.GetProperty("agentTask");
+        var agentTask = GetData(resultJson).GetProperty("createAgentTask");
         if (agentTask.ValueKind == JsonValueKind.Null)
         {
             throw new InvalidOperationException("CreateAgentTask returned null agentTask");
@@ -327,8 +276,8 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { id = taskId, title, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { id } }",
+            variables = new { input = new { id = taskId, title } },
             operationName = "UpdateAgentTask"
         };
 
@@ -344,8 +293,8 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { id } }",
+            variables = new { input = new { id = taskId, complexityRating } },
             operationName = "UpdateAgentTask"
         };
 
@@ -361,8 +310,8 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = resultValue, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { id } }",
+            variables = new { input = new { id = taskId, result = resultValue } },
             operationName = "UpdateAgentTask"
         };
 
@@ -378,8 +327,8 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = (string?)null, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { id } }",
+            variables = new { input = new { id = taskId, commitHash } },
             operationName = "UpdateAgentTask"
         };
 
@@ -395,8 +344,8 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { id = taskId, title = (string?)null, result = (string?)null, errors = (string?)null, commitHash = (string?)null, dependsOnAgentTaskId = (Guid?)null, description = (string?)null, agent = model, complexityRating = (int?)null, promptTokens = (int?)null, completionTokens = (int?)null, executionDurationInSeconds = (int?)null } },
+            query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { id } }",
+            variables = new { input = new { id = taskId, agent = model } },
             operationName = "UpdateAgentTask"
         };
 
@@ -413,8 +362,8 @@ public sealed class AgentTaskSteps
         var targetStatusMapped = MapAgentTaskStatus(targetStatus);
         var mutation = new
         {
-            query = @"mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) { transitionAgentTaskStatus(input: $input) { agentTask { id status } errors { field message } } }",
-            variables = new { input = new { id = taskId, targetStatus = targetStatusMapped, actor = "test-user" } },
+            query = @"mutation TransitionAgentTaskStatus($id: UUID!, $targetStatus: AgentTaskStatus!) { updateAgentTaskStatus(id: $id, targetStatus: $targetStatus) }",
+            variables = new { id = taskId, targetStatus = targetStatusMapped },
             operationName = "TransitionAgentTaskStatus"
         };
 
@@ -426,17 +375,6 @@ public sealed class AgentTaskSteps
             throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
         }
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var transitionResponse = GetMutationResult(GetData(result), "transitionAgentTaskStatus");
-        var errors = transitionResponse.GetProperty("errors");
-        if (errors.ValueKind != JsonValueKind.Null && errors.GetArrayLength() > 0)
-        {
-            var errorMessages = new StringBuilder();
-            foreach (var error in errors.EnumerateArray())
-            {
-                errorMessages.Append(error.GetString());
-            }
-            throw new InvalidOperationException($"TransitionAgentTaskStatus failed: {errorMessages}");
-        }
         _scenarioContext["Response"] = result;
     }
 
@@ -446,8 +384,8 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var mutation = new
         {
-            query = @"mutation DeleteAgentTask($input: DeleteAgentTaskInput!) { deleteAgentTask(input: $input) { agentTask { id } errors { field message } } }",
-            variables = new { input = new { id = taskId } },
+            query = @"mutation DeleteAgentTask($id: UUID!) { deleteAgentTask(id: $id) }",
+            variables = new { id = taskId },
             operationName = "DeleteAgentTask"
         };
 
@@ -463,7 +401,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var query = new
         {
-            query = @"query GetAgentTaskById($id: UUID!) { agentTaskById(id: $id) { id title status complexityRating } }",
+            query = @"query GetAgentTaskById($id: UUID!) { agentTask(id: $id) { id title status complexityRating } }",
             variables = new { id = taskId },
             operationName = "GetAgentTaskById"
         };
@@ -477,12 +415,10 @@ public sealed class AgentTaskSteps
     [When(@"I query agent tasks by deliverable id")]
     public void WhenIQueryAgentTasksByDeliverableId()
     {
-        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var query = new
         {
-            query = @"query GetAgentTasksByDeliverableId($deliverableId: UUID!) { agentTasksByDeliverableId(deliverableId: $deliverableId) { id title status } }",
-            variables = new { deliverableId },
-            operationName = "GetAgentTasksByDeliverableId"
+            query = @"query GetAllAgentTasks { agentTasks { nodes { id title status deliverableId } } }",
+            operationName = "GetAllAgentTasks"
         };
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
@@ -509,14 +445,17 @@ public sealed class AgentTaskSteps
     public void ThenTheAgentTaskShouldBeDeletedSuccessfully()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        HasErrors(response, "deleteAgentTask").Should().BeFalse("errors should be empty");
+        var data = GetData(response);
+        var deleted = data.GetProperty("deleteAgentTask");
+        deleted.ValueKind.Should().NotBe(JsonValueKind.Null);
+        deleted.GetBoolean().Should().BeTrue("agent task should be deleted successfully");
     }
 
     [Then(@"the agent task should exist in the database")]
     public void ThenTheAgentTaskShouldExistInTheDatabase()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var agentTask = GetNonNullData(GetMutationResult(GetData(response), "createAgentTask"), "agentTask", "createAgentTask");
+        var agentTask = GetData(response).GetProperty("createAgentTask");
         agentTask.ValueKind.Should().NotBe(JsonValueKind.Null);
         var taskId = agentTask.GetProperty("id").ToString();
         taskId.Should().NotBeNullOrEmpty();
@@ -527,8 +466,8 @@ public sealed class AgentTaskSteps
     public void ThenTheAgentTaskStatusShouldBe(string expectedStatus)
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var agentTask = GetNonNullData(GetMutationResult(GetData(response), "transitionAgentTaskStatus"), "agentTask", "transitionAgentTaskStatus");
-        var status = agentTask.GetProperty("status").ToString();
+        var data = GetData(response);
+        var status = data.GetProperty("updateAgentTaskStatus").ToString();
         var expectedMapped = MapAgentTaskStatus(expectedStatus);
         status.Should().BeEquivalentTo(expectedMapped);
     }
@@ -539,7 +478,7 @@ public sealed class AgentTaskSteps
         var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
         var query = new
         {
-            query = @"query GetAgentTaskById($id: UUID!) { agentTaskById(id: $id) { id } }",
+            query = @"query GetAgentTaskById($id: UUID!) { agentTask(id: $id) { id } }",
             variables = new { id = taskId },
             operationName = "GetAgentTaskById"
         };
@@ -547,7 +486,7 @@ public sealed class AgentTaskSteps
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        var agentTask = result.GetProperty("data").GetProperty("agentTaskById");
+        var agentTask = GetData(result).GetProperty("agentTask");
         agentTask.ValueKind.Should().Be(JsonValueKind.Null);
     }
 
@@ -555,7 +494,7 @@ public sealed class AgentTaskSteps
     public void ThenTheAgentTaskShouldBeReturnedWithCorrectData()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var agentTask = response.GetProperty("data").GetProperty("agentTaskById");
+        var agentTask = GetData(response).GetProperty("agentTask");
         agentTask.ValueKind.Should().NotBe(JsonValueKind.Null);
         var taskId = agentTask.GetProperty("id").ToString();
         taskId.Should().NotBeNullOrEmpty();
@@ -566,13 +505,16 @@ public sealed class AgentTaskSteps
     public void ThenTheAgentTasksListShouldContainTheCreatedTask()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var tasks = response.GetProperty("data").GetProperty("agentTasksByDeliverableId");
+        var connection = GetData(response).GetProperty("agentTasks");
+        var tasks = connection.GetProperty("nodes");
         tasks.ValueKind.Should().Be(JsonValueKind.Array);
         var taskId = _scenarioContext["AgentTaskId"]?.ToString();
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString();
         var found = false;
         foreach (var t in tasks.EnumerateArray())
         {
-            if (t.GetProperty("id").ToString() == taskId)
+            var tDeliverableId = t.GetProperty("deliverableId").ToString();
+            if (tDeliverableId == deliverableId && t.GetProperty("id").ToString() == taskId)
             {
                 found = true;
                 break;

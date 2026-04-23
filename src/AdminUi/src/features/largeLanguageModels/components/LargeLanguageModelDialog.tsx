@@ -175,15 +175,12 @@ export function LargeLanguageModelDialog({
                         },
                     },
                 });
-                const payload = result.data?.updateLargeLanguageModel;
-                if (payload?.errors?.length) {
-                    const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
-                    const errorMessage = errorMessages.join(', ');
+                const updatedModel = result.data?.updateLargeLanguageModel;
+                if (!updatedModel) {
                     logger.warn('Failed to update LLM model', {
                         id: model.id,
-                        errors: errorMessages,
                     });
-                    setError(errorMessage);
+                    setError('Failed to update LLM model');
                     return;
                 }
                 logger.info('LLM model updated successfully', { id: model.id, model: modelValue });
@@ -201,15 +198,12 @@ export function LargeLanguageModelDialog({
                         },
                     },
                 });
-                const payload = result.data?.createLargeLanguageModel;
-                if (payload?.errors?.length) {
-                    const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
-                    const errorMessage = errorMessages.join(', ');
+                const createdModel = result.data?.createLargeLanguageModel;
+                if (!createdModel) {
                     logger.warn('Failed to create LLM model', {
                         model: modelValue,
-                        errors: errorMessages,
                     });
-                    setError(errorMessage);
+                    setError('Failed to create LLM model');
                     return;
                 }
                 logger.info('LLM model created successfully', {
@@ -241,15 +235,13 @@ export function LargeLanguageModelDialog({
         try {
             const result = await deleteLargeLanguageModel({
                 variables: {
-                    input: { id: model.id },
+                    id: model.id,
                 },
             });
-            const payload = result.data?.deleteLargeLanguageModel;
-            if (payload?.errors?.length) {
-                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
-                logger.warn('Failed to delete LLM model', { id: model.id, errors: errorMessages });
-                setError(errorMessage);
+            const deleted = result.data?.deleteLargeLanguageModel;
+            if (!deleted) {
+                logger.warn('Failed to delete LLM model', { id: model.id });
+                setError('Failed to delete LLM model');
                 return;
             }
             logger.info('LLM model deleted successfully', { id: model.id });
@@ -344,9 +336,7 @@ export function LargeLanguageModelDialog({
                                 }}
                                 placeholder="https://api.example.com/v1"
                             />
-                            {urlError && (
-                                <p className="text-sm text-destructive">{urlError}</p>
-                            )}
+                            {urlError && <p className="text-sm text-destructive">{urlError}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="model">Model Name</Label>
@@ -359,9 +349,7 @@ export function LargeLanguageModelDialog({
                                 }}
                                 placeholder="gpt-4o-mini"
                             />
-                            {modelError && (
-                                <p className="text-sm text-destructive">{modelError}</p>
-                            )}
+                            {modelError && <p className="text-sm text-destructive">{modelError}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="alias">Alias (optional)</Label>

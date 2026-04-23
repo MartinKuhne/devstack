@@ -1,13 +1,3 @@
-mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
-    transitionAgentTaskStatus(input: $input) {
-        agentTask {
-            id
-            title
-            status
-        }
-        errors {
-            field
-            message
-        }
-    }
+mutation UpdateAgentTaskStatus($id: UUID!, $targetStatus: AgentTaskStatus!) {
+    updateAgentTaskStatus(id: $id, targetStatus: $targetStatus)
 }

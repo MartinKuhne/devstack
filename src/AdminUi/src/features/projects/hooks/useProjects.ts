@@ -11,7 +11,7 @@ export function useProjects() {
         fetchPolicy: 'cache-and-network',
     });
 
-    const projects = data?.projects.nodes ?? [];
+    const projects = data?.projects?.nodes ?? [];
 
     if (!loading && projects.length === 0 && !error) {
         logger.debug('No projects found');

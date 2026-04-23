@@ -40,7 +40,6 @@ interface EditProjectDialogProps {
     onOpenChange: (open: boolean) => void;
     project: ProjectData | null;
     onSuccess?: () => void;
-    onError?: (error: string) => void;
 }
 
 export function EditProjectDialog({
@@ -48,7 +47,6 @@ export function EditProjectDialog({
     onOpenChange,
     project,
     onSuccess,
-    onError,
 }: EditProjectDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
     const [updateProject, { loading }] = useUpdateProjectMutation();
@@ -90,21 +88,10 @@ export function EditProjectDialog({
                 },
             });
 
-            const payload = result.data?.updateProject;
-            if (payload?.errors?.length) {
-                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
-                logger.warn('Failed to update project', { id: project.id, errors: errorMessages });
-                if (errorMessage.includes('NOT_FOUND')) {
-                    onError?.('Project not found. It may have been deleted.');
-                    onOpenChange(false);
-                } else if (errorMessage.includes('CONCURRENCY_CONFLICT')) {
-                    setServerError(
-                        'The project was modified by another process. Please refresh and try again.'
-                    );
-                } else {
-                    setServerError(errorMessage);
-                }
+            const resultProject = result.data?.updateProject;
+            if (!resultProject) {
+                logger.warn('Failed to update project', { id: project.id });
+                setServerError('Failed to update project');
                 return;
             }
 

@@ -313,17 +313,19 @@ public sealed class ErrorHandlingSteps
     {
         var request = _scenarioContext.Get<object>("ValidRequest");
         var json = System.Text.Json.JsonSerializer.Serialize(request);
+        var port =_scenarioContext["McpPort"];
         var content = new StringContent(json, Encoding.UTF8, contentType);
-        _httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
+        _httpResponse = await HttpClient.PostAsync($"http://localhost:{port}/mcp", content);
     }
 
     [When(@"I send the request without Content-Type header")]
     public async Task WhenISendTheRequestWithoutContentTypeHeader()
     {
         var request = _scenarioContext.Get<object>("ValidRequest");
+        var port =_scenarioContext["McpPort"];
         var json = System.Text.Json.JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8);
-        _httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
+        _httpResponse = await HttpClient.PostAsync($"http://localhost:{port}/mcp", content);
     }
 
     [Then(@"the response should be successful")]
@@ -418,7 +420,8 @@ public sealed class ErrorHandlingSteps
     {
         var body = _scenarioContext.GetString("EmptyBody") ?? "";
         var content = new StringContent(body, Encoding.UTF8, "application/json");
-        _httpResponse = await HttpClient.PostAsync("http://localhost:8887/mcp", content);
+        var port =_scenarioContext["McpPort"];
+        _httpResponse = await HttpClient.PostAsync($"http://localhost:{port}/mcp", content);
         var responseContent = await _httpResponse.Content.ReadAsStringAsync();
         
         try

@@ -45,7 +45,7 @@ public class CreateLargeLanguageModelHandler : ICreateLargeLanguageModelHandler
         _dbContext = dbContext;
     }
 
-    public async global::System.Threading.Tasks.Task<Guid> Handle(CreateLargeLanguageModelCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(CreateLargeLanguageModelCommand request, CancellationToken cancellationToken)
     {
         var model = new LargeLanguageModel
         {

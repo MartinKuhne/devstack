@@ -2,8 +2,6 @@ using DevStack.Api.GraphQL;
 using DevStack.Api.HealthChecks;
 using Microsoft.FeatureManagement;
 using DevStack.Api.GraphQL.Types;
-using DevStack.Domain.Enums;
-using DevStack.Domain.Services;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Persistence;
@@ -13,7 +11,6 @@ using DevStack.Api.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
-using Wolverine;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -30,8 +27,6 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.WithMachineName()
         .Destructure.With(new SensitiveDataDestructuringPolicy());
 });
-
-builder.Host.UseWolverine();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -97,20 +92,10 @@ builder.Services.AddOpenTelemetry()
 builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
-    .AddType<ProjectType>()
-    .AddType<DeliverableObject>()
-    .AddEnumType<DeliverableType>()
-    .AddType<AgentTaskType>()
-    .AddType<LargeLanguageModelType>()
-    .AddObjectType<ProjectConnection>()
-    .AddObjectType<ProjectPageInfo>()
-    .AddType<ProjectConnectionType>()
-    .AddType<DeliverableConnectionType>()
-    .AddType<AgentTaskConnectionType>()
-    .AddType<LargeLanguageModelConnectionType>()
-    .AddType<PageInfoType>()
     .DisableIntrospection(false)
-    .AddErrorFilter<GraphQLErrorFilter>();
+    .AddErrorFilter<GraphQLErrorFilter>()
+        .AddFiltering()
+        .AddSorting();
 
 builder.Services.AddFeatureManagement();
 
@@ -177,5 +162,3 @@ app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.
 app.MapGraphQL("/graphql");
 
 app.Run();
-
-public partial class Program { }

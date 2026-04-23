@@ -65,13 +65,13 @@ public sealed class DevStackTestEnv : IDisposable
 
         _appContainer.StartAsync().GetAwaiter().GetResult();
 
-        AppPort = builder.AppPort;
         PostgresConnectionString = _postgresContainer.GetConnectionString();
         PostgresConnectionStringForHost = _postgresContainer.GetConnectionString();
         SecretKey = builder.SecretKey;
         Mode = builder.Mode;
 
         int mappedPort = _appContainer.GetMappedPublicPort((ushort)builder.AppPort);
+        AppPort = mappedPort;
         AppUrl = builder.GetAppUrl(mappedPort);
     }
 

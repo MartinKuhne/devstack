@@ -5,25 +5,26 @@ import { createModuleLogger } from '@/lib/logging';
 const logger = createModuleLogger('useAgentTasksByDeliverable');
 
 export function useAgentTasksByDeliverable(
-    deliverableId?: string,
+    _deliverableId?: string,
     statusFilter?: AgentTaskStatus[]
 ) {
     const { data, loading, error, refetch } = useGetAgentTasksQuery({
-        variables: { deliverableId },
         fetchPolicy: 'cache-and-network',
-        skip: !deliverableId,
     });
 
-   const allTasks = data?.agentTasks?.nodes ?? [];
+    const allTasks = data?.agentTasks?.nodes ?? [];
 
     const filteredTasks =
         statusFilter && statusFilter.length > 0
-            ? allTasks.filter((task): task is NonNullable<typeof task> => task !== null && statusFilter.includes(task.status as AgentTaskStatus))
+            ? allTasks.filter(
+                  (task): task is NonNullable<typeof task> =>
+                      task !== null && statusFilter.includes(task.status as AgentTaskStatus)
+              )
             : allTasks;
 
     if (!loading && allTasks.length > 0) {
         logger.debug('Loaded agent tasks by deliverable', {
-            deliverableId,
+            deliverableId: _deliverableId,
             total: allTasks.length,
             filtered: filteredTasks.length,
         });
@@ -31,7 +32,7 @@ export function useAgentTasksByDeliverable(
 
     if (error) {
         logger.error('Failed to fetch agent tasks by deliverable', {
-            deliverableId,
+            deliverableId: _deliverableId,
             message: error.message,
         });
     }
