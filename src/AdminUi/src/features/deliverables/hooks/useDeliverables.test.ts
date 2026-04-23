@@ -115,6 +115,25 @@ describe('useDeliverables', () => {
         });
     });
 
+    it('skips query when projectId is undefined', async () => {
+        const hooks = await getMockedQuery();
+        hooks.useGetDeliverablesQuery.mockReturnValue({
+            data: undefined,
+            loading: false,
+            error: undefined,
+            refetch: vi.fn(),
+        });
+
+        const { useDeliverables } = await import('./useDeliverables');
+        renderHook(() => useDeliverables(undefined));
+
+        expect(hooks.useGetDeliverablesQuery).toHaveBeenCalledWith(
+            expect.objectContaining({
+                skip: true,
+            }),
+        );
+    });
+
     it('filters by type', async () => {
         const hooks = await getMockedQuery();
         hooks.useGetDeliverablesQuery.mockReturnValue({
