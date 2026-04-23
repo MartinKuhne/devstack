@@ -17,6 +17,7 @@ export function useDeliverables(
     const { data, loading, error, refetch } = useGetDeliverablesQuery({
         variables: projectId ? { projectId } : undefined,
         fetchPolicy: 'cache-and-network',
+        skip: !projectId,
     });
 
     const allDeliverables = data?.deliverables?.nodes ?? [];
