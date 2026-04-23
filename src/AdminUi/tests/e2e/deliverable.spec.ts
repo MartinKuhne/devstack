@@ -215,15 +215,21 @@ test.describe('Deliverable Creation and Detail', () => {
         await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible();
     });
 
-    test('should navigate back to list from deliverable detail', async ({ page }) => {
+    test('should navigate back to list from deliverable detail without UUID filter error', async ({ page }) => {
         await deliverableListPage.navigate();
         await deliverableListPage.waitForDeliverableList();
         await deliverableListPage.clickNewDeliverable();
         await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
 
-        await createDeliverableDialog.createDeliverable('DeleteAfterTest - Deliverable');
+        await createDeliverableDialog.createDeliverable('DeleteAfterTest - Navigating Back');
 
         await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
+
+        await page.getByRole('link', { name: /Deliverables/ }).first().click();
+
+        await deliverableListPage.waitForDeliverableList();
+        await expect(deliverableListPage.pageTitle).toBeVisible();
+        await deliverableListPage.expectNoErrors();
     });
 
     test('should validate empty title on deliverable creation', async () => {
