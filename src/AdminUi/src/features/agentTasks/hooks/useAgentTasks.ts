@@ -13,6 +13,7 @@ export function useAgentTasks(deliverableId?: string, statusFilter?: AgentTaskSt
     const { data, loading, error, refetch } = useGetAgentTasksQuery({
         variables: deliverableId ? { deliverableId } : undefined,
         fetchPolicy: 'cache-and-network',
+        skip: !deliverableId,
     });
 
     const allTasks = data?.agentTasks?.nodes ?? [];

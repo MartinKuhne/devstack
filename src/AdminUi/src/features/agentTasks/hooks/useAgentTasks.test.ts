@@ -36,7 +36,7 @@ describe('useAgentTasks', () => {
         });
 
         const { useAgentTasks } = await import('./useAgentTasks');
-        const { result } = renderHook(() => useAgentTasks());
+        const { result } = renderHook(() => useAgentTasks('del-123'));
 
         expect(result.current.agentTasks).toHaveLength(3);
     });
@@ -83,7 +83,7 @@ describe('useAgentTasks', () => {
         });
 
         const { useAgentTasks } = await import('./useAgentTasks');
-        const { result } = renderHook(() => useAgentTasks());
+        const { result } = renderHook(() => useAgentTasks('del-123'));
 
         expect(result.current.agentTasks).toHaveLength(3);
     });
@@ -98,7 +98,7 @@ describe('useAgentTasks', () => {
         });
 
         const { useAgentTasks } = await import('./useAgentTasks');
-        const { result } = renderHook(() => useAgentTasks());
+        const { result } = renderHook(() => useAgentTasks('del-123'));
 
         expect(result.current.agentTasks).toHaveLength(0);
     });
@@ -129,7 +129,7 @@ describe('useAgentTasks', () => {
         );
     });
 
-    it('passes no variables when deliverableId is omitted', async () => {
+    it('skips query and passes no variables when deliverableId is omitted', async () => {
         const hooks = await getMockedQuery();
         hooks.useGetAgentTasksQuery.mockReturnValue({
             data: {
@@ -149,6 +149,8 @@ describe('useAgentTasks', () => {
 
         expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith({
             fetchPolicy: 'cache-and-network',
+            skip: true,
+            variables: undefined,
         });
     });
 
@@ -163,7 +165,7 @@ describe('useAgentTasks', () => {
         });
 
         const { useAgentTasks } = await import('./useAgentTasks');
-        const { result } = renderHook(() => useAgentTasks());
+        const { result } = renderHook(() => useAgentTasks('del-123'));
 
         expect(result.current.loading).toBe(true);
         expect(result.current.error).toBe(mockError);
