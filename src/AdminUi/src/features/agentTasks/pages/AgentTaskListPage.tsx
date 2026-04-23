@@ -40,6 +40,7 @@ export function AgentTaskListPage() {
 
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
     const { agentTasks, loading, error, refetch } = useAgentTasks(
+        undefined,
         statusFilter ? [statusFilter] : undefined
     );
 

@@ -5,13 +5,17 @@ import { createModuleLogger } from '@/lib/logging';
 const logger = createModuleLogger('useDeliverables');
 
 /**
- * Fetches all deliverables with optional filtering by status and type.
+ * Fetches deliverables with optional filtering by projectId, status, and type.
+ * When projectId is provided, only deliverables for that project are fetched.
+ * When projectId is omitted, all deliverables across all projects are fetched.
  */
 export function useDeliverables(
+    projectId?: string,
     statusFilter?: DeliverableStatus[],
     typeFilter?: DeliverableType[]
 ) {
     const { data, loading, error, refetch } = useGetDeliverablesQuery({
+        variables: projectId ? { projectId } : undefined,
         fetchPolicy: 'cache-and-network',
     });
 
@@ -31,6 +35,7 @@ export function useDeliverables(
         logger.debug('Loaded deliverables', {
             total: allDeliverables.length,
             filtered: filteredDeliverables.length,
+            projectId,
             statusFilter,
             typeFilter,
         });

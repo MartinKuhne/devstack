@@ -1,11 +1,12 @@
-query GetDeliverables {
-    deliverables {
+query GetDeliverables($projectId: UUID) {
+    deliverables(where: { projectId: { eq: $projectId } }) {
         nodes {
             id
             title
             description
             status
             type
+            projectId
             acceptanceCriteria
             executionPlan
             agentFeedback
@@ -25,6 +26,7 @@ query GetDeliverable($id: UUID!) {
         description
         status
         type
+        projectId
         acceptanceCriteria
         executionPlan
         agentFeedback

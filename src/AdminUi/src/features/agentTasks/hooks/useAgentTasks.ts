@@ -5,10 +5,13 @@ import { createModuleLogger } from '@/lib/logging';
 const logger = createModuleLogger('useAgentTasks');
 
 /**
- * Fetches agent tasks with optional filtering by status.
+ * Fetches agent tasks with optional filtering by deliverableId and status.
+ * When deliverableId is provided, only tasks for that deliverable are fetched.
+ * When deliverableId is omitted, all agent tasks across all deliverables are fetched.
  */
-export function useAgentTasks(statusFilter?: AgentTaskStatus[]) {
+export function useAgentTasks(deliverableId?: string, statusFilter?: AgentTaskStatus[]) {
     const { data, loading, error, refetch } = useGetAgentTasksQuery({
+        variables: deliverableId ? { deliverableId } : undefined,
         fetchPolicy: 'cache-and-network',
     });
 
