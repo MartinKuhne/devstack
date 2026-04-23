@@ -15,8 +15,6 @@ import {
 } from '@/components/ui/table';
 import { useProject } from '@/features/projects/hooks/useProject';
 import { EditProjectDialog } from '@/features/projects/components/EditProjectDialog';
-import { LargeLanguageModelList } from '@/features/largeLanguageModels/components/LargeLanguageModelList';
-import { LargeLanguageModelDialog } from '@/features/largeLanguageModels/components/LargeLanguageModelDialog';
 import { useDeliverables } from '@/features/deliverables/hooks/useDeliverables';
 import { CreateDeliverableDialog } from '@/features/deliverables/components/CreateDeliverableDialog';
 import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
@@ -45,7 +43,6 @@ export function ProjectDetailPage() {
         refetch: refetchAgentTasks,
     } = useAgentTasks();
     const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [addModelDialogOpen, setAddModelDialogOpen] = useState(false);
     const [createDeliverableDialogOpen, setCreateDeliverableDialogOpen] = useState(false);
     const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);
     const [deleteProject, { loading: deleting }] = useDeleteProjectMutation();
@@ -175,7 +172,6 @@ export function ProjectDetailPage() {
                 <TabsList>
                     <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
                     <TabsTrigger value="agent-tasks">Agent Tasks</TabsTrigger>
-                    <TabsTrigger value="models">Models</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="deliverables">
@@ -369,9 +365,6 @@ export function ProjectDetailPage() {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="models">
-                    <LargeLanguageModelList onAddModel={() => setAddModelDialogOpen(true)} />
-                </TabsContent>
             </Tabs>
             <EditProjectDialog
                 open={editDialogOpen}
@@ -386,11 +379,6 @@ export function ProjectDetailPage() {
                           }
                         : null
                 }
-                onSuccess={() => refetch()}
-            />
-            <LargeLanguageModelDialog
-                open={addModelDialogOpen}
-                onOpenChange={setAddModelDialogOpen}
                 onSuccess={() => refetch()}
             />
             <CreateDeliverableDialog
