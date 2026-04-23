@@ -28,7 +28,6 @@ const agentTaskSchema = z.object({
         .number()
         .min(1, 'Complexity must be at least 1')
         .max(10, 'Complexity must be at most 10'),
-    result: z.string().optional(),
     dependsOnAgentTaskId: z.string().optional(),
 });
 
@@ -38,6 +37,7 @@ interface CreateAgentTaskDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     deliverableId: string;
+    projectId: string;
     onSuccess?: (agentTaskId: string) => void;
 }
 
@@ -45,6 +45,7 @@ export function CreateAgentTaskDialog({
     open,
     onOpenChange,
     deliverableId,
+    projectId,
     onSuccess,
 }: CreateAgentTaskDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
@@ -74,34 +75,32 @@ export function CreateAgentTaskDialog({
             const result = await createAgentTask({
                 variables: {
                     input: {
+                        projectId: projectId,
                         deliverableId: data.deliverableId,
                         title: data.title,
                         description: data.description ?? '',
                         complexityRating: Number(data.complexityRating),
-                        result: data.result ?? null,
                     },
                 },
             });
 
-            const payload = result.data?.createAgentTask;
-            if (payload?.errors?.length) {
-                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
+            const agentTask = result.data?.createAgentTask;
+            if (agentTask?.errors) {
                 logger.warn('Failed to create agent task', {
                     deliverableId: data.deliverableId,
                     title: data.title,
-                    errors: errorMessages,
+                    errors: agentTask.errors,
                 });
-                setServerError(errorMessage);
+                setServerError(agentTask.errors);
                 return;
             }
 
             logger.info('Agent task created successfully', {
-                id: payload?.agentTask?.id,
+                id: agentTask?.id,
                 title: data.title,
             });
             reset();
-            onSuccess?.(payload?.agentTask?.id ?? '');
+            onSuccess?.(agentTask?.id ?? '');
             onOpenChange(false);
         } catch (err) {
             const errorInfo = formatGraphQLError(err);
@@ -178,16 +177,6 @@ export function CreateAgentTaskDialog({
                                 id="description"
                                 {...register('description')}
                                 placeholder="Task description"
-                                rows={3}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="result">Result</Label>
-                            <Textarea
-                                id="result"
-                                {...register('result')}
-                                placeholder="Task result"
                                 rows={3}
                             />
                         </div>

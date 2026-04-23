@@ -8,7 +8,7 @@ import { useAgentTask } from '../hooks/useAgentTask';
 import { UpdateAgentTaskDialog } from '../components/UpdateAgentTaskDialog';
 import { useState } from 'react';
 import {
-    useTransitionAgentTaskStatusMutation,
+    useUpdateAgentTaskStatusMutation,
     useDeleteAgentTaskMutation,
     AgentTaskStatus,
 } from '@/generated/graphql';
@@ -38,8 +38,8 @@ export function AgentTaskDetailPage() {
     const navigate = useNavigate();
     const { agentTask, loading, error, refetch } = useAgentTask(id ?? '');
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
-    const [transitionAgentTaskStatus, { loading: transitionLoading }] =
-        useTransitionAgentTaskStatusMutation();
+    const [updateAgentTaskStatus, { loading: transitionLoading }] =
+        useUpdateAgentTaskStatusMutation();
     const [selectedStatus, setSelectedStatus] = useState('');
     const [deleteAgentTask, { loading: deleting }] = useDeleteAgentTaskMutation();
 
@@ -55,17 +55,15 @@ export function AgentTaskDetailPage() {
         try {
             const result = await deleteAgentTask({
                 variables: {
-                    input: { id: agentTask.id },
+                    id: agentTask.id,
                 },
             });
-            if (result.data?.deleteAgentTask?.errors?.length) {
-                const errorMessages = result.data.deleteAgentTask.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
+            const deleted = result.data?.deleteAgentTask;
+            if (!deleted) {
                 logger.warn('Failed to delete agent task', {
                     id: agentTask.id,
-                    errors: errorMessages,
                 });
-                toast.error(errorMessage);
+                toast.error('Failed to delete agent task');
             } else {
                 logger.info('Agent task deleted successfully', { id: agentTask.id });
                 toast.success('Agent task deleted successfully');
@@ -81,21 +79,12 @@ export function AgentTaskDetailPage() {
         if (!selectedStatus || !agentTask?.id) return;
 
         try {
-            const result = await transitionAgentTaskStatus({
+            await updateAgentTaskStatus({
                 variables: {
-                    input: {
-                        id: agentTask.id,
-                        targetStatus: selectedStatus as AgentTaskStatus,
-                        actor: 'admin-ui',
-                    },
+                    id: agentTask.id,
+                    targetStatus: selectedStatus as AgentTaskStatus,
                 },
             });
-
-            if (result.data?.transitionAgentTaskStatus?.errors?.length) {
-                const errorMessages = result.data.transitionAgentTaskStatus.errors.map((e: { field: string; message: string }) => e.message);
-                toast.error(errorMessages.join(', '));
-                return;
-            }
 
             toast.success('Status updated successfully');
             refetch();
@@ -104,8 +93,6 @@ export function AgentTaskDetailPage() {
             toast.error('Failed to update status');
         }
     };
-
- 
 
     if (loading) {
         return (

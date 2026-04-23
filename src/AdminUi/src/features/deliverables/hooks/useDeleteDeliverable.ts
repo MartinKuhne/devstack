@@ -12,25 +12,23 @@ export function useDeleteDeliverable() {
 
         try {
             const result = await deleteDeliverable({
-                variables: { input: { id } },
+                variables: { id },
             });
 
-            if (result.data?.deleteDeliverable?.errors?.length) {
-                const errorMessages = result.data.deleteDeliverable.errors.map(
-                    (e) => e.message
-                );
-                logger.warn('Failed to delete deliverable', {
-                    id,
-                    errors: errorMessages,
-                });
-                return { success: false, errors: errorMessages };
+            const deleted = result.data?.deleteDeliverable;
+            if (!deleted) {
+                logger.warn('Failed to delete deliverable', { id });
+                return { success: false, errors: ['Failed to delete deliverable'] };
             }
 
             logger.info('Deliverable deleted successfully', { id });
             return { success: true };
         } catch (err) {
             logApolloError(err);
-            return { success: false, errors: [err instanceof Error ? err.message : 'Failed to delete deliverable'] };
+            return {
+                success: false,
+                errors: [err instanceof Error ? err.message : 'Failed to delete deliverable'],
+            };
         }
     };
 

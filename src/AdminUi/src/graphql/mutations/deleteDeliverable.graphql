@@ -1,11 +1,3 @@
-mutation DeleteDeliverable($input: DeleteDeliverableInput!) {
-    deleteDeliverable(input: $input) {
-        deliverable {
-            id
-        }
-        errors {
-            field
-            message
-        }
-    }
+mutation DeleteDeliverable($id: UUID!) {
+    deleteDeliverable(id: $id)
 }

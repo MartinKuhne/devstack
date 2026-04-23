@@ -7,10 +7,7 @@ import { useDeliverable } from '../hooks/useDeliverable';
 import { useDeleteDeliverable } from '../hooks/useDeleteDeliverable';
 import { EditDeliverableDialog } from '../components/EditDeliverableDialog';
 import { useState } from 'react';
-import {
-    useTransitionDeliverableStatusMutation,
-    DeliverableStatus,
-} from '@/generated/graphql';
+import { useUpdateDeliverableStatusMutation, DeliverableStatus } from '@/generated/graphql';
 import {
     Select,
     SelectContent,
@@ -37,8 +34,8 @@ export function DeliverableDetailPage() {
         refetch: refetchAgentTasks,
     } = useAgentTasksByDeliverable(id ?? '');
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
-    const [transitionDeliverableStatus, { loading: transitionLoading }] =
-        useTransitionDeliverableStatusMutation();
+    const [updateDeliverableStatus, { loading: transitionLoading }] =
+        useUpdateDeliverableStatusMutation();
     const { deleteDeliverable, loading: deleteLoading } = useDeleteDeliverable();
     const [selectedStatus, setSelectedStatus] = useState('');
     const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);
@@ -118,21 +115,12 @@ export function DeliverableDetailPage() {
         if (!selectedStatus || !deliverable.id) return;
 
         try {
-            const result = await transitionDeliverableStatus({
+            await updateDeliverableStatus({
                 variables: {
-                    input: {
-                        id: deliverable.id,
-                        targetStatus: selectedStatus as DeliverableStatus,
-                        actor: 'admin-ui',
-                    },
+                    id: deliverable.id,
+                    targetStatus: selectedStatus as DeliverableStatus,
                 },
             });
-
-            if (result.data?.transitionDeliverableStatus?.errors?.length) {
-                const errorMessages = result.data.transitionDeliverableStatus.errors.map((e: { field: string; message: string }) => e.message);
-                toast.error(errorMessages.join(', '));
-                return;
-            }
 
             toast.success('Status updated successfully');
             refetch();
@@ -351,34 +339,36 @@ export function DeliverableDetailPage() {
                                 </div>
                             ) : agentTasks && agentTasks.length > 0 ? (
                                 <div className="space-y-2">
-                                    {agentTasks.map((task) => task ? (
-                                        <div
-                                            key={task.id ?? ''}
-                                            className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 cursor-pointer"
-                                            onClick={() =>
-                                                task.id && navigate(`/agent-tasks/${task.id}`)
-                                            }
-                                        >
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium truncate">
-                                                    {task.title}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {(task.promptTokens ?? 0) +
-                                                        (task.completionTokens ?? 0)}{' '}
-                                                    tokens
-                                                </p>
-                                            </div>
-                                            <Badge
-                                                className={getStatusColor(
-                                                    task.status ?? undefined,
-                                                    AGENT_TASK_STATUS_COLORS
-                                                )}
+                                    {agentTasks.map((task) =>
+                                        task ? (
+                                            <div
+                                                key={task.id ?? ''}
+                                                className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 cursor-pointer"
+                                                onClick={() =>
+                                                    task.id && navigate(`/agent-tasks/${task.id}`)
+                                                }
                                             >
-                                                {task.status}
-                                            </Badge>
-                                        </div>
-                                    ) : null)}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium truncate">
+                                                        {task.title}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {(task.promptTokens ?? 0) +
+                                                            (task.completionTokens ?? 0)}{' '}
+                                                        tokens
+                                                    </p>
+                                                </div>
+                                                <Badge
+                                                    className={getStatusColor(
+                                                        task.status ?? undefined,
+                                                        AGENT_TASK_STATUS_COLORS
+                                                    )}
+                                                >
+                                                    {task.status}
+                                                </Badge>
+                                            </div>
+                                        ) : null
+                                    )}
                                 </div>
                             ) : (
                                 <p className="text-muted-foreground text-sm">
@@ -415,6 +405,7 @@ export function DeliverableDetailPage() {
                 open={createAgentTaskDialogOpen}
                 onOpenChange={setCreateAgentTaskDialogOpen}
                 deliverableId={id ?? ''}
+                projectId={deliverable?.projectId ?? ''}
                 onSuccess={() => {
                     refetchAgentTasks();
                     refetch();

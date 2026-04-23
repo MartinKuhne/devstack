@@ -82,36 +82,33 @@ export function CreateDeliverableDialog({
                         projectId: projectId,
                         type: data.type,
                         title: data.title,
-                        description: data.description ?? null,
-                        acceptanceCriteria: data.acceptanceCriteria ?? null,
-                        securityImpact: data.securityImpact ?? null,
-                        performanceImpact: data.performanceImpact ?? null,
-                        testPlan: data.testPlan ?? null,
-                        deploymentPlan: data.deploymentPlan ?? null,
-                        initialStatus: data.initialStatus ?? null,
+                        description: data.description ?? '',
+                        acceptanceCriteria: data.acceptanceCriteria ?? '',
+                        securityImpact: data.securityImpact ?? '',
+                        performanceImpact: data.performanceImpact ?? '',
+                        testPlan: data.testPlan ?? '',
+                        deploymentPlan: data.deploymentPlan ?? '',
+                        initialStatus: data.initialStatus ?? 'DRAFT',
                     },
                 },
             });
 
-            const payload = result.data?.createDeliverable;
-            if (payload?.errors?.length) {
-                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
+            const deliverable = result.data?.createDeliverable;
+            if (!deliverable) {
                 logger.warn('Failed to create deliverable', {
                     type: data.type,
                     title: data.title,
-                    errors: errorMessages,
                 });
-                setServerError(errorMessage);
+                setServerError('Failed to create deliverable');
                 return;
             }
 
             logger.info('Deliverable created successfully', {
-                id: payload?.deliverable?.id,
+                id: deliverable.id,
                 title: data.title,
             });
             reset();
-            onSuccess?.(payload?.deliverable?.id ?? '');
+            onSuccess?.(deliverable.id);
             onOpenChange(false);
         } catch (err) {
             const errorInfo = formatGraphQLError(err);

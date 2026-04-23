@@ -1,13 +1,17 @@
 mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
     updateDeliverable(input: $input) {
-        deliverable {
-            id
-            title
-            status
-        }
-        errors {
-            field
-            message
-        }
+        id
+        title
+        description
+        status
+        type
+        acceptanceCriteria
+        executionPlan
+        agentFeedback
+        securityImpact
+        performanceImpact
+        testPlan
+        deploymentPlan
+        blocking
     }
 }

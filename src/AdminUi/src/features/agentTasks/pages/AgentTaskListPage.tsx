@@ -49,17 +49,13 @@ export function AgentTaskListPage() {
         try {
             const result = await deleteAgentTask({
                 variables: {
-                    input: { id },
+                    id,
                 },
             });
-            if (result.data?.deleteAgentTask?.errors?.length) {
-                const errorMessages = result.data.deleteAgentTask.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
-                logger.warn('Failed to delete agent task', {
-                    id,
-                    errors: errorMessages,
-                });
-                toast.error(errorMessage);
+            const deleted = result.data?.deleteAgentTask;
+            if (!deleted) {
+                logger.warn('Failed to delete agent task', { id });
+                toast.error('Failed to delete agent task');
             } else {
                 logger.info('Agent task deleted successfully', { id });
                 toast.success('Agent task deleted successfully');
@@ -106,11 +102,13 @@ export function AgentTaskListPage() {
         if (id) navigate(`/agent-tasks/${id}`);
     };
 
-    const filteredTasks = agentTasks.filter((task): task is NonNullable<typeof task> => task !== null && (
-        !searchFilter ||
-        !!task.title?.toLowerCase().includes(searchFilter.toLowerCase()) ||
-        !!task.deliverableId?.toLowerCase().includes(searchFilter.toLowerCase())
-    ));
+    const filteredTasks = agentTasks.filter(
+        (task): task is NonNullable<typeof task> =>
+            task !== null &&
+            (!searchFilter ||
+                !!task.title?.toLowerCase().includes(searchFilter.toLowerCase()) ||
+                !!task.deliverableId?.toLowerCase().includes(searchFilter.toLowerCase()))
+    );
 
     return (
         <div className="space-y-6">

@@ -1,16 +1,10 @@
 mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) {
     updateLargeLanguageModel(input: $input) {
-        largeLanguageModel {
-            id
-            url
-            model
-            modelAlias
-            maxComplexity
-            maxConcurrency
-        }
-        errors {
-            field
-            message
-        }
+        id
+        url
+        model
+        modelAlias
+        maxComplexity
+        maxConcurrency
     }
 }

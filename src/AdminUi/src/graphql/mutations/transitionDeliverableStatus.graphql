@@ -1,12 +1,3 @@
-mutation TransitionDeliverableStatus($input: TransitionDeliverableInput!) {
-    transitionDeliverableStatus(input: $input) {
-        deliverable {
-            id
-            status
-        }
-        errors {
-            field
-            message
-        }
-    }
+mutation UpdateDeliverableStatus($id: UUID!, $targetStatus: DeliverableStatus!, $actor: String) {
+    updateDeliverableStatus(id: $id, targetStatus: $targetStatus, actor: $actor)
 }

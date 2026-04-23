@@ -13,7 +13,7 @@ export function useProject(id: string) {
         skip: !id,
     });
 
-    const project = data?.projectById ?? null;
+    const project = data?.project ?? null;
 
     if (!loading && !project && !error && id) {
         logger.warn('Project not found', { id });

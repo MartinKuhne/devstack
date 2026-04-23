@@ -98,26 +98,24 @@ export function UpdateAgentTaskDialog({
             });
 
             const payload = result.data?.updateAgentTask;
-            if (payload?.errors?.length) {
-                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
+            if (payload?.errors) {
                 logger.warn('Failed to update agent task', {
                     id: agentTask.id,
-                    errors: errorMessages,
+                    errors: payload.errors,
                 });
-                if (errorMessage.includes('NOT_FOUND')) {
+                if (payload.errors.includes('NOT_FOUND')) {
                     logger.warn('Agent task not found during update, closing dialog', {
                         id: agentTask.id,
                     });
                     onSuccess?.();
                     onOpenChange(false);
                     return;
-                } else if (errorMessage.includes('CONCURRENCY_CONFLICT')) {
+                } else if (payload.errors.includes('CONCURRENCY_CONFLICT')) {
                     setServerError(
                         'The agent task was modified by another user. Please refresh and try again.'
                     );
                 } else {
-                    setServerError(errorMessage);
+                    setServerError(payload.errors);
                 }
                 return;
             }

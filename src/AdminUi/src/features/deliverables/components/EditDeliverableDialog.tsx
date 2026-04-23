@@ -133,15 +133,12 @@ export function EditDeliverableDialog({
                 },
             });
 
-            const payload = mutationResult.data?.updateDeliverable;
-            if (payload?.errors?.length) {
-                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
+            const result = mutationResult.data?.updateDeliverable;
+            if (!result) {
                 logger.warn('Failed to update deliverable', {
                     id: deliverable.id,
-                    errors: errorMessages,
                 });
-                setServerError(errorMessage);
+                setServerError('Failed to update deliverable');
                 setSubmitting(false);
                 return;
             }

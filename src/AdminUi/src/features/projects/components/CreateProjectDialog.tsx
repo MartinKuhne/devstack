@@ -59,21 +59,18 @@ export function CreateProjectDialog({ open, onOpenChange, onSuccess }: CreatePro
                 variables: {
                     input: {
                         name: data.name,
-                        description: data.description ?? null,
-                        repository: data.repository ?? null,
+                        description: data.description ?? '',
+                        repository: data.repository ?? '',
                     },
                 },
             });
 
-            const payload = result.data?.createProject;
-            if (payload?.errors?.length) {
-                const errorMessages = payload.errors.map((e: { field: string; message: string }) => e.message);
-                const errorMessage = errorMessages.join(', ');
-                logger.warn('Failed to create project: validation error', {
+            const project = result.data?.createProject;
+            if (!project) {
+                logger.warn('Failed to create project', {
                     name: data.name,
-                    errors: errorMessages,
                 });
-                setServerError(errorMessage);
+                setServerError('Failed to create project');
                 return;
             }
 

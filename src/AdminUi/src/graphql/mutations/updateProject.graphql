@@ -1,14 +1,8 @@
 mutation UpdateProject($input: UpdateProjectInput!) {
     updateProject(input: $input) {
-        project {
-            id
-            name
-            description
-            repository
-        }
-        errors {
-            field
-            message
-        }
+        id
+        name
+        description
+        repository
     }
 }

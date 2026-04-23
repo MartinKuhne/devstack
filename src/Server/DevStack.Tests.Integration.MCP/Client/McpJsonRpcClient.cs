@@ -12,7 +12,7 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
     private readonly JsonSerializerOptions _jsonOptions;
     private int _requestId;
 
-    public McpJsonRpcClient(HttpClient httpClient, string endpoint = "http://localhost:8887/mcp")
+    public McpJsonRpcClient(HttpClient httpClient, string endpoint)
     {
         _httpClient = httpClient;
         _endpoint = endpoint;
