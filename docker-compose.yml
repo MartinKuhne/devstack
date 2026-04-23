@@ -1,17 +1,4 @@
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: devstack-redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    profiles:
-      - langchain-worker
-
   postgres:
     image: postgres:17-alpine
     container_name: devstack-postgres
@@ -60,23 +47,6 @@ services:
       postgres:
         condition: service_healthy
 
-  agent-worker:
-    build:
-      context: ./src/AgentProcess
-      dockerfile: Dockerfile
-    container_name: devstack-agent-worker
-    environment:
-      NODE_ENV: Production
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      GRAPHQL_API_URL: http://api:8080/graphql
-    depends_on:
-      redis:
-        condition: service_healthy
-      api:
-        condition: service_started
-    profiles:
-      - langchain-worker
-
   admin-ui:
     build:
       context: ./src/AdminUi
@@ -89,22 +59,6 @@ services:
     depends_on:
       - api
 
-  playwright-test:
-    build:
-      context: ./src/AdminUi/tests/e2e
-      dockerfile: Dockerfile
-    container_name: devstack-playwright-test
-    environment:
-      API_URL: http://admin-ui:80/graphql
-      CI: "true"
-    depends_on:
-      - admin-ui
-      - api
-    volumes:
-      - ./src/AdminUi/reports:/app/reports
-      - ./src/AdminUi/tests/e2e/test-results:/app/test-results
-    profiles:
-      - integration-test
 
 volumes:
   postgres_data:
