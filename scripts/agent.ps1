@@ -527,6 +527,8 @@ function Invoke-ExecutionPhase {
             catch {
                 Log-Error "Error updating AgentTask $($task.id): $_"
             }
+
+            Check-And-MarkDeliverableDone -DeliverableId $task.deliverableId
         }
         else {
             Log-Error "Execution failed for AgentTask $($task.id)"
@@ -536,6 +538,65 @@ function Invoke-ExecutionPhase {
     }
 
     Log-Info "Execution phase complete."
+}
+
+function Check-And-MarkDeliverableDone {
+    param([string]$DeliverableId)
+
+    Log-Info "Checking if all tasks for deliverable $($DeliverableId) are DONE..."
+
+    $taskResult = Invoke-GraphQL -Operation $GetTasksByDeliverableQuery -Variables @{ first = 100; deliverableId = $DeliverableId }
+
+    if ($taskResult.errors) {
+        Log-Error "Failed to query tasks for deliverable $($DeliverableId): $($taskResult.errors -join ', ')"
+        return $false
+    }
+
+    $allTasks = $taskResult.data.agentTasks.nodes
+    if (-not $allTasks) {
+        Log-Info "No tasks found for deliverable $($DeliverableId). Marking as DONE."
+        $transitionVars = @{ input = @{ id = $DeliverableId; status = "DONE" } }
+        try {
+            $transitionResult = Invoke-GraphQL -Operation $TransitionDeliverableStatusMutation -Variables $transitionVars -IsMutation
+            if ($transitionResult.errors) {
+                Log-Error "Failed to transition deliverable $($DeliverableId): $($transitionResult.errors -join ', ')"
+                return $false
+            }
+            Log-Info "Deliverable $($DeliverableId) marked as DONE."
+            return $true
+        }
+        catch {
+            Log-Error "Error transitioning deliverable $($DeliverableId): $_"
+            return $false
+        }
+    }
+
+    Log-Info "Found $($allTasks.Count) task(s) for deliverable $($DeliverableId)."
+
+    $pendingTasks = $allTasks | Where-Object { $_.status -ne "DONE" }
+
+    if ($pendingTasks.Count -gt 0) {
+        $pendingIds = ($pendingTasks | ForEach-Object { $_.id }) -join ', '
+        Log-Info "$($pendingTasks.Count) task(s) still pending for deliverable $($DeliverableId): $($pendingIds -join ', '). Skipping."
+        return $false
+    }
+
+    Log-Info "All $($allTasks.Count) task(s) for deliverable $($DeliverableId) are DONE. Transitioning deliverable to DONE."
+
+    $transitionVars = @{ input = @{ id = $DeliverableId; status = "DONE" } }
+    try {
+        $transitionResult = Invoke-GraphQL -Operation $TransitionDeliverableStatusMutation -Variables $transitionVars -IsMutation
+        if ($transitionResult.errors) {
+            Log-Error "Failed to transition deliverable $($DeliverableId): $($transitionResult.errors -join ', ')"
+            return $false
+        }
+        Log-Info "Deliverable $($DeliverableId) marked as DONE."
+        return $true
+    }
+    catch {
+        Log-Error "Error transitioning deliverable $($DeliverableId): $_"
+        return $false
+    }
 }
 
 # Main execution
