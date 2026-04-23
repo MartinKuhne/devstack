@@ -44,7 +44,7 @@ describe('useAgentTasksByDeliverable', () => {
         );
     });
 
-    it('fetches all tasks when no deliverableId', async () => {
+    it('skips query when no deliverableId', async () => {
         const hooks = await getMockedQuery();
         hooks.useGetAgentTasksQuery.mockReturnValue({
             data: {
@@ -64,6 +64,8 @@ describe('useAgentTasksByDeliverable', () => {
 
         expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith({
             fetchPolicy: 'cache-and-network',
+            skip: true,
+            variables: undefined,
         });
     });
 
