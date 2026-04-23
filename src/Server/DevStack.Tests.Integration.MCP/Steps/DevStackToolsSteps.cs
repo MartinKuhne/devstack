@@ -3,6 +3,7 @@ using DevStack.Tests.Integration.MCP.Client;
 using DevStack.Tests.Integration.MCP.Hooks;
 using FluentAssertions;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
@@ -21,6 +22,50 @@ public sealed class DevStackToolsSteps
     }
 
     private IMcpJsonRpcClient Client => SpecFlowHooks.GetMcpClient(_scenarioContext);
+
+    private string GetResultText(JsonRpcResponse response)
+    {
+        response.Result.Should().NotBeNull("MCP response result should not be null");
+        var resultJson = JsonSerializer.Serialize(response.Result);
+        var doc = JsonDocument.Parse(resultJson);
+        var root = doc.RootElement;
+
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("content", out var contentProp) && contentProp.ValueKind == JsonValueKind.Array && contentProp.GetArrayLength() > 0)
+        {
+            var firstBlock = contentProp[0];
+            if (firstBlock.TryGetProperty("text", out var textProp) && textProp.ValueKind == JsonValueKind.String)
+            {
+                return textProp.GetString()!;
+            }
+        }
+
+        if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() > 0)
+        {
+            var firstBlock = root[0];
+            if (firstBlock.TryGetProperty("text", out var textProp) && textProp.ValueKind == JsonValueKind.String)
+            {
+                return textProp.GetString()!;
+            }
+        }
+
+        return resultJson;
+    }
+
+    private string ExtractJsonFromMarkdown(string markdown)
+    {
+        var match = Regex.Match(markdown, @"```json\s*\n(.*?)\n```", RegexOptions.Singleline);
+        if (match.Success)
+        {
+            return match.Groups[1].Value.Trim();
+        }
+        return markdown.Trim();
+    }
+
+    private string GetResultJson(JsonRpcResponse response)
+    {
+        var text = GetResultText(response);
+        return ExtractJsonFromMarkdown(text);
+    }
 
     #region Deliverable Steps
 
@@ -99,9 +144,8 @@ public sealed class DevStackToolsSteps
     [Then(@"the deliverable should have a valid ID")]
     public void ThenTheDeliverableShouldHaveAValidID()
     {
-        var result = _response!.Result!.ToString();
-        result.Should().NotBeNullOrEmpty();
-        var jsonDoc = JsonDocument.Parse(result!);
+        var resultJson = GetResultJson(_response!);
+        var jsonDoc = JsonDocument.Parse(resultJson);
         if (jsonDoc.RootElement.TryGetProperty("id", out var idElement))
         {
             _createdDeliverableId = idElement.GetString();
@@ -113,8 +157,17 @@ public sealed class DevStackToolsSteps
     [Then(@"the deliverable status should be ""(.*)""")]
     public void ThenTheDeliverableStatusShouldBe(string expectedStatus)
     {
-        var result = _response!.Result!.ToString();
-        result.Should().Contain(expectedStatus);
+        var resultJson = GetResultJson(_response!);
+        var jsonDoc = JsonDocument.Parse(resultJson);
+        if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement))
+        {
+            statusElement.GetString().Should().Contain(expectedStatus);
+        }
+        else
+        {
+            var text = GetResultText(_response!);
+            text.Should().Contain(expectedStatus);
+        }
     }
 
     [Then(@"the response should contain the updated deliverable")]
@@ -122,8 +175,8 @@ public sealed class DevStackToolsSteps
     {
         _response.Should().NotBeNull();
         _response!.Error.Should().BeNull();
-        var result = _response!.Result!.ToString();
-        result.Should().Contain("updated");
+        var resultJson = GetResultJson(_response!);
+        resultJson.Should().Contain("updated");
     }
 
     [Then(@"the response should contain the deliverable with new status")]
@@ -199,9 +252,8 @@ public sealed class DevStackToolsSteps
     [Then(@"the task should have a valid ID")]
     public void ThenTheTaskShouldHaveAValidID()
     {
-        var result = _response!.Result!.ToString();
-        result.Should().NotBeNullOrEmpty();
-        var jsonDoc = JsonDocument.Parse(result!);
+        var resultJson = GetResultJson(_response!);
+        var jsonDoc = JsonDocument.Parse(resultJson);
         if (jsonDoc.RootElement.TryGetProperty("id", out var idElement))
         {
             _createdTaskId = idElement.GetString();
@@ -213,8 +265,17 @@ public sealed class DevStackToolsSteps
     [Then(@"the task status should be ""(.*)""")]
     public void ThenTheTaskStatusShouldBe(string expectedStatus)
     {
-        var result = _response!.Result!.ToString();
-        result.Should().Contain(expectedStatus);
+        var resultJson = GetResultJson(_response!);
+        var jsonDoc = JsonDocument.Parse(resultJson);
+        if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement))
+        {
+            statusElement.GetString().Should().Contain(expectedStatus);
+        }
+        else
+        {
+            var text = GetResultText(_response!);
+            text.Should().Contain(expectedStatus);
+        }
     }
 
   [Then(@"the response should contain the updated task")]
@@ -222,8 +283,8 @@ public sealed class DevStackToolsSteps
     {
         _response.Should().NotBeNull();
         _response!.Error.Should().BeNull();
-        var result = _response!.Result!.ToString();
-        result.Should().Contain("updated");
+        var resultJson = GetResultJson(_response!);
+        resultJson.Should().Contain("updated");
     }
 
     [Then(@"the response should contain the task with new status")]
@@ -236,8 +297,17 @@ public sealed class DevStackToolsSteps
     [Then(@"the status should be ""(.*)""")]
     public void ThenTheStatusShouldBe(string expectedStatus)
     {
-        var result = _response!.Result!.ToString();
-        result.Should().Contain(expectedStatus);
+        var resultJson = GetResultJson(_response!);
+        var jsonDoc = JsonDocument.Parse(resultJson);
+        if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement))
+        {
+            statusElement.GetString().Should().Contain(expectedStatus);
+        }
+        else
+        {
+            var text = GetResultText(_response!);
+            text.Should().Contain(expectedStatus);
+        }
     }
 
     #endregion
@@ -253,14 +323,14 @@ public sealed class DevStackToolsSteps
         }
 
         var projects = await Client.SendRequestAsync("tools/call", new { name = "get_projects", arguments = new { } });
-        var result = projects.Result?.ToString() ?? "";
+        var resultJson = GetResultJson(projects);
         
-        if (string.IsNullOrEmpty(result))
+        if (string.IsNullOrEmpty(resultJson))
         {
             throw new InvalidOperationException("Tool returned empty result");
         }
 
-        var jsonDoc = JsonDocument.Parse(result);
+        var jsonDoc = JsonDocument.Parse(resultJson);
         var projectsArray = jsonDoc.RootElement;
 
         if (projectsArray.GetArrayLength() > 0)
@@ -279,7 +349,7 @@ public sealed class DevStackToolsSteps
         var projectId = Guid.Parse(await GetOrCreateTestProjectIdAsync());
         var args = new { projectId, title = $"Test Deliverable {Guid.NewGuid()}", description = "Auto-generated test deliverable" };
         var response = await Client.SendRequestAsync("tools/call", new { name = "create_deliverable", arguments = args });
-        var result = response.Result?.ToString() ?? "";
+        var result = GetResultJson(response);
         
         if (response.Error != null)
         {
@@ -299,7 +369,6 @@ public sealed class DevStackToolsSteps
                 return idElement.GetString() ?? "";
             }
             
-            // Check if it's an error response from MCP
             if (jsonDoc.RootElement.TryGetProperty("isError", out var isErrorElement) && isErrorElement.GetBoolean())
             {
                 throw new InvalidOperationException($"Tool returned error: {result}");
@@ -332,7 +401,7 @@ public sealed class DevStackToolsSteps
         var deliverableId = Guid.Parse(await GetOrCreateTestDeliverableIdAsync());
         var args = new { projectId, itemId = deliverableId, title = $"Test Task {Guid.NewGuid()}", deliverableDescription = "Auto-generated test task" };
         var response = await Client.SendRequestAsync("tools/call", new { name = "create_task", arguments = args });
-        var result = response.Result?.ToString() ?? "";
+        var result = GetResultJson(response);
         if (response.Error != null)
         {
             throw new InvalidOperationException($"Tool call failed: {response.Error.Message}");

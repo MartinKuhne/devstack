@@ -41,28 +41,56 @@ public sealed class ToolsListSteps
     [Then(@"the tools should include ""(.*)""")]
     public void ThenTheToolsShouldInclude(string toolName)
     {
-        var result = _response!.Result!.ToString();
+        var result = GetResultJson();
         result.Should().Contain(toolName);
     }
 
     [Then(@"each tool should have a name")]
     public void ThenEachToolShouldHaveAName()
     {
-        var result = _response!.Result!.ToString();
+        var result = GetResultJson();
         result.Should().Contain("name");
     }
 
     [Then(@"each tool should have a description")]
     public void ThenEachToolShouldHaveADescription()
     {
-        var result = _response!.Result!.ToString();
+        var result = GetResultJson();
         result.Should().Contain("description");
     }
 
     [Then(@"each tool should have inputSchema")]
     public void ThenEachToolShouldHaveInputSchema()
     {
-        var result = _response!.Result!.ToString();
+        var result = GetResultJson();
         result.Should().Contain("inputSchema");
+    }
+
+    private string GetResultJson()
+    {
+        _response!.Result.Should().NotBeNull();
+        var resultJson = JsonSerializer.Serialize(_response.Result);
+        var doc = JsonDocument.Parse(resultJson);
+        var root = doc.RootElement;
+
+        JsonElement sourceProp = root;
+
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("content", out var contentProp) && contentProp.ValueKind == JsonValueKind.Array && contentProp.GetArrayLength() > 0)
+        {
+            var firstBlock = contentProp[0];
+            if (firstBlock.TryGetProperty("text", out var textProp) && textProp.ValueKind == JsonValueKind.String)
+            {
+                resultJson = textProp.GetString()!;
+                doc = JsonDocument.Parse(resultJson);
+                sourceProp = doc.RootElement;
+            }
+        }
+
+        if (sourceProp.ValueKind == JsonValueKind.Object && sourceProp.TryGetProperty("tools", out var toolsProp))
+        {
+            return toolsProp.GetRawText();
+        }
+
+        return resultJson;
     }
 }

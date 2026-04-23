@@ -4,6 +4,7 @@ using DevStack.Tests.Integration.MCP.Hooks;
 using FluentAssertions;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
 
@@ -52,6 +53,44 @@ public sealed class ErrorHandlingSteps
             catch
             {
                 _response = new JsonRpcResponse("2.0", null, new JsonRpcError(-32700, "Parse error", null), null);
+            }
+        }
+        else if (_scenarioContext.TryGetValue<object>("InvalidRequest", out var invalidRequest))
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(invalidRequest);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            _httpResponse = await HttpClient.PostAsync("/mcp", content);
+            var responseContent = await _httpResponse.Content.ReadAsStringAsync();
+            
+            try
+            {
+                _response = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse>(responseContent);
+            }
+            catch
+            {
+                _response = new JsonRpcResponse("2.0", null, new JsonRpcError(-32700, "Parse error", null), null);
+            }
+        }
+        else if (_scenarioContext.TryGetValue<object>("InvalidParams", out var invalidParams))
+        {
+            try
+            {
+                _response = await Client.SendRequestAsync("tools/call", invalidParams);
+            }
+            catch (JsonRpcException ex)
+            {
+                _response = new JsonRpcResponse("2.0", null, new JsonRpcError(ex.Code, ex.Message, ex.Data), null);
+            }
+        }
+        else if (_scenarioContext.TryGetValue<object>("ValidRequestWithExtraParams", out var validWithExtra))
+        {
+            try
+            {
+                _response = await Client.SendRequestAsync("tools/call", validWithExtra);
+            }
+            catch (JsonRpcException ex)
+            {
+                _response = new JsonRpcResponse("2.0", null, new JsonRpcError(ex.Code, ex.Message, ex.Data), null);
             }
         }
 
@@ -241,10 +280,17 @@ public sealed class ErrorHandlingSteps
             var httpResponse = await HttpClient.PostAsync("/mcp", content);
             var responseContent = await httpResponse.Content.ReadAsStringAsync();
             
-            var responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(responseContent);
-            if (responses != null && responses.Length > 0)
+            try
             {
-                _scenarioContext["BatchResponses"] = responses;
+                var responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(responseContent);
+                if (responses != null && responses.Length > 0)
+                {
+                    _scenarioContext["BatchResponses"] = responses;
+                }
+            }
+            catch
+            {
+                _response = new JsonRpcResponse("2.0", null, new JsonRpcError(-32700, "Parse error", null), null);
             }
         }
 
@@ -254,16 +300,19 @@ public sealed class ErrorHandlingSteps
     [Then(@"the response should contain (\d+) responses")]
     public void ThenTheResponseShouldContainResponses(int expectedCount)
     {
-        if (_scenarioContext.TryGetValue<JsonRpcResponse[]>("BatchResponses", out var responses))
+        JsonRpcResponse[]? responses = null;
+        if (_scenarioContext.TryGetValue<JsonRpcResponse[]>("BatchResponses", out var batchResponses))
         {
-            responses!.Length.Should().Be(expectedCount);
+            responses = batchResponses;
         }
-        else
+        else if (_response?.Result != null)
         {
-            var result = _response!.Result!.ToString()!;
+            var result = _response.Result.ToString()!;
             responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
-            responses!.Length.Should().Be(expectedCount);
         }
+        responses.Should().NotBeNull();
+        responses!.Should().NotBeEmpty();
+        responses.Length.Should().Be(expectedCount);
     }
 
     [Then(@"each response should have the correct id")]
