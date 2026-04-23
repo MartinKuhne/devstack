@@ -7,8 +7,8 @@ $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 $DelaySeconds = 5
 
 $GetProjectsQuery = @'
-query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
-  projects(first: $first, skip: $skip, search: $search, orderBy: $orderBy) {
+query GetProjects($first: Int!) {
+  projects(first: $first) {
     nodes {
       id
       name
@@ -18,7 +18,6 @@ query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
     pageInfo {
       hasNextPage
       hasPreviousPage
-      totalCount
     }
     totalCount
   }
@@ -26,8 +25,8 @@ query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
 '@
 
 $GetDeliverablesByProjectIdQuery = @'
-query GetDeliverablesByProjectId($projectId: UUID!, $first: Int!, $skip: Int, $status: String, $type: String, $orderBy: String) {
-  deliverablesByProjectId(projectId: $projectId, first: $first, skip: $skip, status: $status, type: $type, orderBy: $orderBy) {
+query GetDeliverablesByProjectId($projectId: UUID!, $first: Int!) {
+  deliverablesByProjectId(projectId: $projectId, first: $first) {
     nodes {
       id
       title
@@ -45,7 +44,6 @@ query GetDeliverablesByProjectId($projectId: UUID!, $first: Int!, $skip: Int, $s
     pageInfo {
       hasNextPage
       hasPreviousPage
-      totalCount
     }
     totalCount
   }
@@ -53,8 +51,8 @@ query GetDeliverablesByProjectId($projectId: UUID!, $first: Int!, $skip: Int, $s
 '@
 
 $GetAgentTasksQuery = @'
-query GetAgentTasks($deliverableId: ID, $first: Int!, $skip: Int, $status: String, $orderBy: String) {
-  agentTasks(deliverableId: $deliverableId, first: $first, skip: $skip, status: $status, orderBy: $orderBy) {
+query GetAgentTasks($deliverableId: ID, $first: Int!) {
+  agentTasks(deliverableId: $deliverableId, first: $first) {
     nodes {
       id
       title
@@ -80,7 +78,6 @@ query GetAgentTasks($deliverableId: ID, $first: Int!, $skip: Int, $status: Strin
     pageInfo {
       hasNextPage
       hasPreviousPage
-      totalCount
     }
     totalCount
   }
@@ -302,7 +299,7 @@ function Get-CurrentProjectId {
 
     Log-Info "Repository: $repoName"
 
-    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100; skip = 0; search = $null; orderBy = "id" }
+    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100 }
 
     if ($result.errors) {
         Log-Error "Failed to query projects: $($result.errors -join ', ')"
@@ -405,7 +402,7 @@ function Invoke-PlanningPhase {
     $promptTemplate = Load-PromptFile "planning.prompt"
 
     # Fetch deliverables in PLANNING status
-    $result = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId; first = 100; skip = 0; status = $null; type = $null; orderBy = "id" }
+    $result = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId; first = 100 }
 
     if ($result.errors) {
         Log-Error "Failed to query deliverables: $($result.errors -join ', ')"
@@ -456,7 +453,7 @@ function Invoke-ExecutionPhase {
     $promptTemplate = Load-PromptFile "execution.prompt"
 
     # Fetch all deliverables for the project
-    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId; first = 100; skip = 0; status = $null; type = $null; orderBy = "id" }
+    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId; first = 100 }
 
     if ($deliverablesResult.errors) {
         Log-Error "Failed to query deliverables: $($deliverablesResult.errors -join ', ')"
@@ -472,7 +469,7 @@ function Invoke-ExecutionPhase {
     # Fetch AgentTasks for each deliverable and collect READY ones
     $tasks = @()
     foreach ($deliverable in $allDeliverables) {
-        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ deliverableId = $deliverable.id; first = 100; skip = 0; status = $null; orderBy = "id" }
+        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ deliverableId = $deliverable.id; first = 100 }
         if ($taskResult.errors) {
             Log-Error "Failed to query tasks for deliverable $($deliverable.id): $($taskResult.errors -join ', ')"
             continue

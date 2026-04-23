@@ -1,5 +1,5 @@
-query GetProjects($first: Int, $skip: Int) {
-  projects(first: $first, skip: $skip) {
+query GetProjects($first: Int!) {
+  projects(first: $first) {
     nodes {
       id
       name
@@ -8,7 +8,6 @@ query GetProjects($first: Int, $skip: Int) {
     pageInfo {
       hasNextPage
       hasPreviousPage
-      totalCount
     }
     totalCount
   }
