@@ -224,7 +224,7 @@ test.describe('Project Detail View', () => {
         await expect(projectListPage.pageTitle).toBeVisible();
     });
 
-    test('should show three tabs on project detail page', async ({ page }) => {
+    test('should show two tabs on project detail page', async ({ page }) => {
         await projectListPage.navigate();
         await projectListPage.waitForProjectList();
         await projectListPage.clickNewProject();
@@ -237,7 +237,6 @@ test.describe('Project Detail View', () => {
         await page.waitForURL('/projects/**');
         await expect(projectDetailPage.deliverablesTab).toBeVisible();
         await expect(projectDetailPage.agentTasksTab).toBeVisible();
-        await expect(projectDetailPage.modelsTab).toBeVisible();
     });
 
     test('should have Deliverables tab selected by default', async ({ page }) => {
@@ -269,10 +268,6 @@ test.describe('Project Detail View', () => {
         await projectDetailPage.clickTab('Agent Tasks');
         const agentTasksSelected = await projectDetailPage.isTabSelected('Agent Tasks');
         expect(agentTasksSelected).toBe(true);
-
-        await projectDetailPage.clickTab('Models');
-        const modelsSelected = await projectDetailPage.isTabSelected('Models');
-        expect(modelsSelected).toBe(true);
 
         await projectDetailPage.clickTab('Deliverables');
         const deliverablesSelected = await projectDetailPage.isTabSelected('Deliverables');
