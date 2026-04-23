@@ -14,21 +14,15 @@ if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
 
 $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 
-$GetProjectsQuery = @'
-query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
-  projects(first: $first, skip: $skip, search: $search, orderBy: $orderBy) {
+$GetProjectQuery = @'
+query GetProject($repoName: String) {
+  projects(where: {  name: { eq: $repoName } } ) {
     nodes {
       id
       name
       description
       repository
     }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-      totalCount
-    }
-    totalCount
   }
 }
 '@
@@ -90,7 +84,10 @@ function Invoke-GraphQL {
     try {
         $response = Invoke-WebRequest -Uri $GraphQLEndpoint -Method Post -Body $jsonBody `
             -ContentType "application/json; charset=utf-8" -UseBasicParsing
-        return $response | ConvertFrom-Json
+
+        $result = $response | ConvertFrom-Json
+
+        return $result
     }
     catch {
         $responseBody = $null
@@ -135,15 +132,10 @@ function Initialize-Project {
         exit 1
     }
 
-Write-Host "Repository: $repoName"
+    Write-Host "Repository: $repoName"
 
      # Check if project already exists
-     $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100; skip = 0; search = $null; orderBy = "id" }
-
-    if ($result.errors) {
-        Write-Error "Failed to query projects: $($result.errors -join ', ')"
-        exit 1
-    }
+    $result = Invoke-GraphQL -Operation $GetProjectQuery -Variables @{ repoName = $repoName }
 
     $existingProject = $result.data.projects.nodes | Where-Object { $_.name -eq $repoName }
 
@@ -217,17 +209,12 @@ Write-Host "Repository: $repoName"
 
 function Get-CurrentProjectId {
     $repoName = Get-GitRemoteOrigin
-if ([string]::IsNullOrWhiteSpace($repoName)) {
+    if ([string]::IsNullOrWhiteSpace($repoName)) {
          Write-Error "Could not determine repository name. Please ensure git remote 'origin' is configured."
          exit 1
      }
 
-     $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100; skip = 0; search = $null; orderBy = "id" }
-
-    if ($result.errors) {
-        Write-Error "Failed to query projects: $($result.errors -join ', ')"
-        exit 1
-    }
+    $result = Invoke-GraphQL -Operation $GetProjectQuery -Variables @{ repoName = $repoName}
 
     $project = $result.data.projects.nodes | Where-Object { $_.name -eq $repoName }
     if (-not $project) {
