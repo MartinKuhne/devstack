@@ -82,6 +82,39 @@ query GetAgentTasks($first: Int!, $deliverableId: UUID!, $status: String) {
 }
 '@
 
+$GetTasksByDeliverableQuery = @'
+query GetTasksByDeliverable($first: Int!, $deliverableId: UUID!) {
+  agentTasks(first: $first, where: { deliverableId: { eq: $deliverableId } }) {
+    nodes {
+      id
+      title
+      status
+      deliverableId
+      projectId
+      description
+      result
+      errors
+      commitHash
+      complexityRating
+      dependsOnAgentTaskId
+      dependsOnAgentTask {
+        id
+        title
+        status
+      }
+      promptTokens
+      completionTokens
+      executionDurationInSeconds
+      agent
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+'@
+
 $UpdateDeliverableMutation = @'
 mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
   updateDeliverable(input: $input) {
