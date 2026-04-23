@@ -58,14 +58,16 @@ public sealed class AgentTaskSteps
     public void GivenAnAgentTaskExists(string title)
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
-        CreateAgentTask(deliverableId, title, 5);
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
+        CreateAgentTask(deliverableId, projectId, title, 5);
     }
 
     [Given(@"an agent task with status ""(.*)"" exists")]
     public void GivenAnAgentTaskWithStatusExists(string status)
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
-        CreateAgentTask(deliverableId, "Test Task", 5);
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
+        CreateAgentTask(deliverableId, projectId, "Test Task", 5);
         var targetStatus = MapAgentTaskStatus(status);
         if (targetStatus != "READY")
         {
@@ -192,9 +194,8 @@ public sealed class AgentTaskSteps
         }
     }
 
-    private void CreateAgentTask(string deliverableId, string title, int complexityRating)
+    private void CreateAgentTask(string deliverableId, string projectId, string title, int complexityRating)
     {
-        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
         var mutation = new
         {
             query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { id } }",
@@ -216,6 +217,13 @@ public sealed class AgentTaskSteps
         }
         var taskId = agentTask.GetProperty("id").ToString();
         _scenarioContext["AgentTaskId"] = taskId;
+
+        if (!_scenarioContext.ContainsKey("AgentTaskIds"))
+        {
+            _scenarioContext["AgentTaskIds"] = new List<string>();
+        }
+        var taskIds = (List<string>)_scenarioContext["AgentTaskIds"]!;
+        taskIds.Add(taskId);
     }
 
     [When(@"I create an agent task with title ""(.*)"" and complexity rating (.*)")]
@@ -536,5 +544,150 @@ public sealed class AgentTaskSteps
             "needs_review" or "needsreview" or "needs review" => "NEEDS_REVIEW",
             _ => status.ToUpperInvariant().Replace(" ", "_")
         };
+    }
+
+    [Then(@"the deliverable status should be queried and be ""(.*)""")]
+    public void ThenTheDeliverableStatusShouldBeQueriedAndBe(string expectedStatus)
+    {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        var query = new
+        {
+            query = @"query GetDeliverableById($id: UUID!) { deliverable(id: $id) { id status } }",
+            variables = new { id = deliverableId },
+            operationName = "GetDeliverableById"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        var deliverable = GetData(result).GetProperty("deliverable");
+        var actualStatus = deliverable.GetProperty("status").ToString();
+        var mappedExpected = MapStatus(expectedStatus);
+        actualStatus.Should().BeEquivalentTo(mappedExpected, $"deliverable status should be {mappedExpected}");
+    }
+
+    [Given(@"a deliverable ""(.*)"" type ""(.*)"" with initial status ""(.*)"" exists")]
+    public void GivenADeliverableWithTypeAndInitialStatusExists(string title, string type, string initialStatus)
+    {
+        var projectId = _scenarioContext["ProjectId"]?.ToString()!;
+        _scenarioContext["DeliverableTitle"] = title;
+        var mappedStatus = MapStatus(initialStatus);
+        var mutation = new
+        {
+            query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id status } }",
+            variables = new
+            {
+                input = new
+                {
+                    projectId,
+                    title,
+                    type,
+                    description = "",
+                    acceptanceCriteria = (string?)null,
+                    executionPlan = (string?)null,
+                    securityImpact = (string?)null,
+                    performanceImpact = (string?)null,
+                    testPlan = (string?)null,
+                    deploymentPlan = (string?)null,
+                    initialStatus = mappedStatus
+                }
+            },
+            operationName = "CreateDeliverable"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        var deliverableId = GetData(result).GetProperty("createDeliverable").GetProperty("id").ToString();
+        _scenarioContext["DeliverableId"] = deliverableId;
+        var status = GetData(result).GetProperty("createDeliverable").GetProperty("status").ToString();
+        _scenarioContext["DeliverableInitialStatus"] = status;
+    }
+
+    private static string MapStatus(string status)
+    {
+        var lower = status.ToLowerInvariant();
+        return lower switch
+        {
+            "planning" => "PLANNING",
+            "ready" => "READY",
+            "in_progress" or "inprogress" or "in progress" => "IN_PROGRESS",
+            "done" => "DONE",
+            "failed" => "FAILED",
+            "rejected" => "REJECTED",
+            "needs_review" or "needsreview" or "needs review" => "NEEDS_REVIEW",
+            "draft" => "DRAFT",
+            _ => "PLANNING"
+        };
+   }
+
+    [When(@"I transition the first agent task status to ""(.*)""")]
+    public void WhenITransitionTheFirstAgentTaskStatusTo(string targetStatus)
+    {
+        var taskIds = (List<string>)_scenarioContext["AgentTaskIds"]!;
+        var taskId = taskIds[0];
+        TransitionAgentTaskById(taskId, targetStatus);
+    }
+
+    [When(@"I transition the second agent task status to ""(.*)""")]
+    public void WhenITransitionTheSecondAgentTaskStatusTo(string targetStatus)
+    {
+        var taskIds = (List<string>)_scenarioContext["AgentTaskIds"]!;
+        var taskId = taskIds[1];
+        TransitionAgentTaskById(taskId, targetStatus);
+    }
+
+    private void TransitionAgentTaskById(string taskId, string targetStatus)
+    {
+        var mappedStatus = MapAgentTaskStatus(targetStatus);
+        var mutation = new
+        {
+            query = @"mutation TransitionAgentTaskStatus($id: UUID!, $targetStatus: AgentTaskStatus!) { updateAgentTaskStatus(id: $id, targetStatus: $targetStatus) }",
+            variables = new { id = taskId, targetStatus = mappedStatus },
+            operationName = "TransitionAgentTaskStatus"
+        };
+
+        var contentBody = JsonSerializer.Serialize(mutation);
+        var response = _httpClient.PostAsync("", new StringContent(contentBody, Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"HTTP {response.StatusCode}: {content}");
+        }
+    }
+
+    [When(@"I call checkAndMarkDeliverableDone on the deliverable")]
+    public void WhenICallCheckAndMarkDeliverableDoneOnTheDeliverable()
+    {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        var mutation = new
+        {
+            query = @"mutation CheckAndMarkDeliverableDone($deliverableId: UUID!) { checkAndMarkDeliverableDone(deliverableId: $deliverableId) }",
+            variables = new { deliverableId = deliverableId },
+            operationName = "CheckAndMarkDeliverableDone"
+        };
+
+        var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonSerializer.Deserialize<JsonElement>(content)!;
+        _scenarioContext["Response"] = result;
+    }
+
+    [Then(@"the check result should be true")]
+    public void ThenTheCheckResultShouldBeTrue()
+    {
+        var response = (JsonElement)_scenarioContext["Response"]!;
+        var data = GetData(response);
+        var result = data.GetProperty("checkAndMarkDeliverableDone").GetBoolean();
+        result.Should().BeTrue("checkAndMarkDeliverableDone should return true");
+    }
+
+    [Then(@"the check result should be false")]
+    public void ThenTheCheckResultShouldBeFalse()
+    {
+        var response = (JsonElement)_scenarioContext["Response"]!;
+        var data = GetData(response);
+        var result = data.GetProperty("checkAndMarkDeliverableDone").GetBoolean();
+        result.Should().BeFalse("checkAndMarkDeliverableDone should return false");
     }
 }

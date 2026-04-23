@@ -1,0 +1,269 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+input CreateProjectInput {
+  name: String!
+  description: String
+  repository: String
+}
+
+input UpdateProjectInput {
+  id: UUID!
+  name: String
+  description: String
+  repository: String
+}
+
+input DeleteProjectInput {
+  id: UUID!
+}
+
+input CreateDeliverableInput {
+  projectId: UUID!
+  title: String!
+  type: String!
+  description: String
+  acceptanceCriteria: String
+  agentFeedback: String
+  executionPlan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  blocking: String
+  initialStatus: DeliverableStatus
+}
+
+input UpdateDeliverableInput {
+  id: UUID!
+  title: String
+  description: String
+  acceptanceCriteria: String
+  agentFeedback: String
+  executionPlan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  blocking: String
+}
+
+input TransitionDeliverableInput {
+  id: UUID!
+  targetStatus: DeliverableStatus!
+  actor: String!
+}
+
+input DeleteDeliverableInput {
+  id: UUID!
+}
+
+input CreateAgentTaskInput {
+  projectId: UUID!
+  deliverableId: UUID!
+  title: String!
+  complexityRating: Int!
+  result: String
+  errors: String
+  commitHash: String
+  dependsOnDevTask: String
+  promptTokens: Int
+  completionTokens: Int
+  executionDurationInSeconds: Float
+  model: String
+}
+
+input UpdateAgentTaskInput {
+  id: UUID!
+  title: String
+  result: String
+  errors: String
+  commitHash: String
+  dependsOnDevTask: String
+  complexityRating: Int
+  promptTokens: Int
+  completionTokens: Int
+  executionDurationInSeconds: Float
+  model: String
+}
+
+input TransitionAgentTaskInput {
+  id: UUID!
+  targetStatus: AgentTaskStatus!
+  actor: String!
+}
+
+input DeleteAgentTaskInput {
+  id: UUID!
+}
+
+input CreateLargeLanguageModelInput {
+  url: String!
+  model: String!
+  modelAlias: String
+  apiKey: String!
+  maxComplexity: Int!
+  maxConcurrency: Int
+}
+
+input UpdateLargeLanguageModelInput {
+  id: UUID!
+  url: String
+  model: String
+  modelAlias: String
+  apiKey: String
+  maxComplexity: Int
+  maxConcurrency: Int
+}
+
+input DeleteLargeLanguageModelInput {
+  id: UUID!
+}
+
+type ProjectPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+}
+
+type ProjectPayload {
+  project: Project
+  errors: [String!]!
+}
+
+type DeliverablePayload {
+  deliverable: Deliverable
+  errors: [String!]!
+}
+
+type AgentTaskPayload {
+  agentTask: AgentTask
+  errors: [String!]!
+}
+
+type LargeLanguageModelPayload {
+  largeLanguageModel: LargeLanguageModel
+  errors: [String!]!
+}
+
+type ProjectConnection {
+  nodes: [Project!]!
+  pageInfo: ProjectPageInfo!
+  totalCount: Int!
+}
+
+type Project {
+  id: ID
+  name: String
+  description: String
+  repository: String
+  largeLanguageModels: [LargeLanguageModel!]!
+}
+
+type Deliverable {
+  id: ID
+  projectId: ID
+  type: DeliverableType
+  title: String
+  status: DeliverableStatus
+  description: String
+  acceptanceCriteria: String
+  executionPlan: String
+  agentFeedback: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  blocking: String
+}
+
+type AgentTask {
+  id: ID
+  projectId: ID
+  deliverableId: ID
+  title: String
+  status: AgentTaskStatus
+  result: String
+  errors: String
+  commitHash: String
+  complexityRating: Int
+  dependsOnDevTask: String
+  promptTokens: Int
+  completionTokens: Int
+  executionDurationInSeconds: Float
+  model: String
+}
+
+type LargeLanguageModel {
+  id: ID
+  url: String
+  model: String
+  modelAlias: String
+  apiKey: String
+  maxComplexity: Int
+  maxConcurrency: Int
+}
+
+enum DeliverableType {
+  FEATURE
+  DEFECT
+  MAINTENANCE
+}
+
+enum DeliverableStatus {
+  DRAFT
+  PLANNING
+  READY
+  IN_PROGRESS
+  DONE
+  FAILED
+  REJECTED
+  NEEDS_REVIEW
+}
+
+enum AgentTaskStatus {
+  READY
+  IN_PROGRESS
+  DONE
+  FAILED
+  REJECTED
+  NEEDS_REVIEW
+}
+
+scalar DateTime
+scalar UUID
+
+type Query {
+  projectById(id: UUID!): Project
+  projects(first: Int! = 50, skip: Int): ProjectConnection!
+  largeLanguageModelById(id: UUID!): LargeLanguageModel
+  largeLanguageModels: [LargeLanguageModel!]!
+}
+
+type Mutation {
+  createProject(input: CreateProjectInput!): ProjectPayload!
+  updateProject(input: UpdateProjectInput!): ProjectPayload!
+  deleteProject(input: DeleteProjectInput!): ProjectPayload!
+  createDeliverable(input: CreateDeliverableInput!): DeliverablePayload!
+  updateDeliverable(input: UpdateDeliverableInput!): DeliverablePayload!
+  transitionDeliverableStatus(input: TransitionDeliverableInput!): DeliverablePayload!
+  deleteDeliverable(input: DeleteDeliverableInput!): DeliverablePayload!
+  createAgentTask(input: CreateAgentTaskInput!): AgentTaskPayload!
+  updateAgentTask(input: UpdateAgentTaskInput!): AgentTaskPayload!
+  transitionAgentTaskStatus(input: TransitionAgentTaskInput!): AgentTaskPayload!
+  deleteAgentTask(input: DeleteAgentTaskInput!): AgentTaskPayload!
+  createLargeLanguageModel(input: CreateLargeLanguageModelInput!): LargeLanguageModelPayload!
+  updateLargeLanguageModel(input: UpdateLargeLanguageModelInput!): LargeLanguageModelPayload!
+  deleteLargeLanguageModel(input: DeleteLargeLanguageModelInput!): LargeLanguageModelPayload!
+  cleanupTestData: CleanupTestDataPayload!
+  checkAndMarkDeliverableDone(deliverableId: UUID!): Boolean!
+}
+
+type CleanupTestDataPayload {
+  success: Boolean!
+  message: String
+}
+
+directive @cost(weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
