@@ -2,6 +2,7 @@ using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Persistence;
 using HotChocolate.Types;
+using HotChocolate.Data;
 
 namespace DevStack.Api.GraphQL.Types;
 
@@ -12,7 +13,7 @@ public class Query
         return dbContext.Projects.Find(id);
     }
 
-    [UsePaging]
+    [UsePaging(MaxPageSize = 1000)]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Project> GetProjects(
@@ -37,7 +38,7 @@ public class Query
         return dbContext.Deliverables.Find(id);
     }
 
-    [UsePaging]
+    [UsePaging(MaxPageSize = 1000)]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Deliverable> GetDeliverables(
@@ -51,7 +52,7 @@ public class Query
         return dbContext.AgentTasks.Find(id);
     }
 
-    [UsePaging]
+    [UsePaging(MaxPageSize = 1000)]
     [UseFiltering]
     [UseSorting]
     public IQueryable<AgentTask> GetAgentTasks(
