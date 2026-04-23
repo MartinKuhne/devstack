@@ -19,18 +19,18 @@ query GetProjects($first: Int!) {
       hasNextPage
       hasPreviousPage
     }
-    totalCount
   }
 }
 '@
 
-$GetDeliverablesByProjectIdQuery = @'
-query GetDeliverablesByProjectId($projectId: UUID!, $first: Int!) {
-  deliverablesByProjectId(projectId: $projectId, first: $first) {
+$GetDeliverablesQuery = @'
+query GetDeliverables($first: Int!) {
+  deliverables(first: $first) {
     nodes {
       id
       title
       status
+      projectId
       description
       acceptanceCriteria
       executionPlan
@@ -45,14 +45,13 @@ query GetDeliverablesByProjectId($projectId: UUID!, $first: Int!) {
       hasNextPage
       hasPreviousPage
     }
-    totalCount
   }
 }
 '@
 
 $GetAgentTasksQuery = @'
-query GetAgentTasks($deliverableId: ID, $first: Int!) {
-  agentTasks(deliverableId: $deliverableId, first: $first) {
+query GetAgentTasks($first: Int!) {
+  agentTasks(first: $first) {
     nodes {
       id
       title
@@ -79,7 +78,6 @@ query GetAgentTasks($deliverableId: ID, $first: Int!) {
       hasNextPage
       hasPreviousPage
     }
-    totalCount
   }
 }
 '@
@@ -402,14 +400,14 @@ function Invoke-PlanningPhase {
     $promptTemplate = Load-PromptFile "planning.prompt"
 
     # Fetch deliverables in PLANNING status
-    $result = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId; first = 100 }
+    $result = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100 }
 
     if ($result.errors) {
         Log-Error "Failed to query deliverables: $($result.errors -join ', ')"
         exit 1
     }
 
-    $deliverables = $result.data.deliverablesByProjectId.nodes | Where-Object { $_.status -eq "PLANNING" }
+    $deliverables = $result.data.deliverables.nodes | Where-Object { $_.status -eq "PLANNING" -and $_.projectId -eq $projectId }
 
     if (-not $deliverables) {
         Log-Info "No deliverables in PLANNING status found for project."
@@ -453,14 +451,14 @@ function Invoke-ExecutionPhase {
     $promptTemplate = Load-PromptFile "execution.prompt"
 
     # Fetch all deliverables for the project
-    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesByProjectIdQuery -Variables @{ projectId = $projectId; first = 100 }
+    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100 }
 
     if ($deliverablesResult.errors) {
         Log-Error "Failed to query deliverables: $($deliverablesResult.errors -join ', ')"
         exit 1
     }
 
-    $allDeliverables = $deliverablesResult.data.deliverablesByProjectId.nodes
+    $allDeliverables = $deliverablesResult.data.deliverables.nodes | Where-Object { $_.projectId -eq $projectId }
     if (-not $allDeliverables) {
         Log-Info "No deliverables found for project."
         return
@@ -469,7 +467,7 @@ function Invoke-ExecutionPhase {
     # Fetch AgentTasks for each deliverable and collect READY ones
     $tasks = @()
     foreach ($deliverable in $allDeliverables) {
-        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ deliverableId = $deliverable.id; first = 100 }
+        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ first = 100 }
         if ($taskResult.errors) {
             Log-Error "Failed to query tasks for deliverable $($deliverable.id): $($taskResult.errors -join ', ')"
             continue
