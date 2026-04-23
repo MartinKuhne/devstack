@@ -13,7 +13,7 @@ public class Query
         return dbContext.Projects.Find(id);
     }
 
-    [UsePaging(MaxPageSize = 1000)]
+    [UsePaging(MaxPageSize = 100)]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Project> GetProjects(
@@ -38,7 +38,7 @@ public class Query
         return dbContext.Deliverables.Find(id);
     }
 
-    [UsePaging(MaxPageSize = 1000)]
+    [UsePaging(MaxPageSize = 100)]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Deliverable> GetDeliverables(
@@ -52,7 +52,7 @@ public class Query
         return dbContext.AgentTasks.Find(id);
     }
 
-    [UsePaging(MaxPageSize = 1000)]
+    [UsePaging(MaxPageSize = 100)]
     [UseFiltering]
     [UseSorting]
     public IQueryable<AgentTask> GetAgentTasks(
