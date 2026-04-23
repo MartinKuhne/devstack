@@ -6,9 +6,13 @@ $SpecsPath   = Join-Path $ProjectRoot "specs"
 $AgentsFile  = Join-Path $PSScriptRoot "agents.md"
 $DelaySeconds = 5
 
-$GetProjectsQuery = @'
-query GetProjects($first: Int!, $repository: String) {
-  projects(first: $first, where: { repository: { eq: $repository } }) {
+$GetProjectQuery = @'
+query GetProjects($repoName: String) {
+  projects(where:  {
+     name:  {
+        eq: $repoName
+     }
+  }) {
     nodes {
       id
       name
@@ -24,8 +28,8 @@ query GetProjects($first: Int!, $repository: String) {
 '@
 
 $GetDeliverablesQuery = @'
-query GetDeliverables($first: Int!, $projectId: UUID!, $status: String) {
-  deliverables(first: $first, where: { projectId: { eq: $projectId }, status: { eq: $status } }) {
+query GetDeliverables($first: Int!, $projectId: UUID!) {
+  deliverables(first: $first, where: { projectId: { eq: $projectId } }) {
     nodes {
       id
       title
@@ -50,8 +54,8 @@ query GetDeliverables($first: Int!, $projectId: UUID!, $status: String) {
 '@
 
 $GetAgentTasksQuery = @'
-query GetAgentTasks($first: Int!, $deliverableId: UUID!, $status: String) {
-  agentTasks(first: $first, where: { deliverableId: { eq: $deliverableId }, status: { eq: $status } }) {
+query GetAgentTasks($first: Int!, $deliverableId: UUID!) {
+  agentTasks(first: $first, where: { deliverableId: { eq: $deliverableId } }) {
     nodes {
       id
       title
@@ -312,12 +316,7 @@ function Get-CurrentProjectId {
 
     Log-Info "Repository: $repoName"
 
-    $result = Invoke-GraphQL -Operation $GetProjectsQuery -Variables @{ first = 100; repository = $repoName }
-
-    if ($result.errors) {
-        Log-Error "Failed to query projects: $($result.errors -join ', ')"
-        exit 1
-    }
+    $result = Invoke-GraphQL -Operation $GetProjectQuery -Variables @{ repoName = $repoName }
 
     $project = $result.data.projects.nodes | Where-Object { $_.name -eq $repoName }
     if (-not $project) {
@@ -428,15 +427,11 @@ function Invoke-PlanningPhase {
 
     $promptTemplate = Load-PromptFile "planning.prompt"
 
-    # Fetch deliverables in PLANNING status
-    $result = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100; projectId = $projectId; status = "PLANNING" }
+    # Fetch deliverables and filter for PLANNING status
+    $result = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100; projectId = $projectId }
 
-    if ($result.errors) {
-        Log-Error "Failed to query deliverables: $($result.errors -join ', ')"
-        exit 1
-    }
-
-    $deliverables = $result.data.deliverables.nodes
+    $allDeliverables = $result.data.deliverables.nodes
+    $deliverables = $allDeliverables | Where-Object { $_.status -eq "PLANNING" }
 
     if (-not $deliverables) {
         Log-Info "No deliverables in PLANNING status found for project."
@@ -480,7 +475,7 @@ function Invoke-ExecutionPhase {
     $promptTemplate = Load-PromptFile "execution.prompt"
 
     # Fetch all deliverables for the project
-    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100; projectId = $projectId; status = $null }
+    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100; projectId = $projectId }
 
     if ($deliverablesResult.errors) {
         Log-Error "Failed to query deliverables: $($deliverablesResult.errors -join ', ')"
@@ -496,12 +491,13 @@ function Invoke-ExecutionPhase {
     # Fetch AgentTasks for each deliverable and collect READY ones
     $tasks = @()
     foreach ($deliverable in $allDeliverables) {
-        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id; status = "READY" }
+        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id }
         if ($taskResult.errors) {
             Log-Error "Failed to query tasks for deliverable $($deliverable.id): $($taskResult.errors -join ', ')"
             continue
         }
-        $deliverableTasks = $taskResult.data.agentTasks.nodes
+        $allTasks = $taskResult.data.agentTasks.nodes
+        $deliverableTasks = $allTasks | Where-Object { $_.status -eq "READY" }
         if ($deliverableTasks) {
             $tasks += $deliverableTasks
         }
@@ -631,10 +627,7 @@ function Check-And-MarkDeliverableDone {
     $vars = @{ deliverableId = $DeliverableId }
     try {
         $result = Invoke-GraphQL -Operation $CheckAndMarkDeliverableDoneMutation -Variables $vars -IsMutation
-        if ($result.errors) {
-            Log-Error "Failed to check and mark deliverable $($DeliverableId): $($result.errors -join ', ')"
-            return $false
-        }
+
         $done = $result.data.checkAndMarkDeliverableDone
         if ($done) {
             Log-Info "Deliverable $($DeliverableId) marked as DONE."

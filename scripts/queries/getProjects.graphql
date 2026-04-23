@@ -6,11 +6,5 @@ query GetProjects($first: Int!, $skip: Int, $search: String, $orderBy: String) {
             description
             repository
         }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            totalCount
-        }
-        totalCount
     }
 }

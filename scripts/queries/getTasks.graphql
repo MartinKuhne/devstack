@@ -22,11 +22,5 @@ query GetAgentTasks($deliverableId: ID, $first: Int!, $skip: Int, $orderBy: Stri
             executionDurationInSeconds
             agent
         }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            totalCount
-        }
-        totalCount
     }
 }
