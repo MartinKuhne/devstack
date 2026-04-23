@@ -9,6 +9,5 @@ query GetProjects($first: Int!) {
       hasNextPage
       hasPreviousPage
     }
-    totalCount
   }
 }
