@@ -85,20 +85,14 @@ query GetAgentTasks($first: Int!, $deliverableId: UUID!, $status: String) {
 $UpdateDeliverableMutation = @'
 mutation UpdateDeliverable($input: UpdateDeliverableInput!) {
   updateDeliverable(input: $input) {
-    deliverable {
-      id
-      status
-      executionPlan
-      securityImpact
-      performanceImpact
-      testPlan
-      deploymentPlan
-      blocking
-    }
-    errors {
-      field
-      message
-    }
+    id
+    status
+    executionPlan
+    securityImpact
+    performanceImpact
+    testPlan
+    deploymentPlan
+    blocking
   }
 }
 '@
@@ -139,17 +133,11 @@ mutation CreateAgentTask($input: CreateAgentTaskInput!) {
 $UpdateAgentTaskMutation = @'
 mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
   updateAgentTask(input: $input) {
-    agentTask {
-      id
-      status
-      result
-      errors
-      commitHash
-    }
-    errors {
-      field
-      message
-    }
+    id
+    status
+    result
+    errors
+    commitHash
   }
 }
 '@
@@ -157,14 +145,8 @@ mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
 $TransitionAgentTaskStatusMutation = @'
 mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
   transitionAgentTaskStatus(input: $input) {
-    agentTask {
-      id
-      status
-    }
-    errors {
-      field
-      message
-    }
+    id
+    status
   }
 }
 '@
@@ -172,18 +154,12 @@ mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
 $UpdateAgentTaskWithDurationMutation = @'
 mutation UpdateAgentTaskWithDuration($input: UpdateAgentTaskInput!) {
   updateAgentTask(input: $input) {
-    agentTask {
-      id
-      status
-      result
-      errors
-      commitHash
-      executionDurationInSeconds
-    }
-    errors {
-      field
-      message
-    }
+    id
+    status
+    result
+    errors
+    commitHash
+    executionDurationInSeconds
   }
 }
 '@
