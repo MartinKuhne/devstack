@@ -312,7 +312,7 @@ public sealed class ErrorHandlingSteps
         }
         responses.Should().NotBeNull();
         responses!.Should().NotBeEmpty();
-        responses.Length.Should().Be(expectedCount);
+        responses!.Length.Should().Be(expectedCount);
     }
 
     [Then(@"each response should have the correct id")]
