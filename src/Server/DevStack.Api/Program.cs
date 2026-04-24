@@ -1,5 +1,8 @@
 using DevStack.Api.GraphQL;
 using DevStack.Api.HealthChecks;
+using DevStack.Application;
+using DevStack.Application.Projects.Commands;
+using DevStack.Application.Projects.Queries;
 using Microsoft.FeatureManagement;
 using DevStack.Api.GraphQL.Types;
 using DevStack.Infrastructure.Projects;
@@ -55,9 +58,9 @@ builder.Services.AddRouting();
 builder.Services.AddDbContext<DevStackDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<ICreateProjectHandler, CreateProjectHandler>();
-builder.Services.AddScoped<IUpdateProjectHandler, UpdateProjectHandler>();
-builder.Services.AddScoped<IDeleteProjectHandler, DeleteProjectHandler>();
+builder.Services.AddScoped<ICommandHandler<Guid, CreateProjectCommand>, CreateProjectHandler>();
+builder.Services.AddScoped<ICommandHandler<UpdateProjectCommand>, UpdateProjectHandler>();
+builder.Services.AddScoped<ICommandHandler<DeleteProjectCommand>, DeleteProjectHandler>();
 builder.Services.AddScoped<IGetProjectByIdHandler, GetProjectByIdHandler>();
 builder.Services.AddScoped<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
 builder.Services.AddScoped<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();

@@ -1,3 +1,5 @@
+using DevStack.Application;
+using DevStack.Application.Projects.Commands;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
@@ -104,7 +106,7 @@ public class Mutation
 {
     public async Task<Project?> CreateProjectAsync(
         [Service] DevStackDbContext dbContext,
-        [Service] ICreateProjectHandler handler,
+        [Service] ICommandHandler<Guid, CreateProjectCommand> handler,
         CreateProjectInput input,
         CancellationToken cancellationToken)
     {
@@ -119,35 +121,27 @@ public class Mutation
 
     public async Task<Project?> UpdateProjectAsync(
         [Service] DevStackDbContext dbContext,
-        [Service] IUpdateProjectHandler handler,
+        [Service] ICommandHandler<UpdateProjectCommand> handler,
         UpdateProjectInput input,
         CancellationToken cancellationToken)
     {
-            await handler.Handle(new UpdateProjectCommand(
-                input.Id,
-                input.Name,
-                input.Description,
-                input.Repository), cancellationToken);
+        await handler.Handle(new UpdateProjectCommand(
+            input.Id,
+            input.Name,
+            input.Description,
+            input.Repository), cancellationToken);
 
-            var project = await dbContext.Projects.FindAsync(input.Id, cancellationToken);
-            return project;
-        }
+        var project = await dbContext.Projects.FindAsync(input.Id, cancellationToken);
+        return project;
+    }
 
     public async Task<bool> DeleteProjectAsync(
         [Service] DevStackDbContext dbContext,
-        [Service] IDeleteProjectHandler handler,
+        [Service] ICommandHandler<DeleteProjectCommand> handler,
         Guid id,
         CancellationToken cancellationToken)
     {
-        var project = await dbContext.Projects.FindAsync(id, cancellationToken);
-        if (project == null)
-        {
-            throw new System.Collections.Generic.KeyNotFoundException();
-        }
-
-        dbContext.Projects.Remove(project);
-        await dbContext.SaveChangesAsync(cancellationToken);
-
+        await handler.Handle(new DeleteProjectCommand(id), cancellationToken);
         return true;
     }
 
