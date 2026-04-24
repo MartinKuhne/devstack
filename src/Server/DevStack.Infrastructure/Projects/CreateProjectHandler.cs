@@ -1,18 +1,11 @@
+using DevStack.Application;
+using DevStack.Application.Projects.Commands;
 using DevStack.Domain.Entities;
 using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.Projects;
 
-public record CreateProjectCommand(
-    string Name,
-    string? Description,
-    string? Repository);
-
-public interface ICreateProjectHandler : DevStack.Application.ICommandHandler<Guid, CreateProjectCommand>
-{
-}
-
-public class CreateProjectHandler : ICreateProjectHandler
+public class CreateProjectHandler : ICommandHandler<Guid, CreateProjectCommand>
 {
     private readonly DevStackDbContext _dbContext;
 

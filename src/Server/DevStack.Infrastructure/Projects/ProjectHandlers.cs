@@ -1,31 +1,12 @@
+using DevStack.Application;
+using DevStack.Application.Projects.Commands;
+using DevStack.Application.Projects.Queries;
 using DevStack.Domain.Entities;
 using DevStack.Persistence;
-using Task = System.Threading.Tasks.Task;
 
 namespace DevStack.Infrastructure.Projects;
 
-public record UpdateProjectCommand(
-    Guid Id,
-    string? Name,
-    string? Description,
-    string? Repository);
-
-public record DeleteProjectCommand(Guid Id);
-
-public interface IUpdateProjectHandler : DevStack.Application.ICommandHandler<UpdateProjectCommand>
-{
-}
-
-public interface IDeleteProjectHandler : DevStack.Application.ICommandHandler<DeleteProjectCommand>
-{
-}
-
-public interface IGetProjectByIdHandler
-{
-    Task<Project?> Handle(Guid id, CancellationToken cancellationToken = default);
-}
-
-public class UpdateProjectHandler : IUpdateProjectHandler
+public class UpdateProjectHandler : ICommandHandler<UpdateProjectCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -55,7 +36,7 @@ public class UpdateProjectHandler : IUpdateProjectHandler
     }
 }
 
-public class DeleteProjectHandler : IDeleteProjectHandler
+public class DeleteProjectHandler : ICommandHandler<DeleteProjectCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -84,8 +65,8 @@ public class GetProjectByIdHandler : IGetProjectByIdHandler
         _dbContext = dbContext;
     }
 
-    public async Task<Project?> Handle(Guid id, CancellationToken cancellationToken)
+    public async Task<Project?> Handle(GetProjectByIdQuery query, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Projects.FindAsync([id], cancellationToken);
+        return await _dbContext.Projects.FindAsync([query.Id], cancellationToken);
     }
 }
