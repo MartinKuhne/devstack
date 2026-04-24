@@ -464,7 +464,8 @@ public sealed class DeliverableSteps
         var connection = GetData(response).GetProperty("deliverables");
         var deliverables = connection.GetProperty("nodes");
         deliverables.ValueKind.Should().Be(JsonValueKind.Array);
-        var deliverableId = Guid.Parse(_scenarioContext["DeliverableId"]?.ToString());
+        var deliverableIdStr = _scenarioContext["DeliverableId"]?.ToString() ?? throw new InvalidOperationException("DeliverableId not found in scenario context");
+        var deliverableId = Guid.Parse(deliverableIdStr);
         Console.WriteLine($"Wanted: {deliverableId}");
         var found = false;
         foreach (var d in deliverables.EnumerateArray())
