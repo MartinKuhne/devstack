@@ -38,6 +38,7 @@ Include [Global non-functional requirements](../NON-FUNCTIONAL.md)
 - [GRAPHQL-003] The system shall support optional sorting
 - [GRAPHQL-004] The system shall support optional paging
 - [GRAPHQL-005] The system shall expose an HTTP endpoint at the path /graphql
+- [GRAPHQL-006] The system shall expose a web site to enable the user to view the schema and perform queries and mutations.
 
 - [GRAPHQL-200] The system shall expose an HTTP GET endpoint at the path /health as a health check
 - [GRAPHQL-201] The system shall return all health check responses in JSON format.
