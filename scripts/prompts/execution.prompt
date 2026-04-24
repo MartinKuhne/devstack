@@ -1,6 +1,85 @@
 Implement the change
-{{Description}}
-AgentTaskId: {{AgentTaskId}}
-If successful, update the Result, CommitHash fields and change the AgentTask Status to Done.
-Commit the changes with a detailed description of what has been changed.
-If not successful, update the Result and Errors fields and change the AgentTask Status to Failed
+
+# Task Plan Implementation Instructions
+
+You will implement your specific task plan: `{{Description}}`.
+Your goal is to completely implement each step in the plan to create high-quality, working software that meets all specified requirements.
+
+## Core Implementation Process
+
+### 1. Plan Analysis and Preparation
+
+**MUST complete before starting implementation:**
+- **MANDATORY**: Read and fully understand the complete plan file including scope, objectives, all phases, and every checklist item
+- **MANDATORY**: Read and fully understand the corresponding changes file completely - if any parts are missing from context, read the entire file back in using `read_file`
+- **MANDATORY**: Identify all referenced files mentioned in the plan and examine them for context
+- **MANDATORY**: Understand current project structure and conventions
+
+### 2. Systematic Implementation Process
+
+**Implement each task in the plan systematically:**
+
+1. **Process tasks in order** - Follow the plan sequence exactly, one task at a time
+2. **MANDATORY before implementing any task:**
+   - **ALWAYS ensure implementation is associated with a specific task from the plan**
+   - **ALWAYS read the entire details section for that task from the associated details markdown file in `.copilot-tracking/details/**`**
+   - **FULLY understand all implementation details before proceeding**
+   - Gather any additional required context as needed
+
+3. **Implement the task completely with working code:**
+   - Follow existing code patterns and conventions from the workspace
+   - Create working functionality that meets all task requirements specified in the details
+   - Include proper error handling, documentation, and follow best practices
+   - Commit the changes with a detailed description of what has been changed.
+
+4. **Mark task complete and update changes tracking:**
+- AgentTaskId: {{AgentTaskId}}
+- If successful, use the devstack update_task tool to update the Result (brief summary of changes, ideally the same as the commit message), CommitHash fields 
+- If successful, use the devstack update_task_state tool to change the AgentTask State to Done.
+- If unsuccessful, use the devstack update_task_state tool to change the AgentTask State to Failed.
+
+### 3. Implementation Quality Standards
+
+**Every implementation MUST:**
+- Follow existing workspace patterns and conventions (check `copilot/` folder for standards)
+- Implement complete, working functionality that meets all task requirements
+- Include appropriate error handling and validation
+- Use consistent naming conventions and code structure from the workspace
+- Add necessary documentation and comments for complex logic
+- Ensure compatibility with existing systems and dependencies
+
+### 4. Continuous Progress and Validation
+
+**After implementing each task:**
+1. Validate the changes made against the task requirements from the details file
+2. Fix any problems before moving to the next task
+
+**Continue until:**
+- All specified files have been created or updated with working code
+- All success criteria from the plan have been verified
+
+### 5. Reference Gathering Guidelines
+
+**When gathering external references:**
+- Focus on practical implementation examples over theoretical documentation
+- Validate that external sources contain actual usable patterns
+- Adapt external patterns to match workspace conventions and standards
+
+**When implementing from references:**
+- Follow workspace patterns and conventions first, external patterns second
+- Implement complete, working functionality rather than just examples
+- Ensure all dependencies and configurations are properly integrated
+- Ensure implementations work within the existing project structure
+
+### 6. Completion and Documentation
+
+- No implementation errors remain
+
+### 7. Problem Resolution
+
+**When encountering implementation issues:**
+- Document the specific problem clearly
+- Try alternative approaches or search terms
+- Use workspace patterns as fallback when external references fail
+- Continue with available information rather than stopping completely
+
