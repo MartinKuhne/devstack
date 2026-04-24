@@ -1,12 +1,17 @@
 using DevStack.Api.GraphQL;
 using DevStack.Api.HealthChecks;
 using DevStack.Application;
+using DevStack.Application.Deliverables;
+using DevStack.Application.Deliverables.Commands;
+using DevStack.Application.Deliverables.Queries;
 using DevStack.Application.Projects.Commands;
 using DevStack.Application.Projects.Queries;
+using DevStack.Domain.Services;
 using Microsoft.FeatureManagement;
 using DevStack.Api.GraphQL.Types;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.ModelConfigurations;
+using DevStack.Infrastructure.Deliverables;
 using DevStack.Persistence;
 
 using DevStack.Api.Logging;
@@ -65,6 +70,12 @@ builder.Services.AddScoped<IGetProjectByIdHandler, GetProjectByIdHandler>();
 builder.Services.AddScoped<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
 builder.Services.AddScoped<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
 builder.Services.AddScoped<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
+builder.Services.AddScoped<ICommandHandler<Guid, CreateDeliverableCommand>, CreateDeliverableHandler>();
+builder.Services.AddScoped<ICommandHandler<UpdateDeliverableCommand>, UpdateDeliverableHandler>();
+builder.Services.AddScoped<ICommandHandler<UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
+builder.Services.AddScoped<ICommandHandler<DeleteDeliverableCommand>, DeleteDeliverableHandler>();
+builder.Services.AddScoped<IGetDeliverableByIdHandler, GetDeliverableByIdHandler>();
+builder.Services.AddScoped<DeliverableStatusTransitionService>();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
