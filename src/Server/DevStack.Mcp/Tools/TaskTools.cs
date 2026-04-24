@@ -1,8 +1,8 @@
-using DevStack.Domain.Entities;
+using DevStack.Application;
+using DevStack.Application.AgentTasks;
+using DevStack.Application.AgentTasks.Commands;
+using DevStack.Application.AgentTasks.Queries;
 using DevStack.Domain.Enums;
-using DevStack.Domain.Services;
-using DevStack.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
@@ -14,18 +14,29 @@ namespace DevStack.Mcp.Tools;
 public class TaskTools
 {
     private readonly ILogger<TaskTools> _logger;
-    private readonly DevStackDbContext _dbContext;
+    private readonly ICreateAgentTaskHandler _createAgentTaskHandler;
+    private readonly ICommandHandler<UpdateAgentTaskCommand> _updateAgentTaskHandler;
+    private readonly ICommandHandler<UpdateAgentTaskStatusCommand> _updateAgentTaskStatusHandler;
+    private readonly IGetAgentTaskByIdHandler _getAgentTaskByIdHandler;
 
-    public TaskTools(ILogger<TaskTools> logger, DevStackDbContext dbContext)
+    public TaskTools(
+        ILogger<TaskTools> logger,
+        ICreateAgentTaskHandler createAgentTaskHandler,
+        ICommandHandler<UpdateAgentTaskCommand> updateAgentTaskHandler,
+        ICommandHandler<UpdateAgentTaskStatusCommand> updateAgentTaskStatusHandler,
+        IGetAgentTaskByIdHandler getAgentTaskByIdHandler)
     {
         _logger = logger;
-        _dbContext = dbContext;
+        _createAgentTaskHandler = createAgentTaskHandler;
+        _updateAgentTaskHandler = updateAgentTaskHandler;
+        _updateAgentTaskStatusHandler = updateAgentTaskStatusHandler;
+        _getAgentTaskByIdHandler = getAgentTaskByIdHandler;
     }
 
-  [McpServerTool(Name = "get_task"), Description("Read an agent task by its ID. Returns all fields including title, status, description, result, and errors. Usage hint: Provide a valid task ID obtained from create_task or other operations.")]
+    [McpServerTool(Name = "get_task"), Description("Read an agent task by its ID. Returns all fields including title, status, description, result, and errors. Usage hint: Provide a valid task ID obtained from create_task or other operations.")]
     public async Task<string> GetTask([Description("The agent task ID")] Guid id, CancellationToken ct = default)
     {
-        var agentTask = await _dbContext.AgentTasks.FindAsync([id], ct);
+        var agentTask = await _getAgentTaskByIdHandler.Handle(new GetAgentTaskByIdQuery(id), ct);
         if (agentTask == null)
             throw new KeyNotFoundException($"AgentTask with ID {id} not found");
 
@@ -33,7 +44,7 @@ public class TaskTools
         return $"## Agent Task\n\n```json\n{JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true })}\n```\n\n";
     }
 
-   [McpServerTool(Name = "create_task"), Description("Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: Both ProjectId and DeliverableId (itemId) must reference existing entities.")]
+    [McpServerTool(Name = "create_task"), Description("Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: Both ProjectId and DeliverableId (itemId) must reference existing entities.")]
     public async Task<string> CreateAgentTask(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
         [Description("The deliverable/feature ID")][DefaultValue(null)] Guid? itemId,
@@ -51,38 +62,23 @@ public class TaskTools
                 throw new ArgumentException("Project ID is required");
             }
 
-            var projectExists = await _dbContext.Projects.AnyAsync(p => p.Id == projectId.Value, ct);
-            if (!projectExists)
-            {
-                throw new KeyNotFoundException($"Project with ID {projectId.Value} not found");
-            }
-
             if (itemId == null || itemId == Guid.Empty)
             {
                 throw new ArgumentException("Deliverable ID is required");
             }
 
-            var deliverable = await _dbContext.Deliverables.FindAsync([itemId.Value], ct);
-            if (deliverable == null)
-            {
-                throw new KeyNotFoundException($"Deliverable with ID {itemId.Value} not found");
-            }
+            var id = await _createAgentTaskHandler.Handle(
+                new CreateAgentTaskCommand(
+                    projectId.Value,
+                    itemId.Value,
+                    title,
+                    description ?? string.Empty,
+                    complexityRating,
+                    null),
+                ct);
 
-            var agentTask = new AgentTask
-            {
-                ProjectId = projectId.Value,
-                DeliverableId = itemId.Value,
-                Title = title,
-                Description = description ?? string.Empty,
-                ComplexityRating = complexityRating,
-                Status = status ?? AgentTaskStatus.Ready
-            };
-
-            _dbContext.AgentTasks.Add(agentTask);
-            await _dbContext.SaveChangesAsync(ct);
-
-            _logger.LogInformation("Created agent task with ID: {Id}", agentTask.Id);
-            var result = new { id = agentTask.Id.ToString(), status = "Ready" };
+            _logger.LogInformation("Created agent task with ID: {Id}", id);
+            var result = new { id = id.ToString(), status = "Ready" };
             return $"## Task Created\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use the returned ID for subsequent get_task, update_task, or update_task_state calls.";
         }
         catch (Exception ex)
@@ -105,18 +101,21 @@ public class TaskTools
     {
         try
         {
-            var agentTask = await _dbContext.AgentTasks.FindAsync([id], ct);
-            if (agentTask == null)
-                return JsonSerializer.Serialize(new { error = "AgentTask not found" });
-
-            if (status is not null) agentTask.Status = status.Value;
-            if (description is not null) agentTask.Description = description;
-            if (result is not null) agentTask.Result = result;
-            if (errors is not null) agentTask.Errors = errors;
-            if (commitHash is not null) agentTask.CommitHash = commitHash;
-            if (agent is not null) agentTask.Agent = agent;
-
-            await _dbContext.SaveChangesAsync(ct);
+            await _updateAgentTaskHandler.Handle(
+                new UpdateAgentTaskCommand(
+                    id,
+                    null,
+                    description,
+                    result,
+                    errors,
+                    commitHash,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    agent),
+                ct);
 
             _logger.LogInformation("Updated agent task with ID: {Id}", id);
             var response = new { id = id.ToString(), updated = true };
@@ -138,17 +137,9 @@ public class TaskTools
     {
         try
         {
-            var agentTask = await _dbContext.AgentTasks.FindAsync([id], ct);
-            if (agentTask == null)
-                return JsonSerializer.Serialize(new { error = "AgentTask not found" });
-
-            var service = new AgentTaskStatusTransitionService();
-            var result = service.Transition(agentTask, targetStatus, actor);
-
-            if (!result.IsSuccess)
-                return JsonSerializer.Serialize(new { error = result.Errors[0] });
-
-            await _dbContext.SaveChangesAsync(ct);
+            await _updateAgentTaskStatusHandler.Handle(
+                new UpdateAgentTaskStatusCommand(id, targetStatus, actor),
+                ct);
 
             _logger.LogInformation("Transitioned agent task {Id} to {Status} by {Actor}", id, targetStatus, actor);
             var response = new { id = id.ToString(), status = targetStatus.ToString(), actor };
@@ -157,7 +148,7 @@ public class TaskTools
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error transitioning agent task status: {Id}", id);
-            throw;
+            return JsonSerializer.Serialize(new { error = ex.Message });
         }
     }
 }

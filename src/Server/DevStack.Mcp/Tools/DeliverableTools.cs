@@ -1,8 +1,11 @@
-using DevStack.Domain.Entities;
+using DevStack.Application;
+using DevStack.Application.AgentTasks;
+using DevStack.Application.AgentTasks.Commands;
+using DevStack.Application.AgentTasks.Queries;
+using DevStack.Application.Deliverables;
+using DevStack.Application.Deliverables.Commands;
+using DevStack.Application.Deliverables.Queries;
 using DevStack.Domain.Enums;
-using DevStack.Domain.Services;
-using DevStack.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
@@ -14,18 +17,29 @@ namespace DevStack.Mcp.Tools;
 public class DeliverableTools
 {
     private readonly ILogger<DeliverableTools> _logger;
-    private readonly DevStackDbContext _dbContext;
+    private readonly ICreateDeliverableHandler _createDeliverableHandler;
+    private readonly ICommandHandler<UpdateDeliverableCommand> _updateDeliverableHandler;
+    private readonly ICommandHandler<UpdateDeliverableStatusCommand> _updateDeliverableStatusHandler;
+    private readonly IGetDeliverableByIdHandler _getDeliverableByIdHandler;
 
-    public DeliverableTools(ILogger<DeliverableTools> logger, DevStackDbContext dbContext)
+    public DeliverableTools(
+        ILogger<DeliverableTools> logger,
+        ICreateDeliverableHandler createDeliverableHandler,
+        ICommandHandler<UpdateDeliverableCommand> updateDeliverableHandler,
+        ICommandHandler<UpdateDeliverableStatusCommand> updateDeliverableStatusHandler,
+        IGetDeliverableByIdHandler getDeliverableByIdHandler)
     {
         _logger = logger;
-        _dbContext = dbContext;
+        _createDeliverableHandler = createDeliverableHandler;
+        _updateDeliverableHandler = updateDeliverableHandler;
+        _updateDeliverableStatusHandler = updateDeliverableStatusHandler;
+        _getDeliverableByIdHandler = getDeliverableByIdHandler;
     }
 
     [McpServerTool(Name = "get_deliverable"), Description("Read a deliverable by its ID. Returns all fields including title, description, acceptance criteria, and status. Usage hint: Provide a valid deliverable ID.")]
     public async Task<string> GetDeliverable([Description("The deliverable ID")] Guid id, CancellationToken ct = default)
     {
-        var deliverable = await _dbContext.Deliverables.FindAsync([id], ct);
+        var deliverable = await _getDeliverableByIdHandler.Handle(new GetDeliverableByIdQuery(id), ct);
         if (deliverable == null)
             return JsonSerializer.Serialize(new { error = "Deliverable not found" });
 
@@ -33,7 +47,7 @@ public class DeliverableTools
         return $"## Deliverable\n\n```json\n{JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true })}\n```\n\n";
     }
 
-   [McpServerTool(Name = "create_deliverable"), Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state. Usage hint: ProjectId must reference an existing project. Title and description are required fields.")]
+    [McpServerTool(Name = "create_deliverable"), Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state. Usage hint: ProjectId must reference an existing project. Title and description are required fields.")]
     public async Task<string> CreateDeliverable(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
         [Description("The deliverable title")] string title,
@@ -53,32 +67,22 @@ public class DeliverableTools
                 throw new ArgumentException("Project ID is required");
             }
 
-            var project = await _dbContext.Projects.AnyAsync(p => p.Id == projectId.Value, ct);
-            if (!project)
-            {
-                throw new KeyNotFoundException($"Project with ID {projectId.Value} not found");
-            }
+            var id = await _createDeliverableHandler.Handle(
+                new CreateDeliverableCommand(
+                    projectId.Value,
+                    DeliverableType.Feature,
+                    title,
+                    description,
+                    acceptanceCriteria,
+                    executionPlan,
+                    securityImpact,
+                    performanceImpact,
+                    testPlan,
+                    deploymentPlan),
+                ct);
 
-            var deliverable = new Deliverable
-            {
-                ProjectId = projectId.Value,
-                Title = title,
-                Description = description,
-                AcceptanceCriteria = acceptanceCriteria,
-                ExecutionPlan = executionPlan,
-                SecurityImpact = securityImpact,
-                PerformanceImpact = performanceImpact,
-                TestPlan = testPlan,
-                DeploymentPlan = deploymentPlan,
-                Type = DeliverableType.Feature,
-                Status = DeliverableStatus.Ready
-            };
-
-            _dbContext.Deliverables.Add(deliverable);
-            await _dbContext.SaveChangesAsync(ct);
-
-            _logger.LogInformation("Created deliverable with ID: {Id}", deliverable.Id);
-            var result = new { id = deliverable.Id.ToString(), projectId = projectId.Value.ToString(), type = "Feature", status = "Ready" };
+            _logger.LogInformation("Created deliverable with ID: {Id}", id);
+            var result = new { id = id.ToString(), projectId = projectId.Value.ToString(), type = "Feature", status = "Ready" };
             return $"## Deliverable Created\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use the returned ID for subsequent get_deliverable, update_deliverable, or update_deliverable_state calls.";
         }
         catch (Exception ex)
@@ -104,21 +108,20 @@ public class DeliverableTools
     {
         try
         {
-            var deliverable = await _dbContext.Deliverables.FindAsync([id], ct);
-            if (deliverable == null)
-                return JsonSerializer.Serialize(new { error = "Deliverable not found" });
-
-            if (description is not null) deliverable.Description = description;
-            if (acceptanceCriteria is not null) deliverable.AcceptanceCriteria = acceptanceCriteria;
-            if (executionPlan is not null) deliverable.ExecutionPlan = executionPlan;
-            if (securityImpact is not null) deliverable.SecurityImpact = securityImpact;
-            if (performanceImpact is not null) deliverable.PerformanceImpact = performanceImpact;
-            if (testPlan is not null) deliverable.TestPlan = testPlan;
-            if (deploymentPlan is not null) deliverable.DeploymentPlan = deploymentPlan;
-            if (agentFeedback is not null) deliverable.AgentFeedback = agentFeedback;
-            if (blocking is not null) deliverable.Blocking = blocking;
-
-            await _dbContext.SaveChangesAsync(ct);
+            await _updateDeliverableHandler.Handle(
+                new UpdateDeliverableCommand(
+                    id,
+                    null,
+                    description,
+                    acceptanceCriteria,
+                    executionPlan,
+                    agentFeedback,
+                    securityImpact,
+                    performanceImpact,
+                    testPlan,
+                    deploymentPlan,
+                    blocking),
+                ct);
 
             _logger.LogInformation("Updated deliverable with ID: {Id}", id);
             var result = new { id = id.ToString(), updated = true };
@@ -140,17 +143,9 @@ public class DeliverableTools
     {
         try
         {
-            var deliverable = await _dbContext.Deliverables.FindAsync([id], ct);
-            if (deliverable == null)
-                return JsonSerializer.Serialize(new { error = "Deliverable not found" });
-
-            var service = new DeliverableStatusTransitionService();
-            var result = service.Transition(deliverable, targetStatus, actor);
-
-            if (!result.IsSuccess)
-                return JsonSerializer.Serialize(new { error = result.Errors[0] });
-
-            await _dbContext.SaveChangesAsync(ct);
+            await _updateDeliverableStatusHandler.Handle(
+                new UpdateDeliverableStatusCommand(id, targetStatus, actor),
+                ct);
 
             _logger.LogInformation("Transitioned deliverable {Id} to {Status} by {Actor}", id, targetStatus, actor);
             var response = new { id = id.ToString(), status = targetStatus.ToString(), actor };
@@ -159,7 +154,7 @@ public class DeliverableTools
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error transitioning deliverable status: {Id}", id);
-            throw;
+            return JsonSerializer.Serialize(new { error = ex.Message });
         }
     }
 }
