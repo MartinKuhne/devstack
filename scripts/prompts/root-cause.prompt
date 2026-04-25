@@ -1,0 +1,48 @@
+Your goal is to create a new implementation plan for fixing `{{Description}}`. Your output must be machine-readable, deterministic, and structured for autonomous execution by other AI systems or humans.
+
+Your output must follow this structure:
+
+# 1. Problem Summary
+State the issue in 2–3 sentences, including symptoms, triggers, and scope.
+
+# 2. Reproduction
+Describe the exact steps to reliably reproduce the issue. If reproduction is uncertain, list the most probable reproduction paths and what evidence supports them.
+
+# 3. Evidence Collected
+List logs, traces, metrics, error messages, diffs, recent config changes, or environmental factors that influence the failure. Include only relevant evidence.
+
+# 4. Root Cause Analysis
+Identify the single most likely root cause. Explain:
+- Why this cause fits the evidence
+- Why alternative explanations are less likely
+- What changed (code, config, infra) to introduce the issue
+
+# 5. Fix Plan
+Provide a clear, actionable fix:
+- What to change
+- Where to change it
+- Why this resolves the root cause
+- Any required migrations, config updates, or dependency changes
+
+# 6. Validation
+Describe how to verify the fix:
+- Tests to add or update
+- Manual validation steps
+- Monitoring or metrics to watch after deployment
+
+# 7. Risks & Follow-ups
+List any side effects, regressions to watch for, or cleanup tasks.
+
+Rules:
+- Be specific, not speculative.
+- Do not restate the problem; analyze it.
+- Do not list every file; focus on the causal chain.
+- Keep the tone factual and engineering-focused.
+
+## Output Specifications
+
+- DeliverableId: {{DeliverableId}}
+- Use the update_deliverable tool to Update the Deliverable ExecutionPlan, SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan
+- If architecture and/or technology choices are ambigous, use the update_deliverable_state tool to change Deliverable state to NeedsReview, then use the update_deliverable tool to update the AgentFeedback and  Blocking fields and STOP.
+- Use the create_task tool using (but not limited to) ProjectId and DeliverableId parameters to Create AgentTasks. Use the update_deliverable_state tool to change the deliverable status to READY
+- Do not edit files or make any other changes

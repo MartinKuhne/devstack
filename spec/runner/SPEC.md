@@ -23,7 +23,7 @@ Run a plan, execute, review loop using an AI agent
 
 - A powershell script ```scripts/devstack.ps1```
 - A set of graphql queries used by the script, contained in the script as strings
-- A set of prompts used by the script, contained in the script as strings
+- A set of prompts used by the script, stored as files in the ./scripts/prompts folder
 
 # Capabilities
 
@@ -46,6 +46,9 @@ Execute prompts with OpenCode
 - [REQ-AG-101] When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
 - [REQ-AG-102] When the system starts up, it shall update the opencode configuration at the repository root to [deny] the [bash], [question] and [external_directory] permissions.
 - [REQ-AG-103] When an AgentTask execution completes, the system shall update the ExecutionDurationInSeconds of the AgentTask with the time it took to run OpenCode
+- [REQ-AG-100] Before the first AgentTask executes, the system shall check out main in git ```git checkout main```, then create a feature branch of the name agent/AgentTaskId. Example: ```git checkout -b agent/be7b213c-6e30-4cef-a679-21a39ade7db9```
+- [REQ-AG-101] When the last AgentTask has executed and all the AgentTasks are in the DONE state, execute the [Pull Request Phase]
+- [REQ-AG-102] When the last AgentTask has executed and all the AgentTasks are not in the DONE state, change the Deliverable to FAILED
 
 ## State-Driven Requirements
 - [REQ-AG-200] While there are Deliverables for the Project in Status = PLANNING, the system shall execute the Planning Phase (below)
@@ -71,30 +74,27 @@ Execute prompts with OpenCode
 
 ## Planning phase
 
-Invoke OpenCode with the following prompt:
-
-"Plan the implementation of the Deliverable. Do not make any changes to the project
-{{Description}}
-Acceptance Criteria: {{AcceptanceCriteria}}
-DeliverableId: {{DeliverableId}}
-Update the Deliverable's ExecutionPlan, SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan
-If architecture and/or technology choices are ambigous, change the Deliverable status to NeedsReview, then update the Deliverable's Blocking field and STOP.
-Break the Plan down into Steps that can be completed by an AI agent in less than 20 minutes. Create AgentTask objects with the devstack tool for the steps. Change the Deliverable status to READY"
+Invoke OpenCode with ./scripts/prompts/planning.prompt
 
 Substitute {{Title}}, {{Description}}, {{AcceptanceCriteria}}, {{DeliverableId}} with the fields of the same name from the Deliverable
 
 ## Execution phase
 
-Invoke OpenCode with the following prompt:
-
-"Implement the change
-{{Description}}
-AgentTaskId: {{AgentTaskId}}
-If successful, update the Result, CommitHash fields and change the AgentTask Status to Done.
-Commit the changes with a detailed description of what has been changed.
-If not successful, update the Result and Errors fields and change the AgentTask Status to Failed"
+Invoke OpenCode with ./scripts/prompts/execution.prompt
 
 Substitute {{Description}}, {{AgentTaskId}} with the fields of the same name from the Deliverable
+
+## Bug fix phase
+
+Invoke OpenCode with ./scripts/prompts/fix.prompt
+
+Substitute {{Description}}, {{AgentTaskId}} with the fields of the same name from the Deliverable
+
+## Pull request phase
+
+Invoke OpenCode with ./scripts/prompts/pr.prompt
+
+Substitute {{Title}}, {{DeliverableId}} with the fields of the same name from the Deliverable
 
 # Technical specification
 

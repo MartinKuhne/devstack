@@ -85,20 +85,9 @@ query GetAgentTasks($first: Int!, $deliverableId: UUID!) {
       deliverableId
       projectId
       description
-      result
-      errors
-      commitHash
-      complexityRating
-      dependsOnAgentTaskId
       dependsOnAgentTask {
-        id
-        title
         status
       }
-      promptTokens
-      completionTokens
-      executionDurationInSeconds
-      agent
     }
     pageInfo {
       hasNextPage

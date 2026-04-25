@@ -9,8 +9,8 @@ erDiagram
     Deliverable {
         guid ProjectId
         string Title
-        string Status "Draft | Planning | Ready | InProgress | Done | Failed | Rejected | NeedsReview"
-        string Type "Feature | Defect | Maintenance"
+        string Status "Draft | Planning | Ready | InProgress | CodeComplete | Testing | Done | Failed | Rejected | NeedsReview"
+        string Type "Feature | Defect | Maintenance | Spike"
         string Description
         string AcceptanceCriteria "optional"
         string AgentFeedback "optional"
@@ -41,11 +41,13 @@ erDiagram
 
     LargeLanguageModel {
         string Url
+        
         string Model
-        string ModelAlias
-        string ApiKey
-        int MaxComplexity
-        int MaxConcurrency
+        string ModelAlias "optional"
+        string ApiKey "optional"
+        int Cost "default 0"
+        int MaxComplexity "default 10"
+        int MaxConcurrency "default 1"
     }
 
     %% Relationships
