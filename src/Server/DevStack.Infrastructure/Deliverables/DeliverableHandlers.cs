@@ -89,7 +89,7 @@ public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand
     }
 }
 
-public class UpdateDeliverableStatusHandler : ICommandHandler<UpdateDeliverableStatusCommand>
+public class UpdateDeliverableStatusHandler : ICommandHandler<DeliverableStatus, UpdateDeliverableStatusCommand>
 {
     private readonly DevStackDbContext _dbContext;
     private readonly DeliverableStatusTransitionService _transitionService;
@@ -100,7 +100,7 @@ public class UpdateDeliverableStatusHandler : ICommandHandler<UpdateDeliverableS
         _transitionService = transitionService;
     }
 
-    public async Task Handle(UpdateDeliverableStatusCommand command, CancellationToken cancellationToken)
+    public async Task<DeliverableStatus> Handle(UpdateDeliverableStatusCommand command, CancellationToken cancellationToken)
     {
         var deliverable = await _dbContext.Deliverables.FindAsync([command.Id], cancellationToken);
         if (deliverable == null)
@@ -111,7 +111,10 @@ public class UpdateDeliverableStatusHandler : ICommandHandler<UpdateDeliverableS
         if (!result.IsSuccess)
             throw new InvalidOperationException(string.Join("; ", result.Errors));
 
+        deliverable.Status = command.TargetStatus;
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return command.TargetStatus;
     }
 }
 
