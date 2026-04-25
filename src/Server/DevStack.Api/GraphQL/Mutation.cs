@@ -1,11 +1,16 @@
 using DevStack.Application;
 using DevStack.Application.Projects.Commands;
+using DevStack.Application.Deliverables.Commands;
+using DevStack.Application.AgentTasks.Commands;
+using DevStack.Application.AgentTasks;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
 using DevStack.Persistence;
 using DevStack.Infrastructure.Projects;
 using DevStack.Infrastructure.ModelConfigurations;
+using DevStack.Infrastructure.Deliverables;
+using DevStack.Infrastructure.AgentTasks;
 using DevStack.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
@@ -147,129 +152,110 @@ public class Mutation
 
     public async Task<Deliverable?> CreateDeliverableAsync(
         [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<Guid, CreateDeliverableCommand> handler,
         CreateDeliverableInput input,
         CancellationToken cancellationToken)
     {
         var deliverableType = (DeliverableType)Enum.Parse(typeof(DeliverableType), input.Type, ignoreCase: true);
 
-        var deliverable = new Deliverable
-        {
-            ProjectId = input.ProjectId,
-            Title = input.Title,
-            Type = deliverableType,
-            Description = input.Description,
-            AcceptanceCriteria = input.AcceptanceCriteria,
-            ExecutionPlan = input.ExecutionPlan,
-            SecurityImpact = input.SecurityImpact,
-            PerformanceImpact = input.PerformanceImpact,
-            TestPlan = input.TestPlan,
-            DeploymentPlan = input.DeploymentPlan,
-            Status = input.InitialStatus
-        };
+        var id = await handler.Handle(new CreateDeliverableCommand(
+            input.ProjectId,
+            deliverableType,
+            input.Title,
+            input.Description,
+            input.AcceptanceCriteria,
+            input.ExecutionPlan,
+            input.SecurityImpact,
+            input.PerformanceImpact,
+            input.TestPlan,
+            input.DeploymentPlan), cancellationToken);
 
-        dbContext.Deliverables.Add(deliverable);
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        return deliverable;
+        return await dbContext.Deliverables.FindAsync([id], cancellationToken);
     }
 
     public async Task<Deliverable> UpdateDeliverableAsync(
         [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<UpdateDeliverableCommand> handler,
         UpdateDeliverableInput input,
         CancellationToken cancellationToken)
     {
-        var deliverable = await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
-        if (deliverable == null)
-        {
-            throw new InvalidOperationException();
-        }
+        await handler.Handle(new UpdateDeliverableCommand(
+            input.Id,
+            input.Title,
+            input.Description,
+            input.AcceptanceCriteria,
+            input.AgentFeedback,
+            input.ExecutionPlan,
+            input.SecurityImpact,
+            input.PerformanceImpact,
+            input.TestPlan,
+            input.DeploymentPlan,
+            input.Blocking), cancellationToken);
 
-        if (input.Title is not null) deliverable.Title = input.Title;
-        if (input.Description is not null) deliverable.Description = input.Description;
-        if (input.AcceptanceCriteria is not null) deliverable.AcceptanceCriteria = input.AcceptanceCriteria;
-        if (input.ExecutionPlan is not null) deliverable.ExecutionPlan = input.ExecutionPlan;
-        if (input.AgentFeedback is not null) deliverable.AgentFeedback = input.AgentFeedback;
-        if (input.SecurityImpact is not null) deliverable.SecurityImpact = input.SecurityImpact;
-        if (input.PerformanceImpact is not null) deliverable.PerformanceImpact = input.PerformanceImpact;
-        if (input.TestPlan is not null) deliverable.TestPlan = input.TestPlan;
-        if (input.DeploymentPlan is not null) deliverable.DeploymentPlan = input.DeploymentPlan;
-        if (input.Blocking is not null) deliverable.Blocking = input.Blocking;
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        return deliverable;
+        return await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
     }
 
     public async Task<DeliverableStatus> UpdateDeliverableStatusAsync(
-        [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<DeliverableStatus, UpdateDeliverableStatusCommand> handler,
         Guid id,
         DeliverableStatus targetStatus,
         string? actor,
         CancellationToken cancellationToken)
     {
-        var deliverable = await dbContext.Deliverables.FindAsync(id, cancellationToken);
-        if (deliverable == null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        if (deliverable.Status != targetStatus)
-        {
-            deliverable.Status = targetStatus;
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        return targetStatus;
+        return await handler.Handle(new UpdateDeliverableStatusCommand(id, targetStatus, actor ?? string.Empty), cancellationToken);
     }
 
     public async Task<bool> DeleteDeliverableAsync(
-        [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<DeleteDeliverableCommand> handler,
         Guid id,
         CancellationToken cancellationToken)
     {
-        var deliverable = await dbContext.Deliverables.FindAsync(id, cancellationToken);
-        if (deliverable == null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        dbContext.Deliverables.Remove(deliverable);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await handler.Handle(new DeleteDeliverableCommand(id), cancellationToken);
         return true;
     }
 
     public async Task<AgentTask> CreateAgentTaskAsync(
         [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<Guid, CreateAgentTaskCommand> handler,
         CreateAgentTaskInput input,
         CancellationToken cancellationToken)
     {
-        var deliverable = await dbContext.Deliverables.FindAsync([input.DeliverableId], cancellationToken);
-        if (deliverable == null)
+        var id = await handler.Handle(new CreateAgentTaskCommand(
+            input.ProjectId,
+            input.DeliverableId,
+            input.Title,
+            input.Description,
+            input.ComplexityRating,
+            input.DependsOnAgentTaskId), cancellationToken);
+
+        var agentTask = await dbContext.AgentTasks.FindAsync([id], cancellationToken);
+        if (agentTask == null)
         {
-            throw new InvalidOperationException("Deliverable does not exist");
+            throw new InvalidOperationException("Failed to create agent task");
         }
 
-        var agentTask = new AgentTask
-        {
-            ProjectId = deliverable.ProjectId,
-            DeliverableId = input.DeliverableId,
-            Title = input.Title,
-            Description = input.Description,
-            ComplexityRating = input.ComplexityRating,
-            DependsOnAgentTaskId = input.DependsOnAgentTaskId,
-            Status = AgentTaskStatus.Ready
-        };
-
-        dbContext.AgentTasks.Add(agentTask);
-        await dbContext.SaveChangesAsync(cancellationToken);
         return agentTask;
     }
 
     public async Task<AgentTask> UpdateAgentTaskAsync(
         [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<UpdateAgentTaskCommand> handler,
         UpdateAgentTaskInput input,
         CancellationToken cancellationToken)
     {
+        await handler.Handle(new UpdateAgentTaskCommand(
+            input.Id,
+            input.Title,
+            input.Description,
+            input.Result,
+            input.Errors,
+            input.CommitHash,
+            input.ComplexityRating,
+            input.DependsOnAgentTaskId,
+            input.PromptTokens,
+            input.CompletionTokens,
+            input.ExecutionDurationInSeconds,
+            input.Agent), cancellationToken);
 
         var agentTask = await dbContext.AgentTasks.FindAsync([input.Id], cancellationToken);
         if (agentTask == null)
@@ -277,24 +263,13 @@ public class Mutation
             throw new InvalidOperationException("AgentTask does not exist");
         }
 
-        if (input.Title is not null) agentTask.Title = input.Title;
-        if (input.Description is not null) agentTask.Description = input.Description;
-        if (input.Result is not null) agentTask.Result = input.Result;
-        if (input.Errors is not null) agentTask.Errors = input.Errors;
-        if (input.CommitHash is not null) agentTask.CommitHash = input.CommitHash;
-        if (input.DependsOnAgentTaskId.HasValue) agentTask.DependsOnAgentTaskId = input.DependsOnAgentTaskId.Value;
-        if (input.ComplexityRating.HasValue) agentTask.ComplexityRating = input.ComplexityRating.Value;
-        if (input.PromptTokens.HasValue) agentTask.PromptTokens = input.PromptTokens;
-        if (input.CompletionTokens.HasValue) agentTask.CompletionTokens = input.CompletionTokens;
-        if (input.ExecutionDurationInSeconds.HasValue) agentTask.ExecutionDurationInSeconds = input.ExecutionDurationInSeconds;
-        if (input.Agent is not null) agentTask.Agent = input.Agent;
-
-        await dbContext.SaveChangesAsync(cancellationToken);
         return agentTask;
     }
 
     public async Task<AgentTaskStatus> UpdateAgentTaskStatusAsync(
         [Service] DevStackDbContext dbContext,
+        [Service] IUpdateAgentTaskStatusHandler handler,
+        [Service] AgentTaskStatusTransitionService transitionService,
         Guid id,
         AgentTaskStatus targetStatus,
         CancellationToken cancellationToken)
@@ -305,11 +280,14 @@ public class Mutation
             throw new InvalidOperationException("AgentTask does not exist");
         }
 
-        if (agentTask.Status != targetStatus)
+        var result = transitionService.Transition(agentTask, targetStatus, "GraphQL");
+        if (!result.IsSuccess)
         {
-            agentTask.Status = targetStatus;            
-            await dbContext.SaveChangesAsync(cancellationToken);
+            throw new InvalidOperationException(string.Join("; ", result.Errors));
         }
+
+        agentTask.Status = targetStatus;
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         if (targetStatus == AgentTaskStatus.Done)
         {
@@ -320,19 +298,11 @@ public class Mutation
     }
 
     public async Task<bool> DeleteAgentTaskAsync(
-        [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<DeleteAgentTaskCommand> handler,
         Guid id,
         CancellationToken cancellationToken)
     {
-        var agentTask = await dbContext.AgentTasks.FindAsync(id, cancellationToken);
-        if (agentTask == null)
-        {
-            throw new InvalidOperationException("AgentTask does not exist");
-        }
-
-        dbContext.AgentTasks.Remove(agentTask);
-        await dbContext.SaveChangesAsync(cancellationToken);
-
+        await handler.Handle(new DeleteAgentTaskCommand(id), cancellationToken);
         return true;
     }
 
@@ -374,18 +344,11 @@ public class Mutation
     }
 
     public async Task<bool> DeleteLargeLanguageModelAsync(
-        [Service] DevStackDbContext dbContext,
+        [Service] IDeleteLargeLanguageModelHandler handler,
         Guid id,
         CancellationToken cancellationToken)
     {
-        var model = await dbContext.LargeLanguageModels.FindAsync(id, cancellationToken);
-        if (model == null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        dbContext.LargeLanguageModels.Remove(model);
-        await dbContext.SaveChangesAsync();
+        await handler.Handle(new DeleteLargeLanguageModelCommand(id), cancellationToken);
         return true;
     }
 

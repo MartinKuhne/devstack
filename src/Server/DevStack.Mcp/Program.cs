@@ -1,5 +1,6 @@
 using DevStack.Application;
 using DevStack.Application.AgentTasks;
+using DevStack.Application.AgentTasks.Queries;
 using DevStack.Application.Deliverables;
 using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.Deliverables.Queries;
@@ -52,7 +53,7 @@ try
     builder.Services.AddScoped<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
     builder.Services.AddScoped<ICommandHandler<Guid, CreateDeliverableCommand>, CreateDeliverableHandler>();
     builder.Services.AddScoped<ICommandHandler<UpdateDeliverableCommand>, UpdateDeliverableHandler>();
-    builder.Services.AddScoped<ICommandHandler<UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
+    builder.Services.AddScoped<ICommandHandler<DevStack.Domain.Enums.DeliverableStatus, UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
     builder.Services.AddScoped<ICommandHandler<DeleteDeliverableCommand>, DeleteDeliverableHandler>();
     builder.Services.AddScoped<IGetDeliverableByIdHandler, GetDeliverableByIdHandler>();
     builder.Services.AddScoped<DeliverableStatusTransitionService>();
