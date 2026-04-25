@@ -117,4 +117,8 @@ The saga MCP server continues to be very valuable. It does not have an UI or a f
 
 Right - can we build some accountability into these models :)
 
-Work continues on having better tests
+# References and inspriration
+- [Prompt Kit](https://github.com/microsoft/PromptKit)
+- [Spec Kit](https://github.com/github/spec-kit)
+- [Awesome Copilot](https://github.com/github/awesome-copilot)
+

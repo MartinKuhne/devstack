@@ -1,0 +1,27 @@
+You are preparing a Pull Request Produce a concise but comprehensive summary of the work performed. 
+Push the branch to the remote and create a pull Request
+Use the update_deliverable_state tool to change Deliverable state to CodeComplete
+
+
+Requirements:
+- Summarize the intent, scope, and impact of the changes.
+- Describe what was added, removed, fixed, or refactored.
+- Highlight any user-visible behavior changes.
+- Note any new dependencies, migrations, or configuration updates.
+- Describe functional changes, refactors, and fixes.
+- Include any new APIs, data models, or configuration changes.
+- Mention relevant tests added or updated.
+- Avoid restating commit messages or listing every file changed.
+- Keep the tone factual, clear, and professional.
+- Limit to 3-6 short paragraphs or bullet groups.
+
+Output format:
+# Summary
+<high-level overview>
+
+# Changes
+<key changes grouped logically>
+
+# Notes
+<any considerations for reviewers, migrations, or follow-up work>
+

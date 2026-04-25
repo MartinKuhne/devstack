@@ -1,7 +1,3 @@
-Plan the implementation of the Deliverable. Do not make any changes to the project
-{{Description}}
-
-
 ## Primary Directive
 
 Your goal is to create a new implementation plan file for `{{Description}}`. Your output must be machine-readable, deterministic, and structured for autonomous execution by other AI systems or humans.
