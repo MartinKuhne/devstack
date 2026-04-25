@@ -42,7 +42,7 @@ public class CreateDeliverableHandler : ICommandHandler<Guid, CreateDeliverableC
             PerformanceImpact = command.PerformanceImpact,
             TestPlan = command.TestPlan,
             DeploymentPlan = command.DeploymentPlan,
-            Status = DeliverableStatus.Draft
+            Status = command.InitialStatus
         };
 
         _dbContext.Deliverables.Add(deliverable);

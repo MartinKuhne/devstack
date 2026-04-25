@@ -168,7 +168,8 @@ public class Mutation
             input.SecurityImpact,
             input.PerformanceImpact,
             input.TestPlan,
-            input.DeploymentPlan), cancellationToken);
+            input.DeploymentPlan,
+            input.InitialStatus), cancellationToken);
 
         return await dbContext.Deliverables.FindAsync([id], cancellationToken);
     }
