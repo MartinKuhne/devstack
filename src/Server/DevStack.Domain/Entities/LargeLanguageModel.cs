@@ -26,6 +26,8 @@ public class LargeLanguageModel
 
     public int MaxConcurrency { get; set; }
 
+    public int Cost { get; set; }
+
     public LargeLanguageModel()
     {
     }

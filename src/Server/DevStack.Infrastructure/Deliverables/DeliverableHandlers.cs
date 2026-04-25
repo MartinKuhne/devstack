@@ -4,7 +4,6 @@ using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.Deliverables.Queries;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
-using DevStack.Domain.Services;
 using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.Deliverables;
@@ -92,12 +91,10 @@ public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand
 public class UpdateDeliverableStatusHandler : ICommandHandler<DeliverableStatus, UpdateDeliverableStatusCommand>
 {
     private readonly DevStackDbContext _dbContext;
-    private readonly DeliverableStatusTransitionService _transitionService;
 
-    public UpdateDeliverableStatusHandler(DevStackDbContext dbContext, DeliverableStatusTransitionService transitionService)
+    public UpdateDeliverableStatusHandler(DevStackDbContext dbContext)
     {
         _dbContext = dbContext;
-        _transitionService = transitionService;
     }
 
     public async Task<DeliverableStatus> Handle(UpdateDeliverableStatusCommand command, CancellationToken cancellationToken)
@@ -105,11 +102,6 @@ public class UpdateDeliverableStatusHandler : ICommandHandler<DeliverableStatus,
         var deliverable = await _dbContext.Deliverables.FindAsync([command.Id], cancellationToken);
         if (deliverable == null)
             throw new InvalidOperationException($"Deliverable with ID {command.Id} not found.");
-
-        var result = _transitionService.Transition(deliverable, command.TargetStatus, command.ChangedBy);
-
-        if (!result.IsSuccess)
-            throw new InvalidOperationException(string.Join("; ", result.Errors));
 
         deliverable.Status = command.TargetStatus;
         await _dbContext.SaveChangesAsync(cancellationToken);

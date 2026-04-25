@@ -4,7 +4,6 @@ using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks.Queries;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
-using DevStack.Domain.Services;
 using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.AgentTasks;
@@ -96,12 +95,10 @@ public class UpdateAgentTaskHandler : IUpdateAgentTaskHandler
 public class UpdateAgentTaskStatusHandler : IUpdateAgentTaskStatusHandler
 {
     private readonly DevStackDbContext _dbContext;
-    private readonly AgentTaskStatusTransitionService _transitionService;
 
-    public UpdateAgentTaskStatusHandler(DevStackDbContext dbContext, AgentTaskStatusTransitionService transitionService)
+    public UpdateAgentTaskStatusHandler(DevStackDbContext dbContext)
     {
         _dbContext = dbContext;
-        _transitionService = transitionService;
     }
 
     public async Task Handle(UpdateAgentTaskStatusCommand command, CancellationToken cancellationToken)
@@ -110,11 +107,7 @@ public class UpdateAgentTaskStatusHandler : IUpdateAgentTaskStatusHandler
         if (agentTask == null)
             throw new InvalidOperationException($"AgentTask with ID {command.Id} not found.");
 
-        var result = _transitionService.Transition(agentTask, command.Status, command.Actor);
-
-        if (!result.IsSuccess)
-            throw new InvalidOperationException(string.Join("; ", result.Errors));
-
+        agentTask.Status = command.Status;
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

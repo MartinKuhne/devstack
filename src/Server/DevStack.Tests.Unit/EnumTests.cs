@@ -16,10 +16,11 @@ public class EnumTests
     [Fact]
     public void DeliverableType_Enums_Are_Defined()
     {
-        Assert.Equal(3, Enum.GetValues<DeliverableType>().Length);
+        Assert.Equal(4, Enum.GetValues<DeliverableType>().Length);
         Assert.Contains(DeliverableType.Feature, Enum.GetValues<DeliverableType>());
         Assert.Contains(DeliverableType.Defect, Enum.GetValues<DeliverableType>());
         Assert.Contains(DeliverableType.Maintenance, Enum.GetValues<DeliverableType>());
+        Assert.Contains(DeliverableType.Spike, Enum.GetValues<DeliverableType>());
     }
 
     [Fact]
