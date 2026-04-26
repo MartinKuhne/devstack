@@ -34,4 +34,10 @@
     <ProjectReference Include="..\DevStack.Contracts\DevStack.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="GraphQL\schema.graphql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

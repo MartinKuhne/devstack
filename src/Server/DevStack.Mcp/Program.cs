@@ -6,7 +6,7 @@ using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.Deliverables.Queries;
 using DevStack.Application.Projects.Commands;
 using DevStack.Application.Projects.Queries;
-using DevStack.Domain.Services;
+using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Infrastructure.AgentTasks;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
@@ -56,13 +56,11 @@ try
     builder.Services.AddScoped<ICommandHandler<DevStack.Domain.Enums.DeliverableStatus, UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
     builder.Services.AddScoped<ICommandHandler<DeleteDeliverableCommand>, DeleteDeliverableHandler>();
     builder.Services.AddScoped<IGetDeliverableByIdHandler, GetDeliverableByIdHandler>();
-    builder.Services.AddScoped<DeliverableStatusTransitionService>();
     builder.Services.AddScoped<ICreateAgentTaskHandler, CreateAgentTaskHandler>();
     builder.Services.AddScoped<IUpdateAgentTaskHandler, UpdateAgentTaskHandler>();
     builder.Services.AddScoped<IUpdateAgentTaskStatusHandler, UpdateAgentTaskStatusHandler>();
     builder.Services.AddScoped<IDeleteAgentTaskHandler, DeleteAgentTaskHandler>();
     builder.Services.AddScoped<IGetAgentTaskByIdHandler, GetAgentTaskByIdHandler>();
-    builder.Services.AddScoped<AgentTaskStatusTransitionService>();
 
     var app = builder.Build();
 
