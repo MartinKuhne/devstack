@@ -52,7 +52,7 @@ const mutationResolvers = {
     _: unknown,
     { id, targetStatus, actor }: { id: string; targetStatus: string; actor?: string },
   ) => {
-    return deliverableService.updateStatus(id, targetStatus as 'DRAFT' | 'PLANNING' | 'READY' | 'INPROGRESS' | 'DONE' | 'FAILED' | 'REJECTED' | 'NEEDSREVIEW', actor)
+    return deliverableService.updateStatus(id, targetStatus as 'DRAFT' | 'PLANNING' | 'READY' | 'INPROGRESS' | 'CODECOMPLETE' | 'TESTING' | 'DONE' | 'FAILED' | 'REJECTED' | 'NEEDSREVIEW', actor)
   },
 
   deleteDeliverable: async (_: unknown, { id }: { id: string }) => {

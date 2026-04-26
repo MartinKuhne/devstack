@@ -30,8 +30,8 @@ describe('Deliverable Transition Service', () => {
       expect(isValidDeliverableTransition('READY', 'REJECTED')).toBe(true)
     })
 
-    it('allows InProgress -> NeedsReview', () => {
-      expect(isValidDeliverableTransition('INPROGRESS', 'NEEDSREVIEW')).toBe(true)
+    it('allows InProgress -> CodeComplete', () => {
+      expect(isValidDeliverableTransition('INPROGRESS', 'CODECOMPLETE')).toBe(true)
     })
 
     it('allows InProgress -> Failed', () => {
@@ -40,6 +40,26 @@ describe('Deliverable Transition Service', () => {
 
     it('allows InProgress -> Rejected', () => {
       expect(isValidDeliverableTransition('INPROGRESS', 'REJECTED')).toBe(true)
+    })
+
+    it('allows CodeComplete -> Testing', () => {
+      expect(isValidDeliverableTransition('CODECOMPLETE', 'TESTING')).toBe(true)
+    })
+
+    it('allows CodeComplete -> Rejected', () => {
+      expect(isValidDeliverableTransition('CODECOMPLETE', 'REJECTED')).toBe(true)
+    })
+
+    it('allows Testing -> NeedsReview', () => {
+      expect(isValidDeliverableTransition('TESTING', 'NEEDSREVIEW')).toBe(true)
+    })
+
+    it('allows Testing -> Failed', () => {
+      expect(isValidDeliverableTransition('TESTING', 'FAILED')).toBe(true)
+    })
+
+    it('allows Testing -> Rejected', () => {
+      expect(isValidDeliverableTransition('TESTING', 'REJECTED')).toBe(true)
     })
 
     it('allows NeedsReview -> InProgress', () => {
@@ -74,6 +94,11 @@ describe('Deliverable Transition Service', () => {
       expect(isValidDeliverableTransition('DRAFT', 'INPROGRESS')).toBe(false)
       expect(isValidDeliverableTransition('PLANNING', 'DONE')).toBe(false)
       expect(isValidDeliverableTransition('READY', 'DONE')).toBe(false)
+      expect(isValidDeliverableTransition('INPROGRESS', 'DONE')).toBe(false)
+      expect(isValidDeliverableTransition('INPROGRESS', 'TESTING')).toBe(false)
+      expect(isValidDeliverableTransition('CODECOMPLETE', 'DONE')).toBe(false)
+      expect(isValidDeliverableTransition('CODECOMPLETE', 'INPROGRESS')).toBe(false)
+      expect(isValidDeliverableTransition('TESTING', 'INPROGRESS')).toBe(false)
     })
   })
 })
