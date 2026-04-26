@@ -4,5 +4,6 @@ public enum DeliverableType
 {
     Feature,
     Defect,
-    Maintenance
+    Maintenance,
+    Spike
 }

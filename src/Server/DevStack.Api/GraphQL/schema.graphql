@@ -1,0 +1,722 @@
+"""
+Represents a software project in the DevStack system.
+"""
+type Project {
+  """Unique identifier of the project"""
+  id: UUID!
+  
+  """Name of the project"""
+  name: String!
+  
+  """Description of the project"""
+  description: String
+  
+  """Git repository URL"""
+  repository: String!
+  
+  """Deliverables associated with this project"""
+  deliverables(filter: DeliverableFilterInput, order: [DeliverableSortInput!], first: Int, after: String): DeliverableConnection
+}
+
+"""Input for creating a new project"""
+input CreateProjectInput {
+  """Name of the project"""
+  name: String!
+  
+  """Git repository URL"""
+  repository: String!
+  
+  """Description of the project"""
+  description: String
+}
+
+"""Input for updating an existing project"""
+input UpdateProjectInput {
+  """Unique identifier of the project to update"""
+  id: UUID!
+  
+  """New name for the project"""
+  name: String
+  
+  """New description for the project"""
+  description: String
+  
+  """New repository URL"""
+  repository: String
+}
+
+"""
+Represents a deliverable (feature, task, bug, etc.) in the DevStack system.
+"""
+type Deliverable {
+  """Unique identifier of the deliverable"""
+  id: UUID!
+  
+  """ID of the project this deliverable belongs to"""
+  projectId: UUID!
+  
+  """Type of deliverable (Feature, Task, Bug, Epic, etc.)"""
+  type: DeliverableType!
+  
+  """Title of the deliverable"""
+  title: String!
+  
+  """Current status of the deliverable"""
+  status: DeliverableStatus!
+  
+  """Detailed description of the deliverable"""
+  description: String
+  
+  """Acceptance criteria for the deliverable"""
+  acceptanceCriteria: String
+  
+  """Execution plan for the deliverable"""
+  executionPlan: String
+  
+  """Agent feedback on the deliverable"""
+  agentFeedback: String
+  
+  """Security impact assessment"""
+  securityImpact: String
+  
+  """Performance impact assessment"""
+  performanceImpact: String
+  
+  """Test plan for the deliverable"""
+  testPlan: String
+  
+  """Deployment plan for the deliverable"""
+  deploymentPlan: String
+  
+  """Blocking issues or dependencies"""
+  blocking: String
+  
+  """Project this deliverable belongs to"""
+  project: Project
+  
+  """Agent tasks associated with this deliverable"""
+  agentTasks(filter: AgentTaskFilterInput, order: [AgentTaskSortInput!], first: Int, after: String): AgentTaskConnection
+}
+
+"""Input for creating a new deliverable"""
+input CreateDeliverableInput {
+  """ID of the project this deliverable belongs to"""
+  projectId: UUID!
+  
+  """Title of the deliverable"""
+  title: String!
+  
+  """Type of deliverable"""
+  type: String!
+  
+  """Description of the deliverable"""
+  description: String!
+  
+  """Initial status of the deliverable"""
+  initialStatus: DeliverableStatus!
+  
+  """Acceptance criteria"""
+  acceptanceCriteria: String
+  
+  """Execution plan"""
+  executionPlan: String
+  
+  """Security impact assessment"""
+  securityImpact: String
+  
+  """Performance impact assessment"""
+  performanceImpact: String
+  
+  """Test plan"""
+  testPlan: String
+  
+  """Deployment plan"""
+  deploymentPlan: String
+}
+
+"""Input for updating an existing deliverable"""
+input UpdateDeliverableInput {
+  """Unique identifier of the deliverable to update"""
+  id: UUID!
+  
+  """New title"""
+  title: String
+  
+  """New description"""
+  description: String
+  
+  """New acceptance criteria"""
+  acceptanceCriteria: String
+  
+  """Agent feedback"""
+  agentFeedback: String
+  
+  """New execution plan"""
+  executionPlan: String
+  
+  """New security impact assessment"""
+  securityImpact: String
+  
+  """New performance impact assessment"""
+  performanceImpact: String
+  
+  """New test plan"""
+  testPlan: String
+  
+  """New deployment plan"""
+  deploymentPlan: String
+  
+  """Blocking issues"""
+  blocking: String
+}
+
+"""Input for updating deliverable status"""
+input UpdateDeliverableStatusInput {
+  """Unique identifier of the deliverable"""
+  id: UUID!
+  
+  """Target status"""
+  targetStatus: DeliverableStatus!
+  
+  """Actor who initiated the status change"""
+  actor: String
+}
+
+"""
+Represents an agent task (unit of work for an AI agent).
+"""
+type AgentTask {
+  """Unique identifier of the task"""
+  id: UUID!
+  
+  """ID of the project this task belongs to"""
+  projectId: UUID!
+  
+  """ID of the deliverable this task belongs to"""
+  deliverableId: UUID!
+  
+  """Title of the task"""
+  title: String!
+  
+  """Current status of the task"""
+  status: AgentTaskStatus!
+  
+  """Description of the task"""
+  description: String!
+  
+  """Result of the task execution"""
+  result: String
+  
+  """Errors encountered during execution"""
+  errors: String
+  
+  """Git commit hash if applicable"""
+  commitHash: String
+  
+  """Complexity rating (1-10)"""
+  complexityRating: Int!
+  
+  """ID of the task this task depends on"""
+  dependsOnAgentTaskId: UUID
+  
+  """Number of prompt tokens used"""
+  promptTokens: Int
+  
+  """Number of completion tokens used"""
+  completionTokens: Int
+  
+  """Execution duration in seconds"""
+  executionDurationInSeconds: Int
+  
+  """Agent that executed the task"""
+  agent: String
+  
+  """Deliverable this task belongs to"""
+  deliverable: Deliverable
+  
+  """Project this task belongs to"""
+  project: Project
+  
+  """Task this task depends on"""
+  dependsOnAgentTask: AgentTask
+}
+
+"""Input for creating a new agent task"""
+input CreateAgentTaskInput {
+  """ID of the deliverable this task belongs to"""
+  deliverableId: UUID!
+  
+  """ID of the project this task belongs to"""
+  projectId: UUID!
+  
+  """Title of the task"""
+  title: String!
+  
+  """Description of the task"""
+  description: String!
+  
+  """ID of the task this task depends on"""
+  dependsOnAgentTaskId: UUID
+  
+  """Complexity rating (1-10)"""
+  complexityRating: Int
+}
+
+"""Input for updating an existing agent task"""
+input UpdateAgentTaskInput {
+  """Unique identifier of the task to update"""
+  id: UUID!
+  
+  """New title"""
+  title: String
+  
+  """New description"""
+  description: String
+  
+  """Result of the task"""
+  result: String
+  
+  """Errors encountered"""
+  errors: String
+  
+  """Git commit hash"""
+  commitHash: String
+  
+  """New dependency"""
+  dependsOnAgentTaskId: UUID
+  
+  """New complexity rating"""
+  complexityRating: Int
+  
+  """Number of prompt tokens"""
+  promptTokens: Int
+  
+  """Number of completion tokens"""
+  completionTokens: Int
+  
+  """Execution duration in seconds"""
+  executionDurationInSeconds: Int
+  
+  """Agent that executed the task"""
+  agent: String
+}
+
+"""Input for updating agent task status"""
+input UpdateAgentTaskStatusInput {
+  """Unique identifier of the task"""
+  id: UUID!
+  
+  """Target status"""
+  targetStatus: AgentTaskStatus!
+}
+
+"""
+Represents a Large Language Model configuration.
+"""
+type LargeLanguageModel {
+  """Unique identifier of the LLM configuration"""
+  id: UUID!
+  
+  """Base URL of the LLM API"""
+  url: String!
+  
+  """Model identifier"""
+  model: String!
+  
+  """Optional alias for the model"""
+  modelAlias: String
+  
+  """API key for authentication"""
+  apiKey: String
+  
+  """Cost metric for this model"""
+  cost: Int!
+  
+  """Maximum complexity rating supported"""
+  maxComplexity: Int!
+  
+  """Maximum concurrent requests supported"""
+  maxConcurrency: Int!
+}
+
+"""Input for creating a new LLM configuration"""
+input CreateLargeLanguageModelInput {
+  """Base URL of the LLM API"""
+  url: String!
+  
+  """Model identifier"""
+  model: String!
+  
+  """Optional alias for the model"""
+  modelAlias: String
+  
+  """API key for authentication"""
+  apiKey: String
+  
+  """Cost metric"""
+  cost: Int
+  
+  """Maximum complexity rating"""
+  maxComplexity: Int
+  
+  """Maximum concurrent requests"""
+  maxConcurrency: Int
+}
+
+"""Input for updating an existing LLM configuration"""
+input UpdateLargeLanguageModelInput {
+  """Unique identifier of the LLM configuration"""
+  id: UUID!
+  
+  """New base URL"""
+  url: String
+  
+  """New model identifier"""
+  model: String
+  
+  """New model alias"""
+  modelAlias: String
+  
+  """New API key"""
+  apiKey: Int
+  
+  """New cost metric"""
+  cost: Int
+  
+  """New maximum complexity"""
+  maxComplexity: Int
+  
+  """New maximum concurrency"""
+  maxConcurrency: Int
+}
+
+"""Enumeration of deliverable types"""
+enum DeliverableType {
+  FEATURE
+  TASK
+  BUG
+  EPIC
+  DEFECT
+  IMPROVEMENT
+}
+
+"""Enumeration of deliverable statuses"""
+enum DeliverableStatus {
+  DRAFT
+  READY
+  IN_PROGRESS
+  NEEDS_REVIEW
+  DONE
+  REJECTED
+  BLOCKED
+}
+
+"""Enumeration of agent task statuses"""
+enum AgentTaskStatus {
+  READY
+  IN_PROGRESS
+  DONE
+  FAILED
+  REJECTED
+  NEEDS_REVIEW
+}
+
+"""The root query type"""
+type Query {
+  """Get a single project by ID"""
+  project(id: UUID!): Project
+  
+  """Get all projects with optional filtering and pagination"""
+  projects(filter: ProjectFilterInput, order: [ProjectSortInput!], first: Int, after: String): ProjectConnection
+  
+  """Get a single deliverable by ID"""
+  deliverable(id: UUID!): Deliverable
+  
+  """Get all deliverables with optional filtering and pagination"""
+  deliverables(filter: DeliverableFilterInput, order: [DeliverableSortInput!], first: Int, after: String): DeliverableConnection
+  
+  """Get a single agent task by ID"""
+  agentTask(id: UUID!): AgentTask
+  
+  """Get all agent tasks with optional filtering and pagination"""
+  agentTasks(filter: AgentTaskFilterInput, order: [AgentTaskSortInput!], first: Int, after: String): AgentTaskConnection
+  
+  """Get a single LLM configuration by ID"""
+  largeLanguageModel(id: UUID!): LargeLanguageModel
+  
+  """Get all LLM configurations with optional filtering and pagination"""
+  largeLanguageModels(filter: LargeLanguageModelFilterInput, order: [LargeLanguageModelSortInput!], first: Int, after: String): LargeLanguageModelConnection
+}
+
+"""The root mutation type"""
+type Mutation {
+  """Create a new project"""
+  createProject(input: CreateProjectInput!): Project
+  
+  """Update an existing project"""
+  updateProject(input: UpdateProjectInput!): Project
+  
+  """Delete a project"""
+  deleteProject(id: UUID!): Boolean
+  
+  """Create a new deliverable"""
+  createDeliverable(input: CreateDeliverableInput!): Deliverable
+  
+  """Update an existing deliverable"""
+  updateDeliverable(input: UpdateDeliverableInput!): Deliverable
+  
+  """Update deliverable status"""
+  updateDeliverableStatus(input: UpdateDeliverableStatusInput!): DeliverableStatus
+  
+  """Delete a deliverable"""
+  deleteDeliverable(id: UUID!): Boolean
+  
+  """Create a new agent task"""
+  createAgentTask(input: CreateAgentTaskInput!): AgentTask
+  
+  """Update an existing agent task"""
+  updateAgentTask(input: UpdateAgentTaskInput!): AgentTask
+  
+  """Update agent task status"""
+  updateAgentTaskStatus(id: UUID!, targetStatus: AgentTaskStatus!): AgentTaskStatus
+  
+  """Delete an agent task"""
+  deleteAgentTask(id: UUID!): Boolean
+  
+  """Create a new LLM configuration"""
+  createLargeLanguageModel(input: CreateLargeLanguageModelInput!): LargeLanguageModel
+  
+  """Update an existing LLM configuration"""
+  updateLargeLanguageModel(input: UpdateLargeLanguageModelInput!): LargeLanguageModel
+  
+  """Delete an LLM configuration"""
+  deleteLargeLanguageModel(id: UUID!): Boolean
+  
+  """Cleanup test data (development only)"""
+  cleanupTestData: CleanupTestDataPayload!
+}
+
+"""Payload for cleanup test data mutation"""
+type CleanupTestDataPayload {
+  """Whether the operation was successful"""
+  success: Boolean!
+  
+  """Optional message"""
+  message: String
+}
+
+# Connection types for pagination
+interface Edge {
+  cursor: String!
+}
+
+interface Connection {
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# Project connections
+type ProjectEdge implements Edge {
+  cursor: String!
+  node: Project!
+}
+
+type ProjectConnection implements Connection {
+  pageInfo: PageInfo!
+  totalCount: Int!
+  edges: [ProjectEdge!]!
+  nodes: [Project!]!
+}
+
+# Deliverable connections
+type DeliverableEdge implements Edge {
+  cursor: String!
+  node: Deliverable!
+}
+
+type DeliverableConnection implements Connection {
+  pageInfo: PageInfo!
+  totalCount: Int!
+  edges: [DeliverableEdge!]!
+  nodes: [Deliverable!]!
+}
+
+# AgentTask connections
+type AgentTaskEdge implements Edge {
+  cursor: String!
+  node: AgentTask!
+}
+
+type AgentTaskConnection implements Connection {
+  pageInfo: PageInfo!
+  totalCount: Int!
+  edges: [AgentTaskEdge!]!
+  nodes: [AgentTask!]!
+}
+
+# LargeLanguageModel connections
+type LargeLanguageModelEdge implements Edge {
+  cursor: String!
+  node: LargeLanguageModel!
+}
+
+type LargeLanguageModelConnection implements Connection {
+  pageInfo: PageInfo!
+  totalCount: Int!
+  edges: [LargeLanguageModelEdge!]!
+  nodes: [LargeLanguageModel!]!
+}
+
+# Filter and sort inputs
+input ProjectFilterInput {
+  id: UUIDFilterInput
+  name: StringFilterInput
+  description: StringFilterInput
+  repository: StringFilterInput
+  and: [ProjectFilterInput!]
+  or: [ProjectFilterInput!]
+}
+
+input ProjectSortInput {
+  id: SortOperationKind
+  name: SortOperationKind
+  description: SortOperationKind
+  repository: SortOperationKind
+}
+
+input DeliverableFilterInput {
+  id: UUIDFilterInput
+  projectId: UUIDFilterInput
+  type: DeliverableTypeFilterInput
+  title: StringFilterInput
+  status: DeliverableStatusFilterInput
+  description: StringFilterInput
+  and: [DeliverableFilterInput!]
+  or: [DeliverableFilterInput!]
+}
+
+input DeliverableSortInput {
+  id: SortOperationKind
+  projectId: SortOperationKind
+  type: SortOperationKind
+  title: SortOperationKind
+  status: SortOperationKind
+  description: SortOperationKind
+}
+
+input AgentTaskFilterInput {
+  id: UUIDFilterInput
+  projectId: UUIDFilterInput
+  deliverableId: UUIDFilterInput
+  title: StringFilterInput
+  status: AgentTaskStatusFilterInput
+  description: StringFilterInput
+  complexityRating: IntFilterInput
+  and: [AgentTaskFilterInput!]
+  or: [AgentTaskFilterInput!]
+}
+
+input AgentTaskSortInput {
+  id: SortOperationKind
+  projectId: SortOperationKind
+  deliverableId: SortOperationKind
+  title: SortOperationKind
+  status: SortOperationKind
+  description: SortOperationKind
+  complexityRating: SortOperationKind
+}
+
+input LargeLanguageModelFilterInput {
+  id: UUIDFilterInput
+  url: StringFilterInput
+  model: StringFilterInput
+  modelAlias: StringFilterInput
+  cost: IntFilterInput
+  maxComplexity: IntFilterInput
+  maxConcurrency: IntFilterInput
+  and: [LargeLanguageModelFilterInput!]
+  or: [LargeLanguageModelFilterInput!]
+}
+
+input LargeLanguageModelSortInput {
+  id: SortOperationKind
+  url: SortOperationKind
+  model: SortOperationKind
+  modelAlias: SortOperationKind
+  cost: SortOperationKind
+  maxComplexity: SortOperationKind
+  maxConcurrency: SortOperationKind
+}
+
+# Common filter types
+input UUIDFilterInput {
+  eq: UUID
+  ne: UUID
+  in: [UUID!]
+  notIn: [UUID!]
+}
+
+input StringFilterInput {
+  eq: String
+  ne: String
+  contains: String
+  notContains: String
+  in: [String!]
+  notIn: [String!]
+  startsWith: String
+  endsWith: String
+}
+
+input IntFilterInput {
+  eq: Int
+  ne: Int
+  gt: Int
+  gte: Int
+  lt: Int
+  lte: Int
+  in: [Int!]
+  notIn: [Int!]
+}
+
+input DeliverableTypeFilterInput {
+  eq: DeliverableType
+  ne: DeliverableType
+  in: [DeliverableType!]
+  notIn: [DeliverableType!]
+}
+
+input DeliverableStatusFilterInput {
+  eq: DeliverableStatus
+  ne: DeliverableStatus
+  in: [DeliverableStatus!]
+  notIn: [DeliverableStatus!]
+}
+
+input AgentTaskStatusFilterInput {
+  eq: AgentTaskStatus
+  ne: AgentTaskStatus
+  in: [AgentTaskStatus!]
+  notIn: [AgentTaskStatus!]
+}
+
+enum SortOperationKind {
+  ASC
+  DESC
+  ASC_NULLS_FIRST
+  DESC_NULLS_FIRST
+  ASC_NULLS_LAST
+  DESC_NULLS_LAST
+}
+
+"""UUID scalar"""
+scalar UUID
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
