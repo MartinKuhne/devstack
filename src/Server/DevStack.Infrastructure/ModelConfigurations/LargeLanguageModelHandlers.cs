@@ -1,44 +1,12 @@
+using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Domain.Entities;
 using DevStack.Persistence;
-using System.Threading.Tasks;
 
 namespace DevStack.Infrastructure.ModelConfigurations;
-
-public record CreateLargeLanguageModelCommand(
-    string Url,
-    string Model,
-    string? ModelAlias,
-    string ApiKey,
-    int MaxComplexity,
-    int MaxConcurrency);
-
-public record UpdateLargeLanguageModelCommand(
-    Guid Id,
-    string? Url,
-    string? Model,
-    string? ModelAlias,
-    string? ApiKey,
-    int? MaxComplexity,
-    int? MaxConcurrency);
-
-public record DeleteLargeLanguageModelCommand(Guid Id);
-
-public interface ICreateLargeLanguageModelHandler : DevStack.Application.ICommandHandler<Guid, CreateLargeLanguageModelCommand>
-{
-}
-
-public interface IUpdateLargeLanguageModelHandler : DevStack.Application.ICommandHandler<UpdateLargeLanguageModelCommand>
-{
-}
-
-public interface IDeleteLargeLanguageModelHandler : DevStack.Application.ICommandHandler<DeleteLargeLanguageModelCommand>
-{
-}
 
 public class CreateLargeLanguageModelHandler : ICreateLargeLanguageModelHandler
 {
     private readonly DevStackDbContext _dbContext;
-
 
     public CreateLargeLanguageModelHandler(DevStackDbContext dbContext)
     {
@@ -53,6 +21,7 @@ public class CreateLargeLanguageModelHandler : ICreateLargeLanguageModelHandler
             Model = request.Model,
             ModelAlias = request.ModelAlias ?? string.Empty,
             ApiKey = request.ApiKey,
+            Cost = request.Cost,
             MaxComplexity = request.MaxComplexity,
             MaxConcurrency = request.MaxConcurrency
         };
@@ -73,7 +42,7 @@ public class UpdateLargeLanguageModelHandler : IUpdateLargeLanguageModelHandler
         _dbContext = dbContext;
     }
 
-    public async global::System.Threading.Tasks.Task Handle(UpdateLargeLanguageModelCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateLargeLanguageModelCommand request, CancellationToken cancellationToken)
     {
         var model = await _dbContext.LargeLanguageModels.FindAsync([request.Id], cancellationToken);
         if (model == null)
@@ -85,6 +54,7 @@ public class UpdateLargeLanguageModelHandler : IUpdateLargeLanguageModelHandler
         if (request.ApiKey is not null) model.ApiKey = request.ApiKey;
         if (request.MaxComplexity.HasValue) model.MaxComplexity = request.MaxComplexity.Value;
         if (request.MaxConcurrency.HasValue) model.MaxConcurrency = request.MaxConcurrency.Value;
+        if (request.Cost.HasValue) model.Cost = request.Cost.Value;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -99,7 +69,7 @@ public class DeleteLargeLanguageModelHandler : IDeleteLargeLanguageModelHandler
         _dbContext = dbContext;
     }
 
-    public async global::System.Threading.Tasks.Task Handle(DeleteLargeLanguageModelCommand request, CancellationToken cancellationToken)
+    public async Task Handle(DeleteLargeLanguageModelCommand request, CancellationToken cancellationToken)
     {
         var model = await _dbContext.LargeLanguageModels.FindAsync([request.Id], cancellationToken);
         if (model == null)

@@ -5,10 +5,9 @@ using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
-using DevStack.Domain.Services;
 using DevStack.Persistence;
 using DevStack.Infrastructure.Projects;
-using DevStack.Infrastructure.ModelConfigurations;
+using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.AgentTasks;
 using DevStack.Domain.Exceptions;
@@ -93,6 +92,7 @@ public record CreateLargeLanguageModelInput(
     string Model,
     string? ModelAlias,
     string? ApiKey,
+    int Cost = 0,
     int MaxComplexity = 10,
     int MaxConcurrency = 1);
 
@@ -102,6 +102,7 @@ public record UpdateLargeLanguageModelInput(
     string? Model,
     string? ModelAlias,
     string? ApiKey,
+    int? Cost,
     int? MaxComplexity,
     int? MaxConcurrency);
 
@@ -168,7 +169,8 @@ public class Mutation
             input.SecurityImpact,
             input.PerformanceImpact,
             input.TestPlan,
-            input.DeploymentPlan), cancellationToken);
+            input.DeploymentPlan,
+            input.InitialStatus), cancellationToken);
 
         return await dbContext.Deliverables.FindAsync([id], cancellationToken);
     }
@@ -268,8 +270,6 @@ public class Mutation
 
     public async Task<AgentTaskStatus> UpdateAgentTaskStatusAsync(
         [Service] DevStackDbContext dbContext,
-        [Service] IUpdateAgentTaskStatusHandler handler,
-        [Service] AgentTaskStatusTransitionService transitionService,
         Guid id,
         AgentTaskStatus targetStatus,
         CancellationToken cancellationToken)
@@ -278,12 +278,6 @@ public class Mutation
         if (agentTask == null)
         {
             throw new InvalidOperationException("AgentTask does not exist");
-        }
-
-        var result = transitionService.Transition(agentTask, targetStatus, "GraphQL");
-        if (!result.IsSuccess)
-        {
-            throw new InvalidOperationException(string.Join("; ", result.Errors));
         }
 
         agentTask.Status = targetStatus;
@@ -317,6 +311,7 @@ public class Mutation
             input.Model,
             input.ModelAlias,
             input.ApiKey ?? String.Empty,
+            input.Cost,
             input.MaxComplexity,
             input.MaxConcurrency), cancellationToken);
 
@@ -336,6 +331,7 @@ public class Mutation
             input.Model,
             input.ModelAlias,
             input.ApiKey,
+            input.Cost,
             input.MaxComplexity,
             input.MaxConcurrency), cancellationToken);
 

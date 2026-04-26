@@ -78,7 +78,8 @@ public class DeliverableTools
                     securityImpact,
                     performanceImpact,
                     testPlan,
-                    deploymentPlan),
+                    deploymentPlan,
+                    Domain.Enums.DeliverableStatus.Draft),
                 ct);
 
             _logger.LogInformation("Created deliverable with ID: {Id}", id);
