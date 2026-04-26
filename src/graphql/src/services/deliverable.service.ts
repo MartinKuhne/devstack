@@ -1,5 +1,5 @@
 import { prisma } from "../config/database.js"
-import { DeliverableStatus } from '@prisma/client'
+import { DeliverableStatus, DeliverableType } from '@prisma/client'
 import { buildWhereClause } from "../utils/filtering.js"
 import { paginate, PaginatedResult } from "../utils/pagination.js"
 import { isValidDeliverableTransition } from "./transition.service.js"
@@ -7,7 +7,7 @@ import { isValidDeliverableTransition } from "./transition.service.js"
 export async function createDeliverable(data: {
   projectId: string
   title: string
-  type: 'FEATURE' | 'DEFECT' | 'MAINTENANCE'
+  type: DeliverableType
   description: string
   initialStatus: DeliverableStatus
   acceptanceCriteria?: string

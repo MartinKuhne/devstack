@@ -10,6 +10,7 @@ enum DeliverableType {
   FEATURE
   DEFECT
   MAINTENANCE
+  SPIKE
 }
 
 enum DeliverableStatus {
@@ -17,6 +18,8 @@ enum DeliverableStatus {
   PLANNING
   READY
   INPROGRESS
+  CODECOMPLETE
+  TESTING
   DONE
   FAILED
   REJECTED
@@ -97,6 +100,7 @@ model LargeLanguageModel {
   model          String   @db.VarChar(200)
   modelAlias     String?  @db.VarChar(100)
   apiKey         String   @db.VarChar(1000)
+  cost           Int      @default(0)
   maxComplexity  Int
   maxConcurrency Int?     @default(1)
 

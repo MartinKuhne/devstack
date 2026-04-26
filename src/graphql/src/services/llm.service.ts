@@ -7,7 +7,8 @@ export async function createLlm(data: {
   url: string
   model: string
   modelAlias?: string
-  apiKey: string
+  apiKey?: string
+  cost?: number
   maxComplexity: number
   maxConcurrency?: number
 }): Promise<{
@@ -16,19 +17,29 @@ export async function createLlm(data: {
   model: string
   modelAlias: string | null
   apiKey: string
+  cost: number
   maxComplexity: number
   maxConcurrency: number | null
 }> {
-  const encryptedKey = await encryptApiKey(data.apiKey)
+  const dataWithDefaults = {
+    ...data,
+    apiKey: data.apiKey ?? '',
+    cost: data.cost ?? 0,
+    maxComplexity: data.maxComplexity ?? 10,
+    maxConcurrency: data.maxConcurrency ?? 1,
+  }
+
+  const encryptedKey = await encryptApiKey(dataWithDefaults.apiKey)
 
   return prisma.largeLanguageModel.create({
     data: {
-      url: data.url,
-      model: data.model,
-      modelAlias: data.modelAlias ?? null,
+      url: dataWithDefaults.url,
+      model: dataWithDefaults.model,
+      modelAlias: dataWithDefaults.modelAlias ?? null,
       apiKey: encryptedKey,
-      maxComplexity: data.maxComplexity,
-      maxConcurrency: data.maxConcurrency ?? null,
+      cost: dataWithDefaults.cost,
+      maxComplexity: dataWithDefaults.maxComplexity,
+      maxConcurrency: dataWithDefaults.maxConcurrency,
     },
   })
 }
@@ -61,6 +72,7 @@ export async function getAll({
   model: string
   modelAlias: string | null
   apiKey: string
+  cost: number
   maxComplexity: number
   maxConcurrency: number | null
 }>> {
@@ -89,6 +101,7 @@ export async function update(
     model?: string
     modelAlias?: string
     apiKey?: string
+    cost?: number
     maxComplexity?: number
     maxConcurrency?: number
   },

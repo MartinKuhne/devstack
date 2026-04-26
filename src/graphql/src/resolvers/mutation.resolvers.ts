@@ -13,6 +13,7 @@ import {
   CreateLargeLanguageModelInputSchema,
   UpdateLargeLanguageModelInputSchema,
 } from "../validations/llm.schema.js"
+import { DeliverableStatus } from '@prisma/client'
 
 const mutationResolvers = {
   createProject: async (_: unknown, { input }: { input: z.infer<typeof CreateProjectInputSchema> }) => {
@@ -52,7 +53,7 @@ const mutationResolvers = {
     _: unknown,
     { id, targetStatus, actor }: { id: string; targetStatus: string; actor?: string },
   ) => {
-    return deliverableService.updateStatus(id, targetStatus as 'DRAFT' | 'PLANNING' | 'READY' | 'INPROGRESS' | 'DONE' | 'FAILED' | 'REJECTED' | 'NEEDSREVIEW', actor)
+    return deliverableService.updateStatus(id, targetStatus as DeliverableStatus, actor)
   },
 
   deleteDeliverable: async (_: unknown, { id }: { id: string }) => {
