@@ -9,10 +9,10 @@ using DevStack.Application.Projects.Queries;
 using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks.Queries;
-using DevStack.Domain.Services;
 using Microsoft.FeatureManagement;
 using DevStack.Api.GraphQL.Types;
 using DevStack.Infrastructure.Projects;
+using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.AgentTasks;
@@ -79,13 +79,11 @@ builder.Services.AddScoped<ICommandHandler<UpdateDeliverableCommand>, UpdateDeli
 builder.Services.AddScoped<ICommandHandler<DevStack.Domain.Enums.DeliverableStatus, UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
 builder.Services.AddScoped<ICommandHandler<DeleteDeliverableCommand>, DeleteDeliverableHandler>();
 builder.Services.AddScoped<IGetDeliverableByIdHandler, GetDeliverableByIdHandler>();
-builder.Services.AddScoped<DeliverableStatusTransitionService>();
 builder.Services.AddScoped<ICommandHandler<Guid, CreateAgentTaskCommand>, CreateAgentTaskHandler>();
 builder.Services.AddScoped<ICommandHandler<UpdateAgentTaskCommand>, UpdateAgentTaskHandler>();
 builder.Services.AddScoped<IUpdateAgentTaskStatusHandler, UpdateAgentTaskStatusHandler>();
 builder.Services.AddScoped<ICommandHandler<DeleteAgentTaskCommand>, DeleteAgentTaskHandler>();
 builder.Services.AddScoped<IGetAgentTaskByIdHandler, GetAgentTaskByIdHandler>();
-builder.Services.AddScoped<AgentTaskStatusTransitionService>();
 builder.Services.AddScoped<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
 
 builder.Services.AddOpenTelemetry()

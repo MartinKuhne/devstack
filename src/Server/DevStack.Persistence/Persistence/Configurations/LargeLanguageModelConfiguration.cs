@@ -31,5 +31,8 @@ public class LargeLanguageModelConfiguration : IEntityTypeConfiguration<LargeLan
 
         builder.Property(llm => llm.MaxConcurrency)
             .HasDefaultValue(0);
+
+        builder.Property(llm => llm.Cost)
+            .HasDefaultValue(0);
     }
 }

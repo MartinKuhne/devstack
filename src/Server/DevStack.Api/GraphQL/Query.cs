@@ -27,6 +27,9 @@ public class Query
         return dbContext.LargeLanguageModels.Find(id);
     }
 
+    [UsePaging(MaxPageSize = 100)]
+    [UseFiltering]
+    [UseSorting]
     public IQueryable<LargeLanguageModel> GetLargeLanguageModels(
         [Service] DevStackDbContext dbContext)
     {
