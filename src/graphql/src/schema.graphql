@@ -2,6 +2,7 @@ enum DeliverableType {
   FEATURE
   DEFECT
   MAINTENANCE
+  SPIKE
 }
 
 enum DeliverableStatus {
@@ -9,6 +10,8 @@ enum DeliverableStatus {
   PLANNING
   READY
   INPROGRESS
+  CODECOMPLETE
+  TESTING
   DONE
   FAILED
   REJECTED
@@ -73,6 +76,7 @@ type LargeLanguageModel {
   model: String!
   modelAlias: String
   apiKey: String!
+  cost: Int!
   maxComplexity: Int!
   maxConcurrency: Int
 }
@@ -129,7 +133,7 @@ input UpdateProjectInput {
 input CreateDeliverableInput {
   projectId: ID!
   title: String!
-  type: String!
+  type: DeliverableType!
   description: String!
   initialStatus: DeliverableStatus!
   acceptanceCriteria: String
@@ -183,6 +187,7 @@ input CreateLargeLanguageModelInput {
   model: String!
   modelAlias: String
   apiKey: String
+  cost: Int
   maxComplexity: Int
   maxConcurrency: Int
 }
@@ -193,6 +198,7 @@ input UpdateLargeLanguageModelInput {
   model: String
   modelAlias: String
   apiKey: String
+  cost: Int
   maxComplexity: Int
   maxConcurrency: Int
 }

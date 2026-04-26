@@ -3,9 +3,9 @@ import { z } from 'zod'
 export const CreateDeliverableInputSchema = z.object({
   projectId: z.string().uuid(),
   title: z.string().min(1).max(200),
-  type: z.enum(['FEATURE', 'DEFECT', 'MAINTENANCE']),
+  type: z.enum(['FEATURE', 'DEFECT', 'MAINTENANCE', 'SPIKE']),
   description: z.string(),
-  initialStatus: z.enum(['DRAFT', 'PLANNING', 'READY', 'INPROGRESS', 'DONE', 'FAILED', 'REJECTED', 'NEEDSREVIEW']),
+  initialStatus: z.enum(['DRAFT', 'PLANNING', 'READY', 'INPROGRESS', 'CODECOMPLETE', 'TESTING', 'DONE', 'FAILED', 'REJECTED', 'NEEDSREVIEW']),
   acceptanceCriteria: z.string().optional(),
   executionPlan: z.string().optional(),
   securityImpact: z.string().optional(),
@@ -28,7 +28,7 @@ export const UpdateDeliverableInputSchema = z.object({
 })
 
 export const UpdateDeliverableStatusInputSchema = z.object({
-  targetStatus: z.enum(['DRAFT', 'PLANNING', 'READY', 'INPROGRESS', 'DONE', 'FAILED', 'REJECTED', 'NEEDSREVIEW']),
+  targetStatus: z.enum(['DRAFT', 'PLANNING', 'READY', 'INPROGRESS', 'CODECOMPLETE', 'TESTING', 'DONE', 'FAILED', 'REJECTED', 'NEEDSREVIEW']),
   actor: z.string().optional(),
 })
 

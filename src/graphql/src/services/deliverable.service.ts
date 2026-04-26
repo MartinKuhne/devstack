@@ -7,7 +7,7 @@ import { isValidDeliverableTransition } from "./transition.service.js"
 export async function createDeliverable(data: {
   projectId: string
   title: string
-  type: 'FEATURE' | 'DEFECT' | 'MAINTENANCE'
+  type: 'FEATURE' | 'DEFECT' | 'MAINTENANCE' | 'SPIKE'
   description: string
   initialStatus: DeliverableStatus
   acceptanceCriteria?: string

@@ -8,6 +8,7 @@ export async function createLlm(data: {
   model: string
   modelAlias?: string
   apiKey: string
+  cost: number
   maxComplexity: number
   maxConcurrency?: number
 }): Promise<{
@@ -16,6 +17,7 @@ export async function createLlm(data: {
   model: string
   modelAlias: string | null
   apiKey: string
+  cost: number
   maxComplexity: number
   maxConcurrency: number | null
 }> {
@@ -27,6 +29,7 @@ export async function createLlm(data: {
       model: data.model,
       modelAlias: data.modelAlias ?? null,
       apiKey: encryptedKey,
+      cost: data.cost ?? 0,
       maxComplexity: data.maxComplexity,
       maxConcurrency: data.maxConcurrency ?? null,
     },
@@ -61,6 +64,7 @@ export async function getAll({
   model: string
   modelAlias: string | null
   apiKey: string
+  cost: number
   maxComplexity: number
   maxConcurrency: number | null
 }>> {
@@ -89,6 +93,7 @@ export async function update(
     model?: string
     modelAlias?: string
     apiKey?: string
+    cost?: number
     maxComplexity?: number
     maxConcurrency?: number
   },
