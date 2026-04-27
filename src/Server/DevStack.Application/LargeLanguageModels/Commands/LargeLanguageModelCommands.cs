@@ -1,5 +1,3 @@
-using DevStack.Application;
-
 namespace DevStack.Application.LargeLanguageModels.Commands;
 
 public record CreateLargeLanguageModelCommand(
@@ -22,15 +20,3 @@ public record UpdateLargeLanguageModelCommand(
     int? MaxConcurrency);
 
 public record DeleteLargeLanguageModelCommand(Guid Id);
-
-public interface ICreateLargeLanguageModelHandler : ICommandHandler<Guid, CreateLargeLanguageModelCommand>
-{
-}
-
-public interface IUpdateLargeLanguageModelHandler : ICommandHandler<UpdateLargeLanguageModelCommand>
-{
-}
-
-public interface IDeleteLargeLanguageModelHandler : ICommandHandler<DeleteLargeLanguageModelCommand>
-{
-}

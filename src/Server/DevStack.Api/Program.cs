@@ -4,15 +4,10 @@ using DevStack.Api.HealthChecks;
 using DevStack.Api.Logging;
 using DevStack.Api.Middlewares;
 using DevStack.Application;
-using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
-using DevStack.Application.AgentTasks.Queries;
-using DevStack.Application.Deliverables;
-using DevStack.Application.Deliverables.Commands;
-using DevStack.Application.Deliverables.Queries;
 using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Application.Projects.Commands;
-using DevStack.Application.Projects.Queries;
+using DevStack.Infrastructure;
 using DevStack.Infrastructure.AgentTasks;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
@@ -69,24 +64,7 @@ builder.Services.AddRouting();
 builder.Services.AddDbContext<DevStackDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<ICommandHandler<Guid, CreateProjectCommand>, CreateProjectHandler>();
-builder.Services.AddScoped<ICommandHandler<UpdateProjectCommand>, UpdateProjectHandler>();
-builder.Services.AddScoped<ICommandHandler<DeleteProjectCommand>, DeleteProjectHandler>();
-builder.Services.AddScoped<IGetProjectByIdHandler, GetProjectByIdHandler>();
-builder.Services.AddScoped<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
-builder.Services.AddScoped<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
-builder.Services.AddScoped<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
-builder.Services.AddScoped<ICommandHandler<Guid, CreateDeliverableCommand>, CreateDeliverableHandler>();
-builder.Services.AddScoped<ICommandHandler<UpdateDeliverableCommand>, UpdateDeliverableHandler>();
-builder.Services.AddScoped<ICommandHandler<UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
-builder.Services.AddScoped<ICommandHandler<DeleteDeliverableCommand>, DeleteDeliverableHandler>();
-builder.Services.AddScoped<IGetDeliverableByIdHandler, GetDeliverableByIdHandler>();
-builder.Services.AddScoped<ICommandHandler<Guid, CreateAgentTaskCommand>, CreateAgentTaskHandler>();
-builder.Services.AddScoped<ICommandHandler<UpdateAgentTaskCommand>, UpdateAgentTaskHandler>();
-builder.Services.AddScoped<IUpdateAgentTaskStatusHandler, UpdateAgentTaskStatusHandler>();
-builder.Services.AddScoped<ICommandHandler<DeleteAgentTaskCommand>, DeleteAgentTaskHandler>();
-builder.Services.AddScoped<IGetAgentTaskByIdHandler, GetAgentTaskByIdHandler>();
-builder.Services.AddScoped<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
+builder.Services.RegisterCommandHandlers();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>

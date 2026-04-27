@@ -1,10 +1,11 @@
+using DevStack.Application;
 using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Domain.Entities;
 using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.ModelConfigurations;
 
-public class CreateLargeLanguageModelHandler : ICreateLargeLanguageModelHandler
+public class CreateLargeLanguageModelHandler : ICommandHandler<Guid, CreateLargeLanguageModelCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -33,7 +34,7 @@ public class CreateLargeLanguageModelHandler : ICreateLargeLanguageModelHandler
     }
 }
 
-public class UpdateLargeLanguageModelHandler : IUpdateLargeLanguageModelHandler
+public class UpdateLargeLanguageModelHandler : ICommandHandler<UpdateLargeLanguageModelCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -60,7 +61,7 @@ public class UpdateLargeLanguageModelHandler : IUpdateLargeLanguageModelHandler
     }
 }
 
-public class DeleteLargeLanguageModelHandler : IDeleteLargeLanguageModelHandler
+public class DeleteLargeLanguageModelHandler : ICommandHandler<DeleteLargeLanguageModelCommand>
 {
     private readonly DevStackDbContext _dbContext;
 

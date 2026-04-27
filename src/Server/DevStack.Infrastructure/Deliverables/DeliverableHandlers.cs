@@ -8,7 +8,7 @@ using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.Deliverables;
 
-public class CreateDeliverableHandler : ICommandHandler<Guid, CreateDeliverableCommand>, ICreateDeliverableHandler
+public class CreateDeliverableHandler : ICommandHandler<Guid, CreateDeliverableCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -52,7 +52,7 @@ public class CreateDeliverableHandler : ICommandHandler<Guid, CreateDeliverableC
     }
 }
 
-public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand>, IUpdateDeliverableHandler
+public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -90,7 +90,7 @@ public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand
     }
 }
 
-public class UpdateDeliverableStatusHandler : ICommandHandler<UpdateDeliverableStatusCommand>, IUpdateDeliverableStatusHandler
+public class UpdateDeliverableStatusHandler : ICommandHandler<UpdateDeliverableStatusCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -110,7 +110,7 @@ public class UpdateDeliverableStatusHandler : ICommandHandler<UpdateDeliverableS
     }
 }
 
-public class DeleteDeliverableHandler : ICommandHandler<DeleteDeliverableCommand>, IDeleteDeliverableHandler
+public class DeleteDeliverableHandler : ICommandHandler<DeleteDeliverableCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -130,7 +130,7 @@ public class DeleteDeliverableHandler : ICommandHandler<DeleteDeliverableCommand
     }
 }
 
-public class GetDeliverableByIdHandler : IGetDeliverableByIdHandler
+public class GetDeliverableByIdHandler
 {
     private readonly DevStackDbContext _dbContext;
 

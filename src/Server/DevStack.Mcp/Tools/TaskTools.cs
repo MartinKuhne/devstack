@@ -6,6 +6,7 @@ using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks.Queries;
 using DevStack.Domain.Enums;
+using DevStack.Infrastructure.AgentTasks;
 
 using Microsoft.Extensions.Logging;
 
@@ -17,17 +18,17 @@ namespace DevStack.Mcp.Tools;
 public class TaskTools
 {
     private readonly ILogger<TaskTools> _logger;
-    private readonly ICreateAgentTaskHandler _createAgentTaskHandler;
+    private readonly ICommandHandler<Guid, CreateAgentTaskCommand> _createAgentTaskHandler;
     private readonly ICommandHandler<UpdateAgentTaskCommand> _updateAgentTaskHandler;
     private readonly ICommandHandler<UpdateAgentTaskStatusCommand> _updateAgentTaskStatusHandler;
-    private readonly IGetAgentTaskByIdHandler _getAgentTaskByIdHandler;
+    private readonly GetAgentTaskByIdHandler _getAgentTaskByIdHandler;
 
     public TaskTools(
         ILogger<TaskTools> logger,
-        ICreateAgentTaskHandler createAgentTaskHandler,
+        ICommandHandler<Guid, CreateAgentTaskCommand> createAgentTaskHandler,
         ICommandHandler<UpdateAgentTaskCommand> updateAgentTaskHandler,
         ICommandHandler<UpdateAgentTaskStatusCommand> updateAgentTaskStatusHandler,
-        IGetAgentTaskByIdHandler getAgentTaskByIdHandler)
+        GetAgentTaskByIdHandler getAgentTaskByIdHandler)
     {
         _logger = logger;
         _createAgentTaskHandler = createAgentTaskHandler;

@@ -315,7 +315,7 @@ public class Mutation
 
     public async Task<LargeLanguageModel?> CreateLargeLanguageModelAsync(
         [Service] DevStackDbContext dbContext,
-        [Service] ICreateLargeLanguageModelHandler handler,
+        [Service] ICommandHandler<Guid, CreateLargeLanguageModelCommand> handler,
         CreateLargeLanguageModelInput input,
         CancellationToken cancellationToken)
     {
@@ -334,7 +334,7 @@ public class Mutation
 
     public async Task<LargeLanguageModel?> UpdateLargeLanguageModelAsync(
         [Service] DevStackDbContext dbContext,
-        [Service] IUpdateLargeLanguageModelHandler handler,
+        [Service] ICommandHandler<UpdateLargeLanguageModelCommand> handler,
         UpdateLargeLanguageModelInput input,
         CancellationToken cancellationToken)
     {
@@ -353,7 +353,7 @@ public class Mutation
     }
 
     public async Task<bool> DeleteLargeLanguageModelAsync(
-        [Service] IDeleteLargeLanguageModelHandler handler,
+        [Service] ICommandHandler<DeleteLargeLanguageModelCommand> handler,
         Guid id,
         CancellationToken cancellationToken)
     {
