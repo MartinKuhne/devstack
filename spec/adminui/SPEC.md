@@ -51,10 +51,13 @@ The Admin UI supports a human software engineer, software engineering manager or
 - [REQ-UI-201] When the user selects a [Project] from the [Sidebar], the system shall display the [Deliverables] list for that [Project].
 
 - [REQ-UI-100] The system shall have unit tests
-- [REQ-UI-101] The system shall have integration tests that excerise the live instance of the project
+- [REQ-UI-101] The system shall have integration tests that use testcontainers to spin up GraphQL and postgres instances
 - [REQ-UI-102] When the system creates test data, it shall mark it as such by using the "[DeleteAfterTest]" text in the Title or Name of the object created
 - [REQ-UI-103] When the system is beginning to run integration tests, it shall delete the test data
 - [REQ-UI-104] When the system has finished running integration tests, it shall delete the test data
+
+- [REQ-UI-200] The system shall make state changes using the graphql API and schema at $(RepositoryRoot)/src/Server/DevStack.Api/GraphQL/schema.graphql
+
 
 Include [Global non-functional requirements](../NON-FUNCTIONAL.md)
 

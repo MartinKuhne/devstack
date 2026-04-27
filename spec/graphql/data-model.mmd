@@ -9,17 +9,16 @@ erDiagram
     Deliverable {
         guid ProjectId
         string Title
-        string Status "Draft | Planning | Ready | InProgress | CodeComplete | Testing | Done | Failed | Rejected | NeedsReview"
+        string Status "Draft | Design | Plan | Implement | Merge | Deploy | Test | Done | Failed | Rejected | NeedsReview"
         string Type "Feature | Defect | Maintenance | Spike"
         string Description
         string AcceptanceCriteria "optional"
         string AgentFeedback "optional"
-        string ExecutionPlan "optional"
+        string Design "optional"
         string SecurityImpact "optional"
         string PerformanceImpact "optional"
         string TestPlan "optional"
         string DeploymentPlan "optional"
-        string Blocking "optional"
     }
 
     AgentTask {
@@ -41,7 +40,6 @@ erDiagram
 
     LargeLanguageModel {
         string Url
-        
         string Model
         string ModelAlias "optional"
         string ApiKey "optional"
