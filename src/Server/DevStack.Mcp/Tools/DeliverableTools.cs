@@ -9,6 +9,7 @@ using DevStack.Application.Deliverables;
 using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.Deliverables.Queries;
 using DevStack.Domain.Enums;
+using DevStack.Infrastructure.Deliverables;
 
 using Microsoft.Extensions.Logging;
 
@@ -20,17 +21,17 @@ namespace DevStack.Mcp.Tools;
 public class DeliverableTools
 {
     private readonly ILogger<DeliverableTools> _logger;
-    private readonly ICreateDeliverableHandler _createDeliverableHandler;
+    private readonly ICommandHandler<Guid, CreateDeliverableCommand> _createDeliverableHandler;
     private readonly ICommandHandler<UpdateDeliverableCommand> _updateDeliverableHandler;
     private readonly ICommandHandler<UpdateDeliverableStatusCommand> _updateDeliverableStatusHandler;
-    private readonly IGetDeliverableByIdHandler _getDeliverableByIdHandler;
+    private readonly GetDeliverableByIdHandler _getDeliverableByIdHandler;
 
     public DeliverableTools(
         ILogger<DeliverableTools> logger,
-        ICreateDeliverableHandler createDeliverableHandler,
+        ICommandHandler<Guid, CreateDeliverableCommand> createDeliverableHandler,
         ICommandHandler<UpdateDeliverableCommand> updateDeliverableHandler,
         ICommandHandler<UpdateDeliverableStatusCommand> updateDeliverableStatusHandler,
-        IGetDeliverableByIdHandler getDeliverableByIdHandler)
+        GetDeliverableByIdHandler getDeliverableByIdHandler)
     {
         _logger = logger;
         _createDeliverableHandler = createDeliverableHandler;

@@ -8,7 +8,7 @@ using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.AgentTasks;
 
-public class CreateAgentTaskHandler : ICreateAgentTaskHandler, ICommandHandler<Guid, CreateAgentTaskCommand>
+public class CreateAgentTaskHandler : ICommandHandler<Guid, CreateAgentTaskCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -55,7 +55,7 @@ public class CreateAgentTaskHandler : ICreateAgentTaskHandler, ICommandHandler<G
     }
 }
 
-public class UpdateAgentTaskHandler : IUpdateAgentTaskHandler, ICommandHandler<UpdateAgentTaskCommand>
+public class UpdateAgentTaskHandler : ICommandHandler<UpdateAgentTaskCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -92,7 +92,7 @@ public class UpdateAgentTaskHandler : IUpdateAgentTaskHandler, ICommandHandler<U
     }
 }
 
-public class UpdateAgentTaskStatusHandler : IUpdateAgentTaskStatusHandler, ICommandHandler<UpdateAgentTaskStatusCommand>
+public class UpdateAgentTaskStatusHandler : ICommandHandler<UpdateAgentTaskStatusCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -112,7 +112,7 @@ public class UpdateAgentTaskStatusHandler : IUpdateAgentTaskStatusHandler, IComm
     }
 }
 
-public class DeleteAgentTaskHandler : IDeleteAgentTaskHandler, ICommandHandler<DeleteAgentTaskCommand>
+public class DeleteAgentTaskHandler : ICommandHandler<DeleteAgentTaskCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -132,7 +132,7 @@ public class DeleteAgentTaskHandler : IDeleteAgentTaskHandler, ICommandHandler<D
     }
 }
 
-public class GetAgentTaskByIdHandler : DevStack.Application.AgentTasks.Queries.IGetAgentTaskByIdHandler
+public class GetAgentTaskByIdHandler
 {
     private readonly DevStackDbContext _dbContext;
 

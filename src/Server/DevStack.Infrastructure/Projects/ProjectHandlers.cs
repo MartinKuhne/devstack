@@ -56,7 +56,7 @@ public class DeleteProjectHandler : ICommandHandler<DeleteProjectCommand>
     }
 }
 
-public class GetProjectByIdHandler : IGetProjectByIdHandler
+public class GetProjectByIdHandler
 {
     private readonly DevStackDbContext _dbContext;
 

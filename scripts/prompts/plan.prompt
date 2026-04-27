@@ -34,8 +34,10 @@ Plans must consist of discrete, atomic phases containing executable tasks. Each 
 - Include validation criteria that can be automatically verified
 
 ## Output Specifications
+- ProjectId; {{ProjectId}}
 - DeliverableId: {{DeliverableId}}
 - Use the update_deliverable tool to Update the Deliverable SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan (if the fields are empty)
 - If architecture and/or technology choices are ambigous, use the update_deliverable_state tool to change Deliverable state to NeedsReview, then use the update_deliverable tool to update the AgentFeedback field and STOP.
-- Use the create_task tool using (but not limited to) ProjectId and DeliverableId parameters to Create AgentTasks. Use the update_deliverable_state tool to change the deliverable status to READY
+- Use the create_task tool using (but not limited to) ProjectId and DeliverableId parameters to Create AgentTasks.
+- Use the update_deliverable_state tool to change the deliverable status to IMPLEMENT
 - Do not edit files or make any other changes

@@ -82,8 +82,9 @@ Rules:
 - Always justify architectural decisions with tradeoffs.
 
 ## Output Specifications
+- ProjectId; {{ProjectId}}
 - DeliverableId; {{DeliverableId}}
-- Use the update_deliverable tool to Update the Deliverable Design, SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan
-- If architecture and/or technology choices are ambigous, use the update_deliverable_state tool to change Deliverable state to NeedsReview, then use the update_deliverable tool to update the AgentFeedback and  Blocking fields and STOP.
-- Use the create_task tool using (but not limited to) ProjectId and DeliverableId parameters to Create AgentTasks. Use the update_deliverable_state tool to change the deliverable status to READY
+- Use the update_deliverable tool to Update the Deliverable Design, SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan fields
+- If architecture and/or technology choices are ambigous, use the update_deliverable_state tool to change Deliverable state to NeedsReview, then use the update_deliverable tool to update the AgentFeedback fields with a descrition of the open questions and STOP.
+- If architecture and/or technology choices are clear, use the update_deliverable_state tool to change Deliverable status to PLAN
 - Do not edit files or make any other changes

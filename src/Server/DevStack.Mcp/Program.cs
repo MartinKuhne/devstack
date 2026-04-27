@@ -7,6 +7,7 @@ using DevStack.Application.Deliverables.Queries;
 using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Application.Projects.Commands;
 using DevStack.Application.Projects.Queries;
+using DevStack.Infrastructure;
 using DevStack.Infrastructure.AgentTasks;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
@@ -50,23 +51,7 @@ try
         options.UseNpgsql(connectionString);
     });
 
-    builder.Services.AddScoped<ICommandHandler<Guid, CreateProjectCommand>, CreateProjectHandler>();
-    builder.Services.AddScoped<ICommandHandler<UpdateProjectCommand>, UpdateProjectHandler>();
-    builder.Services.AddScoped<ICommandHandler<DeleteProjectCommand>, DeleteProjectHandler>();
-    builder.Services.AddScoped<IGetProjectByIdHandler, GetProjectByIdHandler>();
-    builder.Services.AddScoped<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
-    builder.Services.AddScoped<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
-    builder.Services.AddScoped<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
-    builder.Services.AddScoped<ICreateDeliverableHandler, CreateDeliverableHandler>();
-    builder.Services.AddScoped<IUpdateDeliverableHandler, UpdateDeliverableHandler>();
-    builder.Services.AddScoped<IUpdateDeliverableStatusHandler, UpdateDeliverableStatusHandler>();
-    builder.Services.AddScoped<ICommandHandler<DeleteDeliverableCommand>, DeleteDeliverableHandler>();
-    builder.Services.AddScoped<IGetDeliverableByIdHandler, GetDeliverableByIdHandler>();
-    builder.Services.AddScoped<ICreateAgentTaskHandler, CreateAgentTaskHandler>();
-    builder.Services.AddScoped<IUpdateAgentTaskHandler, UpdateAgentTaskHandler>();
-    builder.Services.AddScoped<IUpdateAgentTaskStatusHandler, UpdateAgentTaskStatusHandler>();
-    builder.Services.AddScoped<IDeleteAgentTaskHandler, DeleteAgentTaskHandler>();
-    builder.Services.AddScoped<IGetAgentTaskByIdHandler, GetAgentTaskByIdHandler>();
+    builder.Services.RegisterCommandHandlers();
 
     var app = builder.Build();
 
