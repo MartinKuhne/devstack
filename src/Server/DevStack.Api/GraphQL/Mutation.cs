@@ -199,17 +199,25 @@ public class Mutation
             input.Blocking,
             input.Design), cancellationToken);
 
-        return await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
+        var deliverable = await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
+        if (deliverable == null)
+        {
+            throw new InvalidOperationException($"Deliverable with ID {input.Id} not found.");
+        }
+        return deliverable;
     }
 
     public async Task<DeliverableStatus> UpdateDeliverableStatusAsync(
-        [Service] ICommandHandler<DeliverableStatus, UpdateDeliverableStatusCommand> handler,
+        [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<UpdateDeliverableStatusCommand> handler,
         Guid id,
         DeliverableStatus targetStatus,
         string? actor,
         CancellationToken cancellationToken)
     {
-        return await handler.Handle(new UpdateDeliverableStatusCommand(id, targetStatus, actor ?? string.Empty), cancellationToken);
+        await handler.Handle(new UpdateDeliverableStatusCommand(id, targetStatus, actor ?? string.Empty), cancellationToken);
+        var deliverable = await dbContext.Deliverables.FindAsync([id], cancellationToken);
+        return deliverable?.Status ?? targetStatus;
     }
 
     public async Task<bool> DeleteDeliverableAsync(

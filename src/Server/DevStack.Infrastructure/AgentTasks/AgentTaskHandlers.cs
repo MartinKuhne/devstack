@@ -8,7 +8,7 @@ using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.AgentTasks;
 
-public class CreateAgentTaskHandler : ICreateAgentTaskHandler
+public class CreateAgentTaskHandler : ICreateAgentTaskHandler, ICommandHandler<Guid, CreateAgentTaskCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -55,7 +55,7 @@ public class CreateAgentTaskHandler : ICreateAgentTaskHandler
     }
 }
 
-public class UpdateAgentTaskHandler : IUpdateAgentTaskHandler
+public class UpdateAgentTaskHandler : IUpdateAgentTaskHandler, ICommandHandler<UpdateAgentTaskCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -92,7 +92,7 @@ public class UpdateAgentTaskHandler : IUpdateAgentTaskHandler
     }
 }
 
-public class UpdateAgentTaskStatusHandler : IUpdateAgentTaskStatusHandler
+public class UpdateAgentTaskStatusHandler : IUpdateAgentTaskStatusHandler, ICommandHandler<UpdateAgentTaskStatusCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -112,7 +112,7 @@ public class UpdateAgentTaskStatusHandler : IUpdateAgentTaskStatusHandler
     }
 }
 
-public class DeleteAgentTaskHandler : IDeleteAgentTaskHandler
+public class DeleteAgentTaskHandler : IDeleteAgentTaskHandler, ICommandHandler<DeleteAgentTaskCommand>
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -141,8 +141,13 @@ public class GetAgentTaskByIdHandler : DevStack.Application.AgentTasks.Queries.I
         _dbContext = dbContext;
     }
 
-    public async Task<AgentTask?> Handle(GetAgentTaskByIdQuery query, CancellationToken cancellationToken = default)
+    public async Task<AgentTask> Handle(GetAgentTaskByIdQuery query, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.AgentTasks.FindAsync([query.Id], cancellationToken);
+        var agentTask = await _dbContext.AgentTasks.FindAsync([query.Id], cancellationToken);
+        if (agentTask == null)
+        {
+            throw new InvalidOperationException($"AgentTask with ID {query.Id} not found.");
+        }
+        return agentTask;
     }
 }
