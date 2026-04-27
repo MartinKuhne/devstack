@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useGetDeliverablesQuery, DeliverableStatus } from '@/generated/graphql';
+import type { DeliverableStatus } from '@/generated/graphql';
 
-vi.mock('@/generated/graphql', () => ({
-    useGetDeliverablesQuery: vi.fn(),
+vi.mock('@/features/deliverables/hooks/useAllDeliverables', () => ({
+    useAllDeliverables: vi.fn(),
 }));
 
-const getMockedQuery = async () => {
-    const m = await import('@/generated/graphql');
+const getMockedHook = async () => {
+    const m = await import('@/features/deliverables/hooks/useAllDeliverables');
     return {
-        useGetDeliverablesQuery: m.useGetDeliverablesQuery as ReturnType<typeof vi.fn>,
+        useAllDeliverables: m.useAllDeliverables as ReturnType<typeof vi.fn>,
     };
 };
 
@@ -19,9 +19,9 @@ describe('useDeliverableCounts', () => {
     });
 
     it('returns all zero counts when no deliverables', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
-            data: { deliverables: { nodes: [] } },
+        const hooks = await getMockedHook();
+        hooks.useAllDeliverables.mockReturnValue({
+            deliverables: [],
             loading: false,
             error: undefined,
             refetch: vi.fn(),
@@ -44,26 +44,22 @@ describe('useDeliverableCounts', () => {
     });
 
     it('counts deliverables by status', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
-            data: {
-                deliverables: {
-                    nodes: [
-                        { status: 'DRAFT' as DeliverableStatus, id: '1' },
-                        { status: 'DRAFT' as DeliverableStatus, id: '2' },
-                        { status: 'DESIGN' as DeliverableStatus, id: '3' },
-                        { status: 'PLAN' as DeliverableStatus, id: '4' },
-                        { status: 'IMPLEMENT' as DeliverableStatus, id: '5' },
-                        { status: 'MERGE' as DeliverableStatus, id: '6' },
-                        { status: 'DEPLOY' as DeliverableStatus, id: '7' },
-                        { status: 'TEST' as DeliverableStatus, id: '8' },
-                        { status: 'DONE' as DeliverableStatus, id: '9' },
-                        { status: 'NEEDS_REVIEW' as DeliverableStatus, id: '10' },
-                        { status: 'FAILED' as DeliverableStatus, id: '11' },
-                        { status: 'REJECTED' as DeliverableStatus, id: '12' },
-                    ],
-                },
-            },
+        const hooks = await getMockedHook();
+        hooks.useAllDeliverables.mockReturnValue({
+            deliverables: [
+                { status: 'DRAFT' as DeliverableStatus, id: '1' },
+                { status: 'DRAFT' as DeliverableStatus, id: '2' },
+                { status: 'DESIGN' as DeliverableStatus, id: '3' },
+                { status: 'PLAN' as DeliverableStatus, id: '4' },
+                { status: 'IMPLEMENT' as DeliverableStatus, id: '5' },
+                { status: 'MERGE' as DeliverableStatus, id: '6' },
+                { status: 'DEPLOY' as DeliverableStatus, id: '7' },
+                { status: 'TEST' as DeliverableStatus, id: '8' },
+                { status: 'DONE' as DeliverableStatus, id: '9' },
+                { status: 'NEEDS_REVIEW' as DeliverableStatus, id: '10' },
+                { status: 'FAILED' as DeliverableStatus, id: '11' },
+                { status: 'REJECTED' as DeliverableStatus, id: '12' },
+            ],
             loading: false,
             error: undefined,
             refetch: vi.fn(),
@@ -85,35 +81,10 @@ describe('useDeliverableCounts', () => {
         expect(result.current.deliverablesRejected).toBe(1);
     });
 
-    it('filters out null deliverables', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
-            data: {
-                deliverables: {
-                    nodes: [
-                        { status: 'DRAFT' as DeliverableStatus, id: '1' },
-                        null,
-                        { status: 'PLAN' as DeliverableStatus, id: '2' },
-                        null,
-                    ],
-                },
-            },
-            loading: false,
-            error: undefined,
-            refetch: vi.fn(),
-        });
-
-        const { useDeliverableCounts } = await import('./useDeliverableCounts');
-        const { result } = renderHook(() => useDeliverableCounts());
-
-        expect(result.current.deliverablesDraft).toBe(1);
-        expect(result.current.deliverablesPlan).toBe(1);
-    });
-
     it('returns loading state', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
-            data: undefined,
+        const hooks = await getMockedHook();
+        hooks.useAllDeliverables.mockReturnValue({
+            deliverables: [],
             loading: true,
             error: undefined,
             refetch: vi.fn(),
@@ -126,10 +97,10 @@ describe('useDeliverableCounts', () => {
     });
 
     it('returns error when present', async () => {
-        const hooks = await getMockedQuery();
+        const hooks = await getMockedHook();
         const mockError = { message: 'Network error' };
-        hooks.useGetDeliverablesQuery.mockReturnValue({
-            data: undefined,
+        hooks.useAllDeliverables.mockReturnValue({
+            deliverables: [],
             loading: false,
             error: mockError,
             refetch: vi.fn(),

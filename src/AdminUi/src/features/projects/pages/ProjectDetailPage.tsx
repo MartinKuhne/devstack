@@ -35,7 +35,7 @@ export function ProjectDetailPage() {
         loading: deliverablesLoading,
         error: deliverablesError,
         refetch: refetchDeliverables,
-    } = useDeliverables(id ?? undefined);
+    } = useDeliverables(id!);
     const {
         agentTasks,
         loading: agentTasksLoading,

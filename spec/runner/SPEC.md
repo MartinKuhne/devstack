@@ -103,19 +103,19 @@ Execute prompts with OpenCode
 
 ## Deliverable Status transitions
 
-| Current Status| Deliverable Type | Prompt     | Min complexity | Future Status (ignore this column) |
-| ------------- | ---------------- | ---------- | -------------- | ------------ |
-| Design        | Spike            | research   | 10             | Done         |
-| Design        | Feature          | design     | 10             | Plan         |
-| Plan          | Defect           | root-cause | 8              | Implement    |
-| Plan          | Feature, Maintenance | plan   | 8              | Implement    |
-| Merge         | (all)            | merge      | 8              | Test         |
+| Current Status| Deliverable Type | Prompt     | Min complexity | 
+| ------------- | ---------------- | ---------- | -------------- | 
+| Design        | Spike            | research   | 10             | 
+| Design        | Feature          | design     | 10             | 
+| Plan          | Defect           | root-cause | 8              |
+| Plan          | Feature, Maintenance | plan   | 8              | 
+| Merge         | (all)            | merge      | 8              | 
 
 ## AgentTask Status transitions
 
-| Current status | Prompt      | Min complexity | Future status (ignore this column) |
-| ------------- |  ---------- | -------------- | ------------ |
-| Ready         | implement   | 4              | Done         |
+| Current status | Prompt      | Min complexity | 
+| -------------- | ----------- | -------------- | 
+| Ready          | implement   | 4              | 
 
 ## Variable substitions
 

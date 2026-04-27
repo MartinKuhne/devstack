@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { CreateDeliverableDialog } from '../components/CreateDeliverableDialog';
-import { useDeliverables } from '../hooks/useDeliverables';
+import { useAllDeliverables } from '../hooks/useAllDeliverables';
 import { useDeleteDeliverable } from '../hooks/useDeleteDeliverable';
 import { toast } from 'react-toastify';
 import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
@@ -68,8 +68,7 @@ export function DeliverableListPage() {
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
     const { deleteDeliverable, loading: deleteLoading } = useDeleteDeliverable();
 
-    const { deliverables, loading, error, refetch } = useDeliverables(
-        undefined,
+    const { deliverables, loading, error, refetch } = useAllDeliverables(
         statusFilter ? [statusFilter] : undefined,
         typeFilter ? [typeFilter] : undefined
     );

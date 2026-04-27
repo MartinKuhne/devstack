@@ -285,7 +285,7 @@ public sealed class LargeLanguageModelSteps
     {
         var query = new
         {
-            query = @"query GetAllLargeLanguageModels { largeLanguageModels { id url model modelAlias } }",
+            query = @"query GetAllLargeLanguageModels { largeLanguageModels { nodes { id url model modelAlias } } }",
             operationName = "GetAllLargeLanguageModels"
         };
 
@@ -363,7 +363,8 @@ public sealed class LargeLanguageModelSteps
     public void ThenTheLargeLanguageModelsListShouldContainTheCreatedModels()
     {
         var response = (JsonElement)_scenarioContext["Response"]!;
-        var llms = GetData(response).GetProperty("largeLanguageModels");
+        var connection = GetData(response).GetProperty("largeLanguageModels");
+        var llms = connection.GetProperty("nodes");
         llms.ValueKind.Should().Be(JsonValueKind.Array);
         var llmCount = llms.GetArrayLength();
         llmCount.Should().BeGreaterOrEqualTo(2, "At least 2 models should exist after creating multiple");

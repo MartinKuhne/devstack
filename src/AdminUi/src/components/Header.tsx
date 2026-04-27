@@ -18,7 +18,7 @@ import {
     DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { useEffect, useState } from 'react';
-import { useGetDeliverablesQuery } from '@/generated/graphql';
+import { useAllDeliverables } from '@/features/deliverables/hooks/useAllDeliverables';
 
 const navigationItems = [
     { label: 'Dashboard', to: '/', icon: LayoutDashboard },
@@ -40,10 +40,7 @@ function Logo() {
 function SearchBar() {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
-    const { data } = useGetDeliverablesQuery({
-        fetchPolicy: 'cache-only',
-        skip: !open,
-    });
+    const { deliverables } = useAllDeliverables();
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -55,8 +52,6 @@ function SearchBar() {
         document.addEventListener('keydown', down);
         return () => document.removeEventListener('keydown', down);
     }, []);
-
-    const deliverables = (data?.deliverables?.nodes ?? []).filter((d): d is NonNullable<typeof d> => d !== null);
 
     return (
         <div>

@@ -8,9 +8,12 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
-$ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+$ProjectRoot = & git rev-parse --show-toplevel 2>$null
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
+    $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+}
 $PromptsPath = Join-Path $PSScriptRoot "prompts"
-$AgentsFile  = Join-Path $PSScriptRoot "agents.md"
+$AgentsFile  = Join-Path $ProjectRoot "AGENTS.md"
 $DelaySeconds = 5
 
 if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
@@ -249,6 +252,7 @@ query GetLargeLanguageModels($first: Int!) {
       url
       model
       modelAlias
+      apiKey
       cost
       maxComplexity
       maxConcurrency
@@ -262,8 +266,8 @@ query GetLargeLanguageModels($first: Int!) {
 '@
 
 $UpdateDeliverableStatusMutation = @'
-mutation UpdateDeliverableStatus($input: UpdateDeliverableStatusInput!) {
-  updateDeliverableStatus(input: $input)
+mutation UpdateDeliverableStatus($id: UUID!, $targetStatus: DeliverableStatus!) {
+  updateDeliverableStatus(id: $id, targetStatus: $targetStatus)
 }
 '@
 
@@ -535,31 +539,6 @@ function Select-ModelForComplexity {
     return $selectedModel
 }
 
-function Get-PropertyValue {
-    param($Object, [string]$PropertyName)
-
-    if ($Object -is [hashtable] -and $Object.ContainsKey($PropertyName)) {
-        return $Object[$PropertyName]
-    }
-    $prop = $Object.PSObject.Properties[$PropertyName]
-    return $prop.Value
-}
-
-function Set-PropertyValue {
-    param($Object, [string]$PropertyName, $Value)
-
-    if ($Object -is [hashtable]) {
-        $Object[$PropertyName] = $Value
-        return
-    }
-    if ($Object.PSObject.Properties[$PropertyName]) {
-        $Object.PSObject.Properties[$PropertyName].Value = $Value
-    }
-    else {
-        $Object | Add-Member $PropertyName $Value -Force
-    }
-}
-
 function Sync-OpencodeProviders {
     param([string]$OpencodeConfigPath)
 
@@ -569,52 +548,52 @@ function Sync-OpencodeProviders {
         return
     }
 
-    $config = $null
+    $existingJson = $null
     if (Test-Path $OpencodeConfigPath) {
-        $config = Get-Content $OpencodeConfigPath -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
+        $existingJson = Get-Content $OpencodeConfigPath -Raw
     }
 
-    if (-not $config) {
-        $config = [ordered]@{}
+    $config = [ordered]@{}
+
+    if ($existingJson) {
+        $existing = $existingJson | ConvertFrom-Json -ErrorAction SilentlyContinue
+        if ($existing) {
+            foreach ($prop in $existing.PSObject.Properties) {
+                if ($prop.Name -ne 'provider') {
+                    $config[$prop.Name] = $prop.Value
+                }
+            }
+        }
     }
 
-    if (-not (Get-PropertyValue -Object $config -PropertyName 'provider')) {
-        Set-PropertyValue -Object $config -PropertyName 'provider' -Value ([ordered]@{})
-    }
-
-    $providerSection = Get-PropertyValue -Object $config -PropertyName 'provider'
-    if (-not (Get-PropertyValue -Object $providerSection -PropertyName 'OpenRouter')) {
-        Set-PropertyValue -Object $providerSection -PropertyName 'OpenRouter' -Value ([ordered]@{})
-    }
+    $providerSection = [ordered]@{}
 
     foreach ($model in $models) {
         $providerName = "devstack-$($model.id)"
-        if (-not (Get-PropertyValue -Object $providerSection -PropertyName $providerName)) {
-            Set-PropertyValue -Object $providerSection -PropertyName $providerName -Value ([ordered]@{})
+        $modelKey = $model.model
+
+        $options = [ordered]@{
+            baseURL = $model.url
+        }
+        if ($model.apiKey) {
+            $options['apiKey'] = $model.apiKey
         }
 
-        $providerConfig = Get-PropertyValue -Object $providerSection -PropertyName $providerName
-        if (-not (Get-PropertyValue -Object $providerConfig -PropertyName 'name')) {
-            Set-PropertyValue -Object $providerConfig -PropertyName 'name' -Value $providerName
-        }
-        if (-not (Get-PropertyValue -Object $providerConfig -PropertyName 'npm')) {
-            Set-PropertyValue -Object $providerConfig -PropertyName 'npm' -Value '@ai-sdk/openai-compatible'
-        }
-        if (-not (Get-PropertyValue -Object $providerConfig -PropertyName 'options')) {
-            Set-PropertyValue -Object $providerConfig -PropertyName 'options' -Value ([ordered]@{})
-        }
-        if (-not (Get-PropertyValue -Object $providerConfig -PropertyName 'models')) {
-            Set-PropertyValue -Object $providerConfig -PropertyName 'models' -Value ([ordered]@{})
-        }
-
-        $modelSection = Get-PropertyValue -Object $providerConfig -PropertyName 'models'
-        $modelKey = "openai/$($model.model)"
-        if (-not (Get-PropertyValue -Object $modelSection -PropertyName $modelKey)) {
-            Set-PropertyValue -Object $modelSection -PropertyName $modelKey -Value @{ name = $modelKey }
+        $providerSection[$providerName] = [ordered]@{
+            name    = $providerName
+            npm     = '@ai-sdk/openai-compatible'
+            options = $options
+            models  = [ordered]@{
+                $modelKey = [ordered]@{
+                    name = $modelKey
+                }
+            }
         }
     }
 
-$config | ConvertTo-Json -Depth 10 | Set-Content $OpencodeConfigPath -Encoding UTF8
+    $config['provider'] = $providerSection
+
+[System.IO.File]::WriteAllText($OpencodeConfigPath, ($config | ConvertTo-Json -Depth 10))
     Log-Info "Synced $($models.Count) LLM configurations to opencode.json"
 }
 
@@ -632,22 +611,34 @@ function Run-OpencodePrompt {
         $model = Select-ModelForComplexity -RequiredComplexity $RequiredComplexity
     }
 
-    $npxArgs = @("opencode", "run", ($Prompt -replace "`r`n|`n|`r", " "))
-    if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
-    if ($model) { $npxArgs += @("--model", "openai/$($model.model)") }
+    $tempFile = [System.IO.Path]::GetTempFileName()
+    try {
+        [System.IO.File]::WriteAllText($tempFile, $Prompt, [System.Text.Encoding]::UTF8)
 
-    Log-Info "Executing: npx $($npxArgs -join ' ')..."
-    $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    $output = & npx @npxArgs 2>&1
-    $sw.Stop()
+        $npxArgs = @("opencode", "run", "Execute the commands:", "--file", $tempFile)
+        if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
+        if ($model) { $npxArgs += @("--model", "devstack-$($model.id)/$($model.model)") }
 
-    if ($LASTEXITCODE -ne 0) {
-        $errorOutput = $output -join "`n"
-        Log-Error "Opencode returned non-zero exit code"
-        return @{ Success = $false; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds; Output = $errorOutput }
+        Log-Info "Executing: npx opencode run `"Execute the commands:`" --file $tempFile..."
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        $output = & npx @npxArgs 2>&1
+        $sw.Stop()
+
+        $outputText = $output -join "`n"
+        if ($outputText) {
+            Log-Info "Opencode output:`n$outputText"
+        }
+
+        if ($LASTEXITCODE -ne 0) {
+            Log-Error "Opencode returned non-zero exit code"
+            return @{ Success = $false; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds; Output = $outputText }
+        }
+
+        return @{ Success = $true; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds; Output = $outputText }
     }
-
-    return @{ Success = $true; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds; Output = $output -join "`n" }
+    finally {
+        if (Test-Path $tempFile) { Remove-Item $tempFile -Force }
+    }
 }
 
 # ── Phases ───────────────────────────────────────────────────────────────────
@@ -686,14 +677,12 @@ function Invoke-DeliverableStateTransitions {
             if ($deliverable.status -eq "DESIGN") {
                 if ($deliverable.type -eq "SPIKE") {
                     $promptTemplate = Load-PromptFile "research.prompt"
-                    $newStatus = "DONE"
                     $complexity = 10
                     $promptName = "research"
                     $processed = $true
                 }
                 elseif ($deliverable.type -eq "FEATURE") {
                     $promptTemplate = Load-PromptFile "design.prompt"
-                    $newStatus = "PLAN"
                     $complexity = 10
                     $promptName = "design"
                     $processed = $true
@@ -702,14 +691,12 @@ function Invoke-DeliverableStateTransitions {
             elseif ($deliverable.status -eq "PLAN") {
                 if ($deliverable.type -eq "DEFECT") {
                     $promptTemplate = Load-PromptFile "root-cause.prompt"
-                    $newStatus = "IMPLEMENT"
                     $complexity = 8
                     $promptName = "root-cause"
                     $processed = $true
                 }
                 elseif ($deliverable.type -eq "FEATURE" -or $deliverable.type -eq "MAINTENANCE") {
                     $promptTemplate = Load-PromptFile "plan.prompt"
-                    $newStatus = "IMPLEMENT"
                     $complexity = 8
                     $promptName = "plan"
                     $processed = $true
@@ -717,7 +704,6 @@ function Invoke-DeliverableStateTransitions {
             }
             elseif ($deliverable.status -eq "MERGE") {
                 $promptTemplate = Load-PromptFile "pr.prompt"
-                $newStatus = "TEST"
                 $complexity = 8
                 $promptName = "merge"
                 $processed = $true
@@ -734,23 +720,7 @@ function Invoke-DeliverableStateTransitions {
 
                 $opencodeResult = Run-OpencodePrompt -Prompt $prompt -PromptName $promptName -RequiredComplexity $complexity
 
-                if ($opencodeResult.Success) {
-                    $transitionVars = @{
-                        input = @{
-                            id = $deliverable.id
-                            targetStatus = $newStatus
-                            actor = "runner-agent"
-                        }
-                    }
-                    $transitionResult = Invoke-GraphQL -Operation $UpdateDeliverableStatusMutation -Variables $transitionVars -IsMutation -OperationName "UpdateDeliverableStatus"
-                    if ($transitionResult.errors) {
-                        Log-Error "Failed to transition deliverable $($deliverable.id): $($transitionResult.errors -join ', ')"
-                    }
-                    else {
-                        Log-Info "Deliverable $($deliverable.id) transitioned to $newStatus"
-                    }
-                }
-                else {
+                if (-not $opencodeResult.Success) {
                     Log-Error "Prompt failed for deliverable $($deliverable.id)"
                 }
 
@@ -844,11 +814,8 @@ function Invoke-ExecutionPhase {
         if (($failedTask -or $needsReviewTask) -and $deliverable.status -ne "FAILED") {
             Log-Info "Deliverable $($deliverable.id) has task in problematic state, setting to FAILED"
             $transitionVars = @{
-                input = @{
-                    id = $deliverable.id
-                    targetStatus = "FAILED"
-                    actor = "runner-agent"
-                }
+                id = $deliverable.id
+                targetStatus = "FAILED"
             }
             $transitionResult = Invoke-GraphQL -Operation $UpdateDeliverableStatusMutation -Variables $transitionVars -IsMutation -OperationName "UpdateDeliverableStatus"
         }
@@ -915,44 +882,37 @@ function Initialize-Project {
     }
 
     $opencodePath = Join-Path (Split-Path $PSScriptRoot -Parent) "opencode.json"
-    $existingConfig = $null
-    if (Test-Path $opencodePath) {
-        $existingConfig = Get-Content $opencodePath -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
-    }
 
-    if (-not $existingConfig) {
-        $existingConfig = [ordered]@{}
-    }
-
-    if (-not (Get-PropertyValue -Object $existingConfig -PropertyName '$schema')) {
-        Set-PropertyValue -Object $existingConfig -PropertyName '$schema' -Value "https://opencode.ai/config.json"
-    }
-
-    $mcpSection = Get-PropertyValue -Object $existingConfig -PropertyName 'mcp'
-    if (-not $mcpSection) {
-        $mcpSection = @{}
-        Set-PropertyValue -Object $existingConfig -PropertyName 'mcp' -Value $mcpSection
-    }
-
-    if (-not (Get-PropertyValue -Object $mcpSection -PropertyName 'devstack')) {
-        Set-PropertyValue -Object $mcpSection -PropertyName 'devstack' -Value @{
-            type    = "remote"
-            url     = "http://localhost:8088/mcp"
-            enabled = $true
+    $config = [ordered]@{
+        '$schema' = "https://opencode.ai/config.json"
+        mcp       = [ordered]@{
+            devstack = [ordered]@{
+                type    = "remote"
+                url     = "http://localhost:8088/mcp"
+                enabled = $true
+            }
         }
     }
 
-    $permsSection = Get-PropertyValue -Object $existingConfig -PropertyName 'permissions'
-    if (-not $permsSection) {
-        $permsSection = @{}
-        Set-PropertyValue -Object $existingConfig -PropertyName 'permissions' -Value $permsSection
+    if (Test-Path $opencodePath) {
+        $existing = Get-Content $opencodePath -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
+        if ($existing) {
+            foreach ($prop in $existing.PSObject.Properties) {
+                if ($prop.Name -notin @('$schema', 'mcp', 'provider')) {
+                    $config[$prop.Name] = $prop.Value
+                }
+            }
+            if ($existing.mcp) {
+                foreach ($prop in $existing.mcp.PSObject.Properties) {
+                    if ($prop.Name -ne 'devstack') {
+                        $config['mcp'][$prop.Name] = $prop.Value
+                    }
+                }
+            }
+        }
     }
 
-    foreach ($perm in @('bash', 'question', 'external_directory')) {
-        Set-PropertyValue -Object $permsSection -PropertyName $perm -Value 'deny'
-    }
-
-    $existingConfig | ConvertTo-Json -Depth 10 | Set-Content $opencodePath -Encoding UTF8
+    [System.IO.File]::WriteAllText($opencodePath, ($config | ConvertTo-Json -Depth 10))
     Write-Host "Updated opencode.json"
 
     Sync-OpencodeProviders -OpencodeConfigPath $opencodePath
