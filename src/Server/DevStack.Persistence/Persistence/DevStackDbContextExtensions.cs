@@ -6,7 +6,7 @@ namespace DevStack.Persistence;
 
 public static class DevStackDbContextExtensions
 {
-    private const string TestDataMarker = "[TestData]";
+    private const string TestDataMarker = "[DeleteAfterTest]";
 
     public static async Task CleanupTestDataAsync(
         this DevStackDbContext context,

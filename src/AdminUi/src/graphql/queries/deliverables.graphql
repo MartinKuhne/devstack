@@ -1,5 +1,5 @@
 query GetDeliverables($projectId: UUID) {
-    deliverables(where: { projectId: { eq: $projectId } }) {
+    deliverables(filter: { projectId: { eq: $projectId } }) {
         nodes {
             id
             title

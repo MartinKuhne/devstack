@@ -23,11 +23,11 @@ Feature: Deliverable Auto-Completion
     And an agent task "Task 2" exists
     When I transition the first agent task status to "DONE"
     And I transition the second agent task status to "IN_PROGRESS"
-    Then the deliverable status should be queried and be "PLANNING"
+    Then the deliverable status should be queried and be "DRAFT"
 
   @auto_completion
   Scenario: Deliverable transitions to DONE when it has no tasks
-    Given a deliverable with status "PLANNING" type "Feature" exists
+    Given a deliverable with status "PLAN" type "Feature" exists
     When I call checkAndMarkDeliverableDone on the deliverable
     Then the deliverable status should be queried and be "DONE"
 

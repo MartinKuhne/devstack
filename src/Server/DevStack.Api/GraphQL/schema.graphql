@@ -67,6 +67,9 @@ type Deliverable {
   """Detailed description of the deliverable"""
   description: String
   
+  """Design document for the deliverable"""
+  design: String
+  
   """Acceptance criteria for the deliverable"""
   acceptanceCriteria: String
   
@@ -115,6 +118,9 @@ input CreateDeliverableInput {
   """Initial status of the deliverable"""
   initialStatus: DeliverableStatus!
   
+  """Design document"""
+  design: String
+  
   """Acceptance criteria"""
   acceptanceCriteria: String
   
@@ -144,6 +150,9 @@ input UpdateDeliverableInput {
   
   """New description"""
   description: String
+  
+  """New design document"""
+  design: String
   
   """New acceptance criteria"""
   acceptanceCriteria: String
@@ -378,7 +387,7 @@ input UpdateLargeLanguageModelInput {
   modelAlias: String
   
   """New API key"""
-  apiKey: Int
+  apiKey: String
   
   """New cost metric"""
   cost: Int
@@ -393,22 +402,24 @@ input UpdateLargeLanguageModelInput {
 """Enumeration of deliverable types"""
 enum DeliverableType {
   FEATURE
-  TASK
-  BUG
-  EPIC
   DEFECT
-  IMPROVEMENT
+  MAINTENANCE
+  SPIKE
 }
 
 """Enumeration of deliverable statuses"""
 enum DeliverableStatus {
   DRAFT
-  READY
-  IN_PROGRESS
-  NEEDS_REVIEW
+  DESIGN
+  PLAN
+  IMPLEMENT
+  MERGE
+  DEPLOY
+  TEST
   DONE
+  FAILED
   REJECTED
-  BLOCKED
+  NEEDS_REVIEW
 }
 
 """Enumeration of agent task statuses"""
@@ -493,11 +504,11 @@ type Mutation {
   deleteLargeLanguageModel(id: UUID!): Boolean
   
   """Cleanup test data (development only)"""
-  cleanupTestData: CleanupTestDataPayload!
+  deleteTestData: DeleteTestDataPayload!
 }
 
-"""Payload for cleanup test data mutation"""
-type CleanupTestDataPayload {
+"""Payload for delete test data mutation"""
+type DeleteTestDataPayload {
   """Whether the operation was successful"""
   success: Boolean!
   

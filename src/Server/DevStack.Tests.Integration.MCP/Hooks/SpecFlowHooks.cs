@@ -67,7 +67,7 @@ public sealed class SpecFlowHooks
             "INSERT INTO \"Projects\" (\"Id\", \"Name\", \"Description\", \"Repository\") VALUES (@id, @name, @desc, @repo)",
             connection);
         seedCmd.Parameters.AddWithValue("id", projectId);
-        seedCmd.Parameters.AddWithValue("name", "[TestData] MCP Test Project");
+        seedCmd.Parameters.AddWithValue("name", "[DeleteAfterTest] MCP Test Project");
         seedCmd.Parameters.AddWithValue("desc", "A test project for MCP integration tests");
         seedCmd.Parameters.AddWithValue("repo", "https://github.com/test/mcp-project");
         await seedCmd.ExecuteNonQueryAsync();

@@ -35,16 +35,10 @@ query GetProject($repoName: String) {
 $CreateProjectMutation = @'
 mutation CreateProject($input: CreateProjectInput!) {
   createProject(input: $input) {
-    project {
-      id
-      name
-      description
-      repository
-    }
-    errors {
-      field
-      message
-    }
+    id
+    name
+    description
+    repository
   }
 }
 '@
@@ -55,6 +49,34 @@ query GetDeliverables($first: Int!, $projectId: UUID!) {
     nodes {
       id
       title
+      type
+      status
+      projectId
+      description
+      acceptanceCriteria
+      executionPlan
+      agentFeedback
+      securityImpact
+      performanceImpact
+      testPlan
+      deploymentPlan
+      blocking
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+'@
+
+$GetDeliverablesByStatusQuery = @'
+query GetDeliverablesByStatus($first: Int!, $projectId: UUID!, $status: DeliverableStatus!) {
+  deliverables(first: $first, where: { projectId: { eq: $projectId }, status: { eq: $status } }) {
+    nodes {
+      id
+      title
+      type
       status
       projectId
       description
@@ -85,9 +107,100 @@ query GetAgentTasks($first: Int!, $deliverableId: UUID!) {
       deliverableId
       projectId
       description
+      complexityRating
+      dependsOnAgentTaskId
       dependsOnAgentTask {
+        id
         status
       }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+'@
+
+$GetAgentTasksByStatusQuery = @'
+query GetAgentTasksByStatus($first: Int!, $deliverableId: UUID!, $status: AgentTaskStatus!) {
+  agentTasks(first: $first, where: { deliverableId: { eq: $deliverableId }, status: { eq: $status } }) {
+    nodes {
+      id
+      title
+      status
+      deliverableId
+      projectId
+      description
+      complexityRating
+      dependsOnAgentTaskId
+      dependsOnAgentTask {
+        id
+        status
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+'@
+
+$GetFailedAgentTasksQuery = @'
+query GetFailedAgentTasks($first: Int!, $deliverableId: UUID!) {
+  agentTasks(first: $first, where: { deliverableId: { eq: $deliverableId }, status: { in: [FAILED, REJECTED] } }) {
+    nodes {
+      id
+      title
+      status
+      deliverableId
+      projectId
+      description
+      complexityRating
+      dependsOnAgentTaskId
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+'@
+
+$GetDoneAgentTasksQuery = @'
+query GetDoneAgentTasks($first: Int!, $deliverableId: UUID!) {
+  agentTasks(first: $first, where: { deliverableId: { eq: $deliverableId }, status: { eq: DONE } }) {
+    nodes {
+      id
+      title
+      status
+      deliverableId
+      projectId
+      description
+      complexityRating
+      dependsOnAgentTaskId
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+'@
+
+$GetNeedsReviewAgentTasksQuery = @'
+query GetNeedsReviewAgentTasks($first: Int!, $deliverableId: UUID!) {
+  agentTasks(first: $first, where: { deliverableId: { eq: $deliverableId }, status: { eq: NEEDS_REVIEW } }) {
+    nodes {
+      id
+      title
+      status
+      deliverableId
+      projectId
+      description
+      complexityRating
+      dependsOnAgentTaskId
     }
     pageInfo {
       hasNextPage
@@ -122,18 +235,9 @@ mutation UpdateAgentTaskWithDuration($input: UpdateAgentTaskInput!) {
 }
 '@
 
-$TransitionAgentTaskStatusMutation = @'
-mutation TransitionAgentTaskStatus($input: TransitionAgentTaskInput!) {
-  transitionAgentTaskStatus(input: $input) {
-    id
-    status
-  }
-}
-'@
-
-$CheckAndMarkDeliverableDoneMutation = @'
-mutation CheckAndMarkDeliverableDone($deliverableId: UUID!) {
-  checkAndMarkDeliverableDone(deliverableId: $deliverableId)
+$UpdateAgentTaskStatusMutation = @'
+mutation UpdateAgentTaskStatus($id: UUID!, $targetStatus: AgentTaskStatus!) {
+  updateAgentTaskStatus(id: $id, targetStatus: $targetStatus)
 }
 '@
 
@@ -148,6 +252,10 @@ query GetLargeLanguageModels($first: Int!) {
       cost
       maxComplexity
       maxConcurrency
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
     }
   }
 }
@@ -219,14 +327,27 @@ $GraphQLEndpoint = Resolve-GraphQLEndpoint `
     -FallbackEndpoint "http://localhost:8087/graphql"
 
 function Invoke-GraphQL {
-    param([string]$Operation, [hashtable]$Variables = $null, [switch]$IsMutation)
+    param(
+        [string]$Operation,
+        [hashtable]$Variables = $null,
+        [string]$OperationName = "",
+        [switch]$IsMutation
+    )
 
     $body = @{ query = $Operation }
     if ($Variables) { $body.variables = $Variables }
+    if ($OperationName) { $body.operationName = $OperationName }
     $jsonBody = $body | ConvertTo-Json -Depth 10
 
+    $kind = if ($IsMutation) { "mutation" } else { "query" }
+    if ($OperationName) {
+        Log-Info "Invoking GraphQL ${kind}: $OperationName"
+    }
+    else {
+        Log-Info "Invoking GraphQL ${kind}..."
+    }
+
     try {
-        Log-Info "Invoking GraphQL operation..."
         $response = Invoke-WebRequest -Uri $GraphQLEndpoint -Method Post -Body $jsonBody `
             -ContentType "application/json; charset=utf-8" -UseBasicParsing
         return $response | ConvertFrom-Json
@@ -237,7 +358,6 @@ function Invoke-GraphQL {
             $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
             $responseBody = $reader.ReadToEnd()
         }
-        $kind = if ($IsMutation) { "mutation" } else { "query" }
         Log-Error "GraphQL $kind failed: $_"
         if ($responseBody) { Log-Error "Response body: $responseBody" }
         throw
@@ -297,7 +417,7 @@ function Update-AgentTask {
     $mutation = if ($WithDuration) { $UpdateAgentTaskWithDurationMutation } else { $UpdateAgentTaskMutation }
 
     try {
-        $result = Invoke-GraphQL -Operation $mutation -Variables $updateVars -IsMutation
+        $result = Invoke-GraphQL -Operation $mutation -Variables $updateVars -IsMutation -OperationName "UpdateAgentTask"
         if ($result.errors) {
             Log-Error "Failed to update AgentTask ${TaskId}: $($result.errors -join ', ')"
             return $false
@@ -310,32 +430,28 @@ function Update-AgentTask {
     }
 }
 
-function Transition-AgentTaskStatus {
+function Update-AgentTaskStatus {
     param(
         [string]$TaskId,
-        [string]$TargetStatus,
-        [string]$Actor
+        [string]$TargetStatus
     )
 
-    $transitionVars = @{
-        input = @{
-            id = $TaskId
-            targetStatus = $TargetStatus
-            actor = $Actor
-        }
+    $statusVars = @{
+        id = $TaskId
+        targetStatus = $TargetStatus
     }
 
     try {
-        $result = Invoke-GraphQL -Operation $TransitionAgentTaskStatusMutation -Variables $transitionVars -IsMutation
+        $result = Invoke-GraphQL -Operation $UpdateAgentTaskStatusMutation -Variables $statusVars -IsMutation -OperationName "UpdateAgentTaskStatus"
         if ($result.errors) {
-            Log-Error "Failed to transition AgentTask ${TaskId} to ${TargetStatus}: $($result.errors -join ', ')"
+            Log-Error "Failed to update AgentTask ${TaskId} to ${TargetStatus}: $($result.errors -join ', ')"
             return $false
         }
-        Log-Info "AgentTask $TaskId transitioned to $TargetStatus"
+        Log-Info "AgentTask $TaskId status updated to $TargetStatus"
         return $true
     }
     catch {
-        Log-Error "Error transitioning AgentTask ${TaskId} to ${TargetStatus}: $_"
+        Log-Error "Error updating AgentTask ${TaskId} to ${TargetStatus}: $_"
         return $false
     }
 }
@@ -351,7 +467,7 @@ function Get-CurrentProjectId {
 
     Log-Info "Repository: $repoName"
 
-    $result = Invoke-GraphQL -Operation $GetProjectQuery -Variables @{ repoName = $repoName }
+    $result = Invoke-GraphQL -Operation $GetProjectQuery -Variables @{ repoName = $repoName } -OperationName "GetProject"
 
     $project = $result.data.projects.nodes | Where-Object { $_.name -eq $repoName }
     if (-not $project) {
@@ -379,10 +495,18 @@ function Get-LatestCommitHash {
 function Get-LargeLanguageModels {
     Log-Info "Fetching LargeLanguageModel configurations..."
 
-    $result = Invoke-GraphQL -Operation $GetLargeLanguageModelsQuery -Variables @{ first = 100 }
+    try {
+        $result = Invoke-GraphQL -Operation $GetLargeLanguageModelsQuery -Variables @{ first = 100 } -OperationName "GetLargeLanguageModels"
+    }
+    catch {
+        $errMsg = $_.Exception.Message
+        Log-Error "Failed to fetch LLM configurations: $errMsg"
+        return @()
+    }
 
     if ($result.errors) {
-        Log-Error "Failed to fetch LLM configurations: $($result.errors -join ', ')"
+        $errDetails = $result.errors | ForEach-Object { if ($_.message) { $_.message } else { $_.toString() } }
+        Log-Error "Failed to fetch LLM configurations: $($errDetails -join ', ')"
         return @()
     }
 
@@ -411,6 +535,31 @@ function Select-ModelForComplexity {
     return $selectedModel
 }
 
+function Get-PropertyValue {
+    param($Object, [string]$PropertyName)
+
+    if ($Object -is [hashtable] -and $Object.ContainsKey($PropertyName)) {
+        return $Object[$PropertyName]
+    }
+    $prop = $Object.PSObject.Properties[$PropertyName]
+    return $prop.Value
+}
+
+function Set-PropertyValue {
+    param($Object, [string]$PropertyName, $Value)
+
+    if ($Object -is [hashtable]) {
+        $Object[$PropertyName] = $Value
+        return
+    }
+    if ($Object.PSObject.Properties[$PropertyName]) {
+        $Object.PSObject.Properties[$PropertyName].Value = $Value
+    }
+    else {
+        $Object | Add-Member $PropertyName $Value -Force
+    }
+}
+
 function Sync-OpencodeProviders {
     param([string]$OpencodeConfigPath)
 
@@ -429,40 +578,43 @@ function Sync-OpencodeProviders {
         $config = [ordered]@{}
     }
 
-    if (-not $config.PSObject.Properties['provider']) {
-        $config | Add-Member 'provider' ([ordered]@{}) -Force
+    if (-not (Get-PropertyValue -Object $config -PropertyName 'provider')) {
+        Set-PropertyValue -Object $config -PropertyName 'provider' -Value ([ordered]@{})
     }
 
-    $providerConfig = $config.provider.PSObject.Properties['OpenRouter']
-    if (-not $providerConfig) {
-        $config.provider | Add-Member 'OpenRouter' ([ordered]@{}) -Force
-        $providerConfig = $config.provider.OpenRouter
-    }
-
-    if ($providerConfig.PSObject.Properties['name'] -eq $null) {
-        $providerConfig | Add-Member 'name' 'OpenRouter' -Force
-    }
-    if ($providerConfig.PSObject.Properties['npm'] -eq $null) {
-        $providerConfig | Add-Member 'npm' '@ai-sdk/openai-compatible' -Force
-    }
-    if ($providerConfig.PSObject.Properties['options'] -eq $null) {
-        $providerConfig | Add-Member 'options' ([ordered]@{}) -Force
-    }
-
-    if ($providerConfig.PSObject.Properties['models'] -eq $null) {
-        $providerConfig | Add-Member 'models' ([ordered]@{}) -Force
+    $providerSection = Get-PropertyValue -Object $config -PropertyName 'provider'
+    if (-not (Get-PropertyValue -Object $providerSection -PropertyName 'OpenRouter')) {
+        Set-PropertyValue -Object $providerSection -PropertyName 'OpenRouter' -Value ([ordered]@{})
     }
 
     foreach ($model in $models) {
         $providerName = "devstack-$($model.id)"
-        $modelKey = "openai/$($model.model)"
+        if (-not (Get-PropertyValue -Object $providerSection -PropertyName $providerName)) {
+            Set-PropertyValue -Object $providerSection -PropertyName $providerName -Value ([ordered]@{})
+        }
 
-        if (-not $providerConfig.models.PSObject.Properties[$modelKey]) {
-            $providerConfig.models | Add-Member $modelKey (@{ name = $modelKey }) -Force
+        $providerConfig = Get-PropertyValue -Object $providerSection -PropertyName $providerName
+        if (-not (Get-PropertyValue -Object $providerConfig -PropertyName 'name')) {
+            Set-PropertyValue -Object $providerConfig -PropertyName 'name' -Value $providerName
+        }
+        if (-not (Get-PropertyValue -Object $providerConfig -PropertyName 'npm')) {
+            Set-PropertyValue -Object $providerConfig -PropertyName 'npm' -Value '@ai-sdk/openai-compatible'
+        }
+        if (-not (Get-PropertyValue -Object $providerConfig -PropertyName 'options')) {
+            Set-PropertyValue -Object $providerConfig -PropertyName 'options' -Value ([ordered]@{})
+        }
+        if (-not (Get-PropertyValue -Object $providerConfig -PropertyName 'models')) {
+            Set-PropertyValue -Object $providerConfig -PropertyName 'models' -Value ([ordered]@{})
+        }
+
+        $modelSection = Get-PropertyValue -Object $providerConfig -PropertyName 'models'
+        $modelKey = "openai/$($model.model)"
+        if (-not (Get-PropertyValue -Object $modelSection -PropertyName $modelKey)) {
+            Set-PropertyValue -Object $modelSection -PropertyName $modelKey -Value @{ name = $modelKey }
         }
     }
 
-    $config | ConvertTo-Json -Depth 10 | Set-Content $OpencodeConfigPath -Encoding UTF8
+$config | ConvertTo-Json -Depth 10 | Set-Content $OpencodeConfigPath -Encoding UTF8
     Log-Info "Synced $($models.Count) LLM configurations to opencode.json"
 }
 
@@ -505,140 +657,109 @@ function Invoke-DeliverableStateTransitions {
 
     $projectId = Get-CurrentProjectId
 
-    $result = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100; projectId = $projectId }
+    $statusesToProcess = @("DESIGN", "PLAN", "MERGE")
 
-    if ($result.errors) {
-        Log-Error "Failed to fetch deliverables: $($result.errors -join ', ')"
-        return
-    }
-
-    $deliverables = $result.data.deliverables.nodes
-    if (-not $deliverables) {
-        Log-Info "No deliverables found for project."
-        return
-    }
-
-    foreach ($deliverable in $deliverables) {
-        $processed = $false
-
-        if ($deliverable.status -eq "DESIGN") {
-            if ($deliverable.type -eq "SPIKE") {
-                $promptTemplate = Load-PromptFile "research.prompt"
-                $newStatus = "DONE"
-                $complexity = 10
-                $promptName = "research"
-                $processed = $true
-            }
-            elseif ($deliverable.type -eq "FEATURE") {
-                $promptTemplate = Load-PromptFile "design.prompt"
-                $newStatus = "PLAN"
-                $complexity = 10
-                $promptName = "design"
-                $processed = $true
-            }
+    foreach ($status in $statusesToProcess) {
+        try {
+            $result = Invoke-GraphQL -Operation $GetDeliverablesByStatusQuery -Variables @{ first = 1; projectId = $projectId; status = $status } -OperationName "GetDeliverablesByStatus"
         }
-        elseif ($deliverable.status -eq "PLAN") {
-            if ($deliverable.type -eq "DEFECT") {
-                $promptTemplate = Load-PromptFile "root-cause.prompt"
-                $newStatus = "IMPLEMENT"
+        catch {
+            $errMsg = $_.Exception.Message
+            Log-Error "Failed to fetch deliverables with status $status`: $errMsg"
+            continue
+        }
+
+        if ($result.errors) {
+            $errDetails = $result.errors | ForEach-Object { if ($_.message) { $_.message } else { $_.toString() } }
+            Log-Error "Failed to fetch deliverables with status $status`: $($errDetails -join ', ')"
+            continue
+        }
+
+        $deliverables = $result.data.deliverables.nodes
+        if (-not $deliverables) {
+            continue
+        }
+
+        foreach ($deliverable in $deliverables) {
+            $processed = $false
+
+            if ($deliverable.status -eq "DESIGN") {
+                if ($deliverable.type -eq "SPIKE") {
+                    $promptTemplate = Load-PromptFile "research.prompt"
+                    $newStatus = "DONE"
+                    $complexity = 10
+                    $promptName = "research"
+                    $processed = $true
+                }
+                elseif ($deliverable.type -eq "FEATURE") {
+                    $promptTemplate = Load-PromptFile "design.prompt"
+                    $newStatus = "PLAN"
+                    $complexity = 10
+                    $promptName = "design"
+                    $processed = $true
+                }
+            }
+            elseif ($deliverable.status -eq "PLAN") {
+                if ($deliverable.type -eq "DEFECT") {
+                    $promptTemplate = Load-PromptFile "root-cause.prompt"
+                    $newStatus = "IMPLEMENT"
+                    $complexity = 8
+                    $promptName = "root-cause"
+                    $processed = $true
+                }
+                elseif ($deliverable.type -eq "FEATURE" -or $deliverable.type -eq "MAINTENANCE") {
+                    $promptTemplate = Load-PromptFile "plan.prompt"
+                    $newStatus = "IMPLEMENT"
+                    $complexity = 8
+                    $promptName = "plan"
+                    $processed = $true
+                }
+            }
+            elseif ($deliverable.status -eq "MERGE") {
+                $promptTemplate = Load-PromptFile "pr.prompt"
+                $newStatus = "TEST"
                 $complexity = 8
-                $promptName = "root-cause"
+                $promptName = "merge"
                 $processed = $true
             }
-            elseif ($deliverable.type -eq "FEATURE" -or $deliverable.type -eq "MAINTENANCE") {
-                $promptTemplate = Load-PromptFile "plan.prompt"
-                $newStatus = "IMPLEMENT"
-                $complexity = 8
-                $promptName = "plan"
-                $processed = $true
-            }
-        }
-        elseif ($deliverable.status -eq "MERGE") {
-            $promptTemplate = Load-PromptFile "pr.prompt"
-            $newStatus = "TEST"
-            $complexity = 8
-            $promptName = "merge"
-            $processed = $true
-        }
 
-        if ($processed) {
-            Log-Info "Processing deliverable: $($deliverable.title) (ID: $($deliverable.id)) type: $($deliverable.type) status: $($deliverable.status)"
+            if ($processed) {
+                Log-Info "Processing deliverable: $($deliverable.title) (ID: $($deliverable.id)) type: $($deliverable.type) status: $($deliverable.status)"
 
-            $prompt = $promptTemplate
-            $prompt = $prompt -replace '\{\{Title\}\}', $deliverable.title
-            $prompt = $prompt -replace '\{\{Description\}\}', $deliverable.description
-            $prompt = $prompt -replace '\{\{AcceptanceCriteria\}\}', $deliverable.acceptanceCriteria
-            $prompt = $prompt -replace '\{\{DeliverableId\}\}', $deliverable.id
+                $prompt = $promptTemplate
+                $prompt = $prompt -replace '\{\{Title\}\}', $deliverable.title
+                $prompt = $prompt -replace '\{\{Description\}\}', $deliverable.description
+                $prompt = $prompt -replace '\{\{AcceptanceCriteria\}\}', $deliverable.acceptanceCriteria
+                $prompt = $prompt -replace '\{\{DeliverableId\}\}', $deliverable.id
 
-            $opencodeResult = Run-OpencodePrompt -Prompt $prompt -PromptName $promptName -RequiredComplexity $complexity
+                $opencodeResult = Run-OpencodePrompt -Prompt $prompt -PromptName $promptName -RequiredComplexity $complexity
 
-            if ($opencodeResult.Success) {
-                $transitionVars = @{
-                    input = @{
-                        id = $deliverable.id
-                        targetStatus = $newStatus
-                        actor = "runner-agent"
+                if ($opencodeResult.Success) {
+                    $transitionVars = @{
+                        input = @{
+                            id = $deliverable.id
+                            targetStatus = $newStatus
+                            actor = "runner-agent"
+                        }
+                    }
+                    $transitionResult = Invoke-GraphQL -Operation $UpdateDeliverableStatusMutation -Variables $transitionVars -IsMutation -OperationName "UpdateDeliverableStatus"
+                    if ($transitionResult.errors) {
+                        Log-Error "Failed to transition deliverable $($deliverable.id): $($transitionResult.errors -join ', ')"
+                    }
+                    else {
+                        Log-Info "Deliverable $($deliverable.id) transitioned to $newStatus"
                     }
                 }
-                $transitionResult = Invoke-GraphQL -Operation $UpdateDeliverableStatusMutation -Variables $transitionVars -IsMutation
-                if ($transitionResult.errors) {
-                    Log-Error "Failed to transition deliverable $($deliverable.id): $($transitionResult.errors -join ', ')"
-                }
                 else {
-                    Log-Info "Deliverable $($deliverable.id) transitioned to $newStatus"
+                    Log-Error "Prompt failed for deliverable $($deliverable.id)"
                 }
-            }
-            else {
-                Log-Error "Prompt failed for deliverable $($deliverable.id)"
-            }
 
-            Start-Sleep -Seconds $DelaySeconds
+                Start-Sleep -Seconds $DelaySeconds
+            }
         }
     }
 
     Log-Info "Deliverable state transitions complete."
-}
-
-function Invoke-PlanningPhase {
-    Log-Phase "Planning"
-
-    $projectId = Get-CurrentProjectId
-
-    $promptTemplate = Load-PromptFile "planning.prompt"
-
-    Log-Info "Fetching deliverables for planning..."
-    $result = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100; projectId = $projectId }
-
-    $deliverables = $result.data.deliverables.nodes | Where-Object { $_.status -eq "PLANNING" }
-
-    if (-not $deliverables) {
-        Log-Info "No deliverables in PLANNING status found for project."
-        return
-    }
-
-    Log-Info "Found $($deliverables.Count) deliverable(s) in PLANNING status."
-
-    foreach ($deliverable in $deliverables) {
-        Log-Info "Planning deliverable: $($deliverable.title) (ID: $($deliverable.id))"
-
-        $prompt = $promptTemplate
-        $prompt = $prompt -replace '\{\{Title\}\}', $deliverable.title
-        $prompt = $prompt -replace '\{\{Description\}\}', $deliverable.description
-        $prompt = $prompt -replace '\{\{DeliverableId\}\}', $deliverable.id
-        $prompt = $prompt -replace '\{\{AcceptanceCriteria\}\}', $deliverable.acceptanceCriteria
-
-        Log-Info "Prompt: $prompt"
-
-        $success = Run-OpencodePrompt -Prompt $prompt -PromptName "planning"
-
-        if (-not $success) {
-            Log-Error "Planning failed for deliverable $($deliverable.id)"
-        }
-
-        Start-Sleep -Seconds $DelaySeconds
-    }
-
-    Log-Info "Planning phase complete."
 }
 
 function Invoke-ExecutionPhase {
@@ -648,17 +769,17 @@ function Invoke-ExecutionPhase {
 
     $promptTemplate = Load-PromptFile "implement.prompt"
 
-    Log-Info "Fetching deliverables for execution..."
-    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100; projectId = $projectId }
+    Log-Info "Fetching deliverables in IMPLEMENT status..."
+    $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesByStatusQuery -Variables @{ first = 1; projectId = $projectId; status = "IMPLEMENT" } -OperationName "GetDeliverablesByStatus"
 
     if ($deliverablesResult.errors) {
         Log-Error "Failed to query deliverables: $($deliverablesResult.errors -join ', ')"
-        exit 1
+        return
     }
 
     $allDeliverables = $deliverablesResult.data.deliverables.nodes
     if (-not $allDeliverables) {
-        Log-Info "No deliverables found for project."
+        Log-Info "No deliverables in IMPLEMENT status found for project."
         return
     }
 
@@ -666,12 +787,12 @@ function Invoke-ExecutionPhase {
     $tasks = @()
     $deliverableTaskMap = @{}
     foreach ($deliverable in $allDeliverables) {
-        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id }
+        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksByStatusQuery -Variables @{ first = 100; deliverableId = $deliverable.id; status = "READY" } -OperationName "GetAgentTasksByStatus"
         if ($taskResult.errors) {
             Log-Error "Failed to query tasks for deliverable $($deliverable.id): $($taskResult.errors -join ', ')"
             continue
         }
-        $deliverableTasks = $taskResult.data.agentTasks.nodes | Where-Object { $_.status -eq "READY" }
+        $deliverableTasks = $taskResult.data.agentTasks.nodes
         if ($deliverableTasks) {
             foreach ($t in $deliverableTasks) {
                 $tasks += $t
@@ -699,26 +820,29 @@ function Invoke-ExecutionPhase {
 
         if ($opencodeResult.Success) {
             Update-AgentTask -TaskId $task.id.ToString() -Fields @{ result = $opencodeResult.Output; commitHash = $commitHash } -WithDuration -ExecutionDurationSeconds $opencodeResult.ElapsedSeconds
-            Transition-AgentTaskStatus -TaskId $task.id.ToString() -TargetStatus "DONE" -Actor "runner-agent"
+            Update-AgentTaskStatus -TaskId $task.id.ToString() -TargetStatus "DONE"
         }
         else {
             $errorOutput = if ($opencodeResult.Output) { $opencodeResult.Output } else { "Opencode returned non-zero exit code" }
             Update-AgentTask -TaskId $task.id.ToString() -Fields @{ errors = $errorOutput } -WithDuration -ExecutionDurationSeconds $opencodeResult.ElapsedSeconds
-            Transition-AgentTaskStatus -TaskId $task.id.ToString() -TargetStatus "FAILED" -Actor "runner-agent"
+            Update-AgentTaskStatus -TaskId $task.id.ToString() -TargetStatus "FAILED"
         }
 
         Start-Sleep -Seconds $DelaySeconds
     }
 
     foreach ($deliverable in $allDeliverables) {
-        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id }
-        if ($taskResult.errors) { continue }
+        $failedResult = Invoke-GraphQL -Operation $GetFailedAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id } -OperationName "GetFailedAgentTasks"
+        if ($failedResult.errors) { continue }
 
-        $tasks = $taskResult.data.agentTasks.nodes
-        $failedTask = $tasks | Where-Object { $_.status -eq "FAILED" -or $_.status -eq "REJECTED" -or $_.status -eq "NEEDS_REVIEW" } | Select-Object -First 1
+        $needsReviewResult = Invoke-GraphQL -Operation $GetNeedsReviewAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id } -OperationName "GetNeedsReviewAgentTasks"
+        if ($needsReviewResult.errors) { continue }
 
-        if ($failedTask -and $deliverable.status -ne "FAILED") {
-            Log-Info "Deliverable $($deliverable.id) has failed task, setting to FAILED"
+        $failedTask = $failedResult.data.agentTasks.nodes | Select-Object -First 1
+        $needsReviewTask = $needsReviewResult.data.agentTasks.nodes | Select-Object -First 1
+
+        if (($failedTask -or $needsReviewTask) -and $deliverable.status -ne "FAILED") {
+            Log-Info "Deliverable $($deliverable.id) has task in problematic state, setting to FAILED"
             $transitionVars = @{
                 input = @{
                     id = $deliverable.id
@@ -726,11 +850,16 @@ function Invoke-ExecutionPhase {
                     actor = "runner-agent"
                 }
             }
-            $transitionResult = Invoke-GraphQL -Operation $UpdateDeliverableStatusMutation -Variables $transitionVars -IsMutation
+            $transitionResult = Invoke-GraphQL -Operation $UpdateDeliverableStatusMutation -Variables $transitionVars -IsMutation -OperationName "UpdateDeliverableStatus"
         }
 
-        $allDone = $tasks -and ($tasks | Where-Object { $_.status -ne "DONE" }).Count -eq 0
-        if ($allDone -and $tasks.Count -gt 0) {
+        $doneResult = Invoke-GraphQL -Operation $GetDoneAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id } -OperationName "GetDoneAgentTasks"
+        if ($doneResult.errors) { continue }
+
+        $doneTasks = $doneResult.data.agentTasks.nodes
+        $allDone = $doneTasks -and $doneTasks.Count -gt 0
+        
+        if ($allDone -and $deliverable.status -ne "DONE" -and $deliverable.status -ne "NEEDS_REVIEW") {
             Log-Info "All tasks for deliverable $($deliverable.id) are DONE, running pr.prompt"
 
             $prPromptTemplate = Load-PromptFile "pr.prompt"
@@ -738,7 +867,7 @@ function Invoke-ExecutionPhase {
             $prPrompt = $prPrompt -replace '\{\{Title\}\}', $deliverable.title
             $prPrompt = $prPrompt -replace '\{\{DeliverableId\}\}', $deliverable.id
 
-            $prResult = Run-OpencodePrompt -Prompt $prPrompt -PromptName "pr" -RequiredComplexity 4
+            $prResult = Run-OpencodePrompt -Prompt $prPrompt -PromptName "pull-request" -RequiredComplexity 4
 
             if ($prResult.Success) {
                 Log-Info "PR prompt completed for deliverable $($deliverable.id)"
@@ -750,29 +879,6 @@ function Invoke-ExecutionPhase {
     }
 
     Log-Info "Execution phase complete."
-}
-
-function Check-And-MarkDeliverableDone {
-    param([string]$DeliverableId)
-
-    Log-Info "Checking if all tasks for deliverable $($DeliverableId) are DONE via API..."
-
-    try {
-        $result = Invoke-GraphQL -Operation $CheckAndMarkDeliverableDoneMutation -Variables @{ deliverableId = $DeliverableId } -IsMutation
-
-        $done = $result.data.checkAndMarkDeliverableDone
-        if ($done) {
-            Log-Info "Deliverable $($DeliverableId) marked as DONE."
-        }
-        else {
-            Log-Info "Deliverable $($DeliverableId) not all tasks are DONE yet."
-        }
-        return $done
-    }
-    catch {
-        Log-Error "Error checking deliverable $($DeliverableId): $_"
-        return $false
-    }
 }
 
 # ── Init ─────────────────────────────────────────────────────────────────────
@@ -788,7 +894,7 @@ function Initialize-Project {
 
     Write-Host "Repository: $repoName"
 
-    $result = Invoke-GraphQL -Operation $GetProjectQuery -Variables @{ repoName = $repoName }
+    $result = Invoke-GraphQL -Operation $GetProjectQuery -Variables @{ repoName = $repoName } -OperationName "GetProject"
 
     $existingProject = $result.data.projects.nodes | Where-Object { $_.name -eq $repoName }
 
@@ -796,15 +902,15 @@ function Initialize-Project {
         Write-Host "Project '$repoName' already exists with ID: $($existingProject.id)"
     }
     else {
-        $result = Invoke-GraphQL -Operation $CreateProjectMutation -Variables @{ input = @{ name = $repoName; description = 'Auto-initialized project'; repository = $repoName } } -IsMutation
+        $result = Invoke-GraphQL -Operation $CreateProjectMutation -Variables @{ input = @{ name = $repoName; description = 'Auto-initialized project'; repository = $repoName } } -IsMutation -OperationName "CreateProject"
 
-        if ($result.data.createProject.errors) {
-            $errorMessages = $result.data.createProject.errors | ForEach-Object { "$($_.field): $($_.message)" }
+        if ($result.errors) {
+            $errorMessages = $result.errors | ForEach-Object { $_.message }
             Write-Error "Failed to create project: $($errorMessages -join ', ')"
             exit 1
         }
 
-        $existingProject = $result.data.createProject.project
+        $existingProject = $result.data.createProject
         Write-Host "Project created with ID: $($existingProject.id)"
     }
 
@@ -818,38 +924,32 @@ function Initialize-Project {
         $existingConfig = [ordered]@{}
     }
 
-    if ($existingConfig.PSObject.Properties['$schema'] -eq $null) {
-        $existingConfig | Add-Member '$schema' "https://opencode.ai/config.json" -Force
+    if (-not (Get-PropertyValue -Object $existingConfig -PropertyName '$schema')) {
+        Set-PropertyValue -Object $existingConfig -PropertyName '$schema' -Value "https://opencode.ai/config.json"
     }
 
-    $mcpSection = $existingConfig.PSObject.Properties['mcp']
-    $hasDevstackMcp = $false
-    if ($mcpSection) {
-        $hasDevstackMcp = $mcpSection.PSObject.Properties['devstack'] -ne $null
-    }
-
+    $mcpSection = Get-PropertyValue -Object $existingConfig -PropertyName 'mcp'
     if (-not $mcpSection) {
         $mcpSection = @{}
-        $existingConfig | Add-Member 'mcp' $mcpSection -Force
+        Set-PropertyValue -Object $existingConfig -PropertyName 'mcp' -Value $mcpSection
     }
 
-    if (-not $hasDevstackMcp) {
-        $mcpSection['devstack'] = @{
+    if (-not (Get-PropertyValue -Object $mcpSection -PropertyName 'devstack')) {
+        Set-PropertyValue -Object $mcpSection -PropertyName 'devstack' -Value @{
             type    = "remote"
             url     = "http://localhost:8088/mcp"
             enabled = $true
         }
     }
 
-    # REQ-AG-102: deny bash, question, external_directory permissions
-    $permissionsSection = $existingConfig.PSObject.Properties['permissions']
-    if (-not $permissionsSection) {
-        $permissionsSection = @{}
-        $existingConfig | Add-Member 'permissions' $permissionsSection -Force
+    $permsSection = Get-PropertyValue -Object $existingConfig -PropertyName 'permissions'
+    if (-not $permsSection) {
+        $permsSection = @{}
+        Set-PropertyValue -Object $existingConfig -PropertyName 'permissions' -Value $permsSection
     }
 
     foreach ($perm in @('bash', 'question', 'external_directory')) {
-        $permissionsSection[$perm] = 'deny'
+        Set-PropertyValue -Object $permsSection -PropertyName $perm -Value 'deny'
     }
 
     $existingConfig | ConvertTo-Json -Depth 10 | Set-Content $opencodePath -Encoding UTF8
@@ -878,7 +978,6 @@ function Start-RunnerAgent {
 
     while ($true) {
         Invoke-DeliverableStateTransitions
-        Invoke-PlanningPhase
         Invoke-ExecutionPhase
 
         Log-Info "Waiting ${DelaySeconds} seconds before next loop..."

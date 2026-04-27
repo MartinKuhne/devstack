@@ -3,9 +3,12 @@ namespace DevStack.Domain.Enums;
 public enum DeliverableStatus
 {
     Draft,
-    Planning,
-    Ready,
-    InProgress,
+    Design,
+    Plan,
+    Implement,
+    Merge,
+    Deploy,
+    Test,
     Done,
     Failed,
     Rejected,

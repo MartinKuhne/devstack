@@ -14,22 +14,28 @@ export function useDeliverableCounts() {
     const deliverables = data?.deliverables?.nodes ?? [];
 
     const deliverablesDraft = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'DRAFT').length;
-    const deliverablesPlanning = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'PLANNING').length;
-    const deliverablesReady = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'READY').length;
-    const deliverablesInProgress = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'IN_PROGRESS').length;
-    const deliverablesNeedsReview = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'NEEDS_REVIEW').length;
+    const deliverablesDesign = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'DESIGN').length;
+    const deliverablesPlan = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'PLAN').length;
+    const deliverablesImplement = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'IMPLEMENT').length;
+    const deliverablesMerge = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'MERGE').length;
+    const deliverablesDeploy = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'DEPLOY').length;
+    const deliverablesTest = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'TEST').length;
     const deliverablesDone = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'DONE').length;
+    const deliverablesNeedsReview = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'NEEDS_REVIEW').length;
     const deliverablesFailed = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'FAILED').length;
     const deliverablesRejected = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'REJECTED').length;
 
     if (!loading && deliverables.length > 0) {
         logger.debug('Loaded deliverable counts', {
             draft: deliverablesDraft,
-            planning: deliverablesPlanning,
-            ready: deliverablesReady,
-            inProgress: deliverablesInProgress,
-            needsReview: deliverablesNeedsReview,
+            design: deliverablesDesign,
+            plan: deliverablesPlan,
+            implement: deliverablesImplement,
+            merge: deliverablesMerge,
+            deploy: deliverablesDeploy,
+            test: deliverablesTest,
             done: deliverablesDone,
+            needsReview: deliverablesNeedsReview,
             failed: deliverablesFailed,
             rejected: deliverablesRejected,
         });
@@ -43,11 +49,14 @@ export function useDeliverableCounts() {
 
     return {
         deliverablesDraft,
-        deliverablesPlanning,
-        deliverablesReady,
-        deliverablesInProgress,
-        deliverablesNeedsReview,
+        deliverablesDesign,
+        deliverablesPlan,
+        deliverablesImplement,
+        deliverablesMerge,
+        deliverablesDeploy,
+        deliverablesTest,
         deliverablesDone,
+        deliverablesNeedsReview,
         deliverablesFailed,
         deliverablesRejected,
         loading,

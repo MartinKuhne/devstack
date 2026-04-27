@@ -3,17 +3,20 @@ using System;
 using DevStack.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace DevStack.Infrastructure.Migrations
+namespace DevStack.Persistence.Migrations
 {
     [DbContext(typeof(DevStackDbContext))]
-    partial class DevStackDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427035533_AddDeliverableDesign")]
+    partial class AddDeliverableDesign
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -41,7 +41,8 @@ public class CreateDeliverableHandler : ICommandHandler<Guid, CreateDeliverableC
             PerformanceImpact = command.PerformanceImpact,
             TestPlan = command.TestPlan,
             DeploymentPlan = command.DeploymentPlan,
-            Status = command.InitialStatus
+            Status = command.InitialStatus,
+            Design = command.Design
         };
 
         _dbContext.Deliverables.Add(deliverable);
@@ -83,6 +84,7 @@ public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand
         if (command.TestPlan is not null) deliverable.TestPlan = command.TestPlan;
         if (command.DeploymentPlan is not null) deliverable.DeploymentPlan = command.DeploymentPlan;
         if (command.Blocking is not null) deliverable.Blocking = command.Blocking;
+        if (command.Design is not null) deliverable.Design = command.Design;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

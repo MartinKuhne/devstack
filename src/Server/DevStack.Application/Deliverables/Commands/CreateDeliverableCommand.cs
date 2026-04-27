@@ -11,4 +11,5 @@ public record CreateDeliverableCommand(
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    Domain.Enums.DeliverableStatus InitialStatus);
+    Domain.Enums.DeliverableStatus InitialStatus,
+    string? Design = null);

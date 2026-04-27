@@ -41,19 +41,22 @@ Execute prompts with OpenCode
 - [REQ-AG-002] The system shall log prompts names and program invocations to the console
 - [REQ-AG-003] The system shall accept GUIDs in all legal formats: https://learn.microsoft.com/en-us/dotnet/api/system.guid.tostring?view=net-10.0
 - [REQ-AG-004] The system shall make state changes using the graphql API and schema at $(RepositoryRoot)/src/Server/DevStack.Api/GraphQL/schema.graphql
-- [REQ-AG-005] The system shall keep the opencode providers in sync with the list of [LargeLanguageModel] in GraphQL. The provider name shall be 'devstack-(id)' where (id) is the [LargeLanguageModel][Id].
+- [REQ-AG-005] The system shall use parameterized queries when reading data from graphql, for example "AgentTask by DeliverableId" or "Deliverable by Project and Status"
 
 ## Event-Driven Requirements  
+- [REQ-AG-099] When the system starts, the system shall keep the opencode providers in sync with the list of [LargeLanguageModel] in GraphQL. The provider name shall be 'devstack-(id)' where (id) is the [LargeLanguageModel][Id].
 - [REQ-AG-100] When there is no project matching the current repository in GraphQL, the system shall create it
 - [REQ-AG-101] When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
 - [REQ-AG-102] When an AgentTask execution completes, the system shall update the ExecutionDurationInSeconds of the AgentTask with the time it took to run OpenCode
-- [REQ-AG-103] When all the AgentTasks of a deliverable are in the DONE state, the system shall execute the [pull-reqest] prompt with a minimum complextity of 4
-- [REQ-AG-104] When a deliverable has multiple AgentTasks and any one of them is in the [Failed], [Rejected] or [NeedsReview] state, change the Deliverable State to [Failed]
+- [REQ-AG-103] When all the AgentTasks of a deliverable are in the DONE Status, the system shall execute the [pull-reqest] prompt with a minimum complextity of 4
+- [REQ-AG-104] When a deliverable has multiple AgentTasks and any one of them is in the [Failed], [Rejected] or [NeedsReview] state, change the Deliverable Status to [Failed]
 - [REQ-AG-105] When the system invokes OpenCode, it shall use the least cost model that has a complexity value equal or higher of what is required [OpenCode CLI Run](https://opencode.ai/docs/cli/#run-1)
+- [REQ-AG-106] When the system invokes are GraphQL query or mutation, it shall log the name of the operation
+- [REQ-AG-107] When the system queries Deliverables from Graphql by Status, it shall retrieve one Deliverable at a time to avoid having stale data in memory
 
 ## State-Driven Requirements
-- [REQ-AG-299] While the system finds a Deliverable for the current project in one of the states recognized by the [Deliverable state transitions] table, it shall execute the appropriate prompt from the [Deliverable state transitions]
-- [REQ-AG-291] While the system finds an AgentTask for the current project in one of the states recognized by the [AgentTask state transitions] table, it shall execute the appropriate prompt from the [AgentTask state transitions]
+- [REQ-AG-299] While the system finds a Deliverable for the current project in [Current Status] in the [Deliverable Status transitions] table, it shall execute the appropriate prompt from the [Deliverable Status transitions]
+- [REQ-AG-291] While the system finds an AgentTask for the current project in [Current Status] in the [AgentTask Status transitions] table, it shall execute the appropriate prompt from the [AgentTask Status transitions]
 
 ## Unwanted Behavior Requirements
 - [REQ-AG-300] When an ```opencode.json``` file is present, the system shall not delete or overwrite the file or delete existing content from it
@@ -98,9 +101,9 @@ Execute prompts with OpenCode
     }
 ```
 
-## Deliverable state transitions
+## Deliverable Status transitions
 
-| Current state | Deliverable Type | Prompt     | Min complexity | Future state |
+| Current Status| Deliverable Type | Prompt     | Min complexity | Future Status (ignore this column) |
 | ------------- | ---------------- | ---------- | -------------- | ------------ |
 | Design        | Spike            | research   | 10             | Done         |
 | Design        | Feature          | design     | 10             | Plan         |
@@ -108,9 +111,9 @@ Execute prompts with OpenCode
 | Plan          | Feature, Maintenance | plan   | 8              | Implement    |
 | Merge         | (all)            | merge      | 8              | Test         |
 
-## AgentTask state transitions
+## AgentTask Status transitions
 
-| Current state | Prompt      | Min complexity | Future state |
+| Current status | Prompt      | Min complexity | Future status (ignore this column) |
 | ------------- |  ---------- | -------------- | ------------ |
 | Ready         | implement   | 4              | Done         |
 

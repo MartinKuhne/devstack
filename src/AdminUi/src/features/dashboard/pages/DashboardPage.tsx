@@ -44,25 +44,31 @@ export function DashboardPage() {
     const navigate = useNavigate();
     const {
         deliverablesDraft,
-        deliverablesPlanning,
-        deliverablesReady,
-        deliverablesInProgress,
-        deliverablesNeedsReview,
+        deliverablesDesign,
+        deliverablesPlan,
+        deliverablesImplement,
+        deliverablesMerge,
+        deliverablesDeploy,
+        deliverablesTest,
         deliverablesDone,
+        deliverablesNeedsReview,
         deliverablesFailed,
         deliverablesRejected,
     } = useDeliverableCounts();
     const [showCreateProject, setShowCreateProject] = useState(false);
 
-    const hasData = deliverablesDraft > 0 || deliverablesPlanning > 0 || deliverablesReady > 0 || deliverablesInProgress > 0 || deliverablesNeedsReview > 0 || deliverablesDone > 0 || deliverablesFailed > 0 || deliverablesRejected > 0;
+    const hasData = deliverablesDraft > 0 || deliverablesDesign > 0 || deliverablesPlan > 0 || deliverablesImplement > 0 || deliverablesMerge > 0 || deliverablesDeploy > 0 || deliverablesTest > 0 || deliverablesDone > 0 || deliverablesNeedsReview > 0 || deliverablesFailed > 0 || deliverablesRejected > 0;
 
     const statusCounts = [
         { status: 'DRAFT', count: deliverablesDraft },
-        { status: 'PLANNING', count: deliverablesPlanning },
-        { status: 'READY', count: deliverablesReady },
-        { status: 'IN_PROGRESS', count: deliverablesInProgress },
-        { status: 'NEEDS_REVIEW', count: deliverablesNeedsReview },
+        { status: 'DESIGN', count: deliverablesDesign },
+        { status: 'PLAN', count: deliverablesPlan },
+        { status: 'IMPLEMENT', count: deliverablesImplement },
+        { status: 'MERGE', count: deliverablesMerge },
+        { status: 'DEPLOY', count: deliverablesDeploy },
+        { status: 'TEST', count: deliverablesTest },
         { status: 'DONE', count: deliverablesDone },
+        { status: 'NEEDS_REVIEW', count: deliverablesNeedsReview },
         { status: 'FAILED', count: deliverablesFailed },
         { status: 'REJECTED', count: deliverablesRejected },
     ];
@@ -71,12 +77,18 @@ export function DashboardPage() {
         switch (status) {
             case 'DRAFT':
                 return 'bg-gray-100 text-gray-800';
-            case 'PLANNING':
+            case 'DESIGN':
+                return 'bg-indigo-100 text-indigo-800';
+            case 'PLAN':
                 return 'bg-blue-100 text-blue-800';
-            case 'READY':
+            case 'IMPLEMENT':
+                return 'bg-cyan-100 text-cyan-800';
+            case 'MERGE':
+                return 'bg-teal-100 text-teal-800';
+            case 'DEPLOY':
                 return 'bg-green-100 text-green-800';
-            case 'IN_PROGRESS':
-                return 'bg-yellow-100 text-yellow-800';
+            case 'TEST':
+                return 'bg-lime-100 text-lime-800';
             case 'NEEDS_REVIEW':
                 return 'bg-purple-100 text-purple-800';
             case 'DONE':
@@ -114,10 +126,10 @@ export function DashboardPage() {
                             Review Deliverables ({deliverablesNeedsReview})
                         </Button>
                     )}
-                    {deliverablesInProgress > 0 && (
-                        <Button variant="outline" onClick={() => navigate('/deliverables?status=IN_PROGRESS')}>
+                    {deliverablesImplement > 0 && (
+                        <Button variant="outline" onClick={() => navigate('/deliverables?status=IMPLEMENT')}>
                             <Clock className="h-4 w-4 mr-2" />
-                            View In Progress ({deliverablesInProgress})
+                            View In Progress ({deliverablesImplement})
                         </Button>
                     )}
                 </div>
@@ -153,20 +165,20 @@ export function DashboardPage() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
-                    title="Planning"
-                    value={deliverablesPlanning}
+                    title="Design"
+                    value={deliverablesDesign}
+                    variant="default"
+                    description="Deliverables in design"
+                />
+                <StatCard
+                    title="Plan"
+                    value={deliverablesPlan}
                     variant="default"
                     description="Deliverables in planning"
                 />
                 <StatCard
-                    title="Ready"
-                    value={deliverablesReady}
-                    variant="default"
-                    description="Deliverables ready for execution"
-                />
-                <StatCard
-                    title="In Progress"
-                    value={deliverablesInProgress}
+                    title="Implement"
+                    value={deliverablesImplement}
                     variant="warning"
                     description="Deliverables currently in progress"
                 />
