@@ -78,7 +78,7 @@ builder.Services.AddScoped<IUpdateLargeLanguageModelHandler, UpdateLargeLanguage
 builder.Services.AddScoped<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
 builder.Services.AddScoped<ICommandHandler<Guid, CreateDeliverableCommand>, CreateDeliverableHandler>();
 builder.Services.AddScoped<ICommandHandler<UpdateDeliverableCommand>, UpdateDeliverableHandler>();
-builder.Services.AddScoped<ICommandHandler<DevStack.Domain.Enums.DeliverableStatus, UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
+builder.Services.AddScoped<ICommandHandler<UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
 builder.Services.AddScoped<ICommandHandler<DeleteDeliverableCommand>, DeleteDeliverableHandler>();
 builder.Services.AddScoped<IGetDeliverableByIdHandler, GetDeliverableByIdHandler>();
 builder.Services.AddScoped<ICommandHandler<Guid, CreateAgentTaskCommand>, CreateAgentTaskHandler>();
