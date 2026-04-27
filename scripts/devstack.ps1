@@ -619,18 +619,28 @@ function Run-OpencodePrompt {
         if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
         if ($model) { $npxArgs += @("--model", "devstack-$($model.id)/$($model.model)") }
 
-        Log-Info "Executing: npx opencode run `"Execute the commands:`" --file $tempFile..."
+        $commandToLog = "npx " + ($npxArgs -join ' ')
+        Log-Info "Executing: $commandToLog"
+
+      # Run opencode via npx, streaming output to console and capturing exit code
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
-        $output = & npx @npxArgs 2>&1
+
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = "cmd"
+        $psi.Arguments = "/c npx $($npxArgs -join ' ')"
+        $psi.UseShellExecute = $false
+        $psi.CreateNoWindow = $false
+
+        $process = New-Object System.Diagnostics.Process
+        $process.StartInfo = $psi
+        $process.Start() | Out-Null
+        $process.WaitForExit()
         $sw.Stop()
 
-        $outputText = $output -join "`n"
-        if ($outputText) {
-            Log-Info "Opencode output:`n$outputText"
-        }
+        $outputText = ""
 
-        if ($LASTEXITCODE -ne 0) {
-            Log-Error "Opencode returned non-zero exit code"
+        if ($process.ExitCode -ne 0) {
+            Log-Error "Opencode returned non-zero exit code: $($process.ExitCode)"
             return @{ Success = $false; ElapsedSeconds = [int]$sw.Elapsed.TotalSeconds; Output = $outputText }
         }
 
