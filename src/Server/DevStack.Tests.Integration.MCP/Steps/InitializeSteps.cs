@@ -1,10 +1,13 @@
-using TechTalk.SpecFlow;
-using DevStack.Tests.Integration.MCP.Client;
-using DevStack.Tests.Integration.MCP.Hooks;
-using FluentAssertions;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+
+using DevStack.Tests.Integration.MCP.Client;
+using DevStack.Tests.Integration.MCP.Hooks;
+
+using FluentAssertions;
+
+using TechTalk.SpecFlow;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
 

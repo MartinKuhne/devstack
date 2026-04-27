@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace DevStack.Tests.Integration.MCP.Client;
 
 public record JsonRpcRequest(
-    [property:JsonPropertyName("jsonrpc")] string JsonRpc,
+    [property: JsonPropertyName("jsonrpc")] string JsonRpc,
     [property: JsonPropertyName("method")] string Method,
     [property: JsonPropertyName("params")] object? Params = null,
     [property: JsonPropertyName("id")] int? Id = null

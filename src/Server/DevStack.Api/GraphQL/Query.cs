@@ -1,8 +1,9 @@
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Persistence;
-using HotChocolate.Types;
+
 using HotChocolate.Data;
+using HotChocolate.Types;
 
 namespace DevStack.Api.GraphQL.Types;
 

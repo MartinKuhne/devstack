@@ -1,10 +1,13 @@
-using TechTalk.SpecFlow;
-using DevStack.Tests.Integration.MCP.Client;
-using DevStack.Tests.Integration.MCP.Hooks;
-using FluentAssertions;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+
+using DevStack.Tests.Integration.MCP.Client;
+using DevStack.Tests.Integration.MCP.Hooks;
+
+using FluentAssertions;
+
+using TechTalk.SpecFlow;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
 
@@ -45,7 +48,7 @@ public sealed class ErrorHandlingSteps
             var content = new StringContent(invalidJson, Encoding.UTF8, "application/json");
             _httpResponse = await HttpClient.PostAsync("/mcp", content);
             var responseContent = await _httpResponse.Content.ReadAsStringAsync();
-            
+
             try
             {
                 _response = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse>(responseContent);
@@ -61,7 +64,7 @@ public sealed class ErrorHandlingSteps
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             _httpResponse = await HttpClient.PostAsync("/mcp", content);
             var responseContent = await _httpResponse.Content.ReadAsStringAsync();
-            
+
             try
             {
                 _response = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse>(responseContent);
@@ -205,7 +208,7 @@ public sealed class ErrorHandlingSteps
         _scenarioContext["BatchRequests"] = requests;
     }
 
-[Given(@"an array with (\d+) requests and (\d+) notification")]
+    [Given(@"an array with (\d+) requests and (\d+) notification")]
     public void GivenAnArrayWithRequestsAndNotification(int requestCount, int notificationCount)
     {
         var items = new List<object>();
@@ -279,7 +282,7 @@ public sealed class ErrorHandlingSteps
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var httpResponse = await HttpClient.PostAsync("/mcp", content);
             var responseContent = await httpResponse.Content.ReadAsStringAsync();
-            
+
             try
             {
                 var responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(responseContent);
@@ -362,7 +365,7 @@ public sealed class ErrorHandlingSteps
     {
         var request = _scenarioContext.Get<object>("ValidRequest");
         var json = System.Text.Json.JsonSerializer.Serialize(request);
-        var port =_scenarioContext["McpPort"];
+        var port = _scenarioContext["McpPort"];
         var content = new StringContent(json, Encoding.UTF8, contentType);
         _httpResponse = await HttpClient.PostAsync($"http://localhost:{port}/mcp", content);
     }
@@ -371,7 +374,7 @@ public sealed class ErrorHandlingSteps
     public async Task WhenISendTheRequestWithoutContentTypeHeader()
     {
         var request = _scenarioContext.Get<object>("ValidRequest");
-        var port =_scenarioContext["McpPort"];
+        var port = _scenarioContext["McpPort"];
         var json = System.Text.Json.JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8);
         _httpResponse = await HttpClient.PostAsync($"http://localhost:{port}/mcp", content);
@@ -399,7 +402,7 @@ public sealed class ErrorHandlingSteps
 
     #endregion
 
-   #region Not Implemented Steps
+    #region Not Implemented Steps
 
     [Given(@"a resources/read request")]
     public void GivenAResourcesReadRequest()
@@ -429,7 +432,7 @@ public sealed class ErrorHandlingSteps
     public async Task WhenISendTheUnimplementedRequest()
     {
         var methodName = _scenarioContext.GetString("NotImplementedMethod") ?? "resources/read";
-        
+
         try
         {
             _response = await Client.SendRequestAsync(methodName, new { });
@@ -469,10 +472,10 @@ public sealed class ErrorHandlingSteps
     {
         var body = _scenarioContext.GetString("EmptyBody") ?? "";
         var content = new StringContent(body, Encoding.UTF8, "application/json");
-        var port =_scenarioContext["McpPort"];
+        var port = _scenarioContext["McpPort"];
         _httpResponse = await HttpClient.PostAsync($"http://localhost:{port}/mcp", content);
         var responseContent = await _httpResponse.Content.ReadAsStringAsync();
-        
+
         try
         {
             _response = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse>(responseContent);

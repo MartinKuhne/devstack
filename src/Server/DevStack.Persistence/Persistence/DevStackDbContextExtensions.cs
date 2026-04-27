@@ -1,4 +1,5 @@
 using DevStack.Domain.Entities;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Persistence;

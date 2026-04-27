@@ -61,7 +61,7 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
         }
 
         JsonRpcResponse[] jsonRpcResponses;
-        
+
         // Try to parse as plain JSON first (for non-streaming responses)
         var trimmedContent = responseContent.Trim();
         if (trimmedContent.StartsWith("{"))
@@ -159,14 +159,14 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
     {
         var responses = new List<JsonRpcResponse>();
         var lines = sseContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-        
+
         var currentEvent = new StringBuilder();
         var currentEventType = "";
-        
+
         for (var i = 0; i < lines.Length; i++)
         {
             var line = lines[i].Trim();
-            
+
             if (line.StartsWith("event:"))
             {
                 var eventType = line.Substring(6).Trim();

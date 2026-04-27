@@ -1,6 +1,8 @@
-using DevStack.Domain.Exceptions;
-using Microsoft.AspNetCore.Mvc;
 using System.Net;
+
+using DevStack.Domain.Exceptions;
+
+using Microsoft.AspNetCore.Mvc;
 
 namespace DevStack.Api.Middlewares;
 
@@ -31,7 +33,7 @@ public class ErrorHandlingMiddleware
     private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/problem+json";
-        
+
         var problemDetails = exception switch
         {
             NotFoundException notFound => new ProblemDetails
@@ -87,12 +89,12 @@ public class ErrorHandlingMiddleware
         };
 
         context.Response.StatusCode = problemDetails.Status!.Value;
-        
+
         var serializerOptions = new System.Text.Json.JsonSerializerOptions
         {
             PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
         };
-        
+
         var json = System.Text.Json.JsonSerializer.Serialize(problemDetails, serializerOptions);
         return context.Response.WriteAsync(json);
     }

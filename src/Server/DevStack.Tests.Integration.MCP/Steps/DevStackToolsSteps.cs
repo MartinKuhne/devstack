@@ -1,10 +1,13 @@
-using TechTalk.SpecFlow;
-using DevStack.Tests.Integration.MCP.Client;
-using DevStack.Tests.Integration.MCP.Hooks;
-using FluentAssertions;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
+
+using DevStack.Tests.Integration.MCP.Client;
+using DevStack.Tests.Integration.MCP.Hooks;
+
+using FluentAssertions;
+
+using TechTalk.SpecFlow;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
 
@@ -109,7 +112,7 @@ public sealed class DevStackToolsSteps
         _scenarioContext["Response"] = _response;
     }
 
-  [When(@"I call update_deliverable with updated description ""(.*)""")]
+    [When(@"I call update_deliverable with updated description ""(.*)""")]
     public async Task WhenICallDevstackUpdateDeliverable(string updatedDescription)
     {
         var deliverableId = _scenarioContext.GetString("DeliverableId") ?? "";
@@ -278,7 +281,7 @@ public sealed class DevStackToolsSteps
         }
     }
 
-  [Then(@"the response should contain the updated task")]
+    [Then(@"the response should contain the updated task")]
     public void ThenTheResponseShouldContainTheUpdatedTask()
     {
         _response.Should().NotBeNull();
@@ -324,7 +327,7 @@ public sealed class DevStackToolsSteps
 
         var projects = await Client.SendRequestAsync("tools/call", new { name = "get_projects", arguments = new { } });
         var resultJson = GetResultJson(projects);
-        
+
         if (string.IsNullOrEmpty(resultJson))
         {
             throw new InvalidOperationException("Tool returned empty result");
@@ -350,17 +353,17 @@ public sealed class DevStackToolsSteps
         var args = new { projectId, title = $"Test Deliverable {Guid.NewGuid()}", description = "Auto-generated test deliverable" };
         var response = await Client.SendRequestAsync("tools/call", new { name = "create_deliverable", arguments = args });
         var result = GetResultJson(response);
-        
+
         if (response.Error != null)
         {
             throw new InvalidOperationException($"Tool call failed: {response.Error.Message}");
         }
-        
+
         if (string.IsNullOrEmpty(result))
         {
             throw new InvalidOperationException("Tool returned empty result");
         }
-        
+
         try
         {
             var jsonDoc = JsonDocument.Parse(result);
@@ -368,12 +371,12 @@ public sealed class DevStackToolsSteps
             {
                 return idElement.GetString() ?? "";
             }
-            
+
             if (jsonDoc.RootElement.TryGetProperty("isError", out var isErrorElement) && isErrorElement.GetBoolean())
             {
                 throw new InvalidOperationException($"Tool returned error: {result}");
             }
-            
+
             throw new InvalidOperationException($"Result does not contain 'id' property: {result}");
         }
         catch (JsonException)
@@ -406,12 +409,12 @@ public sealed class DevStackToolsSteps
         {
             throw new InvalidOperationException($"Tool call failed: {response.Error.Message}");
         }
-        
+
         if (string.IsNullOrEmpty(result))
         {
             throw new InvalidOperationException("Tool returned empty result");
         }
-        
+
         try
         {
             var jsonDoc = JsonDocument.Parse(result);
@@ -419,12 +422,12 @@ public sealed class DevStackToolsSteps
             {
                 return idElement.GetString() ?? "";
             }
-            
+
             if (jsonDoc.RootElement.TryGetProperty("isError", out var isErrorElement) && isErrorElement.GetBoolean())
             {
                 throw new InvalidOperationException($"Tool returned error: {result}");
             }
-            
+
             throw new InvalidOperationException($"Result does not contain 'id' property: {result}");
         }
         catch (JsonException)

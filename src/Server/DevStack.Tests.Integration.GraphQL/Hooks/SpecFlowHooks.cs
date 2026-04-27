@@ -6,12 +6,16 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using DevStack.Client;
+using DevStack.Tests.Integration.Shared;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using StrawberryShake;
+
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Infrastructure;
-using DevStack.Tests.Integration.Shared;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.Hooks;
 

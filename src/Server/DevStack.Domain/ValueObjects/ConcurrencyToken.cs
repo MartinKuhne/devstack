@@ -11,7 +11,7 @@ public readonly struct ConcurrencyToken
 
     public override bool Equals(object? obj)
     {
-        return obj is ConcurrencyToken other && 
+        return obj is ConcurrencyToken other &&
                _value.SequenceEqual(other._value);
     }
 

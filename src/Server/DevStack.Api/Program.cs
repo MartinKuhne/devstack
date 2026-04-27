@@ -1,30 +1,32 @@
 using DevStack.Api.GraphQL;
+using DevStack.Api.GraphQL.Types;
 using DevStack.Api.HealthChecks;
+using DevStack.Api.Logging;
+using DevStack.Api.Middlewares;
 using DevStack.Application;
-using DevStack.Application.Deliverables;
-using DevStack.Application.Deliverables.Commands;
-using DevStack.Application.Deliverables.Queries;
-using DevStack.Application.Projects.Commands;
-using DevStack.Application.Projects.Queries;
 using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks.Queries;
-using Microsoft.FeatureManagement;
-using DevStack.Api.GraphQL.Types;
-using DevStack.Infrastructure.Projects;
+using DevStack.Application.Deliverables;
+using DevStack.Application.Deliverables.Commands;
+using DevStack.Application.Deliverables.Queries;
 using DevStack.Application.LargeLanguageModels.Commands;
-using DevStack.Infrastructure.ModelConfigurations;
-using DevStack.Infrastructure.Deliverables;
+using DevStack.Application.Projects.Commands;
+using DevStack.Application.Projects.Queries;
 using DevStack.Infrastructure.AgentTasks;
+using DevStack.Infrastructure.Deliverables;
+using DevStack.Infrastructure.ModelConfigurations;
+using DevStack.Infrastructure.Projects;
 using DevStack.Persistence;
 
-using DevStack.Api.Logging;
-using DevStack.Api.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Serilog;
+using Microsoft.FeatureManagement;
+
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,7 +94,7 @@ builder.Services.AddOpenTelemetry()
         tracing
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation();
-        
+
         var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
         if (!string.IsNullOrEmpty(otlpEndpoint))
         {
@@ -104,7 +106,7 @@ builder.Services.AddOpenTelemetry()
         metrics
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation();
-        
+
         var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
         if (!string.IsNullOrEmpty(otlpEndpoint))
         {

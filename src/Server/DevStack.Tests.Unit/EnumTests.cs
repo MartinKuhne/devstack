@@ -1,4 +1,5 @@
 using DevStack.Domain.Enums;
+
 using Xunit;
 
 namespace DevStack.Tests.Unit.Enums;
