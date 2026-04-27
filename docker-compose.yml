@@ -17,24 +17,6 @@ services:
       retries: 5
       start_period: 10s
 
-  graphql-postgres:
-    image: postgres:17-alpine
-    container_name: devstack-graphql-postgres
-    environment:
-      POSTGRES_USER: devstack
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: devstack_graphql
-    ports:
-      - "5433:5432"
-    volumes:
-      - graphql_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d devstack_graphql"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
   api:
     build:
       context: ./src/Server
@@ -76,23 +58,6 @@ services:
       - "5173:80"
     depends_on:
       - api
-
-  graphql-api:
-    build:
-      context: ./src/graphql
-      dockerfile: Dockerfile
-    container_name: devstack-graphql-api
-    environment:
-      DATABASE_URL: postgresql://devstack:${POSTGRES_PASSWORD}@graphql-postgres:5432/devstack_graphql
-      PORT: 4000
-      NODE_ENV: production
-      ENCRYPTION_KEY: ${GRAPHQL_ENCRYPTION_KEY}
-    ports:
-      - "4000:4000"
-    depends_on:
-      graphql-postgres:
-        condition: service_healthy
-
 
 volumes:
   postgres_data:

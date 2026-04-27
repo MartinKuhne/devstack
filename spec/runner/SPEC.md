@@ -38,24 +38,27 @@ Execute prompts with OpenCode
 
 ## Ubiquitous Requirements
 - [REQ-AG-001] The system shall determine the current repository upon startup using the github repository name (if available)
-- [REQ-AG-002] The system shall log all prompts and program invocations to the console
+- [REQ-AG-002] The system shall log prompts names and program invocations to the console
 - [REQ-AG-003] The system shall accept GUIDs in all legal formats: https://learn.microsoft.com/en-us/dotnet/api/system.guid.tostring?view=net-10.0
+- [REQ-AG-004] The system shall make state changes using the graphql API and schema at $(RepositoryRoot)/src/Server/DevStack.Api/GraphQL/schema.graphql
+- [REQ-AG-005] The system shall keep the opencode providers in sync with the list of [LargeLanguageModel] in GraphQL. The provider name shall be 'devstack-(id)' where (id) is the [LargeLanguageModel][Id].
 
 ## Event-Driven Requirements  
 - [REQ-AG-100] When there is no project matching the current repository in GraphQL, the system shall create it
 - [REQ-AG-101] When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
-- [REQ-AG-102] When the system starts up, it shall update the opencode configuration at the repository root to [deny] the [bash], [question] and [external_directory] permissions.
-- [REQ-AG-103] When an AgentTask execution completes, the system shall update the ExecutionDurationInSeconds of the AgentTask with the time it took to run OpenCode
-- [REQ-AG-100] Before the first AgentTask executes, the system shall check out main in git ```git checkout main```, then create a feature branch of the name agent/AgentTaskId. Example: ```git checkout -b agent/be7b213c-6e30-4cef-a679-21a39ade7db9```
-- [REQ-AG-101] When the last AgentTask has executed and all the AgentTasks are in the DONE state, execute the [Pull Request Phase]
-- [REQ-AG-102] When the last AgentTask has executed and all the AgentTasks are not in the DONE state, change the Deliverable to FAILED
+- [REQ-AG-102] When an AgentTask execution completes, the system shall update the ExecutionDurationInSeconds of the AgentTask with the time it took to run OpenCode
+- [REQ-AG-103] When all the AgentTasks of a deliverable are in the DONE state, the system shall execute the [pull-reqest] prompt with a minimum complextity of 4
+- [REQ-AG-104] When a deliverable has multiple AgentTasks and any one of them is in the [Failed], [Rejected] or [NeedsReview] state, change the Deliverable State to [Failed]
+- [REQ-AG-105] When the system invokes OpenCode, it shall use the least cost model that has a complexity value equal or higher of what is required
 
 ## State-Driven Requirements
-- [REQ-AG-200] While there are Deliverables for the Project in Status = PLANNING, the system shall execute the Planning Phase (below)
-- [REQ-AG-201] While there are AgentTasks for the Project in Status = READY, the system shall execute the Execution Phase (below)
+- [REQ-AG-299] While the system finds a Deliverable for the current project in one of the states recognized by the [Deliverable state transitions] table, it shall execute the appropriate prompt from the [Deliverable state transitions]
+- [REQ-AG-291] While the system finds an AgentTask for the current project in one of the states recognized by the [AgentTask state transitions] table, it shall execute the appropriate prompt from the [AgentTask state transitions]
 
 ## Unwanted Behavior Requirements
 - [REQ-AG-300] When an ```opencode.json``` file is present, the system shall not delete or overwrite the file or delete existing content from it
+
+# Opencode
 
 ## Opencode configuration example
 
@@ -71,6 +74,45 @@ Execute prompts with OpenCode
     }
 }
 ```
+
+## Opencode providers
+
+```
+    "provider": {
+        "OpenRouter": {
+            "name": "OpenRouter",
+            "npm": "@ai-sdk/openai-compatible",
+            "models": {
+                "minimax/minimax-m2.7": {
+                    "name": "minimax/minimax-m2.7"
+                },
+                "openai/gpt-5.4": {
+                    "name": "openai/gpt-5.4"
+                }
+            },
+            "options": {
+                "baseURL": "https://openrouter.ai/api/v1",
+                "apiKey": "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"
+            }
+        }
+    }
+```
+
+## Deliverable state transitions
+
+| Current state | Deliverable Type | Prompt     | Min complexity | Future state |
+| ------------- | ---------------- | ---------- | -------------- | ------------ |
+| Design        | Spike            | research   | 10             | Done         |
+| Design        | Feature          | design     | 10             | Plan         |
+| Plan          | Defect           | root-cause | 8              | Implement    |
+| Plan          | Feature, Maintenance | plan   | 8              | Implement    |
+| Merge         | (all)            | merge      | 8              | Test         |
+
+## AgentTask state transitions
+
+| Current state | Prompt      | Min complexity | Future state |
+| ------------- |  ---------- | -------------- | ------------ |
+| Ready         | implement   | 4              | Done         |
 
 ## Planning phase
 
@@ -95,7 +137,10 @@ Substitute {{Description}}, {{AgentTaskId}} with the fields of the same name fro
 Invoke OpenCode with ./scripts/prompts/pr.prompt
 
 Substitute {{Title}}, {{DeliverableId}} with the fields of the same name from the Deliverable
-
+| Syntax      | Description |
+| ----------- | ----------- |
+| Header      | Title       |
+| Paragraph   | Text        |
 # Technical specification
 
 - [OpenCode permissions](https://opencode.ai/docs/permissions)
