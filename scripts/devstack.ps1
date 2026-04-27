@@ -137,6 +137,28 @@ mutation CheckAndMarkDeliverableDone($deliverableId: UUID!) {
 }
 '@
 
+$GetLargeLanguageModelsQuery = @'
+query GetLargeLanguageModels($first: Int!) {
+  largeLanguageModels(first: $first) {
+    nodes {
+      id
+      url
+      model
+      modelAlias
+      cost
+      maxComplexity
+      maxConcurrency
+    }
+  }
+}
+'@
+
+$UpdateDeliverableStatusMutation = @'
+mutation UpdateDeliverableStatus($input: UpdateDeliverableStatusInput!) {
+  updateDeliverableStatus(input: $input)
+}
+'@
+
 # ── Logging ──────────────────────────────────────────────────────────────────
 
 function Log-Info {
@@ -147,6 +169,11 @@ function Log-Info {
 function Log-Error {
     param([string]$Message)
     Write-Host "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] ERROR: $Message" -ForegroundColor Red
+}
+
+function Log-Warning {
+    param([string]$Message)
+    Write-Host "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] WARNING: $Message" -ForegroundColor Yellow
 }
 
 function Log-Phase {
@@ -349,15 +376,115 @@ function Get-LatestCommitHash {
     return $null
 }
 
-function Run-OpencodePrompt {
-    param([string]$Prompt)
+function Get-LargeLanguageModels {
+    Log-Info "Fetching LargeLanguageModel configurations..."
 
-    Log-Info "Running opencode prompt..."
+    $result = Invoke-GraphQL -Operation $GetLargeLanguageModelsQuery -Variables @{ first = 100 }
+
+    if ($result.errors) {
+        Log-Error "Failed to fetch LLM configurations: $($result.errors -join ', ')"
+        return @()
+    }
+
+    $models = $result.data.largeLanguageModels.nodes
+    Log-Info "Found $($models.Count) LLM configuration(s)"
+    return $models
+}
+
+function Select-ModelForComplexity {
+    param([int]$RequiredComplexity)
+
+    $models = Get-LargeLanguageModels
+    if (-not $models -or $models.Count -eq 0) {
+        Log-Warning "No LLM configurations found, using default model"
+        return $null
+    }
+
+    $eligibleModels = $models | Where-Object { $_.maxComplexity -ge $RequiredComplexity }
+    if (-not $eligibleModels) {
+        Log-Warning "No model supports complexity $RequiredComplexity, using lowest cost model"
+        $eligibleModels = $models
+    }
+
+    $selectedModel = $eligibleModels | Sort-Object cost | Select-Object -First 1
+    Log-Info "Selected model: $($selectedModel.model) (cost: $($selectedModel.cost), maxComplexity: $($selectedModel.maxComplexity))"
+    return $selectedModel
+}
+
+function Sync-OpencodeProviders {
+    param([string]$OpencodeConfigPath)
+
+    $models = Get-LargeLanguageModels
+    if (-not $models -or $models.Count -eq 0) {
+        Log-Warning "No LLM configurations to sync"
+        return
+    }
+
+    $config = $null
+    if (Test-Path $OpencodeConfigPath) {
+        $config = Get-Content $OpencodeConfigPath -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
+    }
+
+    if (-not $config) {
+        $config = [ordered]@{}
+    }
+
+    if (-not $config.PSObject.Properties['provider']) {
+        $config | Add-Member 'provider' ([ordered]@{}) -Force
+    }
+
+    $providerConfig = $config.provider.PSObject.Properties['OpenRouter']
+    if (-not $providerConfig) {
+        $config.provider | Add-Member 'OpenRouter' ([ordered]@{}) -Force
+        $providerConfig = $config.provider.OpenRouter
+    }
+
+    if ($providerConfig.PSObject.Properties['name'] -eq $null) {
+        $providerConfig | Add-Member 'name' 'OpenRouter' -Force
+    }
+    if ($providerConfig.PSObject.Properties['npm'] -eq $null) {
+        $providerConfig | Add-Member 'npm' '@ai-sdk/openai-compatible' -Force
+    }
+    if ($providerConfig.PSObject.Properties['options'] -eq $null) {
+        $providerConfig | Add-Member 'options' ([ordered]@{}) -Force
+    }
+
+    if ($providerConfig.PSObject.Properties['models'] -eq $null) {
+        $providerConfig | Add-Member 'models' ([ordered]@{}) -Force
+    }
+
+    foreach ($model in $models) {
+        $providerName = "devstack-$($model.id)"
+        $modelKey = "openai/$($model.model)"
+
+        if (-not $providerConfig.models.PSObject.Properties[$modelKey]) {
+            $providerConfig.models | Add-Member $modelKey (@{ name = $modelKey }) -Force
+        }
+    }
+
+    $config | ConvertTo-Json -Depth 10 | Set-Content $OpencodeConfigPath -Encoding UTF8
+    Log-Info "Synced $($models.Count) LLM configurations to opencode.json"
+}
+
+function Run-OpencodePrompt {
+    param(
+        [string]$Prompt,
+        [string]$PromptName,
+        [int]$RequiredComplexity = 0
+    )
+
+    Log-Info "Running opencode prompt: $PromptName"
+
+    $model = $null
+    if ($RequiredComplexity -gt 0) {
+        $model = Select-ModelForComplexity -RequiredComplexity $RequiredComplexity
+    }
 
     $npxArgs = @("opencode", "run", ($Prompt -replace "`r`n|`n|`r", " "))
     if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
+    if ($model) { $npxArgs += @("--model", "openai/$($model.model)") }
 
-    Log-Info "Executing: npx opencode run <prompt>..."
+    Log-Info "Executing: npx $($npxArgs -join ' ')..."
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     $output = & npx @npxArgs 2>&1
     $sw.Stop()
@@ -372,6 +499,105 @@ function Run-OpencodePrompt {
 }
 
 # ── Phases ───────────────────────────────────────────────────────────────────
+
+function Invoke-DeliverableStateTransitions {
+    Log-Phase "Deliverable State Transitions"
+
+    $projectId = Get-CurrentProjectId
+
+    $result = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100; projectId = $projectId }
+
+    if ($result.errors) {
+        Log-Error "Failed to fetch deliverables: $($result.errors -join ', ')"
+        return
+    }
+
+    $deliverables = $result.data.deliverables.nodes
+    if (-not $deliverables) {
+        Log-Info "No deliverables found for project."
+        return
+    }
+
+    foreach ($deliverable in $deliverables) {
+        $processed = $false
+
+        if ($deliverable.status -eq "DESIGN") {
+            if ($deliverable.type -eq "SPIKE") {
+                $promptTemplate = Load-PromptFile "research.prompt"
+                $newStatus = "DONE"
+                $complexity = 10
+                $promptName = "research"
+                $processed = $true
+            }
+            elseif ($deliverable.type -eq "FEATURE") {
+                $promptTemplate = Load-PromptFile "design.prompt"
+                $newStatus = "PLAN"
+                $complexity = 10
+                $promptName = "design"
+                $processed = $true
+            }
+        }
+        elseif ($deliverable.status -eq "PLAN") {
+            if ($deliverable.type -eq "DEFECT") {
+                $promptTemplate = Load-PromptFile "root-cause.prompt"
+                $newStatus = "IMPLEMENT"
+                $complexity = 8
+                $promptName = "root-cause"
+                $processed = $true
+            }
+            elseif ($deliverable.type -eq "FEATURE" -or $deliverable.type -eq "MAINTENANCE") {
+                $promptTemplate = Load-PromptFile "plan.prompt"
+                $newStatus = "IMPLEMENT"
+                $complexity = 8
+                $promptName = "plan"
+                $processed = $true
+            }
+        }
+        elseif ($deliverable.status -eq "MERGE") {
+            $promptTemplate = Load-PromptFile "pr.prompt"
+            $newStatus = "TEST"
+            $complexity = 8
+            $promptName = "merge"
+            $processed = $true
+        }
+
+        if ($processed) {
+            Log-Info "Processing deliverable: $($deliverable.title) (ID: $($deliverable.id)) type: $($deliverable.type) status: $($deliverable.status)"
+
+            $prompt = $promptTemplate
+            $prompt = $prompt -replace '\{\{Title\}\}', $deliverable.title
+            $prompt = $prompt -replace '\{\{Description\}\}', $deliverable.description
+            $prompt = $prompt -replace '\{\{AcceptanceCriteria\}\}', $deliverable.acceptanceCriteria
+            $prompt = $prompt -replace '\{\{DeliverableId\}\}', $deliverable.id
+
+            $opencodeResult = Run-OpencodePrompt -Prompt $prompt -PromptName $promptName -RequiredComplexity $complexity
+
+            if ($opencodeResult.Success) {
+                $transitionVars = @{
+                    input = @{
+                        id = $deliverable.id
+                        targetStatus = $newStatus
+                        actor = "runner-agent"
+                    }
+                }
+                $transitionResult = Invoke-GraphQL -Operation $UpdateDeliverableStatusMutation -Variables $transitionVars -IsMutation
+                if ($transitionResult.errors) {
+                    Log-Error "Failed to transition deliverable $($deliverable.id): $($transitionResult.errors -join ', ')"
+                }
+                else {
+                    Log-Info "Deliverable $($deliverable.id) transitioned to $newStatus"
+                }
+            }
+            else {
+                Log-Error "Prompt failed for deliverable $($deliverable.id)"
+            }
+
+            Start-Sleep -Seconds $DelaySeconds
+        }
+    }
+
+    Log-Info "Deliverable state transitions complete."
+}
 
 function Invoke-PlanningPhase {
     Log-Phase "Planning"
@@ -403,7 +629,7 @@ function Invoke-PlanningPhase {
 
         Log-Info "Prompt: $prompt"
 
-        $success = Run-OpencodePrompt -Prompt $prompt
+        $success = Run-OpencodePrompt -Prompt $prompt -PromptName "planning"
 
         if (-not $success) {
             Log-Error "Planning failed for deliverable $($deliverable.id)"
@@ -420,7 +646,7 @@ function Invoke-ExecutionPhase {
 
     $projectId = Get-CurrentProjectId
 
-    $promptTemplate = Load-PromptFile "execution.prompt"
+    $promptTemplate = Load-PromptFile "implement.prompt"
 
     Log-Info "Fetching deliverables for execution..."
     $deliverablesResult = Invoke-GraphQL -Operation $GetDeliverablesQuery -Variables @{ first = 100; projectId = $projectId }
@@ -438,6 +664,7 @@ function Invoke-ExecutionPhase {
 
     Log-Info "Fetching AgentTasks in READY status..."
     $tasks = @()
+    $deliverableTaskMap = @{}
     foreach ($deliverable in $allDeliverables) {
         $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id }
         if ($taskResult.errors) {
@@ -446,7 +673,10 @@ function Invoke-ExecutionPhase {
         }
         $deliverableTasks = $taskResult.data.agentTasks.nodes | Where-Object { $_.status -eq "READY" }
         if ($deliverableTasks) {
-            $tasks += $deliverableTasks
+            foreach ($t in $deliverableTasks) {
+                $tasks += $t
+                $deliverableTaskMap[$t.id] = $deliverable
+            }
         }
     }
 
@@ -458,21 +688,18 @@ function Invoke-ExecutionPhase {
     Log-Info "Found $($tasks.Count) AgentTask(s) in READY status."
 
     foreach ($task in $tasks) {
-        Log-Info "Executing AgentTask: $($task.title) (ID: $($task.id))"
+        Log-Info "Executing AgentTask: $($task.title) (ID: $($task.id)) complexity: $($task.complexityRating)"
 
         $prompt = $promptTemplate
         $prompt = $prompt -replace '\{\{Description\}\}', $task.description
         $prompt = $prompt -replace '\{\{AgentTaskId\}\}', $task.id
 
-        Log-Info "Prompt: $prompt"
-
-        $opencodeResult = Run-OpencodePrompt -Prompt $prompt
+        $opencodeResult = Run-OpencodePrompt -Prompt $prompt -PromptName "implement" -RequiredComplexity $task.complexityRating
         $commitHash = Get-LatestCommitHash
 
         if ($opencodeResult.Success) {
             Update-AgentTask -TaskId $task.id.ToString() -Fields @{ result = $opencodeResult.Output; commitHash = $commitHash } -WithDuration -ExecutionDurationSeconds $opencodeResult.ElapsedSeconds
             Transition-AgentTaskStatus -TaskId $task.id.ToString() -TargetStatus "DONE" -Actor "runner-agent"
-            Check-And-MarkDeliverableDone -DeliverableId $task.deliverableId
         }
         else {
             $errorOutput = if ($opencodeResult.Output) { $opencodeResult.Output } else { "Opencode returned non-zero exit code" }
@@ -481,6 +708,45 @@ function Invoke-ExecutionPhase {
         }
 
         Start-Sleep -Seconds $DelaySeconds
+    }
+
+    foreach ($deliverable in $allDeliverables) {
+        $taskResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id }
+        if ($taskResult.errors) { continue }
+
+        $tasks = $taskResult.data.agentTasks.nodes
+        $failedTask = $tasks | Where-Object { $_.status -eq "FAILED" -or $_.status -eq "REJECTED" -or $_.status -eq "NEEDS_REVIEW" } | Select-Object -First 1
+
+        if ($failedTask -and $deliverable.status -ne "FAILED") {
+            Log-Info "Deliverable $($deliverable.id) has failed task, setting to FAILED"
+            $transitionVars = @{
+                input = @{
+                    id = $deliverable.id
+                    targetStatus = "FAILED"
+                    actor = "runner-agent"
+                }
+            }
+            $transitionResult = Invoke-GraphQL -Operation $UpdateDeliverableStatusMutation -Variables $transitionVars -IsMutation
+        }
+
+        $allDone = $tasks -and ($tasks | Where-Object { $_.status -ne "DONE" }).Count -eq 0
+        if ($allDone -and $tasks.Count -gt 0) {
+            Log-Info "All tasks for deliverable $($deliverable.id) are DONE, running pr.prompt"
+
+            $prPromptTemplate = Load-PromptFile "pr.prompt"
+            $prPrompt = $prPromptTemplate
+            $prPrompt = $prPrompt -replace '\{\{Title\}\}', $deliverable.title
+            $prPrompt = $prPrompt -replace '\{\{DeliverableId\}\}', $deliverable.id
+
+            $prResult = Run-OpencodePrompt -Prompt $prPrompt -PromptName "pr" -RequiredComplexity 4
+
+            if ($prResult.Success) {
+                Log-Info "PR prompt completed for deliverable $($deliverable.id)"
+            }
+            else {
+                Log-Error "PR prompt failed for deliverable $($deliverable.id)"
+            }
+        }
     }
 
     Log-Info "Execution phase complete."
@@ -588,6 +854,9 @@ function Initialize-Project {
 
     $existingConfig | ConvertTo-Json -Depth 10 | Set-Content $opencodePath -Encoding UTF8
     Write-Host "Updated opencode.json"
+
+    Sync-OpencodeProviders -OpencodeConfigPath $opencodePath
+
     Write-Host "Initialization complete!"
 }
 
@@ -602,9 +871,13 @@ function Start-RunnerAgent {
         exit 1
     }
 
+    $opencodePath = Join-Path (Split-Path $PSScriptRoot -Parent) "opencode.json"
+    Sync-OpencodeProviders -OpencodeConfigPath $opencodePath
+
     Log-Info "GraphQL endpoint validated."
 
     while ($true) {
+        Invoke-DeliverableStateTransitions
         Invoke-PlanningPhase
         Invoke-ExecutionPhase
 

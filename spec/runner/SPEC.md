@@ -49,7 +49,7 @@ Execute prompts with OpenCode
 - [REQ-AG-102] When an AgentTask execution completes, the system shall update the ExecutionDurationInSeconds of the AgentTask with the time it took to run OpenCode
 - [REQ-AG-103] When all the AgentTasks of a deliverable are in the DONE state, the system shall execute the [pull-reqest] prompt with a minimum complextity of 4
 - [REQ-AG-104] When a deliverable has multiple AgentTasks and any one of them is in the [Failed], [Rejected] or [NeedsReview] state, change the Deliverable State to [Failed]
-- [REQ-AG-105] When the system invokes OpenCode, it shall use the least cost model that has a complexity value equal or higher of what is required
+- [REQ-AG-105] When the system invokes OpenCode, it shall use the least cost model that has a complexity value equal or higher of what is required [OpenCode CLI Run](https://opencode.ai/docs/cli/#run-1)
 
 ## State-Driven Requirements
 - [REQ-AG-299] While the system finds a Deliverable for the current project in one of the states recognized by the [Deliverable state transitions] table, it shall execute the appropriate prompt from the [Deliverable state transitions]
@@ -114,33 +114,16 @@ Execute prompts with OpenCode
 | ------------- |  ---------- | -------------- | ------------ |
 | Ready         | implement   | 4              | Done         |
 
-## Planning phase
+## Variable substitions
 
-Invoke OpenCode with ./scripts/prompts/planning.prompt
+### Deliverable
 
 Substitute {{Title}}, {{Description}}, {{AcceptanceCriteria}}, {{DeliverableId}} with the fields of the same name from the Deliverable
 
-## Execution phase
-
-Invoke OpenCode with ./scripts/prompts/execution.prompt
+### AgentTask
 
 Substitute {{Description}}, {{AgentTaskId}} with the fields of the same name from the Deliverable
 
-## Bug fix phase
-
-Invoke OpenCode with ./scripts/prompts/fix.prompt
-
-Substitute {{Description}}, {{AgentTaskId}} with the fields of the same name from the Deliverable
-
-## Pull request phase
-
-Invoke OpenCode with ./scripts/prompts/pr.prompt
-
-Substitute {{Title}}, {{DeliverableId}} with the fields of the same name from the Deliverable
-| Syntax      | Description |
-| ----------- | ----------- |
-| Header      | Title       |
-| Paragraph   | Text        |
 # Technical specification
 
 - [OpenCode permissions](https://opencode.ai/docs/permissions)

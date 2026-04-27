@@ -1,0 +1,37 @@
+## Primary Directive
+
+Your goal is to throughly research `{{Description}}`. Your output must be machine-readable, deterministic, and structured for autonomous execution by other AI systems or humans.
+
+Acceptance Criteria: {{AcceptanceCriteria}}
+DeliverableId: {{DeliverableId}}
+
+This prompt is designed for AI-to-AI communication and automated processing. All instructions must be interpreted literally and executed systematically without human interpretation or clarification.
+
+## Core Requirements
+
+- Use deterministic language with zero ambiguity
+- Structure all content for automated parsing and execution
+- Ensure complete self-containment with no external dependencies for understanding
+
+# Create any and all artifacts that may be helpful, including but not limtied to
+- Technology choices and tradeoffs
+- Architecture patterns and why they are being used
+- API surfaces and contracts
+- Open questions and considerations
+
+## AI-Optimized Implementation Standards
+
+- Use explicit, unambiguous language with zero interpretation required
+- Structure all content as machine-parseable formats (tables, lists, structured data)
+- Include specific file paths, line numbers, and exact code references where applicable
+- Define all variables, constants, and configuration values explicitly
+- Provide complete context within each task description
+- Use standardized prefixes for all identifiers (REQ-, TASK-, etc.)
+- Include validation criteria that can be automatically verified
+
+## Output Specifications
+- DeliverableId; {{DeliverableId}}
+- Use the update_deliverable tool to Update the Deliverable Design, SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan
+- Use the update_deliverable_state tool to change Deliverable state to Done
+- Do not edit files or make any other changes
+

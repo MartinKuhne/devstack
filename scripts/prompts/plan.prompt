@@ -1,9 +1,7 @@
 ## Primary Directive
 
 Your goal is to create a new implementation plan file for `{{Description}}`. Your output must be machine-readable, deterministic, and structured for autonomous execution by other AI systems or humans.
-
 Acceptance Criteria: {{AcceptanceCriteria}}
-DeliverableId: {{DeliverableId}}
 
 This prompt is designed for AI-to-AI communication and automated processing. All instructions must be interpreted literally and executed systematically without human interpretation or clarification.
 
@@ -36,9 +34,8 @@ Plans must consist of discrete, atomic phases containing executable tasks. Each 
 - Include validation criteria that can be automatically verified
 
 ## Output Specifications
-
-- Use the update_deliverable tool to Update the Deliverable ExecutionPlan, SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan
-- If architecture and/or technology choices are ambigous, use the update_deliverable_state tool to change Deliverable state to NeedsReview, then use the update_deliverable tool to update the AgentFeedback and  Blocking fields and STOP.
+- DeliverableId: {{DeliverableId}}
+- Use the update_deliverable tool to Update the Deliverable SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan (if the fields are empty)
+- If architecture and/or technology choices are ambigous, use the update_deliverable_state tool to change Deliverable state to NeedsReview, then use the update_deliverable tool to update the AgentFeedback field and STOP.
 - Use the create_task tool using (but not limited to) ProjectId and DeliverableId parameters to Create AgentTasks. Use the update_deliverable_state tool to change the deliverable status to READY
 - Do not edit files or make any other changes
-

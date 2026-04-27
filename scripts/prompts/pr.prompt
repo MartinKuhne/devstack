@@ -1,7 +1,6 @@
 You are preparing a Pull Request Produce a concise but comprehensive summary of the work performed. 
 Push the branch to the remote and create a pull Request
-Use the update_deliverable_state tool to change Deliverable state to CodeComplete
-
+Use the update_deliverable_state tool to change Deliverable state to Merge
 
 Requirements:
 - Summarize the intent, scope, and impact of the changes.
