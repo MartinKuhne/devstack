@@ -164,18 +164,21 @@ export class DeliverableDetailPage extends BasePage {
         const badges = this.page.locator('[class*="badge"], [class*="Badge"]');
         for (let i = 0; i < (await badges.count()); i++) {
             const text = await badges.nth(i).textContent();
-            if (
-                text &&
-                [
-                    'DRAFT',
-                    'PLANNING',
-                    'READY',
-                    'IN_PROGRESS',
-                    'NEEDS_REVIEW',
-                    'DONE',
-                    'FAILED',
-                    'REJECTED',
-                ].includes(text)
+                if (
+                    text &&
+                    [
+                        'DRAFT',
+                        'DESIGN',
+                        'PLAN',
+                        'IMPLEMENT',
+                        'MERGE',
+                        'DEPLOY',
+                        'TEST',
+                        'DONE',
+                        'NEEDS_REVIEW',
+                        'FAILED',
+                        'REJECTED',
+                    ].includes(text)
             ) {
                 return text;
             }

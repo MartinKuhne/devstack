@@ -11,10 +11,11 @@ export function useLargeLanguageModels() {
         fetchPolicy: 'cache-and-network',
     });
 
-    const models = data?.largeLanguageModels ?? [];
+    const models = data?.largeLanguageModels?.nodes ?? [];
+    const totalCount = models.length;
 
-    if (!loading && models.length > 0) {
-        logger.debug('Loaded LLM configurations', { count: models.length });
+    if (!loading && totalCount > 0) {
+        logger.debug('Loaded LLM configurations', { count: totalCount });
     }
 
     if (error) {
@@ -25,6 +26,7 @@ export function useLargeLanguageModels() {
 
     return {
         largeLanguageModels: models,
+        totalCount,
         loading,
         error,
         refetch,

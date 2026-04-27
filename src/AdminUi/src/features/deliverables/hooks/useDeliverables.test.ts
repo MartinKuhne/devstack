@@ -25,7 +25,7 @@ describe('useDeliverables', () => {
                 deliverables: {
                     nodes: [
                         { id: '1', status: 'DRAFT' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
-                        { id: '2', status: 'READY' as DeliverableStatus, type: 'DEFECT' as DeliverableType },
+                        { id: '2', status: 'DESIGN' as DeliverableStatus, type: 'DEFECT' as DeliverableType },
                         { id: '3', status: 'DONE' as DeliverableStatus, type: 'MAINTENANCE' as DeliverableType },
                     ],
                 },
@@ -48,7 +48,7 @@ describe('useDeliverables', () => {
                 deliverables: {
                     nodes: [
                         { id: '1', status: 'DRAFT' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
-                        { id: '2', status: 'READY' as DeliverableStatus, type: 'DEFECT' as DeliverableType },
+                        { id: '2', status: 'DESIGN' as DeliverableStatus, type: 'DEFECT' as DeliverableType },
                         { id: '3', status: 'DRAFT' as DeliverableStatus, type: 'MAINTENANCE' as DeliverableType },
                     ],
                 },
@@ -141,7 +141,7 @@ describe('useDeliverables', () => {
                 deliverables: {
                     nodes: [
                         { id: '1', status: 'DRAFT' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
-                        { id: '2', status: 'READY' as DeliverableStatus, type: 'DEFECT' as DeliverableType },
+                        { id: '2', status: 'DESIGN' as DeliverableStatus, type: 'DEFECT' as DeliverableType },
                         { id: '3', status: 'DONE' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
                     ],
                 },
@@ -166,7 +166,7 @@ describe('useDeliverables', () => {
                     nodes: [
                         { id: '1', status: 'DRAFT' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
                         { id: '2', status: 'DRAFT' as DeliverableStatus, type: 'DEFECT' as DeliverableType },
-                        { id: '3', status: 'READY' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
+                        { id: '3', status: 'DESIGN' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
                     ],
                 },
             },
@@ -190,7 +190,7 @@ describe('useDeliverables', () => {
                     nodes: [
                         { id: '1', status: 'DRAFT' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
                         null,
-                        { id: '2', status: 'READY' as DeliverableStatus, type: 'DEFECT' as DeliverableType },
+                        { id: '2', status: 'DESIGN' as DeliverableStatus, type: 'DEFECT' as DeliverableType },
                     ],
                 },
             },

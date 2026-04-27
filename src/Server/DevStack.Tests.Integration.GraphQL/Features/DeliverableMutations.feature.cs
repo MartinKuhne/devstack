@@ -269,13 +269,13 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line hidden
 #line 30
     testRunner.When("I create a deliverable with title \"Initial Status Feature\" type \"Feature\" and ini" +
-                        "tial status \"READY\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                        "tial status \"DESIGN\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 31
     testRunner.Then("the deliverable should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 32
-    testRunner.And("the deliverable status should be \"READY\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the deliverable status should be \"DESIGN\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -467,16 +467,16 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Transition deliverable status from Planning to InProgress")]
+        [Xunit.SkippableFactAttribute(DisplayName="Transition deliverable status from Plan to Implement")]
         [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
-        [Xunit.TraitAttribute("Description", "Transition deliverable status from Planning to InProgress")]
+        [Xunit.TraitAttribute("Description", "Transition deliverable status from Plan to Implement")]
         [Xunit.TraitAttribute("Category", "transition_status")]
-        public virtual void TransitionDeliverableStatusFromPlanningToInProgress()
+        public virtual void TransitionDeliverableStatusFromPlanToImplement()
         {
             string[] tagsOfScenario = new string[] {
                     "transition_status"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition deliverable status from Planning to InProgress", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition deliverable status from Plan to Implement", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 59
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -501,28 +501,28 @@ namespace DevStack.Tests.Integration.GraphQL.Features
   this.FeatureBackground();
 #line hidden
 #line 60
-    testRunner.Given("a deliverable with status \"PLANNING\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.Given("a deliverable with status \"PLAN\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 61
-    testRunner.When("I transition the deliverable status to \"IN_PROGRESS\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I transition the deliverable status to \"IMPLEMENT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 62
-    testRunner.Then("the deliverable status should be \"IN_PROGRESS\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Then("the deliverable status should be \"IMPLEMENT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Transition deliverable status from InProgress to Done")]
+        [Xunit.SkippableFactAttribute(DisplayName="Transition deliverable status from Implement to Done")]
         [Xunit.TraitAttribute("FeatureTitle", "Deliverable Mutations")]
-        [Xunit.TraitAttribute("Description", "Transition deliverable status from InProgress to Done")]
+        [Xunit.TraitAttribute("Description", "Transition deliverable status from Implement to Done")]
         [Xunit.TraitAttribute("Category", "transition_status")]
-        public virtual void TransitionDeliverableStatusFromInProgressToDone()
+        public virtual void TransitionDeliverableStatusFromImplementToDone()
         {
             string[] tagsOfScenario = new string[] {
                     "transition_status"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition deliverable status from InProgress to Done", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Transition deliverable status from Implement to Done", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 65
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -547,7 +547,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
   this.FeatureBackground();
 #line hidden
 #line 66
-    testRunner.Given("a deliverable with status \"IN_PROGRESS\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.Given("a deliverable with status \"IMPLEMENT\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 67
     testRunner.When("I transition the deliverable status to \"DONE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -593,7 +593,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
   this.FeatureBackground();
 #line hidden
 #line 72
-    testRunner.Given("a deliverable with status \"IN_PROGRESS\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.Given("a deliverable with status \"IMPLEMENT\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 73
     testRunner.When("I transition the deliverable status to \"NEEDS_REVIEW\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -639,7 +639,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
   this.FeatureBackground();
 #line hidden
 #line 78
-    testRunner.Given("a deliverable with status \"IN_PROGRESS\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.Given("a deliverable with status \"IMPLEMENT\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 79
     testRunner.When("I transition the deliverable status to \"FAILED\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");

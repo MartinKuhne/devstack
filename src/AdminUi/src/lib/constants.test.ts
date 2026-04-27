@@ -11,20 +11,28 @@ describe('getStatusColor', () => {
         expect(getStatusColor('DRAFT', DELIVERABLE_STATUS_COLORS)).toBe('bg-gray-500');
     });
 
-    it('returns correct color for DELIVERABLE_STATUS_COLORS PLANNING', () => {
-        expect(getStatusColor('PLANNING', DELIVERABLE_STATUS_COLORS)).toBe('bg-blue-500');
+    it('returns correct color for DELIVERABLE_STATUS_COLORS DESIGN', () => {
+        expect(getStatusColor('DESIGN', DELIVERABLE_STATUS_COLORS)).toBe('bg-indigo-500');
     });
 
-    it('returns correct color for DELIVERABLE_STATUS_COLORS READY', () => {
-        expect(getStatusColor('READY', DELIVERABLE_STATUS_COLORS)).toBe('bg-green-500');
+    it('returns correct color for DELIVERABLE_STATUS_COLORS PLAN', () => {
+        expect(getStatusColor('PLAN', DELIVERABLE_STATUS_COLORS)).toBe('bg-blue-500');
     });
 
-    it('returns correct color for DELIVERABLE_STATUS_COLORS IN_PROGRESS', () => {
-        expect(getStatusColor('IN_PROGRESS', DELIVERABLE_STATUS_COLORS)).toBe('bg-yellow-500');
+    it('returns correct color for DELIVERABLE_STATUS_COLORS IMPLEMENT', () => {
+        expect(getStatusColor('IMPLEMENT', DELIVERABLE_STATUS_COLORS)).toBe('bg-cyan-500');
     });
 
-    it('returns correct color for DELIVERABLE_STATUS_COLORS IN_REVIEW', () => {
-        expect(getStatusColor('IN_REVIEW', DELIVERABLE_STATUS_COLORS)).toBe('bg-purple-500');
+    it('returns correct color for DELIVERABLE_STATUS_COLORS MERGE', () => {
+        expect(getStatusColor('MERGE', DELIVERABLE_STATUS_COLORS)).toBe('bg-teal-500');
+    });
+
+    it('returns correct color for DELIVERABLE_STATUS_COLORS DEPLOY', () => {
+        expect(getStatusColor('DEPLOY', DELIVERABLE_STATUS_COLORS)).toBe('bg-green-500');
+    });
+
+    it('returns correct color for DELIVERABLE_STATUS_COLORS TEST', () => {
+        expect(getStatusColor('TEST', DELIVERABLE_STATUS_COLORS)).toBe('bg-lime-500');
     });
 
     it('returns correct color for DELIVERABLE_STATUS_COLORS NEEDS_REVIEW', () => {
@@ -74,7 +82,7 @@ describe('getStatusColor', () => {
 
 describe('color map exports', () => {
     it('has all expected deliverable status keys', () => {
-        const expectedKeys = ['DRAFT', 'PLANNING', 'READY', 'IN_PROGRESS', 'IN_REVIEW', 'NEEDS_REVIEW', 'DONE', 'FAILED', 'REJECTED'];
+        const expectedKeys = ['DRAFT', 'DESIGN', 'PLAN', 'IMPLEMENT', 'MERGE', 'DEPLOY', 'TEST', 'DONE', 'NEEDS_REVIEW', 'FAILED', 'REJECTED'];
         for (const key of expectedKeys) {
             expect(DELIVERABLE_STATUS_COLORS).toHaveProperty(key);
         }
@@ -98,7 +106,7 @@ describe('color map exports', () => {
         const allMaps = [DELIVERABLE_STATUS_COLORS, PROJECT_STATUS_COLORS, AGENT_TASK_STATUS_COLORS];
         for (const map of allMaps) {
             for (const value of Object.values(map)) {
-                expect(value).toMatch(/^bg-(gray|blue|green|yellow|purple|emerald|red)-\d{3}$/);
+                expect(value).toMatch(/^bg-(gray|blue|green|yellow|purple|emerald|red|indigo|cyan|teal|lime)-\d{3}$/);
             }
         }
     });

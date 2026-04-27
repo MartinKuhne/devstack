@@ -9,8 +9,13 @@ public class EnumTests
     [Fact]
     public void DeliverableStatus_Enums_Are_Defined()
     {
-        Assert.Equal(8, Enum.GetValues<DeliverableStatus>().Length);
+        Assert.Equal(11, Enum.GetValues<DeliverableStatus>().Length);
         Assert.Contains(DeliverableStatus.Draft, Enum.GetValues<DeliverableStatus>());
+        Assert.Contains(DeliverableStatus.Design, Enum.GetValues<DeliverableStatus>());
+        Assert.Contains(DeliverableStatus.Plan, Enum.GetValues<DeliverableStatus>());
+        Assert.Contains(DeliverableStatus.Implement, Enum.GetValues<DeliverableStatus>());
+        Assert.Contains(DeliverableStatus.Deploy, Enum.GetValues<DeliverableStatus>());
+        Assert.Contains(DeliverableStatus.Test, Enum.GetValues<DeliverableStatus>());
         Assert.Contains(DeliverableStatus.Done, Enum.GetValues<DeliverableStatus>());
     }
 

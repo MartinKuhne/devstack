@@ -612,15 +612,20 @@ public sealed class AgentTaskSteps
         var lower = status.ToLowerInvariant();
         return lower switch
         {
-            "planning" => "PLANNING",
+            "draft" => "DRAFT",
+            "design" => "DESIGN",
+            "plan" => "PLAN",
+            "implement" => "IMPLEMENT",
+            "merge" => "MERGE",
+            "deploy" => "DEPLOY",
+            "test" => "TEST",
             "ready" => "READY",
             "in_progress" or "inprogress" or "in progress" => "IN_PROGRESS",
             "done" => "DONE",
             "failed" => "FAILED",
             "rejected" => "REJECTED",
             "needs_review" or "needsreview" or "needs review" => "NEEDS_REVIEW",
-            "draft" => "DRAFT",
-            _ => "PLANNING"
+            _ => "DRAFT"
         };
     }
 

@@ -117,8 +117,10 @@ export function DeliverableDetailPage() {
         try {
             await updateDeliverableStatus({
                 variables: {
-                    id: deliverable.id,
-                    targetStatus: selectedStatus as DeliverableStatus,
+                    input: {
+                        id: deliverable.id,
+                        targetStatus: selectedStatus as DeliverableStatus,
+                    },
                 },
             });
 

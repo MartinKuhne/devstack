@@ -27,9 +27,9 @@ Feature: Deliverable Mutations
 
   @create
   Scenario: Create a deliverable with initial status
-    When I create a deliverable with title "Initial Status Feature" type "Feature" and initial status "READY"
+    When I create a deliverable with title "Initial Status Feature" type "Feature" and initial status "DESIGN"
     Then the deliverable should be created successfully
-    And the deliverable status should be "READY"
+    And the deliverable status should be "DESIGN"
 
   @create
   Scenario: Create a deliverable with all optional fields
@@ -56,26 +56,26 @@ Feature: Deliverable Mutations
     Then the deliverable should be updated successfully
 
   @transition_status
-  Scenario: Transition deliverable status from Planning to InProgress
-    Given a deliverable with status "PLANNING" type "Feature" exists
-    When I transition the deliverable status to "IN_PROGRESS"
-    Then the deliverable status should be "IN_PROGRESS"
+  Scenario: Transition deliverable status from Plan to Implement
+    Given a deliverable with status "PLAN" type "Feature" exists
+    When I transition the deliverable status to "IMPLEMENT"
+    Then the deliverable status should be "IMPLEMENT"
 
   @transition_status
-  Scenario: Transition deliverable status from InProgress to Done
-    Given a deliverable with status "IN_PROGRESS" type "Feature" exists
+  Scenario: Transition deliverable status from Implement to Done
+    Given a deliverable with status "IMPLEMENT" type "Feature" exists
     When I transition the deliverable status to "DONE"
     Then the deliverable status should be "DONE"
 
   @transition_status
   Scenario: Transition deliverable status to NeedsReview
-    Given a deliverable with status "IN_PROGRESS" type "Feature" exists
+    Given a deliverable with status "IMPLEMENT" type "Feature" exists
     When I transition the deliverable status to "NEEDS_REVIEW"
     Then the deliverable status should be "NEEDS_REVIEW"
 
   @transition_status
   Scenario: Transition deliverable status to Failed
-    Given a deliverable with status "IN_PROGRESS" type "Feature" exists
+    Given a deliverable with status "IMPLEMENT" type "Feature" exists
     When I transition the deliverable status to "FAILED"
     Then the deliverable status should be "FAILED"
 

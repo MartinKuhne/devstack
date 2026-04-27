@@ -96,7 +96,7 @@ public sealed class SpecFlowHooks : IDisposable
         {
             var mutation = @"
                 mutation CleanupTestData {
-                    cleanupTestData {
+                    deleteTestData {
                         success
                         message
                     }

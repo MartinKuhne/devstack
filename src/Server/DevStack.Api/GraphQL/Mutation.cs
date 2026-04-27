@@ -39,7 +39,8 @@ public record CreateDeliverableInput(
     string? SecurityImpact,
     string? PerformanceImpact,
     string? TestPlan,
-    string? DeploymentPlan
+    string? DeploymentPlan,
+    string? Design
     );
 
 public record UpdateDeliverableInput(
@@ -53,12 +54,13 @@ public record UpdateDeliverableInput(
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    string? Blocking);
+    string? Blocking,
+    string? Design);
 
 public record UpdateDeliverableStatusInput(
     Guid Id,
     DeliverableStatus TargetStatus,
-    string Actor);
+    string? Actor);
 
 public record CreateAgentTaskInput(
     Guid DeliverableId,
@@ -107,7 +109,7 @@ public record UpdateLargeLanguageModelInput(
     int? MaxComplexity,
     int? MaxConcurrency);
 
-public record CleanupTestDataPayload(bool Success, string? Message);
+public record DeleteTestDataPayload(bool Success, string? Message);
 
 public class Mutation
 {
@@ -171,7 +173,8 @@ public class Mutation
             input.PerformanceImpact,
             input.TestPlan,
             input.DeploymentPlan,
-            input.InitialStatus), cancellationToken);
+            input.InitialStatus,
+            input.Design), cancellationToken);
 
         return await dbContext.Deliverables.FindAsync([id], cancellationToken);
     }
@@ -193,7 +196,8 @@ public class Mutation
             input.PerformanceImpact,
             input.TestPlan,
             input.DeploymentPlan,
-            input.Blocking), cancellationToken);
+            input.Blocking,
+            input.Design), cancellationToken);
 
         return await dbContext.Deliverables.FindAsync([input.Id], cancellationToken);
     }
@@ -349,7 +353,7 @@ public class Mutation
         return true;
     }
 
-    public async Task<CleanupTestDataPayload> CleanupTestDataAsync(
+    public async Task<DeleteTestDataPayload> DeleteTestDataAsync(
         [Service] DevStackDbContext context,
         CancellationToken cancellationToken)
     {
@@ -358,11 +362,11 @@ public class Mutation
             await context.CleanupTestDataAsync(cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
-            return new CleanupTestDataPayload(true, "Test data cleaned up successfully");
+            return new DeleteTestDataPayload(true, "Test data cleaned up successfully");
         }
         catch (Exception ex)
         {
-            return new CleanupTestDataPayload(false, ex.Message);
+            return new DeleteTestDataPayload(false, ex.Message);
         }
     }
 

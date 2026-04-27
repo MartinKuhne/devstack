@@ -27,6 +27,8 @@ public class Deliverable
 
     public string? Description { get; set; }
 
+    public string? Design { get; set; }
+
     public string? AcceptanceCriteria { get; set; }
 
     public string? ExecutionPlan { get; set; }

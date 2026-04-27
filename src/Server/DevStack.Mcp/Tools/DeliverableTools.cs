@@ -46,7 +46,7 @@ public class DeliverableTools
         if (deliverable == null)
             return JsonSerializer.Serialize(new { error = "Deliverable not found" });
 
-        var data = new { id = deliverable.Id.ToString(), projectId = deliverable.ProjectId.ToString(), title = deliverable.Title, description = deliverable.Description, acceptanceCriteria = deliverable.AcceptanceCriteria, executionPlan = deliverable.ExecutionPlan, securityImpact = deliverable.SecurityImpact, performanceImpact = deliverable.PerformanceImpact, testPlan = deliverable.TestPlan, deploymentPlan = deliverable.DeploymentPlan, agentFeedback = deliverable.AgentFeedback, blocking = deliverable.Blocking };
+        var data = new { id = deliverable.Id.ToString(), projectId = deliverable.ProjectId.ToString(), title = deliverable.Title, description = deliverable.Description, design = deliverable.Design, acceptanceCriteria = deliverable.AcceptanceCriteria, executionPlan = deliverable.ExecutionPlan, securityImpact = deliverable.SecurityImpact, performanceImpact = deliverable.PerformanceImpact, testPlan = deliverable.TestPlan, deploymentPlan = deliverable.DeploymentPlan, agentFeedback = deliverable.AgentFeedback, blocking = deliverable.Blocking };
         return $"## Deliverable\n\n```json\n{JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true })}\n```\n\n";
     }
 
@@ -55,6 +55,7 @@ public class DeliverableTools
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
         [Description("The deliverable title")] string title,
         [Description("The deliverable description")][DefaultValue(null)] string? description,
+        [Description("The design document")][DefaultValue(null)] string? design,
         [Description("The acceptance criteria")][DefaultValue(null)] string? acceptanceCriteria,
         [Description("The execution plan")][DefaultValue(null)] string? executionPlan,
         [Description("The security impact assessment")][DefaultValue(null)] string? securityImpact,
@@ -82,7 +83,8 @@ public class DeliverableTools
                     performanceImpact,
                     testPlan,
                     deploymentPlan,
-                    Domain.Enums.DeliverableStatus.Draft),
+                    Domain.Enums.DeliverableStatus.Draft,
+                    design),
                 ct);
 
             _logger.LogInformation("Created deliverable with ID: {Id}", id);
@@ -100,6 +102,7 @@ public class DeliverableTools
     public async Task<string> UpdateDeliverable(
         [Description("The deliverable ID")] Guid id,
         [Description("The updated description")][DefaultValue(null)] string? description,
+        [Description("The updated design document")][DefaultValue(null)] string? design,
         [Description("The updated acceptance criteria")][DefaultValue(null)] string? acceptanceCriteria,
         [Description("The updated execution plan")][DefaultValue(null)] string? executionPlan,
         [Description("The updated security impact assessment")][DefaultValue(null)] string? securityImpact,
@@ -124,7 +127,8 @@ public class DeliverableTools
                     performanceImpact,
                     testPlan,
                     deploymentPlan,
-                    blocking),
+                    blocking,
+                    design),
                 ct);
 
             _logger.LogInformation("Updated deliverable with ID: {Id}", id);

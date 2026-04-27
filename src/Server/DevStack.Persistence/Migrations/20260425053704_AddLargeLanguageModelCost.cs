@@ -10,13 +10,20 @@ namespace DevStack.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.AddColumn<int>(
+                name: "Cost",
+                table: "LargeLanguageModels",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.DropColumn(
+                name: "Cost",
+                table: "LargeLanguageModels");
         }
     }
 }

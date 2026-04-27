@@ -24,6 +24,9 @@ public class DeliverableConfiguration : IEntityTypeConfiguration<Deliverable>
         builder.Property(d => d.Description)
             .IsRequired(false);
 
+        builder.Property(d => d.Design)
+            .IsRequired(false);
+
         builder.Property(d => d.AcceptanceCriteria)
             .IsRequired(false);
 

@@ -198,7 +198,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
     testRunner.And("I transition the second agent task status to \"IN_PROGRESS\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 26
-    testRunner.Then("the deliverable status should be queried and be \"PLANNING\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Then("the deliverable status should be queried and be \"DRAFT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -238,7 +238,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
   this.FeatureBackground();
 #line hidden
 #line 30
-    testRunner.Given("a deliverable with status \"PLANNING\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    testRunner.Given("a deliverable with status \"PLAN\" type \"Feature\" exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 31
     testRunner.When("I call checkAndMarkDeliverableDone on the deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");

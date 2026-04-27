@@ -156,6 +156,11 @@ namespace DevStack.Persistence.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<int>("Cost")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<int>("MaxComplexity")
                         .HasColumnType("integer");
 

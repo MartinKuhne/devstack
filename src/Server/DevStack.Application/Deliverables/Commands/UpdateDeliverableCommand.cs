@@ -11,4 +11,5 @@ public record UpdateDeliverableCommand(
     string? PerformanceImpact,
     string? TestPlan,
     string? DeploymentPlan,
-    string? Blocking);
+    string? Blocking,
+    string? Design = null);

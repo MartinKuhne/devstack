@@ -30,6 +30,7 @@ const TYPE_LABELS: Record<string, string> = {
     FEATURE: 'Feature',
     DEFECT: 'Defect',
     MAINTENANCE: 'Maintenance',
+    SPIKE: 'Spike',
 };
 
 const TYPE_FILTER_OPTIONS = [
@@ -37,16 +38,20 @@ const TYPE_FILTER_OPTIONS = [
     { value: 'FEATURE', label: 'Feature' },
     { value: 'DEFECT', label: 'Defect' },
     { value: 'MAINTENANCE', label: 'Maintenance' },
+    { value: 'SPIKE', label: 'Spike' },
 ];
 
 const STATUS_FILTER_OPTIONS = [
     { value: 'all', label: 'All Statuses' },
     { value: 'DRAFT', label: 'Draft' },
-    { value: 'PLANNING', label: 'Planning' },
-    { value: 'READY', label: 'Ready' },
-    { value: 'IN_PROGRESS', label: 'In Progress' },
-    { value: 'NEEDS_REVIEW', label: 'Needs Review' },
+    { value: 'DESIGN', label: 'Design' },
+    { value: 'PLAN', label: 'Plan' },
+    { value: 'IMPLEMENT', label: 'Implement' },
+    { value: 'MERGE', label: 'Merge' },
+    { value: 'DEPLOY', label: 'Deploy' },
+    { value: 'TEST', label: 'Test' },
     { value: 'DONE', label: 'Done' },
+    { value: 'NEEDS_REVIEW', label: 'Needs Review' },
     { value: 'FAILED', label: 'Failed' },
     { value: 'REJECTED', label: 'Rejected' },
 ];

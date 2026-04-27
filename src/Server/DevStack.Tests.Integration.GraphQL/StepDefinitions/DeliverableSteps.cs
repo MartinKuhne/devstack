@@ -61,7 +61,7 @@ public sealed class DeliverableSteps
         var mutation = new
         {
             query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id } }",
-            variables = new { input = new { projectId, title = "Parent Deliverable", type = "Feature", description = "", acceptanceCriteria = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, initialStatus = "PLANNING" } },
+            variables = new { input = new { projectId, title = "Parent Deliverable", type = "Feature", description = "", acceptanceCriteria = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, initialStatus = "PLAN" } },
             operationName = "CreateDeliverable"
         };
 
@@ -92,7 +92,7 @@ public sealed class DeliverableSteps
     {
         _scenarioContext["DeliverableTitle"] = title;
 
-        var statusStr = initialStatus ?? "Planning";
+        var statusStr = initialStatus ?? "DRAFT";
         var status = MapStatus(statusStr);
         var mutation = new
         {
@@ -130,15 +130,18 @@ public sealed class DeliverableSteps
         var lower = status.ToLowerInvariant();
         return lower switch
         {
-            "planning" => "PLANNING",
-            "ready" => "READY",
-            "in_progress" or "inprogress" or "in progress" => "IN_PROGRESS",
+            "draft" => "DRAFT",
+            "design" => "DESIGN",
+            "plan" => "PLAN",
+            "implement" => "IMPLEMENT",
+            "merge" => "MERGE",
+            "deploy" => "DEPLOY",
+            "test" => "TEST",
             "done" => "DONE",
             "failed" => "FAILED",
             "rejected" => "REJECTED",
             "needs_review" or "needsreview" or "needs review" => "NEEDS_REVIEW",
-            "draft" => "DRAFT",
-            _ => "PLANNING"
+            _ => "DRAFT"
         };
     }
 
@@ -164,7 +167,7 @@ public sealed class DeliverableSteps
                     performanceImpact = (string?)null,
                     testPlan = (string?)null,
                     deploymentPlan = (string?)null,
-                    initialStatus = "PLANNING"
+                    initialStatus = "PLAN"
                 }
             },
             operationName = "CreateDeliverable"
@@ -237,7 +240,7 @@ public sealed class DeliverableSteps
                     performanceImpact = (string?)null,
                     testPlan = (string?)null,
                     deploymentPlan = (string?)null,
-                    initialStatus = "PLANNING"
+                    initialStatus = "PLAN"
                 }
             },
             operationName = "CreateDeliverable"

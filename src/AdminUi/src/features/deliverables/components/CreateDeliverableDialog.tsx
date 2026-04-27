@@ -35,8 +35,8 @@ const deliverableSchema = z.object({
     performanceImpact: z.string().optional(),
     testPlan: z.string().optional(),
     deploymentPlan: z.string().optional(),
-    type: z.enum(['FEATURE', 'DEFECT', 'MAINTENANCE']),
-    initialStatus: z.enum(['DRAFT', 'PLANNING', 'READY']).optional(),
+    type: z.enum(['FEATURE', 'DEFECT', 'MAINTENANCE', 'SPIKE']),
+    initialStatus: z.enum(['DRAFT', 'DESIGN', 'PLAN', 'IMPLEMENT', 'MERGE', 'DEPLOY', 'TEST', 'DONE']).optional(),
 });
 
 type DeliverableFormData = z.infer<typeof deliverableSchema>;
@@ -157,6 +157,7 @@ export function CreateDeliverableDialog({
                                     <SelectItem value="FEATURE">Feature</SelectItem>
                                     <SelectItem value="DEFECT">Defect</SelectItem>
                                     <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                                    <SelectItem value="SPIKE">Spike</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.type && (
@@ -212,8 +213,8 @@ export function CreateDeliverableDialog({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="DRAFT">Draft</SelectItem>
-                                    <SelectItem value="PLANNING">Planning</SelectItem>
-                                    <SelectItem value="READY">Ready</SelectItem>
+                                    <SelectItem value="DESIGN">Design</SelectItem>
+                                    <SelectItem value="PLAN">Plan</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
