@@ -1,8 +1,11 @@
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
+
 using FluentAssertions;
+
 using TechTalk.SpecFlow;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.StepDefinitions;
@@ -78,7 +81,7 @@ public sealed class AgentTaskSteps
     private void TransitionToTargetStatus(string deliverableId, string targetStatus)
     {
         var currentStatus = "READY";
-        
+
         while (currentStatus != targetStatus)
         {
             string nextStatus;
@@ -131,7 +134,7 @@ public sealed class AgentTaskSteps
             {
                 throw new InvalidOperationException($"Cannot transition from {currentStatus} to {targetStatus}");
             }
-            
+
             TransitionAgentTask(deliverableId, nextStatus);
             currentStatus = nextStatus;
         }
@@ -619,7 +622,7 @@ public sealed class AgentTaskSteps
             "draft" => "DRAFT",
             _ => "PLANNING"
         };
-   }
+    }
 
     [When(@"I transition the first agent task status to ""(.*)""")]
     public void WhenITransitionTheFirstAgentTaskStatusTo(string targetStatus)

@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Text.Json;
+
 using DevStack.Application;
 using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
@@ -6,10 +9,10 @@ using DevStack.Application.Deliverables;
 using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.Deliverables.Queries;
 using DevStack.Domain.Enums;
+
 using Microsoft.Extensions.Logging;
+
 using ModelContextProtocol.Server;
-using System.ComponentModel;
-using System.Text.Json;
 
 namespace DevStack.Mcp.Tools;
 

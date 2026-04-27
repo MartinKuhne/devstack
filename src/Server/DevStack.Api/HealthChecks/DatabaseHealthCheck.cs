@@ -1,4 +1,5 @@
 using DevStack.Persistence;
+
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace DevStack.Api.HealthChecks;

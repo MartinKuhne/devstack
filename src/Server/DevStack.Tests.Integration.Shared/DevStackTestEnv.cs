@@ -2,6 +2,7 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
+
 using Testcontainers.PostgreSql;
 
 namespace DevStack.Tests.Integration.Shared;

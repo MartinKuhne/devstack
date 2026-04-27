@@ -25,7 +25,7 @@ public class UpdateProjectHandler : ICommandHandler<UpdateProjectCommand>
         {
             if (request.Name.Length > 200)
                 throw new ArgumentException("Name must be 200 characters or less", nameof(request.Name));
-            
+
             project.Name = request.Name;
         }
 

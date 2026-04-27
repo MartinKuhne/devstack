@@ -1,9 +1,12 @@
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+
 using DevStack.Domain.Enums;
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
+
 using FluentAssertions;
+
 using TechTalk.SpecFlow;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.StepDefinitions;
@@ -409,7 +412,7 @@ public sealed class DeliverableSteps
         var response = (JsonElement)_scenarioContext["Response"]!;
         var data = GetData(response);
         string status;
-        
+
         if (data.TryGetProperty("createDeliverable", out var createResult))
         {
             status = createResult.GetProperty("status").ToString();
@@ -422,7 +425,7 @@ public sealed class DeliverableSteps
         {
             throw new InvalidOperationException("Response does not contain createDeliverable or updateDeliverableStatus");
         }
-        
+
         status.Should().NotBeNullOrEmpty("deliverable status should not be null");
         var mappedExpected = MapStatus(expectedStatus);
         status.Should().BeEquivalentTo(mappedExpected);

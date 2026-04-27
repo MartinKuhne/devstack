@@ -1,12 +1,16 @@
-using TechTalk.SpecFlow;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using DevStack.Tests.Integration.MCP.Client;
-using Npgsql;
+
 using DevStack.Persistence;
+using DevStack.Tests.Integration.MCP.Client;
 using DevStack.Tests.Integration.Shared;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+using Npgsql;
+
+using TechTalk.SpecFlow;
 
 namespace DevStack.Tests.Integration.MCP.Hooks;
 

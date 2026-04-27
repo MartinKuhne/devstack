@@ -1,7 +1,9 @@
 using System.Security.Cryptography;
 
 using DevStack.Infrastructure.Services;
+
 using FluentAssertions;
+
 using Xunit;
 
 public class AesSecretServiceTests
