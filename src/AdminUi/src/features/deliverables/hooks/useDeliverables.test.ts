@@ -3,13 +3,13 @@ import { renderHook } from '@testing-library/react';
 import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
 
 vi.mock('@/generated/graphql', () => ({
-    useGetDeliverablesQuery: vi.fn(),
+    useGetDeliverablesByProjectQuery: vi.fn(),
 }));
 
 const getMockedQuery = async () => {
     const m = await import('@/generated/graphql');
     return {
-        useGetDeliverablesQuery: m.useGetDeliverablesQuery as ReturnType<typeof vi.fn>,
+        useGetDeliverablesByProjectQuery: m.useGetDeliverablesByProjectQuery as ReturnType<typeof vi.fn>,
     };
 };
 
@@ -18,9 +18,9 @@ describe('useDeliverables', () => {
         vi.clearAllMocks();
     });
 
-    it('returns all deliverables when no filters', async () => {
+    it('returns deliverables for a project', async () => {
         const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
+        hooks.useGetDeliverablesByProjectQuery.mockReturnValue({
             data: {
                 deliverables: {
                     nodes: [
@@ -36,14 +36,14 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables());
+        const { result } = renderHook(() => useDeliverables('proj-123'));
 
         expect(result.current.deliverables).toHaveLength(3);
     });
 
     it('filters by status', async () => {
         const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
+        hooks.useGetDeliverablesByProjectQuery.mockReturnValue({
             data: {
                 deliverables: {
                     nodes: [
@@ -59,7 +59,7 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables(undefined, ['DRAFT']));
+        const { result } = renderHook(() => useDeliverables('proj-123', ['DRAFT']));
 
         expect(result.current.deliverables).toHaveLength(2);
         expect(result.current.deliverables.every((d) => d.status === 'DRAFT')).toBe(true);
@@ -67,7 +67,7 @@ describe('useDeliverables', () => {
 
     it('passes projectId to query variables', async () => {
         const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
+        hooks.useGetDeliverablesByProjectQuery.mockReturnValue({
             data: {
                 deliverables: {
                     nodes: [
@@ -83,7 +83,7 @@ describe('useDeliverables', () => {
         const { useDeliverables } = await import('./useDeliverables');
         renderHook(() => useDeliverables('proj-123'));
 
-        expect(hooks.useGetDeliverablesQuery).toHaveBeenCalledWith(
+        expect(hooks.useGetDeliverablesByProjectQuery).toHaveBeenCalledWith(
             expect.objectContaining({
                 variables: { projectId: 'proj-123' },
                 fetchPolicy: 'cache-and-network',
@@ -91,52 +91,9 @@ describe('useDeliverables', () => {
         );
     });
 
-    it('passes no variables when projectId is omitted', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
-            data: {
-                deliverables: {
-                    nodes: [
-                        { id: '1', status: 'DRAFT' as DeliverableStatus, type: 'FEATURE' as DeliverableType },
-                    ],
-                },
-            },
-            loading: false,
-            error: undefined,
-            refetch: vi.fn(),
-        });
-
-        const { useDeliverables } = await import('./useDeliverables');
-        renderHook(() => useDeliverables());
-
-        expect(hooks.useGetDeliverablesQuery).toHaveBeenCalledWith({
-            fetchPolicy: 'cache-and-network',
-            skip: true,
-        });
-    });
-
-    it('skips query when projectId is undefined', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
-            data: undefined,
-            loading: false,
-            error: undefined,
-            refetch: vi.fn(),
-        });
-
-        const { useDeliverables } = await import('./useDeliverables');
-        renderHook(() => useDeliverables(undefined));
-
-        expect(hooks.useGetDeliverablesQuery).toHaveBeenCalledWith(
-            expect.objectContaining({
-                skip: true,
-            }),
-        );
-    });
-
     it('filters by type', async () => {
         const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
+        hooks.useGetDeliverablesByProjectQuery.mockReturnValue({
             data: {
                 deliverables: {
                     nodes: [
@@ -152,7 +109,7 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables(undefined, undefined, ['FEATURE']));
+        const { result } = renderHook(() => useDeliverables('proj-123', undefined, ['FEATURE']));
 
         expect(result.current.deliverables).toHaveLength(2);
         expect(result.current.deliverables.every((d) => d.type === 'FEATURE')).toBe(true);
@@ -160,7 +117,7 @@ describe('useDeliverables', () => {
 
     it('filters by both status and type', async () => {
         const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
+        hooks.useGetDeliverablesByProjectQuery.mockReturnValue({
             data: {
                 deliverables: {
                     nodes: [
@@ -176,7 +133,7 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables(undefined, ['DRAFT'], ['FEATURE']));
+        const { result } = renderHook(() => useDeliverables('proj-123', ['DRAFT'], ['FEATURE']));
 
         expect(result.current.deliverables).toHaveLength(1);
         expect(result.current.deliverables[0]!.id).toBe('1');
@@ -184,7 +141,7 @@ describe('useDeliverables', () => {
 
     it('filters out null deliverables', async () => {
         const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
+        hooks.useGetDeliverablesByProjectQuery.mockReturnValue({
             data: {
                 deliverables: {
                     nodes: [
@@ -200,14 +157,14 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables());
+        const { result } = renderHook(() => useDeliverables('proj-123'));
 
         expect(result.current.deliverables).toHaveLength(2);
     });
 
     it('returns empty array when no deliverables', async () => {
         const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
+        hooks.useGetDeliverablesByProjectQuery.mockReturnValue({
             data: { deliverables: { nodes: [] } },
             loading: false,
             error: undefined,
@@ -215,7 +172,7 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables());
+        const { result } = renderHook(() => useDeliverables('proj-123'));
 
         expect(result.current.deliverables).toHaveLength(0);
     });
@@ -223,7 +180,7 @@ describe('useDeliverables', () => {
     it('returns loading and error states', async () => {
         const hooks = await getMockedQuery();
         const mockError = { message: 'Failed' };
-        hooks.useGetDeliverablesQuery.mockReturnValue({
+        hooks.useGetDeliverablesByProjectQuery.mockReturnValue({
             data: undefined,
             loading: true,
             error: mockError,
@@ -231,7 +188,7 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables());
+        const { result } = renderHook(() => useDeliverables('proj-123'));
 
         expect(result.current.loading).toBe(true);
         expect(result.current.error).toBe(mockError);
@@ -239,7 +196,7 @@ describe('useDeliverables', () => {
 
     it('treats empty filter arrays as no filter', async () => {
         const hooks = await getMockedQuery();
-        hooks.useGetDeliverablesQuery.mockReturnValue({
+        hooks.useGetDeliverablesByProjectQuery.mockReturnValue({
             data: {
                 deliverables: {
                     nodes: [
@@ -253,7 +210,7 @@ describe('useDeliverables', () => {
         });
 
         const { useDeliverables } = await import('./useDeliverables');
-        const { result } = renderHook(() => useDeliverables([], []));
+        const { result } = renderHook(() => useDeliverables('proj-123', [], []));
 
         expect(result.current.deliverables).toHaveLength(1);
     });

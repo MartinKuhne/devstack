@@ -1,19 +1,17 @@
-import { useGetDeliverablesByProjectQuery } from '@/generated/graphql';
+import { useGetAllDeliverablesQuery } from '@/generated/graphql';
 import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
 import { createModuleLogger } from '@/lib/logging';
 
-const logger = createModuleLogger('useDeliverables');
+const logger = createModuleLogger('useAllDeliverables');
 
 /**
- * Fetches deliverables for a specific project with optional client-side filtering by status and type.
+ * Fetches all deliverables across all projects with optional client-side filtering by status and type.
  */
-export function useDeliverables(
-    projectId: string,
+export function useAllDeliverables(
     statusFilter?: DeliverableStatus[],
     typeFilter?: DeliverableType[]
 ) {
-    const { data, loading, error, refetch } = useGetDeliverablesByProjectQuery({
-        variables: { projectId },
+    const { data, loading, error, refetch } = useGetAllDeliverablesQuery({
         fetchPolicy: 'cache-and-network',
     });
 
@@ -30,17 +28,16 @@ export function useDeliverables(
     ));
 
     if (!loading && allDeliverables.length > 0) {
-        logger.debug('Loaded deliverables', {
+        logger.debug('Loaded all deliverables', {
             total: allDeliverables.length,
             filtered: filteredDeliverables.length,
-            projectId,
             statusFilter,
             typeFilter,
         });
     }
 
     if (error) {
-        logger.error('Failed to fetch deliverables', {
+        logger.error('Failed to fetch all deliverables', {
             message: error.message,
         });
     }

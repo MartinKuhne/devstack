@@ -39,7 +39,7 @@ services:
     container_name: devstack-mcp
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__DefaultConnection: postgresql://devstack:${POSTGRES_PASSWORD}@postgres:5432/devstack
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=devstack;Username=devstack;Password=${POSTGRES_PASSWORD};
       DEVSTACK_SECRET_KEY: ${DEVSTACK_SECRET_KEY}
     ports:
       - "8088:8080"

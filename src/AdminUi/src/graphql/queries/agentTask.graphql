@@ -18,7 +18,7 @@ query GetAgentTask($id: UUID!) {
 }
 
 query GetAgentTasks($deliverableId: UUID) {
-    agentTasks(filter: { deliverableId: { eq: $deliverableId } }) {
+    agentTasks(where: { deliverableId: { eq: $deliverableId } }) {
         nodes {
             id
             title

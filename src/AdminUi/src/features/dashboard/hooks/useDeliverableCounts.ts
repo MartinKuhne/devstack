@@ -1,4 +1,4 @@
-import { useGetDeliverablesQuery } from '@/generated/graphql';
+import { useAllDeliverables } from '@/features/deliverables/hooks/useAllDeliverables';
 import { createModuleLogger } from '@/lib/logging';
 
 const logger = createModuleLogger('useDeliverableCounts');
@@ -7,11 +7,7 @@ const logger = createModuleLogger('useDeliverableCounts');
  * Fetches all deliverables and returns counts categorized by status.
  */
 export function useDeliverableCounts() {
-    const { data, loading, error, refetch } = useGetDeliverablesQuery({
-        fetchPolicy: 'cache-and-network',
-    });
-
-    const deliverables = data?.deliverables?.nodes ?? [];
+    const { deliverables, loading, error, refetch } = useAllDeliverables();
 
     const deliverablesDraft = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'DRAFT').length;
     const deliverablesDesign = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && d.status === 'DESIGN').length;

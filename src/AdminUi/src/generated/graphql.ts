@@ -17,90 +17,75 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  /** UUID scalar */
   UUID: { input: any; output: any; }
-  /** The `Upload` scalar type represents a file upload. */
-  Upload: { input: any; output: any; }
 };
 
-/** Represents an agent task (unit of work for an AI agent). */
 export type AgentTask = {
   __typename?: 'AgentTask';
-  /** Agent that executed the task */
   agent?: Maybe<Scalars['String']['output']>;
-  /** Git commit hash if applicable */
   commitHash?: Maybe<Scalars['String']['output']>;
-  /** Number of completion tokens used */
   completionTokens?: Maybe<Scalars['Int']['output']>;
-  /** Complexity rating (1-10) */
   complexityRating: Scalars['Int']['output'];
-  /** Deliverable this task belongs to */
   deliverable?: Maybe<Deliverable>;
-  /** ID of the deliverable this task belongs to */
   deliverableId: Scalars['UUID']['output'];
-  /** Task this task depends on */
   dependsOnAgentTask?: Maybe<AgentTask>;
-  /** ID of the task this task depends on */
   dependsOnAgentTaskId?: Maybe<Scalars['UUID']['output']>;
-  /** Description of the task */
   description: Scalars['String']['output'];
-  /** Errors encountered during execution */
   errors?: Maybe<Scalars['String']['output']>;
-  /** Execution duration in seconds */
   executionDurationInSeconds?: Maybe<Scalars['Int']['output']>;
-  /** Unique identifier of the task */
   id: Scalars['UUID']['output'];
-  /** Project this task belongs to */
   project?: Maybe<Project>;
-  /** ID of the project this task belongs to */
   projectId: Scalars['UUID']['output'];
-  /** Number of prompt tokens used */
   promptTokens?: Maybe<Scalars['Int']['output']>;
-  /** Result of the task execution */
   result?: Maybe<Scalars['String']['output']>;
-  /** Current status of the task */
   status: AgentTaskStatus;
-  /** Title of the task */
   title: Scalars['String']['output'];
 };
 
-export type AgentTaskConnection = Connection & {
-  __typename?: 'AgentTaskConnection';
-  edges: Array<AgentTaskEdge>;
-  nodes: Array<AgentTask>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type AgentTaskEdge = Edge & {
-  __typename?: 'AgentTaskEdge';
-  cursor: Scalars['String']['output'];
-  node: AgentTask;
-};
-
 export type AgentTaskFilterInput = {
+  agent?: InputMaybe<StringOperationFilterInput>;
   and?: InputMaybe<Array<AgentTaskFilterInput>>;
-  complexityRating?: InputMaybe<IntFilterInput>;
-  deliverableId?: InputMaybe<UUIDFilterInput>;
-  description?: InputMaybe<StringFilterInput>;
-  id?: InputMaybe<UUIDFilterInput>;
+  commitHash?: InputMaybe<StringOperationFilterInput>;
+  completionTokens?: InputMaybe<IntOperationFilterInput>;
+  complexityRating?: InputMaybe<IntOperationFilterInput>;
+  deliverable?: InputMaybe<DeliverableFilterInput>;
+  deliverableId?: InputMaybe<UuidOperationFilterInput>;
+  dependsOnAgentTask?: InputMaybe<AgentTaskFilterInput>;
+  dependsOnAgentTaskId?: InputMaybe<UuidOperationFilterInput>;
+  description?: InputMaybe<StringOperationFilterInput>;
+  errors?: InputMaybe<StringOperationFilterInput>;
+  executionDurationInSeconds?: InputMaybe<IntOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
   or?: InputMaybe<Array<AgentTaskFilterInput>>;
-  projectId?: InputMaybe<UUIDFilterInput>;
-  status?: InputMaybe<AgentTaskStatusFilterInput>;
-  title?: InputMaybe<StringFilterInput>;
+  project?: InputMaybe<ProjectFilterInput>;
+  projectId?: InputMaybe<UuidOperationFilterInput>;
+  promptTokens?: InputMaybe<IntOperationFilterInput>;
+  result?: InputMaybe<StringOperationFilterInput>;
+  status?: InputMaybe<AgentTaskStatusOperationFilterInput>;
+  title?: InputMaybe<StringOperationFilterInput>;
 };
 
 export type AgentTaskSortInput = {
-  complexityRating?: InputMaybe<SortOperationKind>;
-  deliverableId?: InputMaybe<SortOperationKind>;
-  description?: InputMaybe<SortOperationKind>;
-  id?: InputMaybe<SortOperationKind>;
-  projectId?: InputMaybe<SortOperationKind>;
-  status?: InputMaybe<SortOperationKind>;
-  title?: InputMaybe<SortOperationKind>;
+  agent?: InputMaybe<SortEnumType>;
+  commitHash?: InputMaybe<SortEnumType>;
+  completionTokens?: InputMaybe<SortEnumType>;
+  complexityRating?: InputMaybe<SortEnumType>;
+  deliverable?: InputMaybe<DeliverableSortInput>;
+  deliverableId?: InputMaybe<SortEnumType>;
+  dependsOnAgentTask?: InputMaybe<AgentTaskSortInput>;
+  dependsOnAgentTaskId?: InputMaybe<SortEnumType>;
+  description?: InputMaybe<SortEnumType>;
+  errors?: InputMaybe<SortEnumType>;
+  executionDurationInSeconds?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  project?: InputMaybe<ProjectSortInput>;
+  projectId?: InputMaybe<SortEnumType>;
+  promptTokens?: InputMaybe<SortEnumType>;
+  result?: InputMaybe<SortEnumType>;
+  status?: InputMaybe<SortEnumType>;
+  title?: InputMaybe<SortEnumType>;
 };
 
-/** Enumeration of agent task statuses */
 export const AgentTaskStatus = {
   DONE: 'DONE',
   FAILED: 'FAILED',
@@ -111,178 +96,141 @@ export const AgentTaskStatus = {
 } as const;
 
 export type AgentTaskStatus = typeof AgentTaskStatus[keyof typeof AgentTaskStatus];
-export type AgentTaskStatusFilterInput = {
+export type AgentTaskStatusOperationFilterInput = {
   eq?: InputMaybe<AgentTaskStatus>;
   in?: InputMaybe<Array<AgentTaskStatus>>;
-  ne?: InputMaybe<AgentTaskStatus>;
-  notIn?: InputMaybe<Array<AgentTaskStatus>>;
+  neq?: InputMaybe<AgentTaskStatus>;
+  nin?: InputMaybe<Array<AgentTaskStatus>>;
 };
 
-export type Connection = {
+/** A connection to a list of items. */
+export type AgentTasksConnection = {
+  __typename?: 'AgentTasksConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<AgentTasksEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<AgentTask>>;
+  /** Information to aid in pagination. */
   pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
 };
 
-/** Input for creating a new agent task */
+/** An edge in a connection. */
+export type AgentTasksEdge = {
+  __typename?: 'AgentTasksEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: AgentTask;
+};
+
 export type CreateAgentTaskInput = {
-  /** Complexity rating (1-10) */
-  complexityRating?: InputMaybe<Scalars['Int']['input']>;
-  /** ID of the deliverable this task belongs to */
+  complexityRating?: Scalars['Int']['input'];
   deliverableId: Scalars['UUID']['input'];
-  /** ID of the task this task depends on */
   dependsOnAgentTaskId?: InputMaybe<Scalars['UUID']['input']>;
-  /** Description of the task */
   description: Scalars['String']['input'];
-  /** ID of the project this task belongs to */
   projectId: Scalars['UUID']['input'];
-  /** Title of the task */
   title: Scalars['String']['input'];
 };
 
-/** Input for creating a new deliverable */
 export type CreateDeliverableInput = {
-  /** Acceptance criteria */
   acceptanceCriteria?: InputMaybe<Scalars['String']['input']>;
-  /** Deployment plan */
   deploymentPlan?: InputMaybe<Scalars['String']['input']>;
-  /** Description of the deliverable */
   description: Scalars['String']['input'];
-  /** Execution plan */
+  design?: InputMaybe<Scalars['String']['input']>;
   executionPlan?: InputMaybe<Scalars['String']['input']>;
-  /** Initial status of the deliverable */
   initialStatus: DeliverableStatus;
-  /** Performance impact assessment */
   performanceImpact?: InputMaybe<Scalars['String']['input']>;
-  /** ID of the project this deliverable belongs to */
   projectId: Scalars['UUID']['input'];
-  /** Security impact assessment */
   securityImpact?: InputMaybe<Scalars['String']['input']>;
-  /** Test plan */
   testPlan?: InputMaybe<Scalars['String']['input']>;
-  /** Title of the deliverable */
   title: Scalars['String']['input'];
-  /** Type of deliverable */
   type: Scalars['String']['input'];
 };
 
-/** Input for creating a new LLM configuration */
 export type CreateLargeLanguageModelInput = {
-  /** API key for authentication */
   apiKey?: InputMaybe<Scalars['String']['input']>;
-  /** Cost metric */
-  cost?: InputMaybe<Scalars['Int']['input']>;
-  /** Maximum complexity rating */
-  maxComplexity?: InputMaybe<Scalars['Int']['input']>;
-  /** Maximum concurrent requests */
-  maxConcurrency?: InputMaybe<Scalars['Int']['input']>;
-  /** Model identifier */
+  cost?: Scalars['Int']['input'];
+  maxComplexity?: Scalars['Int']['input'];
+  maxConcurrency?: Scalars['Int']['input'];
   model: Scalars['String']['input'];
-  /** Optional alias for the model */
   modelAlias?: InputMaybe<Scalars['String']['input']>;
-  /** Base URL of the LLM API */
   url: Scalars['String']['input'];
 };
 
-/** Input for creating a new project */
 export type CreateProjectInput = {
-  /** Description of the project */
   description?: InputMaybe<Scalars['String']['input']>;
-  /** Name of the project */
   name: Scalars['String']['input'];
-  /** Git repository URL */
   repository: Scalars['String']['input'];
 };
 
-/** Payload for cleanup test data mutation */
 export type DeleteTestDataPayload = {
   __typename?: 'DeleteTestDataPayload';
-  /** Optional message */
   message?: Maybe<Scalars['String']['output']>;
-  /** Whether the operation was successful */
   success: Scalars['Boolean']['output'];
 };
 
-/** Represents a deliverable (feature, task, bug, etc.) in the DevStack system. */
 export type Deliverable = {
   __typename?: 'Deliverable';
-  /** Acceptance criteria for the deliverable */
   acceptanceCriteria?: Maybe<Scalars['String']['output']>;
-  /** Agent feedback on the deliverable */
   agentFeedback?: Maybe<Scalars['String']['output']>;
-  /** Agent tasks associated with this deliverable */
-  agentTasks?: Maybe<AgentTaskConnection>;
-  /** Blocking issues or dependencies */
+  agentTasks: Array<AgentTask>;
   blocking?: Maybe<Scalars['String']['output']>;
-  /** Deployment plan for the deliverable */
   deploymentPlan?: Maybe<Scalars['String']['output']>;
-  /** Detailed description of the deliverable */
   description?: Maybe<Scalars['String']['output']>;
-  /** Execution plan for the deliverable */
+  design?: Maybe<Scalars['String']['output']>;
   executionPlan?: Maybe<Scalars['String']['output']>;
-  /** Unique identifier of the deliverable */
   id: Scalars['UUID']['output'];
-  /** Performance impact assessment */
   performanceImpact?: Maybe<Scalars['String']['output']>;
-  /** Project this deliverable belongs to */
   project?: Maybe<Project>;
-  /** ID of the project this deliverable belongs to */
   projectId: Scalars['UUID']['output'];
-  /** Security impact assessment */
   securityImpact?: Maybe<Scalars['String']['output']>;
-  /** Current status of the deliverable */
   status: DeliverableStatus;
-  /** Test plan for the deliverable */
   testPlan?: Maybe<Scalars['String']['output']>;
-  /** Title of the deliverable */
   title: Scalars['String']['output'];
-  /** Type of deliverable (Feature, Task, Bug, Epic, etc.) */
   type: DeliverableType;
 };
 
-
-/** Represents a deliverable (feature, task, bug, etc.) in the DevStack system. */
-export type DeliverableagentTasksArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<AgentTaskFilterInput>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  order?: InputMaybe<Array<AgentTaskSortInput>>;
-};
-
-export type DeliverableConnection = Connection & {
-  __typename?: 'DeliverableConnection';
-  edges: Array<DeliverableEdge>;
-  nodes: Array<Deliverable>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type DeliverableEdge = Edge & {
-  __typename?: 'DeliverableEdge';
-  cursor: Scalars['String']['output'];
-  node: Deliverable;
-};
-
 export type DeliverableFilterInput = {
+  acceptanceCriteria?: InputMaybe<StringOperationFilterInput>;
+  agentFeedback?: InputMaybe<StringOperationFilterInput>;
+  agentTasks?: InputMaybe<ListFilterInputTypeOfAgentTaskFilterInput>;
   and?: InputMaybe<Array<DeliverableFilterInput>>;
-  description?: InputMaybe<StringFilterInput>;
-  id?: InputMaybe<UUIDFilterInput>;
+  blocking?: InputMaybe<StringOperationFilterInput>;
+  deploymentPlan?: InputMaybe<StringOperationFilterInput>;
+  description?: InputMaybe<StringOperationFilterInput>;
+  design?: InputMaybe<StringOperationFilterInput>;
+  executionPlan?: InputMaybe<StringOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
   or?: InputMaybe<Array<DeliverableFilterInput>>;
-  projectId?: InputMaybe<UUIDFilterInput>;
-  status?: InputMaybe<DeliverableStatusFilterInput>;
-  title?: InputMaybe<StringFilterInput>;
-  type?: InputMaybe<DeliverableTypeFilterInput>;
+  performanceImpact?: InputMaybe<StringOperationFilterInput>;
+  project?: InputMaybe<ProjectFilterInput>;
+  projectId?: InputMaybe<UuidOperationFilterInput>;
+  securityImpact?: InputMaybe<StringOperationFilterInput>;
+  status?: InputMaybe<DeliverableStatusOperationFilterInput>;
+  testPlan?: InputMaybe<StringOperationFilterInput>;
+  title?: InputMaybe<StringOperationFilterInput>;
+  type?: InputMaybe<DeliverableTypeOperationFilterInput>;
 };
 
 export type DeliverableSortInput = {
-  description?: InputMaybe<SortOperationKind>;
-  id?: InputMaybe<SortOperationKind>;
-  projectId?: InputMaybe<SortOperationKind>;
-  status?: InputMaybe<SortOperationKind>;
-  title?: InputMaybe<SortOperationKind>;
-  type?: InputMaybe<SortOperationKind>;
+  acceptanceCriteria?: InputMaybe<SortEnumType>;
+  agentFeedback?: InputMaybe<SortEnumType>;
+  blocking?: InputMaybe<SortEnumType>;
+  deploymentPlan?: InputMaybe<SortEnumType>;
+  description?: InputMaybe<SortEnumType>;
+  design?: InputMaybe<SortEnumType>;
+  executionPlan?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  performanceImpact?: InputMaybe<SortEnumType>;
+  project?: InputMaybe<ProjectSortInput>;
+  projectId?: InputMaybe<SortEnumType>;
+  securityImpact?: InputMaybe<SortEnumType>;
+  status?: InputMaybe<SortEnumType>;
+  testPlan?: InputMaybe<SortEnumType>;
+  title?: InputMaybe<SortEnumType>;
+  type?: InputMaybe<SortEnumType>;
 };
 
-/** Enumeration of deliverable statuses */
 export const DeliverableStatus = {
   DEPLOY: 'DEPLOY',
   DESIGN: 'DESIGN',
@@ -298,14 +246,13 @@ export const DeliverableStatus = {
 } as const;
 
 export type DeliverableStatus = typeof DeliverableStatus[keyof typeof DeliverableStatus];
-export type DeliverableStatusFilterInput = {
+export type DeliverableStatusOperationFilterInput = {
   eq?: InputMaybe<DeliverableStatus>;
   in?: InputMaybe<Array<DeliverableStatus>>;
-  ne?: InputMaybe<DeliverableStatus>;
-  notIn?: InputMaybe<Array<DeliverableStatus>>;
+  neq?: InputMaybe<DeliverableStatus>;
+  nin?: InputMaybe<Array<DeliverableStatus>>;
 };
 
-/** Enumeration of deliverable types */
 export const DeliverableType = {
   DEFECT: 'DEFECT',
   FEATURE: 'FEATURE',
@@ -314,478 +261,429 @@ export const DeliverableType = {
 } as const;
 
 export type DeliverableType = typeof DeliverableType[keyof typeof DeliverableType];
-export type DeliverableTypeFilterInput = {
+export type DeliverableTypeOperationFilterInput = {
   eq?: InputMaybe<DeliverableType>;
   in?: InputMaybe<Array<DeliverableType>>;
-  ne?: InputMaybe<DeliverableType>;
-  notIn?: InputMaybe<Array<DeliverableType>>;
+  neq?: InputMaybe<DeliverableType>;
+  nin?: InputMaybe<Array<DeliverableType>>;
 };
 
-export type Edge = {
+/** A connection to a list of items. */
+export type DeliverablesConnection = {
+  __typename?: 'DeliverablesConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<DeliverablesEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<Deliverable>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type DeliverablesEdge = {
+  __typename?: 'DeliverablesEdge';
+  /** A cursor for use in pagination. */
   cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: Deliverable;
 };
 
-export type IntFilterInput = {
+export type IntOperationFilterInput = {
   eq?: InputMaybe<Scalars['Int']['input']>;
   gt?: InputMaybe<Scalars['Int']['input']>;
   gte?: InputMaybe<Scalars['Int']['input']>;
-  in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
   lt?: InputMaybe<Scalars['Int']['input']>;
   lte?: InputMaybe<Scalars['Int']['input']>;
-  ne?: InputMaybe<Scalars['Int']['input']>;
-  notIn?: InputMaybe<Array<Scalars['Int']['input']>>;
+  neq?: InputMaybe<Scalars['Int']['input']>;
+  ngt?: InputMaybe<Scalars['Int']['input']>;
+  ngte?: InputMaybe<Scalars['Int']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  nlt?: InputMaybe<Scalars['Int']['input']>;
+  nlte?: InputMaybe<Scalars['Int']['input']>;
 };
 
-/** Represents a Large Language Model configuration. */
 export type LargeLanguageModel = {
   __typename?: 'LargeLanguageModel';
-  /** API key for authentication */
-  apiKey?: Maybe<Scalars['String']['output']>;
-  /** Cost metric for this model */
+  apiKey: Scalars['String']['output'];
   cost: Scalars['Int']['output'];
-  /** Unique identifier of the LLM configuration */
   id: Scalars['UUID']['output'];
-  /** Maximum complexity rating supported */
   maxComplexity: Scalars['Int']['output'];
-  /** Maximum concurrent requests supported */
   maxConcurrency: Scalars['Int']['output'];
-  /** Model identifier */
   model: Scalars['String']['output'];
-  /** Optional alias for the model */
-  modelAlias?: Maybe<Scalars['String']['output']>;
-  /** Base URL of the LLM API */
+  modelAlias: Scalars['String']['output'];
   url: Scalars['String']['output'];
-};
-
-export type LargeLanguageModelConnection = Connection & {
-  __typename?: 'LargeLanguageModelConnection';
-  edges: Array<LargeLanguageModelEdge>;
-  nodes: Array<LargeLanguageModel>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type LargeLanguageModelEdge = Edge & {
-  __typename?: 'LargeLanguageModelEdge';
-  cursor: Scalars['String']['output'];
-  node: LargeLanguageModel;
 };
 
 export type LargeLanguageModelFilterInput = {
   and?: InputMaybe<Array<LargeLanguageModelFilterInput>>;
-  cost?: InputMaybe<IntFilterInput>;
-  id?: InputMaybe<UUIDFilterInput>;
-  maxComplexity?: InputMaybe<IntFilterInput>;
-  maxConcurrency?: InputMaybe<IntFilterInput>;
-  model?: InputMaybe<StringFilterInput>;
-  modelAlias?: InputMaybe<StringFilterInput>;
+  apiKey?: InputMaybe<StringOperationFilterInput>;
+  cost?: InputMaybe<IntOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
+  maxComplexity?: InputMaybe<IntOperationFilterInput>;
+  maxConcurrency?: InputMaybe<IntOperationFilterInput>;
+  model?: InputMaybe<StringOperationFilterInput>;
+  modelAlias?: InputMaybe<StringOperationFilterInput>;
   or?: InputMaybe<Array<LargeLanguageModelFilterInput>>;
-  url?: InputMaybe<StringFilterInput>;
+  url?: InputMaybe<StringOperationFilterInput>;
 };
 
 export type LargeLanguageModelSortInput = {
-  cost?: InputMaybe<SortOperationKind>;
-  id?: InputMaybe<SortOperationKind>;
-  maxComplexity?: InputMaybe<SortOperationKind>;
-  maxConcurrency?: InputMaybe<SortOperationKind>;
-  model?: InputMaybe<SortOperationKind>;
-  modelAlias?: InputMaybe<SortOperationKind>;
-  url?: InputMaybe<SortOperationKind>;
+  apiKey?: InputMaybe<SortEnumType>;
+  cost?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  maxComplexity?: InputMaybe<SortEnumType>;
+  maxConcurrency?: InputMaybe<SortEnumType>;
+  model?: InputMaybe<SortEnumType>;
+  modelAlias?: InputMaybe<SortEnumType>;
+  url?: InputMaybe<SortEnumType>;
 };
 
-/** The root mutation type */
+/** A connection to a list of items. */
+export type LargeLanguageModelsConnection = {
+  __typename?: 'LargeLanguageModelsConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<LargeLanguageModelsEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<LargeLanguageModel>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type LargeLanguageModelsEdge = {
+  __typename?: 'LargeLanguageModelsEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: LargeLanguageModel;
+};
+
+export type ListFilterInputTypeOfAgentTaskFilterInput = {
+  all?: InputMaybe<AgentTaskFilterInput>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
+  none?: InputMaybe<AgentTaskFilterInput>;
+  some?: InputMaybe<AgentTaskFilterInput>;
+};
+
+export type ListFilterInputTypeOfDeliverableFilterInput = {
+  all?: InputMaybe<DeliverableFilterInput>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
+  none?: InputMaybe<DeliverableFilterInput>;
+  some?: InputMaybe<DeliverableFilterInput>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Create a new agent task */
-  createAgentTask?: Maybe<AgentTask>;
-  /** Create a new deliverable */
+  checkAndMarkDeliverableDone: Scalars['Boolean']['output'];
+  createAgentTask: AgentTask;
   createDeliverable?: Maybe<Deliverable>;
-  /** Create a new LLM configuration */
   createLargeLanguageModel?: Maybe<LargeLanguageModel>;
-  /** Create a new project */
   createProject?: Maybe<Project>;
-  /** Delete an agent task */
-  deleteAgentTask?: Maybe<Scalars['Boolean']['output']>;
-  /** Delete a deliverable */
-  deleteDeliverable?: Maybe<Scalars['Boolean']['output']>;
-  /** Delete an LLM configuration */
-  deleteLargeLanguageModel?: Maybe<Scalars['Boolean']['output']>;
-  /** Delete a project */
-  deleteProject?: Maybe<Scalars['Boolean']['output']>;
-  /** Cleanup test data (development only) */
+  deleteAgentTask: Scalars['Boolean']['output'];
+  deleteDeliverable: Scalars['Boolean']['output'];
+  deleteLargeLanguageModel: Scalars['Boolean']['output'];
+  deleteProject: Scalars['Boolean']['output'];
   deleteTestData: DeleteTestDataPayload;
-  /** Update an existing agent task */
-  updateAgentTask?: Maybe<AgentTask>;
-  /** Update agent task status */
-  updateAgentTaskStatus?: Maybe<AgentTaskStatus>;
-  /** Update an existing deliverable */
-  updateDeliverable?: Maybe<Deliverable>;
-  /** Update deliverable status */
-  updateDeliverableStatus?: Maybe<DeliverableStatus>;
-  /** Update an existing LLM configuration */
+  updateAgentTask: AgentTask;
+  updateAgentTaskStatus: AgentTaskStatus;
+  updateDeliverable: Deliverable;
+  updateDeliverableStatus: DeliverableStatus;
   updateLargeLanguageModel?: Maybe<LargeLanguageModel>;
-  /** Update an existing project */
   updateProject?: Maybe<Project>;
 };
 
 
-/** The root mutation type */
+export type MutationcheckAndMarkDeliverableDoneArgs = {
+  deliverableId: Scalars['UUID']['input'];
+};
+
+
 export type MutationcreateAgentTaskArgs = {
   input: CreateAgentTaskInput;
 };
 
 
-/** The root mutation type */
 export type MutationcreateDeliverableArgs = {
   input: CreateDeliverableInput;
 };
 
 
-/** The root mutation type */
 export type MutationcreateLargeLanguageModelArgs = {
   input: CreateLargeLanguageModelInput;
 };
 
 
-/** The root mutation type */
 export type MutationcreateProjectArgs = {
   input: CreateProjectInput;
 };
 
 
-/** The root mutation type */
 export type MutationdeleteAgentTaskArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-/** The root mutation type */
 export type MutationdeleteDeliverableArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-/** The root mutation type */
 export type MutationdeleteLargeLanguageModelArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-/** The root mutation type */
 export type MutationdeleteProjectArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-/** The root mutation type */
 export type MutationupdateAgentTaskArgs = {
   input: UpdateAgentTaskInput;
 };
 
 
-/** The root mutation type */
 export type MutationupdateAgentTaskStatusArgs = {
   id: Scalars['UUID']['input'];
   targetStatus: AgentTaskStatus;
 };
 
 
-/** The root mutation type */
 export type MutationupdateDeliverableArgs = {
   input: UpdateDeliverableInput;
 };
 
 
-/** The root mutation type */
 export type MutationupdateDeliverableStatusArgs = {
-  input: UpdateDeliverableStatusInput;
+  actor?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  targetStatus: DeliverableStatus;
 };
 
 
-/** The root mutation type */
 export type MutationupdateLargeLanguageModelArgs = {
   input: UpdateLargeLanguageModelInput;
 };
 
 
-/** The root mutation type */
 export type MutationupdateProjectArgs = {
   input: UpdateProjectInput;
 };
 
+/** Information about pagination in a connection. */
 export type PageInfo = {
   __typename?: 'PageInfo';
+  /** When paginating forwards, the cursor to continue. */
   endCursor?: Maybe<Scalars['String']['output']>;
+  /** Indicates whether more edges exist following the set defined by the clients arguments. */
   hasNextPage: Scalars['Boolean']['output'];
+  /** Indicates whether more edges exist prior the set defined by the clients arguments. */
   hasPreviousPage: Scalars['Boolean']['output'];
+  /** When paginating backwards, the cursor to continue. */
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
-/** Represents a software project in the DevStack system. */
 export type Project = {
   __typename?: 'Project';
-  /** Deliverables associated with this project */
-  deliverables?: Maybe<DeliverableConnection>;
-  /** Description of the project */
-  description?: Maybe<Scalars['String']['output']>;
-  /** Unique identifier of the project */
+  deliverables: Array<Deliverable>;
+  description: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
-  /** Name of the project */
   name: Scalars['String']['output'];
-  /** Git repository URL */
   repository: Scalars['String']['output'];
-};
-
-
-/** Represents a software project in the DevStack system. */
-export type ProjectdeliverablesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DeliverableFilterInput>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  order?: InputMaybe<Array<DeliverableSortInput>>;
-};
-
-export type ProjectConnection = Connection & {
-  __typename?: 'ProjectConnection';
-  edges: Array<ProjectEdge>;
-  nodes: Array<Project>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type ProjectEdge = Edge & {
-  __typename?: 'ProjectEdge';
-  cursor: Scalars['String']['output'];
-  node: Project;
 };
 
 export type ProjectFilterInput = {
   and?: InputMaybe<Array<ProjectFilterInput>>;
-  description?: InputMaybe<StringFilterInput>;
-  id?: InputMaybe<UUIDFilterInput>;
-  name?: InputMaybe<StringFilterInput>;
+  deliverables?: InputMaybe<ListFilterInputTypeOfDeliverableFilterInput>;
+  description?: InputMaybe<StringOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
+  name?: InputMaybe<StringOperationFilterInput>;
   or?: InputMaybe<Array<ProjectFilterInput>>;
-  repository?: InputMaybe<StringFilterInput>;
+  repository?: InputMaybe<StringOperationFilterInput>;
 };
 
 export type ProjectSortInput = {
-  description?: InputMaybe<SortOperationKind>;
-  id?: InputMaybe<SortOperationKind>;
-  name?: InputMaybe<SortOperationKind>;
-  repository?: InputMaybe<SortOperationKind>;
+  description?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  name?: InputMaybe<SortEnumType>;
+  repository?: InputMaybe<SortEnumType>;
 };
 
-/** The root query type */
+/** A connection to a list of items. */
+export type ProjectsConnection = {
+  __typename?: 'ProjectsConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<ProjectsEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<Project>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type ProjectsEdge = {
+  __typename?: 'ProjectsEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: Project;
+};
+
 export type Query = {
   __typename?: 'Query';
-  /** Get a single agent task by ID */
   agentTask?: Maybe<AgentTask>;
-  /** Get all agent tasks with optional filtering and pagination */
-  agentTasks?: Maybe<AgentTaskConnection>;
-  /** Get a single deliverable by ID */
+  agentTasks?: Maybe<AgentTasksConnection>;
   deliverable?: Maybe<Deliverable>;
-  /** Get all deliverables with optional filtering and pagination */
-  deliverables?: Maybe<DeliverableConnection>;
-  /** Get a single LLM configuration by ID */
+  deliverables?: Maybe<DeliverablesConnection>;
   largeLanguageModel?: Maybe<LargeLanguageModel>;
-  /** Get all LLM configurations with optional filtering and pagination */
-  largeLanguageModels?: Maybe<LargeLanguageModelConnection>;
-  /** Get a single project by ID */
+  largeLanguageModels?: Maybe<LargeLanguageModelsConnection>;
   project?: Maybe<Project>;
-  /** Get all projects with optional filtering and pagination */
-  projects?: Maybe<ProjectConnection>;
+  projects?: Maybe<ProjectsConnection>;
 };
 
 
-/** The root query type */
 export type QueryagentTaskArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-/** The root query type */
 export type QueryagentTasksArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<AgentTaskFilterInput>;
+  before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Array<AgentTaskSortInput>>;
+  where?: InputMaybe<AgentTaskFilterInput>;
 };
 
 
-/** The root query type */
 export type QuerydeliverableArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-/** The root query type */
 export type QuerydeliverablesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DeliverableFilterInput>;
+  before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Array<DeliverableSortInput>>;
+  where?: InputMaybe<DeliverableFilterInput>;
 };
 
 
-/** The root query type */
 export type QuerylargeLanguageModelArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-/** The root query type */
 export type QuerylargeLanguageModelsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<LargeLanguageModelFilterInput>;
+  before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Array<LargeLanguageModelSortInput>>;
+  where?: InputMaybe<LargeLanguageModelFilterInput>;
 };
 
 
-/** The root query type */
 export type QueryprojectArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-/** The root query type */
 export type QueryprojectsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<ProjectFilterInput>;
+  before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Array<ProjectSortInput>>;
+  where?: InputMaybe<ProjectFilterInput>;
 };
 
-export const SortOperationKind = {
+export const SortEnumType = {
   ASC: 'ASC',
-  ASC_NULLS_FIRST: 'ASC_NULLS_FIRST',
-  ASC_NULLS_LAST: 'ASC_NULLS_LAST',
-  DESC: 'DESC',
-  DESC_NULLS_FIRST: 'DESC_NULLS_FIRST',
-  DESC_NULLS_LAST: 'DESC_NULLS_LAST'
+  DESC: 'DESC'
 } as const;
 
-export type SortOperationKind = typeof SortOperationKind[keyof typeof SortOperationKind];
-export type StringFilterInput = {
+export type SortEnumType = typeof SortEnumType[keyof typeof SortEnumType];
+export type StringOperationFilterInput = {
+  and?: InputMaybe<Array<StringOperationFilterInput>>;
   contains?: InputMaybe<Scalars['String']['input']>;
   endsWith?: InputMaybe<Scalars['String']['input']>;
   eq?: InputMaybe<Scalars['String']['input']>;
-  in?: InputMaybe<Array<Scalars['String']['input']>>;
-  ne?: InputMaybe<Scalars['String']['input']>;
-  notContains?: InputMaybe<Scalars['String']['input']>;
-  notIn?: InputMaybe<Array<Scalars['String']['input']>>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  ncontains?: InputMaybe<Scalars['String']['input']>;
+  nendsWith?: InputMaybe<Scalars['String']['input']>;
+  neq?: InputMaybe<Scalars['String']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  nstartsWith?: InputMaybe<Scalars['String']['input']>;
+  or?: InputMaybe<Array<StringOperationFilterInput>>;
   startsWith?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UUIDFilterInput = {
-  eq?: InputMaybe<Scalars['UUID']['input']>;
-  in?: InputMaybe<Array<Scalars['UUID']['input']>>;
-  ne?: InputMaybe<Scalars['UUID']['input']>;
-  notIn?: InputMaybe<Array<Scalars['UUID']['input']>>;
-};
-
-/** Input for updating an existing agent task */
 export type UpdateAgentTaskInput = {
-  /** Agent that executed the task */
   agent?: InputMaybe<Scalars['String']['input']>;
-  /** Git commit hash */
   commitHash?: InputMaybe<Scalars['String']['input']>;
-  /** Number of completion tokens */
   completionTokens?: InputMaybe<Scalars['Int']['input']>;
-  /** New complexity rating */
   complexityRating?: InputMaybe<Scalars['Int']['input']>;
-  /** New dependency */
   dependsOnAgentTaskId?: InputMaybe<Scalars['UUID']['input']>;
-  /** New description */
   description?: InputMaybe<Scalars['String']['input']>;
-  /** Errors encountered */
   errors?: InputMaybe<Scalars['String']['input']>;
-  /** Execution duration in seconds */
   executionDurationInSeconds?: InputMaybe<Scalars['Int']['input']>;
-  /** Unique identifier of the task to update */
   id: Scalars['UUID']['input'];
-  /** Number of prompt tokens */
   promptTokens?: InputMaybe<Scalars['Int']['input']>;
-  /** Result of the task */
   result?: InputMaybe<Scalars['String']['input']>;
-  /** New title */
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** Input for updating agent task status */
-export type UpdateAgentTaskStatusInput = {
-  /** Unique identifier of the task */
-  id: Scalars['UUID']['input'];
-  /** Target status */
-  targetStatus: AgentTaskStatus;
-};
-
-/** Input for updating an existing deliverable */
 export type UpdateDeliverableInput = {
-  /** New acceptance criteria */
   acceptanceCriteria?: InputMaybe<Scalars['String']['input']>;
-  /** Agent feedback */
   agentFeedback?: InputMaybe<Scalars['String']['input']>;
-  /** Blocking issues */
   blocking?: InputMaybe<Scalars['String']['input']>;
-  /** New deployment plan */
   deploymentPlan?: InputMaybe<Scalars['String']['input']>;
-  /** New description */
   description?: InputMaybe<Scalars['String']['input']>;
-  /** New execution plan */
+  design?: InputMaybe<Scalars['String']['input']>;
   executionPlan?: InputMaybe<Scalars['String']['input']>;
-  /** Unique identifier of the deliverable to update */
   id: Scalars['UUID']['input'];
-  /** New performance impact assessment */
   performanceImpact?: InputMaybe<Scalars['String']['input']>;
-  /** New security impact assessment */
   securityImpact?: InputMaybe<Scalars['String']['input']>;
-  /** New test plan */
   testPlan?: InputMaybe<Scalars['String']['input']>;
-  /** New title */
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** Input for updating deliverable status */
-export type UpdateDeliverableStatusInput = {
-  /** Actor who initiated the status change */
-  actor?: InputMaybe<Scalars['String']['input']>;
-  /** Unique identifier of the deliverable */
-  id: Scalars['UUID']['input'];
-  /** Target status */
-  targetStatus: DeliverableStatus;
-};
-
-/** Input for updating an existing LLM configuration */
 export type UpdateLargeLanguageModelInput = {
-  /** New API key */
   apiKey?: InputMaybe<Scalars['String']['input']>;
-  /** New cost metric */
   cost?: InputMaybe<Scalars['Int']['input']>;
-  /** Unique identifier of the LLM configuration */
   id: Scalars['UUID']['input'];
-  /** New maximum complexity */
   maxComplexity?: InputMaybe<Scalars['Int']['input']>;
-  /** New maximum concurrency */
   maxConcurrency?: InputMaybe<Scalars['Int']['input']>;
-  /** New model identifier */
   model?: InputMaybe<Scalars['String']['input']>;
-  /** New model alias */
   modelAlias?: InputMaybe<Scalars['String']['input']>;
-  /** New base URL */
   url?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** Input for updating an existing project */
 export type UpdateProjectInput = {
-  /** New description for the project */
   description?: InputMaybe<Scalars['String']['input']>;
-  /** Unique identifier of the project to update */
   id: Scalars['UUID']['input'];
-  /** New name for the project */
   name?: InputMaybe<Scalars['String']['input']>;
-  /** New repository URL */
   repository?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UuidOperationFilterInput = {
+  eq?: InputMaybe<Scalars['UUID']['input']>;
+  gt?: InputMaybe<Scalars['UUID']['input']>;
+  gte?: InputMaybe<Scalars['UUID']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['UUID']['input']>>>;
+  lt?: InputMaybe<Scalars['UUID']['input']>;
+  lte?: InputMaybe<Scalars['UUID']['input']>;
+  neq?: InputMaybe<Scalars['UUID']['input']>;
+  ngt?: InputMaybe<Scalars['UUID']['input']>;
+  ngte?: InputMaybe<Scalars['UUID']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['UUID']['input']>>>;
+  nlt?: InputMaybe<Scalars['UUID']['input']>;
+  nlte?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 export type CreateAgentTaskMutationVariables = Exact<{
@@ -793,7 +691,7 @@ export type CreateAgentTaskMutationVariables = Exact<{
 }>;
 
 
-export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask?: { __typename?: 'AgentTask', id: any, title: string, deliverableId: any, description: string, complexityRating: number, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null };
+export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTask', id: any, title: string, deliverableId: any, description: string, complexityRating: number, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } };
 
 export type CreateDeliverableMutationVariables = Exact<{
   input: CreateDeliverableInput;
@@ -807,42 +705,42 @@ export type CreateLargeLanguageModelMutationVariables = Exact<{
 }>;
 
 
-export type CreateLargeLanguageModelMutation = { __typename?: 'Mutation', createLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias?: string | null, maxComplexity: number, maxConcurrency: number } | null };
+export type CreateLargeLanguageModelMutation = { __typename?: 'Mutation', createLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, maxComplexity: number, maxConcurrency: number } | null };
 
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
 }>;
 
 
-export type CreateProjectMutation = { __typename?: 'Mutation', createProject?: { __typename?: 'Project', id: any, name: string, description?: string | null, repository: string } | null };
+export type CreateProjectMutation = { __typename?: 'Mutation', createProject?: { __typename?: 'Project', id: any, name: string, description: string, repository: string } | null };
 
 export type DeleteAgentTaskMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type DeleteAgentTaskMutation = { __typename?: 'Mutation', deleteAgentTask?: boolean | null };
+export type DeleteAgentTaskMutation = { __typename?: 'Mutation', deleteAgentTask: boolean };
 
 export type DeleteDeliverableMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type DeleteDeliverableMutation = { __typename?: 'Mutation', deleteDeliverable?: boolean | null };
+export type DeleteDeliverableMutation = { __typename?: 'Mutation', deleteDeliverable: boolean };
 
 export type DeleteLargeLanguageModelMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type DeleteLargeLanguageModelMutation = { __typename?: 'Mutation', deleteLargeLanguageModel?: boolean | null };
+export type DeleteLargeLanguageModelMutation = { __typename?: 'Mutation', deleteLargeLanguageModel: boolean };
 
 export type DeleteProjectMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type DeleteProjectMutation = { __typename?: 'Mutation', deleteProject?: boolean | null };
+export type DeleteProjectMutation = { __typename?: 'Mutation', deleteProject: boolean };
 
 export type UpdateAgentTaskStatusMutationVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -850,42 +748,43 @@ export type UpdateAgentTaskStatusMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAgentTaskStatusMutation = { __typename?: 'Mutation', updateAgentTaskStatus?: AgentTaskStatus | null };
+export type UpdateAgentTaskStatusMutation = { __typename?: 'Mutation', updateAgentTaskStatus: AgentTaskStatus };
 
 export type UpdateDeliverableStatusMutationVariables = Exact<{
-  input: UpdateDeliverableStatusInput;
+  id: Scalars['UUID']['input'];
+  targetStatus: DeliverableStatus;
 }>;
 
 
-export type UpdateDeliverableStatusMutation = { __typename?: 'Mutation', updateDeliverableStatus?: DeliverableStatus | null };
+export type UpdateDeliverableStatusMutation = { __typename?: 'Mutation', updateDeliverableStatus: DeliverableStatus };
 
 export type UpdateAgentTaskMutationVariables = Exact<{
   input: UpdateAgentTaskInput;
 }>;
 
 
-export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask?: { __typename?: 'AgentTask', id: any, title: string, deliverableId: any, description: string, complexityRating: number, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null };
+export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTask', id: any, title: string, deliverableId: any, description: string, complexityRating: number, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } };
 
 export type UpdateDeliverableMutationVariables = Exact<{
   input: UpdateDeliverableInput;
 }>;
 
 
-export type UpdateDeliverableMutation = { __typename?: 'Mutation', updateDeliverable?: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null } | null };
+export type UpdateDeliverableMutation = { __typename?: 'Mutation', updateDeliverable: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null } };
 
 export type UpdateLargeLanguageModelMutationVariables = Exact<{
   input: UpdateLargeLanguageModelInput;
 }>;
 
 
-export type UpdateLargeLanguageModelMutation = { __typename?: 'Mutation', updateLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias?: string | null, maxComplexity: number, maxConcurrency: number } | null };
+export type UpdateLargeLanguageModelMutation = { __typename?: 'Mutation', updateLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, maxComplexity: number, maxConcurrency: number } | null };
 
 export type UpdateProjectMutationVariables = Exact<{
   input: UpdateProjectInput;
 }>;
 
 
-export type UpdateProjectMutation = { __typename?: 'Mutation', updateProject?: { __typename?: 'Project', id: any, name: string, description?: string | null, repository: string } | null };
+export type UpdateProjectMutation = { __typename?: 'Mutation', updateProject?: { __typename?: 'Project', id: any, name: string, description: string, repository: string } | null };
 
 export type GetAgentTaskQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -899,14 +798,19 @@ export type GetAgentTasksQueryVariables = Exact<{
 }>;
 
 
-export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks?: { __typename?: 'AgentTaskConnection', nodes: Array<{ __typename?: 'AgentTask', id: any, title: string, status: AgentTaskStatus, deliverableId: any, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null }> } | null };
+export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks?: { __typename?: 'AgentTasksConnection', nodes?: Array<{ __typename?: 'AgentTask', id: any, title: string, status: AgentTaskStatus, deliverableId: any, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null }> | null } | null };
 
-export type GetDeliverablesQueryVariables = Exact<{
-  projectId?: InputMaybe<Scalars['UUID']['input']>;
+export type GetAllDeliverablesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllDeliverablesQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null }> | null } | null };
+
+export type GetDeliverablesByProjectQueryVariables = Exact<{
+  projectId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetDeliverablesQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverableConnection', nodes: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null }> } | null };
+export type GetDeliverablesByProjectQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null }> | null } | null };
 
 export type GetDeliverableQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -918,19 +822,19 @@ export type GetDeliverableQuery = { __typename?: 'Query', deliverable?: { __type
 export type ModelConfigurationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ModelConfigurationsQuery = { __typename?: 'Query', largeLanguageModels?: { __typename?: 'LargeLanguageModelConnection', nodes: Array<{ __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias?: string | null, apiKey?: string | null, maxComplexity: number, maxConcurrency: number }> } | null };
+export type ModelConfigurationsQuery = { __typename?: 'Query', largeLanguageModels?: { __typename?: 'LargeLanguageModelsConnection', nodes?: Array<{ __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, apiKey: string, maxComplexity: number, maxConcurrency: number }> | null } | null };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'Query', project?: { __typename?: 'Project', id: any, name: string, description?: string | null, repository: string } | null };
+export type GetProjectQuery = { __typename?: 'Query', project?: { __typename?: 'Project', id: any, name: string, description: string, repository: string } | null };
 
 export type GetProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetProjectsQuery = { __typename?: 'Query', projects?: { __typename?: 'ProjectConnection', nodes: Array<{ __typename?: 'Project', id: any, name: string, description?: string | null, repository: string }> } | null };
+export type GetProjectsQuery = { __typename?: 'Query', projects?: { __typename?: 'ProjectsConnection', nodes?: Array<{ __typename?: 'Project', id: any, name: string, description: string, repository: string }> | null } | null };
 
 
 export const CreateAgentTaskDocument = gql`
@@ -1244,8 +1148,8 @@ export type UpdateAgentTaskStatusMutationHookResult = ReturnType<typeof useUpdat
 export type UpdateAgentTaskStatusMutationResult = Apollo.MutationResult<UpdateAgentTaskStatusMutation>;
 export type UpdateAgentTaskStatusMutationOptions = Apollo.BaseMutationOptions<UpdateAgentTaskStatusMutation, UpdateAgentTaskStatusMutationVariables>;
 export const UpdateDeliverableStatusDocument = gql`
-    mutation UpdateDeliverableStatus($input: UpdateDeliverableStatusInput!) {
-  updateDeliverableStatus(input: $input)
+    mutation UpdateDeliverableStatus($id: UUID!, $targetStatus: DeliverableStatus!) {
+  updateDeliverableStatus(id: $id, targetStatus: $targetStatus)
 }
     `;
 export type UpdateDeliverableStatusMutationFn = Apollo.MutationFunction<UpdateDeliverableStatusMutation, UpdateDeliverableStatusMutationVariables>;
@@ -1263,7 +1167,8 @@ export type UpdateDeliverableStatusMutationFn = Apollo.MutationFunction<UpdateDe
  * @example
  * const [updateDeliverableStatusMutation, { data, loading, error }] = useUpdateDeliverableStatusMutation({
  *   variables: {
- *      input: // value for 'input'
+ *      id: // value for 'id'
+ *      targetStatus: // value for 'targetStatus'
  *   },
  * });
  */
@@ -1496,7 +1401,7 @@ export type GetAgentTaskSuspenseQueryHookResult = ReturnType<typeof useGetAgentT
 export type GetAgentTaskQueryResult = Apollo.QueryResult<GetAgentTaskQuery, GetAgentTaskQueryVariables>;
 export const GetAgentTasksDocument = gql`
     query GetAgentTasks($deliverableId: UUID) {
-  agentTasks(filter: {deliverableId: {eq: $deliverableId}}) {
+  agentTasks(where: {deliverableId: {eq: $deliverableId}}) {
     nodes {
       id
       title
@@ -1552,9 +1457,9 @@ export type GetAgentTasksQueryHookResult = ReturnType<typeof useGetAgentTasksQue
 export type GetAgentTasksLazyQueryHookResult = ReturnType<typeof useGetAgentTasksLazyQuery>;
 export type GetAgentTasksSuspenseQueryHookResult = ReturnType<typeof useGetAgentTasksSuspenseQuery>;
 export type GetAgentTasksQueryResult = Apollo.QueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
-export const GetDeliverablesDocument = gql`
-    query GetDeliverables($projectId: UUID) {
-  deliverables(filter: {projectId: {eq: $projectId}}) {
+export const GetAllDeliverablesDocument = gql`
+    query GetAllDeliverables {
+  deliverables {
     nodes {
       id
       title
@@ -1576,40 +1481,97 @@ export const GetDeliverablesDocument = gql`
     `;
 
 /**
- * __useGetDeliverablesQuery__
+ * __useGetAllDeliverablesQuery__
  *
- * To run a query within a React component, call `useGetDeliverablesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetDeliverablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetAllDeliverablesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllDeliverablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetDeliverablesQuery({
+ * const { data, loading, error } = useGetAllDeliverablesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAllDeliverablesQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>(GetAllDeliverablesDocument, options);
+      }
+export function useGetAllDeliverablesLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>(GetAllDeliverablesDocument, options);
+        }
+// @ts-ignore
+export function useGetAllDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>;
+export function useGetAllDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetAllDeliverablesQuery | undefined, GetAllDeliverablesQueryVariables>;
+export function useGetAllDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>(GetAllDeliverablesDocument, options);
+        }
+export type GetAllDeliverablesQueryHookResult = ReturnType<typeof useGetAllDeliverablesQuery>;
+export type GetAllDeliverablesLazyQueryHookResult = ReturnType<typeof useGetAllDeliverablesLazyQuery>;
+export type GetAllDeliverablesSuspenseQueryHookResult = ReturnType<typeof useGetAllDeliverablesSuspenseQuery>;
+export type GetAllDeliverablesQueryResult = Apollo.QueryResult<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>;
+export const GetDeliverablesByProjectDocument = gql`
+    query GetDeliverablesByProject($projectId: UUID!) {
+  deliverables(where: {projectId: {eq: $projectId}}) {
+    nodes {
+      id
+      title
+      description
+      status
+      type
+      projectId
+      acceptanceCriteria
+      executionPlan
+      agentFeedback
+      securityImpact
+      performanceImpact
+      testPlan
+      deploymentPlan
+      blocking
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetDeliverablesByProjectQuery__
+ *
+ * To run a query within a React component, call `useGetDeliverablesByProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeliverablesByProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeliverablesByProjectQuery({
  *   variables: {
  *      projectId: // value for 'projectId'
  *   },
  * });
  */
-export function useGetDeliverablesQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>) {
+export function useGetDeliverablesByProjectQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables> & ({ variables: GetDeliverablesByProjectQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(GetDeliverablesDocument, options);
+        return ApolloReactHooks.useQuery<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables>(GetDeliverablesByProjectDocument, options);
       }
-export function useGetDeliverablesLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>) {
+export function useGetDeliverablesByProjectLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(GetDeliverablesDocument, options);
+          return ApolloReactHooks.useLazyQuery<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables>(GetDeliverablesByProjectDocument, options);
         }
 // @ts-ignore
-export function useGetDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverablesQuery, GetDeliverablesQueryVariables>;
-export function useGetDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverablesQuery | undefined, GetDeliverablesQueryVariables>;
-export function useGetDeliverablesSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesQuery, GetDeliverablesQueryVariables>) {
+export function useGetDeliverablesByProjectSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables>;
+export function useGetDeliverablesByProjectSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetDeliverablesByProjectQuery | undefined, GetDeliverablesByProjectQueryVariables>;
+export function useGetDeliverablesByProjectSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables>) {
           const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetDeliverablesQuery, GetDeliverablesQueryVariables>(GetDeliverablesDocument, options);
+          return ApolloReactHooks.useSuspenseQuery<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables>(GetDeliverablesByProjectDocument, options);
         }
-export type GetDeliverablesQueryHookResult = ReturnType<typeof useGetDeliverablesQuery>;
-export type GetDeliverablesLazyQueryHookResult = ReturnType<typeof useGetDeliverablesLazyQuery>;
-export type GetDeliverablesSuspenseQueryHookResult = ReturnType<typeof useGetDeliverablesSuspenseQuery>;
-export type GetDeliverablesQueryResult = Apollo.QueryResult<GetDeliverablesQuery, GetDeliverablesQueryVariables>;
+export type GetDeliverablesByProjectQueryHookResult = ReturnType<typeof useGetDeliverablesByProjectQuery>;
+export type GetDeliverablesByProjectLazyQueryHookResult = ReturnType<typeof useGetDeliverablesByProjectLazyQuery>;
+export type GetDeliverablesByProjectSuspenseQueryHookResult = ReturnType<typeof useGetDeliverablesByProjectSuspenseQuery>;
+export type GetDeliverablesByProjectQueryResult = Apollo.QueryResult<GetDeliverablesByProjectQuery, GetDeliverablesByProjectQueryVariables>;
 export const GetDeliverableDocument = gql`
     query GetDeliverable($id: UUID!) {
   deliverable(id: $id) {

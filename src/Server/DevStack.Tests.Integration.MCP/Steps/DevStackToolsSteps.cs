@@ -70,6 +70,38 @@ public sealed class DevStackToolsSteps
         return ExtractJsonFromMarkdown(text);
     }
 
+    private static bool IsMcpToolError(JsonRpcResponse response, out string errorText)
+    {
+        errorText = string.Empty;
+        if (response.Result == null) return false;
+
+        var resultJson = JsonSerializer.Serialize(response.Result);
+        Console.WriteLine($"[MCP DEBUG] Full result JSON: {resultJson}");
+        var doc = JsonDocument.Parse(resultJson);
+        var root = doc.RootElement;
+
+        if (root.ValueKind != JsonValueKind.Object) return false;
+
+        if (root.TryGetProperty("isError", out var isErrorProp) && isErrorProp.GetBoolean())
+        {
+            var texts = new List<string>();
+            if (root.TryGetProperty("content", out var contentProp) && contentProp.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in contentProp.EnumerateArray())
+                {
+                    if (item.TryGetProperty("text", out var textProp) && textProp.ValueKind == JsonValueKind.String)
+                    {
+                        texts.Add(textProp.GetString()!);
+                    }
+                }
+            }
+            errorText = string.Join(Environment.NewLine, texts);
+            return true;
+        }
+
+        return false;
+    }
+
     #region Deliverable Steps
 
     [Given(@"a valid deliverable creation request with title ""(.*)""")]
@@ -352,12 +384,18 @@ public sealed class DevStackToolsSteps
         var projectId = Guid.Parse(await GetOrCreateTestProjectIdAsync());
         var args = new { projectId, title = $"Test Deliverable {Guid.NewGuid()}", description = "Auto-generated test deliverable" };
         var response = await Client.SendRequestAsync("tools/call", new { name = "create_deliverable", arguments = args });
-        var result = GetResultJson(response);
 
         if (response.Error != null)
         {
             throw new InvalidOperationException($"Tool call failed: {response.Error.Message}");
         }
+
+        if (IsMcpToolError(response, out var errorText))
+        {
+            throw new InvalidOperationException($"Tool returned error: {errorText}");
+        }
+
+        var result = GetResultJson(response);
 
         if (string.IsNullOrEmpty(result))
         {
@@ -404,11 +442,18 @@ public sealed class DevStackToolsSteps
         var deliverableId = Guid.Parse(await GetOrCreateTestDeliverableIdAsync());
         var args = new { projectId, itemId = deliverableId, title = $"Test Task {Guid.NewGuid()}", deliverableDescription = "Auto-generated test task" };
         var response = await Client.SendRequestAsync("tools/call", new { name = "create_task", arguments = args });
-        var result = GetResultJson(response);
+
         if (response.Error != null)
         {
             throw new InvalidOperationException($"Tool call failed: {response.Error.Message}");
         }
+
+        if (IsMcpToolError(response, out var errorText))
+        {
+            throw new InvalidOperationException($"Tool returned error: {errorText}");
+        }
+
+        var result = GetResultJson(response);
 
         if (string.IsNullOrEmpty(result))
         {

@@ -1,5 +1,26 @@
-query GetDeliverables($projectId: UUID) {
-    deliverables(filter: { projectId: { eq: $projectId } }) {
+query GetAllDeliverables {
+    deliverables {
+        nodes {
+            id
+            title
+            description
+            status
+            type
+            projectId
+            acceptanceCriteria
+            executionPlan
+            agentFeedback
+            securityImpact
+            performanceImpact
+            testPlan
+            deploymentPlan
+            blocking
+        }
+    }
+}
+
+query GetDeliverablesByProject($projectId: UUID!) {
+    deliverables(where: { projectId: { eq: $projectId } }) {
         nodes {
             id
             title
