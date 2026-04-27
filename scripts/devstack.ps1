@@ -606,6 +606,9 @@ function Run-OpencodePrompt {
 
     Log-Info "Running opencode prompt: $PromptName"
 
+    # Save current directory to restore later
+    $originalLocation = Get-Location
+
     $model = $null
     if ($RequiredComplexity -gt 0) {
         $model = Select-ModelForComplexity -RequiredComplexity $RequiredComplexity
@@ -615,7 +618,7 @@ function Run-OpencodePrompt {
     try {
         [System.IO.File]::WriteAllText($tempFile, $Prompt, [System.Text.Encoding]::UTF8)
 
-        $npxArgs = @("opencode", "run", "Execute the commands:", "--file", $tempFile)
+        $npxArgs = @("opencode", "run", "'Execute the commands:'", "--file", $tempFile)
         if (Test-Path $AgentsFile) { $npxArgs += @("--file", $AgentsFile) }
         if ($model) { $npxArgs += @("--model", "devstack-$($model.id)/$($model.model)") }
 
@@ -630,6 +633,8 @@ function Run-OpencodePrompt {
         $psi.Arguments = "/c npx $($npxArgs -join ' ')"
         $psi.UseShellExecute = $false
         $psi.CreateNoWindow = $false
+        # Ensure we run in the original directory
+        $psi.WorkingDirectory = $originalLocation.Path
 
         $process = New-Object System.Diagnostics.Process
         $process.StartInfo = $psi
@@ -648,6 +653,8 @@ function Run-OpencodePrompt {
     }
     finally {
         if (Test-Path $tempFile) { Remove-Item $tempFile -Force }
+        # Restore original directory
+        Set-Location $originalLocation
     }
 }
 
