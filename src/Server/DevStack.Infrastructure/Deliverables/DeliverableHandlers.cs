@@ -8,7 +8,7 @@ using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.Deliverables;
 
-public class CreateDeliverableHandler : ICommandHandler<Guid, CreateDeliverableCommand>
+public class CreateDeliverableHandler : ICommandHandler<Guid, CreateDeliverableCommand>, ICreateDeliverableHandler
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -52,7 +52,7 @@ public class CreateDeliverableHandler : ICommandHandler<Guid, CreateDeliverableC
     }
 }
 
-public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand>
+public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand>, IUpdateDeliverableHandler
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -90,7 +90,7 @@ public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand
     }
 }
 
-public class UpdateDeliverableStatusHandler : ICommandHandler<DeliverableStatus, UpdateDeliverableStatusCommand>
+public class UpdateDeliverableStatusHandler : ICommandHandler<UpdateDeliverableStatusCommand>, IUpdateDeliverableStatusHandler
 {
     private readonly DevStackDbContext _dbContext;
 
@@ -99,7 +99,7 @@ public class UpdateDeliverableStatusHandler : ICommandHandler<DeliverableStatus,
         _dbContext = dbContext;
     }
 
-    public async Task<DeliverableStatus> Handle(UpdateDeliverableStatusCommand command, CancellationToken cancellationToken)
+    public async Task Handle(UpdateDeliverableStatusCommand command, CancellationToken cancellationToken)
     {
         var deliverable = await _dbContext.Deliverables.FindAsync([command.Id], cancellationToken);
         if (deliverable == null)
@@ -107,12 +107,10 @@ public class UpdateDeliverableStatusHandler : ICommandHandler<DeliverableStatus,
 
         deliverable.Status = command.TargetStatus;
         await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return command.TargetStatus;
     }
 }
 
-public class DeleteDeliverableHandler : ICommandHandler<DeleteDeliverableCommand>
+public class DeleteDeliverableHandler : ICommandHandler<DeleteDeliverableCommand>, IDeleteDeliverableHandler
 {
     private readonly DevStackDbContext _dbContext;
 

@@ -11,6 +11,7 @@ using DevStack.Infrastructure.AgentTasks;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Projects;
+using DevStack.Mcp;
 using DevStack.Persistence;
 
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,9 @@ try
         {
             options.Stateless = true;
         })
-        .WithToolsFromAssembly();
+        .WithToolsFromAssembly()
+        .WithPrompts<Prompts>()
+        .WithResources<ResourceType>();
 
     builder.Services.AddDbContext<DevStackDbContext>(options =>
     {
@@ -54,9 +57,9 @@ try
     builder.Services.AddScoped<ICreateLargeLanguageModelHandler, CreateLargeLanguageModelHandler>();
     builder.Services.AddScoped<IUpdateLargeLanguageModelHandler, UpdateLargeLanguageModelHandler>();
     builder.Services.AddScoped<IDeleteLargeLanguageModelHandler, DeleteLargeLanguageModelHandler>();
-    builder.Services.AddScoped<ICommandHandler<Guid, CreateDeliverableCommand>, CreateDeliverableHandler>();
-    builder.Services.AddScoped<ICommandHandler<UpdateDeliverableCommand>, UpdateDeliverableHandler>();
-    builder.Services.AddScoped<ICommandHandler<DevStack.Domain.Enums.DeliverableStatus, UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
+    builder.Services.AddScoped<ICreateDeliverableHandler, CreateDeliverableHandler>();
+    builder.Services.AddScoped<IUpdateDeliverableHandler, UpdateDeliverableHandler>();
+    builder.Services.AddScoped<IUpdateDeliverableStatusHandler, UpdateDeliverableStatusHandler>();
     builder.Services.AddScoped<ICommandHandler<DeleteDeliverableCommand>, DeleteDeliverableHandler>();
     builder.Services.AddScoped<IGetDeliverableByIdHandler, GetDeliverableByIdHandler>();
     builder.Services.AddScoped<ICreateAgentTaskHandler, CreateAgentTaskHandler>();
