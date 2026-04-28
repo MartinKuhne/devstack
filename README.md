@@ -6,7 +6,7 @@ I realized I needed a framework to analyze requirements, break them down into sc
 And, to be fair, a vibe coding project to do more vibe coding? What could go wrong?
 
 If you are bored of my musings, head over to the [instructions](wwwroot/HOWTO.md).
-If you are intested in the progress so far, there is a [history](wwwroot/HISTORY.md)
+If you are interested in the progress so far, there is a [history](wwwroot/HISTORY.md)
 
 # Key learnings
 
