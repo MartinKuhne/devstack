@@ -2,19 +2,20 @@ In it's current state, the easiest way to try this out is to have it modify itse
 
 # Warning
 
-This is primarily a research project. YMMV.
-
-There is no authentication in this iteration. If someone creates an EPIC to sell all your possessions, it probably will.
+- This is primarily a research project. YMMV.
+- There is no authentication in this iteration. If someone creates an EPIC to sell all your possessions, it probably will.
+- It WILL churn through tokens in a forever loop. You want it to code all night, it will code all night.
 
 # Prerequisites
 
 - This was built and tested on Windows. Most if not all should work on Linux, but you'll need Powershell.
 - Git
-- Clone the repository
 - Docker (or equivalent)
 - Opencode
   - Opencode needs to be configured with a model. You can use one of their free models, or plug in a local LLM.
   - The project intends to manage agents and models, but that's not in yet.
+- Github
+- Clone this repository
 
 # Installation
 
@@ -31,29 +32,33 @@ Run
 ```
 docker compose up --build -d
 scripts/DevStack.ps1 init
+scripts/DevStack.ps1 run
 ```
 
 This will create a project, and create a local ```opencode.json``` to configure the devstack MCP server
 
-Then, head to http://localhost:8087 for the admin UI
+Then, head to http://localhost:8087 for the admin UI. Create a Defect or Feature. The agent will not touch anyting that's in DRAFT status. Change the status to DESIGN, or PLAN (or IMPLEMENT if you want to skip the earlier stages) for the agent to work on the code.
+
+# Use with projects (not tested)
+
+Copy the contents of the scripts directory into your project. 
+
+```
+scripts/DevStack.ps1 init
+scripts/DevStack.ps1 run
+```
 
 # Operation
 
 Let's first look at how this is set up. The key idea is to have a system to house a project/epic/feature/task structure that's accessible to both an AI coding agent and a human. The human will use the admin UI and the coding agent is provided an MCP server.
 
-There are two ways to provide inputs to the system
-
-## Requirements with the code
-
-Create a component or epic folder as ```./specs/name``` and create a ```SPEC.md``` file there. The agent will consider all the inputs in each folder. Requirements engineering can include markdown, mermaid, plantuml etc. Anything that's easy to consume for a coding agent
-
-Go ahead an enter a feature, and then run the runner (see below)
-
 ## Requirements in the admin UI
 
-Vistit the admin UI and enter a feature or defect. 
+Visit the admin UI and enter a feature or defect. 
 
 ## Executing the changes
+
+(if not already running)
 
 ```
 scripts/DevStack.ps1 run
