@@ -5,27 +5,22 @@ I realized I needed a framework to analyze requirements, break them down into sc
 
 And, to be fair, a vibe coding project to do more vibe coding? What could go wrong?
 
-If you are bored of my musings, head over to the [instructions](HOWTO.md).
-
-# Iteration 3
-
-When I started this out, I might have assumed we are writing code for human consumption and modification, and I modeled a human-centric, incremental workflow. That's not wrong, but also not entirely right. In a greenfield project, the specification is the the source of truth, the code is disposable, and if the code is not correct, we need to revise the specification until we get the intended results.
-
-I ran such prompts for a night, and it has seen some success. The agent made incremental changes that closed gaps between the specification and the implementation. I had substantially revised and simplified the data model and made the user interface specification more clear, so that was a good test. However, the code agent considers the entire source code as the truth, and it's been difficult to get it to just implement the specification. At some point it found a stale schema.graphql with the tests and proceeded to change the server to match that schema (despite the instructions to consider the spec the source of truth). Furthermore, no prompt has been successful to get it to write verifiably correct, tested code.
-
-Qwen/Qwen3.6-35B-A3B has been a real delight. It runs at twice the speed of Qwen/Qwen3.5-122B-A10B with comparable results.
-
-The "Please make the code so it matches the spec" approach is very token intensive. I go through 250m prompt and 1m generated tokens a day. For now I brought the codebase memory mcp back, maybe that will speed up the analysis stage. My head is full of ideas for a better workflow but I also want to reach a stage where the project is fully functional. 
+If you are bored of my musings, head over to the [instructions](wwwroot/HOWTO.md).
+If you are intested in the progress so far, there is a [history](wwwroot/HISTORY.md)
 
 # Key learnings
-- Spec is everything. It is very easy to generate a lot of code from a detailed spec. It is much harder to make changes to existing code. At times it may be easier to revise the spec and to throw away the code. Invest in spec engineering (not covered by this tool at this time)
+
+- Spec is everything. It is very easy to generate a lot of code from a detailed spec. It is much harder to make changes to existing code. At times it may be easier to revise the spec and to throw away the code. Invest in spec engineering.
 - Prompts are everything. AI is not intelligent and there is no intrinsic motivation. You don't (usually) have to ask a software engineer to write tests. Don't take anything for granted for AI work. It sometimes will but if you want to be sure provide instructions.
 - AI likes to succeed at all cost. It will delete code that is considered problematic or completely ignore specific instructions.
-- If the semantics of the library that the AI is using have changed, the AI will assume it knows what to do but it will be wrong and it may take a long time to recover. That's the most frequent hallucination I have seen.
+- If the semantics of the library that the AI is using have changed, the AI will assume it knows what to do but it will be several versions behind and it may take a long time to recover. That's the most frequent hallucination I have seen.
+- It's not your tech stack anymore. It's the AI's tech stack. Pick the one it can code in.
 
 # Dream
 
-The dream is to have a visual tool where the user enters their requirements, and a set of agents divide up the work then perform the work without a lot of intervention. Tasks can be held in planning if there are open questions.
+![development environment](wwwroot/devstack.png)
+
+You enter features, requirements and the occasional bug report, the automation does the rest!
 
 # Stack
 
@@ -38,8 +33,6 @@ The project can't build itself unfortunately (maybe it will be able to improve i
 - filesystem: better access to local files (@modelcontextprotocol/server-filesystem)
 - git: naturally (mcp-server-git)
 - refactor: bulk edits, not sure how to get opencode to use this more (@myuon/refactor-mcp@latest)
-
-The ```build.ps1``` script runs opencode in a loop with a prompt to work on the next task
 
 # Coding flow
 
@@ -75,7 +68,6 @@ sequenceDiagram
     GQL-->>AdminUI: Updated state
 ```
 
-
 # Models
 
 I think there are a couple of useful tiers to be considered
@@ -87,38 +79,9 @@ I think there are a couple of useful tiers to be considered
 
 The core planning prompt is to split the work into tasks that can be performed by an AI coding agent in under 20 minutes, to be specific about what is to be accomplished, and to rate the complexity.
 
-# Will it work?
-
-Maybe, maybe not. I think there is a lot of valuable experience to be had to move on from chat prompts, and to put some thoughts into really describing all the detail on how the work is to be done. 
-
-# V1
-
-Qwen3.5-122B-A10B declared it production ready after completing the initial 100 tasks that came out of ```SPEC.md```. There were a couple of initial isses
-- Agent code had a few typescript issues. That was avoidable
-- There was a runtime error with BullMQ related to the redis configuration. That's pretty understandable, only discoverable at runtime
-- CORS needed to be configured for graphql to be accessible from a browser
-- An environment variable was set to point the admin UI to the graphql endpoint, but browser code can't use environment variables. Fair.
-- There is another issue with BullMQ that I need to look into
-- There is an issue with GraphQL "Unable to infer or resolve the type of field Feature.validStatusTransitions.". Definitely should have asked for live integration tests.
-
-The implementation comes with a fair bit of complexity. There is a full work queue system for the coding agent, react lazy loading, a dead letter queue ... 
-
-A variety of "open questions" documents were created, as well as a top level package.json (?)
-
-# Pivot
-
-As it turns out, it wasn't really working. The Admin UI was built on a ```schema.graphql``` that it hand created, instead of the actual schema it should have retrieved from the server. React/Apollo has really tight coupling between the generated classes and the code, so most of it was just wrong.
-
-I also realized there was no need to invent another coding agent. That is not a unique value add. I experimented a little more with how I run opencode, and I will likely discontinue the coding agent. The design was pivoted for the graphql server to also be an _MCP Server_ to facilitate interaction with a coding agent.
-
-The saga MCP server continues to be very valuable. It does not have an UI or a feedback loop to restart tasks that have open questions.
-
-"4. Removed broken test project - The DevStack.Tests.Integration.GraphQL.Client project had fundamental design issues: it mixed domain types (DevStack.Domain.Enums) with StrawberryShake-generated types. This caused 25 compilation errors that couldn't be easily fixed without rewriting all the tests. Removed the entire project rather than try to fix it."
-
-Right - can we build some accountability into these models :)
-
 # References and inspriration
 - [Prompt Kit](https://github.com/microsoft/PromptKit)
 - [Spec Kit](https://github.com/github/spec-kit)
 - [Awesome Copilot](https://github.com/github/awesome-copilot)
-
+- [Awesome Copilot](https://github.com/github/awesome-copilot)
+- [Agent Skills For Real Engineers](https://github.com/mattpocock/skills)
