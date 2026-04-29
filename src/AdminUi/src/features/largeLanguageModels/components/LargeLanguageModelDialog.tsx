@@ -36,6 +36,7 @@ interface LargeLanguageModelDialogProps {
         modelAlias?: string;
         url: string;
         apiKey?: string;
+        cost: number;
         maxComplexity: number;
     } | null;
 }
@@ -51,6 +52,7 @@ export function LargeLanguageModelDialog({
     const [modelAlias, setModelAlias] = useState('');
     const [url, setUrl] = useState('');
     const [apiKey, setApiKey] = useState('');
+    const [cost, setCost] = useState('0');
     const [maxComplexity, setMaxComplexity] = useState('3');
     const [showApiKey, setShowApiKey] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -58,6 +60,7 @@ export function LargeLanguageModelDialog({
     const [modelError, setModelError] = useState<string | null>(null);
     const [apiKeyError, setApiKeyError] = useState<string | null>(null);
     const [complexityError, setComplexityError] = useState<string | null>(null);
+    const [costError, setCostError] = useState<string | null>(null);
 
     const [createLargeLanguageModel, { loading: createLoading }] =
         useCreateLargeLanguageModelMutation();
@@ -71,6 +74,7 @@ export function LargeLanguageModelDialog({
         setModelAlias('');
         setUrl('');
         setApiKey('');
+        setCost('0');
         setMaxComplexity('3');
         setShowApiKey(false);
         setError(null);
@@ -78,6 +82,7 @@ export function LargeLanguageModelDialog({
         setModelError(null);
         setApiKeyError(null);
         setComplexityError(null);
+        setCostError(null);
     };
 
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -87,6 +92,7 @@ export function LargeLanguageModelDialog({
             setModelAlias(model.modelAlias ?? '');
             setUrl(model.url);
             setApiKey(model.apiKey ?? '');
+            setCost((model.cost ?? 0).toString());
             setMaxComplexity(model.maxComplexity.toString());
             setShowApiKey(false);
         } else if (open && !model) {
@@ -101,6 +107,7 @@ export function LargeLanguageModelDialog({
         setModelError(null);
         setApiKeyError(null);
         setComplexityError(null);
+        setCostError(null);
         if (!newOpen) {
             resetForm();
         }
@@ -113,6 +120,7 @@ export function LargeLanguageModelDialog({
         setModelError(null);
         setApiKeyError(null);
         setComplexityError(null);
+        setCostError(null);
 
         if (!url.trim()) {
             setUrlError('URL is required');
@@ -139,6 +147,12 @@ export function LargeLanguageModelDialog({
         const complexity = parseInt(maxComplexity, 10);
         if (isNaN(complexity) || complexity < 1 || complexity > 10) {
             setComplexityError('Max complexity must be between 1 and 10');
+            valid = false;
+        }
+
+        const modelCost = parseInt(cost, 10);
+        if (isNaN(modelCost) || modelCost < 0 || modelCost > 100) {
+            setCostError('Cost must be between 0 and 100');
             valid = false;
         }
 
@@ -170,6 +184,7 @@ export function LargeLanguageModelDialog({
                             modelAlias: modelAlias || null,
                             url,
                             apiKey,
+                            cost: parseInt(cost, 10),
                             maxComplexity: parseInt(maxComplexity, 10),
                             maxConcurrency: 1,
                         },
@@ -193,6 +208,7 @@ export function LargeLanguageModelDialog({
                             modelAlias: modelAlias || null,
                             url,
                             apiKey,
+                            cost: parseInt(cost, 10),
                             maxComplexity: parseInt(maxComplexity, 10),
                             maxConcurrency: 1,
                         },
@@ -269,7 +285,8 @@ export function LargeLanguageModelDialog({
         !urlError &&
         !modelError &&
         !apiKeyError &&
-        !complexityError;
+        !complexityError &&
+        !costError;
 
     const validateField = (field: string, value: string) => {
         switch (field) {
@@ -296,6 +313,15 @@ export function LargeLanguageModelDialog({
                 setComplexityError(
                     isNaN(complexity) || complexity < 1 || complexity > 10
                         ? 'Max complexity must be between 1 and 10'
+                        : null
+                );
+                break;
+            }
+            case 'cost': {
+                const modelCost = parseInt(value, 10);
+                setCostError(
+                    isNaN(modelCost) || modelCost < 0 || modelCost > 100
+                        ? 'Cost must be between 0 and 100'
                         : null
                 );
                 break;
@@ -359,6 +385,22 @@ export function LargeLanguageModelDialog({
                                 onChange={(e) => setModelAlias(e.target.value)}
                                 placeholder="Default"
                             />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="cost">Cost (0-100)</Label>
+                            <Input
+                                id="cost"
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={cost}
+                                onChange={(e) => {
+                                    setCost(e.target.value);
+                                    validateField('cost', e.target.value);
+                                }}
+                                placeholder="0"
+                            />
+                            {costError && <p className="text-sm text-destructive">{costError}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="apiKey">API Key</Label>

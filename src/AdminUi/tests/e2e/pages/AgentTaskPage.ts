@@ -156,3 +156,48 @@ export class AgentTaskDetailPage extends BasePage {
             .catch(() => false);
     }
 }
+
+export class UpdateAgentTaskDialog extends BasePage {
+    readonly dialog: Locator;
+    readonly titleInput: Locator;
+    readonly complexityInput: Locator;
+    readonly descriptionInput: Locator;
+    readonly resultInput: Locator;
+    readonly saveButton: Locator;
+    readonly cancelButton: Locator;
+
+    constructor(page: Page) {
+        super(page);
+        this.dialog = page.getByRole('dialog').filter({ hasText: 'Edit Agent Task' });
+        this.titleInput = page.getByLabel('Title *');
+        this.complexityInput = page.getByLabel('Complexity Rating (1-10) *');
+        this.descriptionInput = page.getByLabel('Description');
+        this.resultInput = page.getByLabel('Result');
+        this.saveButton = page.getByRole('button', { name: 'Save Changes' });
+        this.cancelButton = page.getByRole('button', { name: 'Cancel' });
+    }
+
+    async isOpen(): Promise<boolean> {
+        return await this.dialog.isVisible();
+    }
+
+    async fillForm(data: {
+        title?: string;
+        complexityRating?: string;
+        description?: string;
+        result?: string;
+    }): Promise<void> {
+        if (data.title) await this.titleInput.fill(data.title);
+        if (data.complexityRating) await this.complexityInput.fill(data.complexityRating);
+        if (data.description) await this.descriptionInput.fill(data.description);
+        if (data.result) await this.resultInput.fill(data.result);
+    }
+
+    async save(): Promise<void> {
+        await this.saveButton.click();
+    }
+
+    async cancel(): Promise<void> {
+        await this.cancelButton.click();
+    }
+}

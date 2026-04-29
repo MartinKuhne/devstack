@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { DeliverableListPage, CreateDeliverableDialog } from './pages/DeliverablePage.js';
+import {
+    DeliverableListPage,
+    CreateDeliverableDialog,
+} from './pages/DeliverablePage.js';
 
 test.describe('Deliverable CRUD', () => {
     let deliverableListPage: DeliverableListPage;
@@ -269,5 +272,118 @@ test.describe('Deliverable Creation and Detail', () => {
         await createDeliverableDialog.createDeliverable('DeleteAfterTest - Deliverable');
 
         await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
+    });
+
+    test('should create deliverable with design field', async ({ page }) => {
+        await deliverableListPage.navigate();
+        await deliverableListPage.waitForDeliverableList();
+        await deliverableListPage.clickNewDeliverable();
+        await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
+
+        await createDeliverableDialog.createDeliverable(
+            'DeleteAfterTest - Deliverable With Design',
+            'Description',
+            'Acceptance criteria',
+            'This is the design document'
+        );
+
+        await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
+        await expect(page.getByRole('heading', { name: 'Design', level: 3 })).toBeVisible();
+        await expect(page.getByText('This is the design document')).toBeVisible();
+    });
+
+    test('should edit deliverable and update design field', async ({ page }) => {
+        await deliverableListPage.navigate();
+        await deliverableListPage.waitForDeliverableList();
+        await deliverableListPage.clickNewDeliverable();
+        await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
+
+        await createDeliverableDialog.createDeliverable(
+            'DeleteAfterTest - Editable Deliverable',
+            'Original description'
+        );
+
+        await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
+        await page.getByRole('button', { name: 'Edit' }).click();
+        await expect(page.getByRole('dialog').filter({ hasText: 'Edit Deliverable' })).toBeVisible({
+            timeout: 5000,
+        });
+
+        const designInput = page.getByLabel('Design');
+        await expect(designInput).toBeVisible();
+        await designInput.fill('Updated design document');
+
+        const saveBtn = page.getByRole('button', { name: 'Save Changes' });
+        await saveBtn.click();
+        await expect(page.getByRole('dialog').filter({ hasText: 'Edit Deliverable' })).not.toBeVisible({
+            timeout: 5000,
+        });
+
+        await expect(page.getByText('Updated design document')).toBeVisible();
+    });
+
+    test('should show all status options in initial status select', async ({ page }) => {
+        await deliverableListPage.navigate();
+        await deliverableListPage.waitForDeliverableList();
+        await deliverableListPage.clickNewDeliverable();
+        await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
+
+        const statusSelect = page.locator('[id="initialStatus"]');
+        await statusSelect.click();
+
+        const options = page.locator('[role="option"]');
+        await expect(options).toHaveCount(8);
+
+        await createDeliverableDialog.cancel();
+    });
+
+    test('should show all deliverable detail sections', async ({ page }) => {
+        await deliverableListPage.navigate();
+        await deliverableListPage.waitForDeliverableList();
+        await deliverableListPage.clickNewDeliverable();
+        await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
+
+        await createDeliverableDialog.createDeliverable(
+            'DeleteAfterTest - Full Deliverable',
+            'Full description',
+            'Given I am a user, When I use the feature, Then it should work',
+            'Design document here'
+        );
+
+        await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
+
+        await expect(
+            page.getByRole('heading', { name: 'Description', level: 3 })
+        ).toBeVisible();
+        await expect(
+            page.getByRole('heading', { name: 'Acceptance Criteria', level: 3 })
+        ).toBeVisible();
+        await expect(
+            page.getByRole('heading', { name: 'Design', level: 3 })
+        ).toBeVisible();
+        await expect(
+            page.getByRole('heading', { name: 'Change Status', level: 3 })
+        ).toBeVisible();
+    });
+
+    test('should change deliverable status from draft to design', async ({ page }) => {
+        await deliverableListPage.navigate();
+        await deliverableListPage.waitForDeliverableList();
+        await deliverableListPage.clickNewDeliverable();
+        await expect(createDeliverableDialog.dialog).toBeVisible({ timeout: 5000 });
+
+        await createDeliverableDialog.createDeliverable('DeleteAfterTest - Status Change');
+
+        await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10000 });
+        await expect(page.getByText('DRAFT')).toBeVisible();
+
+        const statusSelect = page.getByPlaceholder('Select new status');
+        await statusSelect.click();
+        await page.getByRole('option', { name: 'DESIGN' }).click();
+
+        const updateBtn = page.getByRole('button', { name: 'Update Status' });
+        await updateBtn.click();
+
+        await expect(page.getByText('DESIGN')).toBeVisible();
     });
 });

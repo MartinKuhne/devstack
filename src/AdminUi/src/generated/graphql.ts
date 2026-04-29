@@ -691,21 +691,21 @@ export type CreateAgentTaskMutationVariables = Exact<{
 }>;
 
 
-export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTask', id: any, title: string, deliverableId: any, description: string, complexityRating: number, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } };
+export type CreateAgentTaskMutation = { __typename?: 'Mutation', createAgentTask: { __typename?: 'AgentTask', id: any, projectId: any, deliverableId: any, title: string, status: AgentTaskStatus, description: string, complexityRating: number, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } };
 
 export type CreateDeliverableMutationVariables = Exact<{
   input: CreateDeliverableInput;
 }>;
 
 
-export type CreateDeliverableMutation = { __typename?: 'Mutation', createDeliverable?: { __typename?: 'Deliverable', id: any, title: string, status: DeliverableStatus } | null };
+export type CreateDeliverableMutation = { __typename?: 'Mutation', createDeliverable?: { __typename?: 'Deliverable', id: any, title: string, status: DeliverableStatus, design?: string | null } | null };
 
 export type CreateLargeLanguageModelMutationVariables = Exact<{
   input: CreateLargeLanguageModelInput;
 }>;
 
 
-export type CreateLargeLanguageModelMutation = { __typename?: 'Mutation', createLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, maxComplexity: number, maxConcurrency: number } | null };
+export type CreateLargeLanguageModelMutation = { __typename?: 'Mutation', createLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, cost: number, maxComplexity: number, maxConcurrency: number } | null };
 
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
@@ -763,21 +763,21 @@ export type UpdateAgentTaskMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTask', id: any, title: string, deliverableId: any, description: string, complexityRating: number, result?: string | null, errors?: string | null, commitHash?: string | null, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } };
+export type UpdateAgentTaskMutation = { __typename?: 'Mutation', updateAgentTask: { __typename?: 'AgentTask', id: any, projectId: any, deliverableId: any, title: string, status: AgentTaskStatus, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } };
 
 export type UpdateDeliverableMutationVariables = Exact<{
   input: UpdateDeliverableInput;
 }>;
 
 
-export type UpdateDeliverableMutation = { __typename?: 'Mutation', updateDeliverable: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null } };
+export type UpdateDeliverableMutation = { __typename?: 'Mutation', updateDeliverable: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null } };
 
 export type UpdateLargeLanguageModelMutationVariables = Exact<{
   input: UpdateLargeLanguageModelInput;
 }>;
 
 
-export type UpdateLargeLanguageModelMutation = { __typename?: 'Mutation', updateLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, maxComplexity: number, maxConcurrency: number } | null };
+export type UpdateLargeLanguageModelMutation = { __typename?: 'Mutation', updateLargeLanguageModel?: { __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, cost: number, maxComplexity: number, maxConcurrency: number } | null };
 
 export type UpdateProjectMutationVariables = Exact<{
   input: UpdateProjectInput;
@@ -791,38 +791,38 @@ export type GetAgentTaskQueryVariables = Exact<{
 }>;
 
 
-export type GetAgentTaskQuery = { __typename?: 'Query', agentTask?: { __typename?: 'AgentTask', id: any, title: string, status: AgentTaskStatus, deliverableId: any, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null } | null };
+export type GetAgentTaskQuery = { __typename?: 'Query', agentTask?: { __typename?: 'AgentTask', id: any, projectId: any, deliverableId: any, title: string, status: AgentTaskStatus, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null, deliverable?: { __typename?: 'Deliverable', id: any, title: string } | null, project?: { __typename?: 'Project', id: any, name: string } | null } | null };
 
 export type GetAgentTasksQueryVariables = Exact<{
   deliverableId?: InputMaybe<Scalars['UUID']['input']>;
 }>;
 
 
-export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks?: { __typename?: 'AgentTasksConnection', nodes?: Array<{ __typename?: 'AgentTask', id: any, title: string, status: AgentTaskStatus, deliverableId: any, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null }> | null } | null };
+export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks?: { __typename?: 'AgentTasksConnection', nodes?: Array<{ __typename?: 'AgentTask', id: any, projectId: any, deliverableId: any, title: string, status: AgentTaskStatus, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null, deliverable?: { __typename?: 'Deliverable', id: any, title: string } | null, project?: { __typename?: 'Project', id: any, name: string } | null }> | null } | null };
 
 export type GetAllDeliverablesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllDeliverablesQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null }> | null } | null };
+export type GetAllDeliverablesQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null }> | null } | null };
 
 export type GetDeliverablesByProjectQueryVariables = Exact<{
   projectId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetDeliverablesByProjectQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null }> | null } | null };
+export type GetDeliverablesByProjectQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null }> | null } | null };
 
 export type GetDeliverableQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetDeliverableQuery = { __typename?: 'Query', deliverable?: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null } | null };
+export type GetDeliverableQuery = { __typename?: 'Query', deliverable?: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null } | null };
 
 export type ModelConfigurationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ModelConfigurationsQuery = { __typename?: 'Query', largeLanguageModels?: { __typename?: 'LargeLanguageModelsConnection', nodes?: Array<{ __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, apiKey: string, maxComplexity: number, maxConcurrency: number }> | null } | null };
+export type ModelConfigurationsQuery = { __typename?: 'Query', largeLanguageModels?: { __typename?: 'LargeLanguageModelsConnection', nodes?: Array<{ __typename?: 'LargeLanguageModel', id: any, url: string, model: string, modelAlias: string, apiKey: string, cost: number, maxComplexity: number, maxConcurrency: number }> | null } | null };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -841,8 +841,10 @@ export const CreateAgentTaskDocument = gql`
     mutation CreateAgentTask($input: CreateAgentTaskInput!) {
   createAgentTask(input: $input) {
     id
-    title
+    projectId
     deliverableId
+    title
+    status
     description
     complexityRating
     result
@@ -888,6 +890,7 @@ export const CreateDeliverableDocument = gql`
     id
     title
     status
+    design
   }
 }
     `;
@@ -924,6 +927,7 @@ export const CreateLargeLanguageModelDocument = gql`
     url
     model
     modelAlias
+    cost
     maxComplexity
     maxConcurrency
   }
@@ -1183,13 +1187,15 @@ export const UpdateAgentTaskDocument = gql`
     mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
   updateAgentTask(input: $input) {
     id
-    title
+    projectId
     deliverableId
+    title
+    status
     description
-    complexityRating
     result
     errors
     commitHash
+    complexityRating
     dependsOnAgentTaskId
     promptTokens
     completionTokens
@@ -1240,6 +1246,7 @@ export const UpdateDeliverableDocument = gql`
     testPlan
     deploymentPlan
     blocking
+    design
   }
 }
     `;
@@ -1276,6 +1283,7 @@ export const UpdateLargeLanguageModelDocument = gql`
     url
     model
     modelAlias
+    cost
     maxComplexity
     maxConcurrency
   }
@@ -1347,9 +1355,10 @@ export const GetAgentTaskDocument = gql`
     query GetAgentTask($id: UUID!) {
   agentTask(id: $id) {
     id
+    projectId
+    deliverableId
     title
     status
-    deliverableId
     description
     result
     errors
@@ -1360,6 +1369,14 @@ export const GetAgentTaskDocument = gql`
     completionTokens
     executionDurationInSeconds
     agent
+    deliverable {
+      id
+      title
+    }
+    project {
+      id
+      name
+    }
   }
 }
     `;
@@ -1404,9 +1421,10 @@ export const GetAgentTasksDocument = gql`
   agentTasks(where: {deliverableId: {eq: $deliverableId}}) {
     nodes {
       id
+      projectId
+      deliverableId
       title
       status
-      deliverableId
       description
       result
       errors
@@ -1417,6 +1435,14 @@ export const GetAgentTasksDocument = gql`
       completionTokens
       executionDurationInSeconds
       agent
+      deliverable {
+        id
+        title
+      }
+      project {
+        id
+        name
+      }
     }
   }
 }
@@ -1475,6 +1501,7 @@ export const GetAllDeliverablesDocument = gql`
       testPlan
       deploymentPlan
       blocking
+      design
     }
   }
 }
@@ -1532,6 +1559,7 @@ export const GetDeliverablesByProjectDocument = gql`
       testPlan
       deploymentPlan
       blocking
+      design
     }
   }
 }
@@ -1589,6 +1617,7 @@ export const GetDeliverableDocument = gql`
     testPlan
     deploymentPlan
     blocking
+    design
   }
 }
     `;
@@ -1637,6 +1666,7 @@ export const ModelConfigurationsDocument = gql`
       model
       modelAlias
       apiKey
+      cost
       maxComplexity
       maxConcurrency
     }

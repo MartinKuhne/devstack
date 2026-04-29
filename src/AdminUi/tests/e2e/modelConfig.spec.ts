@@ -60,6 +60,35 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.expectNoErrors();
     });
 
+    test('should have cost input field', async ({ page }) => {
+        await llmPage.navigate();
+        await llmPage.waitForPageLoaded();
+        await llmPage.clickAddModel();
+        await expect(dialog.dialog).toBeVisible({ timeout: 5000 });
+
+        const costInput = page.getByLabel('Cost (0-100)');
+        await expect(costInput).toBeVisible();
+
+        await dialog.cancel();
+        await llmPage.expectNoErrors();
+    });
+
+    test('should validate cost field range', async ({ page: _page }) => {
+        await llmPage.navigate();
+        await llmPage.waitForPageLoaded();
+        await llmPage.clickAddModel();
+        await expect(dialog.dialog).toBeVisible({ timeout: 5000 });
+
+        const costInput = page.getByLabel('Cost (0-100)');
+        await costInput.fill('-5');
+
+        const addButton = dialog.addButton;
+        await expect(addButton).toBeDisabled();
+
+        await dialog.cancel();
+        await llmPage.expectNoErrors();
+    });
+
     test('should navigate back from models page', async ({ page }) => {
         await llmPage.navigate();
         await llmPage.waitForPageLoaded();

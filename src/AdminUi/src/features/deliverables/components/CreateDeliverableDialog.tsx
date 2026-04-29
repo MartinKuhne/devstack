@@ -35,8 +35,9 @@ const deliverableSchema = z.object({
     performanceImpact: z.string().optional(),
     testPlan: z.string().optional(),
     deploymentPlan: z.string().optional(),
+    design: z.string().optional(),
     type: z.enum(['FEATURE', 'DEFECT', 'MAINTENANCE', 'SPIKE']),
-    initialStatus: z.enum(['DRAFT', 'DESIGN', 'PLAN', 'IMPLEMENT', 'MERGE', 'DEPLOY', 'TEST', 'DONE']).optional(),
+    initialStatus: z.enum(['DRAFT', 'DESIGN', 'PLAN', 'IMPLEMENT', 'MERGE', 'DEPLOY', 'TEST', 'DONE', 'FAILED', 'REJECTED', 'NEEDS_REVIEW']).optional(),
 });
 
 type DeliverableFormData = z.infer<typeof deliverableSchema>;
@@ -68,6 +69,7 @@ export function CreateDeliverableDialog({
         defaultValues: {
             type: 'FEATURE',
             initialStatus: 'DRAFT',
+            design: '',
         },
     });
 
@@ -88,6 +90,7 @@ export function CreateDeliverableDialog({
                         performanceImpact: data.performanceImpact ?? '',
                         testPlan: data.testPlan ?? '',
                         deploymentPlan: data.deploymentPlan ?? '',
+                        design: data.design ?? '',
                         initialStatus: data.initialStatus ?? 'DRAFT',
                     },
                 },
@@ -215,8 +218,24 @@ export function CreateDeliverableDialog({
                                     <SelectItem value="DRAFT">Draft</SelectItem>
                                     <SelectItem value="DESIGN">Design</SelectItem>
                                     <SelectItem value="PLAN">Plan</SelectItem>
+                                    <SelectItem value="IMPLEMENT">Implement</SelectItem>
+                                    <SelectItem value="MERGE">Merge</SelectItem>
+                                    <SelectItem value="DEPLOY">Deploy</SelectItem>
+                                    <SelectItem value="TEST">Test</SelectItem>
+                                    <SelectItem value="DONE">Done</SelectItem>
+                                    <SelectItem value="NEEDS_REVIEW">Needs Review</SelectItem>
                                 </SelectContent>
                             </Select>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="design">Design</Label>
+                            <Textarea
+                                id="design"
+                                {...register('design')}
+                                placeholder="Design document or link"
+                                rows={3}
+                            />
                         </div>
 
                         {serverError && <p className="text-sm text-destructive">{serverError}</p>}

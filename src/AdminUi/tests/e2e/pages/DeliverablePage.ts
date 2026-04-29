@@ -58,6 +58,7 @@ export class CreateDeliverableDialog extends BasePage {
     readonly descriptionInput: Locator;
     readonly acceptanceCriteriaInput: Locator;
     readonly initialStatusSelect: Locator;
+    readonly designInput: Locator;
     readonly createButton: Locator;
     readonly cancelButton: Locator;
 
@@ -69,6 +70,7 @@ export class CreateDeliverableDialog extends BasePage {
         this.descriptionInput = page.getByLabel('Description');
         this.acceptanceCriteriaInput = page.getByLabel('Acceptance Criteria');
         this.initialStatusSelect = page.locator('[id="initialStatus"]');
+        this.designInput = page.getByLabel('Design');
         this.createButton = page.getByRole('button', { name: 'Create Deliverable' });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     }
@@ -85,19 +87,22 @@ export class CreateDeliverableDialog extends BasePage {
     async fillForm(
         title: string,
         description?: string,
-        acceptanceCriteria?: string
+        acceptanceCriteria?: string,
+        design?: string
     ): Promise<void> {
         await this.titleInput.fill(title);
         if (description) await this.descriptionInput.fill(description);
         if (acceptanceCriteria) await this.acceptanceCriteriaInput.fill(acceptanceCriteria);
+        if (design) await this.designInput.fill(design);
     }
 
     async createDeliverable(
         title: string,
         description?: string,
-        acceptanceCriteria?: string
+        acceptanceCriteria?: string,
+        design?: string
     ): Promise<void> {
-        await this.fillForm(title, description, acceptanceCriteria);
+        await this.fillForm(title, description, acceptanceCriteria, design);
         await this.createButton.click();
     }
 
@@ -210,5 +215,74 @@ export class DeliverableDetailPage extends BasePage {
             .getByRole('heading', { name: fieldName, level: 3 })
             .isVisible()
             .catch(() => false);
+    }
+}
+
+export class EditDeliverableDialog extends BasePage {
+    readonly dialog: Locator;
+    readonly titleInput: Locator;
+    readonly descriptionInput: Locator;
+    readonly acceptanceCriteriaInput: Locator;
+    readonly executionPlanInput: Locator;
+    readonly securityImpactInput: Locator;
+    readonly performanceImpactInput: Locator;
+    readonly testPlanInput: Locator;
+    readonly deploymentPlanInput: Locator;
+    readonly blockingInput: Locator;
+    readonly designInput: Locator;
+    readonly saveButton: Locator;
+    readonly cancelButton: Locator;
+
+    constructor(page: Page) {
+        super(page);
+        this.dialog = page.getByRole('dialog').filter({ hasText: 'Edit Deliverable' });
+        this.titleInput = page.getByLabel('Title');
+        this.descriptionInput = page.getByLabel('Description');
+        this.acceptanceCriteriaInput = page.getByLabel('Acceptance Criteria');
+        this.executionPlanInput = page.getByLabel('Execution Plan');
+        this.securityImpactInput = page.getByLabel('Security Impact');
+        this.performanceImpactInput = page.getByLabel('Performance Impact');
+        this.testPlanInput = page.getByLabel('Test Plan');
+        this.deploymentPlanInput = page.getByLabel('Deployment Plan');
+        this.blockingInput = page.getByLabel('Blocking');
+        this.designInput = page.getByLabel('Design');
+        this.saveButton = page.getByRole('button', { name: 'Save Changes' });
+        this.cancelButton = page.getByRole('button', { name: 'Cancel' });
+    }
+
+    async isOpen(): Promise<boolean> {
+        return await this.dialog.isVisible();
+    }
+
+    async fillForm(data: {
+        title?: string;
+        description?: string;
+        acceptanceCriteria?: string;
+        executionPlan?: string;
+        securityImpact?: string;
+        performanceImpact?: string;
+        testPlan?: string;
+        deploymentPlan?: string;
+        blocking?: string;
+        design?: string;
+    }): Promise<void> {
+        if (data.title) await this.titleInput.fill(data.title);
+        if (data.description) await this.descriptionInput.fill(data.description);
+        if (data.acceptanceCriteria) await this.acceptanceCriteriaInput.fill(data.acceptanceCriteria);
+        if (data.executionPlan) await this.executionPlanInput.fill(data.executionPlan);
+        if (data.securityImpact) await this.securityImpactInput.fill(data.securityImpact);
+        if (data.performanceImpact) await this.performanceImpactInput.fill(data.performanceImpact);
+        if (data.testPlan) await this.testPlanInput.fill(data.testPlan);
+        if (data.deploymentPlan) await this.deploymentPlanInput.fill(data.deploymentPlan);
+        if (data.blocking) await this.blockingInput.fill(data.blocking);
+        if (data.design) await this.designInput.fill(data.design);
+    }
+
+    async save(): Promise<void> {
+        await this.saveButton.click();
+    }
+
+    async cancel(): Promise<void> {
+        await this.cancelButton.click();
     }
 }

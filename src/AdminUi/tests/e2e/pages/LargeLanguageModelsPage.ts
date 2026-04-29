@@ -36,6 +36,7 @@ export class LargeLanguageModelDialog extends BasePage {
     readonly modelInput: Locator;
     readonly aliasInput: Locator;
     readonly apiKeyInput: Locator;
+    readonly costInput: Locator;
     readonly complexitySelect: Locator;
     readonly addButton: Locator;
     readonly saveButton: Locator;
@@ -49,6 +50,7 @@ export class LargeLanguageModelDialog extends BasePage {
         this.modelInput = page.getByLabel('Model Name');
         this.aliasInput = page.getByLabel('Alias (optional)') || page.locator('#alias');
         this.apiKeyInput = page.getByLabel('API Key');
+        this.costInput = page.getByLabel('Cost (0-100)');
         this.complexitySelect = page.getByLabel('Max Complexity (1-10)');
         this.addButton = page.getByRole('button', { name: 'Add Model' });
         this.saveButton =
@@ -67,12 +69,14 @@ export class LargeLanguageModelDialog extends BasePage {
         modelName: string,
         alias?: string,
         apiKey?: string,
+        cost?: string,
         complexity?: string
     ): Promise<void> {
         await this.urlInput.fill(url);
         await this.modelInput.fill(modelName);
         if (alias) await this.aliasInput.fill(alias);
         if (apiKey) await this.apiKeyInput.fill(apiKey);
+        if (cost) await this.costInput.fill(cost);
         if (complexity) await this.complexitySelect.selectOption(complexity);
     }
 
@@ -81,9 +85,10 @@ export class LargeLanguageModelDialog extends BasePage {
         modelName: string,
         alias?: string,
         apiKey?: string,
+        cost?: string,
         complexity?: string
     ): Promise<void> {
-        await this.fillForm(url, modelName, alias, apiKey, complexity);
+        await this.fillForm(url, modelName, alias, apiKey, cost, complexity);
         if (await this.addButton.isVisible()) {
             await this.addButton.click();
         } else if (await this.saveButton.isVisible()) {
