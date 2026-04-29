@@ -1,4 +1,4 @@
-﻿# Agent Principles
+# Agent Principles
 
 # Scope
 Work only on the item described in the prompt. Do not modify unrelated code or create unrelated commits.
@@ -40,3 +40,8 @@ All quality gates must pass before marking an item done and commiting the change
 - Do not put Client IDs and any passwords and secrets in the code
 - Use immutable data structures, pure and honest functions
 
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->
