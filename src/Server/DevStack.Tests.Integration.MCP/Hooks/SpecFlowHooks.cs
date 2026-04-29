@@ -40,6 +40,9 @@ public sealed class SpecFlowHooks
             .Build();
 
         await SeedDatabaseAsync(_env.PostgresConnectionString);
+
+        WaitForMcpServerReady(_env.AppPort, TimeSpan.FromSeconds(90));
+        Console.WriteLine($"[MCP] Server is ready on port {_env.AppPort}");
     }
 
     private static async Task SeedDatabaseAsync(string connectionString)
@@ -124,8 +127,6 @@ public sealed class SpecFlowHooks
         _scenarioContext["ProjectId"] = _seededProjectId.ToString();
         Console.WriteLine($"[MCP] Seeded ProjectId: {_seededProjectId}");
         Console.WriteLine($"[MCP] Port: {port}");
-
-        WaitForMcpServerReady(port, TimeSpan.FromSeconds(90));
     }
 
     [AfterScenario]
