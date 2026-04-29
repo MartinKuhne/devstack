@@ -147,8 +147,8 @@ namespace DevStack.Tests.Integration.MCP.Features
                 this.ScenarioStart();
                 testRunner.Given("the MCP client is connected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.And("an existing task ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("a task in \"ready\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.When("I call update_task_state to \"in_progress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.And("a task in \"Ready\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.When("I call update_task_state to \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the task with new status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }

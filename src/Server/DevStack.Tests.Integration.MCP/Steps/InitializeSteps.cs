@@ -28,29 +28,23 @@ public sealed class InitializeSteps
     [When(@"I initialize the client")]
     public async Task WhenIInitializeTheClient()
     {
-        var serverInfo = Client.ServerInfo;
-
-        _scenarioContext["ServerInfo"] = serverInfo;
+        _ = Client.ServerInfo;
     }
 
     [Then(@"the server should return its protocol version")]
     public void ThenTheServerShouldReturnItsProtocolVersion()
     {
-        #pragma warning disable CS8602
-        _scenarioContext.TryGetValue("ServerInfo", out var info);
-        info.Should().NotBeNull();
-        ((dynamic)info!).Version.Should().NotBeNullOrEmpty();
-        #pragma warning restore CS8602
+        var serverInfo = Client.ServerInfo;
+        serverInfo.Should().NotBeNull();
+        serverInfo.Version.Should().NotBeNullOrEmpty();
     }
 
     [Then(@"the server should return its implementation info")]
     public void ThenTheServerShouldReturnItsImplementationInfo()
     {
-        #pragma warning disable CS8602
-        _scenarioContext.TryGetValue("ServerInfo", out var info);
-        info.Should().NotBeNull();
-        ((dynamic)info!).Name.Should().NotBeNullOrEmpty();
-        #pragma warning restore CS8602
+        var serverInfo = Client.ServerInfo;
+        serverInfo.Should().NotBeNull();
+        serverInfo.Name.Should().NotBeNullOrEmpty();
     }
 
     [Then(@"the server should advertise tools capability")]

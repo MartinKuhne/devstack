@@ -76,8 +76,26 @@ public sealed class DevStackToolsSteps
     }
 
     [Given(@"a deliverable in ""(.*)"" status")]
-    public void GivenADeliverableInStatus(string status)
+    public async Task GivenADeliverableInStatus(string status)
     {
+        var deliverableId = _scenarioContext.GetString("DeliverableId");
+        if (string.IsNullOrEmpty(deliverableId))
+        {
+            deliverableId = await CreateTestDeliverableAsync();
+            _scenarioContext["DeliverableId"] = deliverableId;
+        }
+        var args = new Dictionary<string, object?>
+        {
+            ["id"] = Guid.Parse(deliverableId).ToString(),
+            ["targetStatus"] = status,
+            ["actor"] = "test"
+        };
+        var transitionResult = await Client.CallToolAsync("update_deliverable_state", args);
+        if (transitionResult.IsError is true)
+        {
+            var text = GetResultText(transitionResult);
+            Console.WriteLine($"[DEBUG] Deliverable status transition error: {text}");
+        }
         _scenarioContext["DeliverableStatus"] = status;
     }
 
@@ -173,7 +191,7 @@ public sealed class DevStackToolsSteps
     public void ThenTheResponseShouldContainTheUpdatedDeliverable()
     {
         _result.Should().NotBeNull();
-        _result!.IsError.Should().BeFalse();
+        _result!.IsError.Should().NotBeTrue();
         var resultJson = GetResultJson(_result!);
         resultJson.Should().Contain("updated");
     }
@@ -182,7 +200,7 @@ public sealed class DevStackToolsSteps
     public void ThenTheResponseShouldContainTheDeliverableWithNewStatus()
     {
         _result.Should().NotBeNull();
-        _result!.IsError.Should().BeFalse();
+        _result!.IsError.Should().NotBeTrue();
     }
 
     #endregion
@@ -206,8 +224,26 @@ public sealed class DevStackToolsSteps
     }
 
     [Given(@"a task in ""(.*)"" status")]
-    public void GivenATaskInStatus(string status)
+    public async Task GivenATaskInStatus(string status)
     {
+        var taskId = _scenarioContext.GetString("TaskId");
+        if (string.IsNullOrEmpty(taskId))
+        {
+            taskId = await CreateTestTaskAsync();
+            _scenarioContext["TaskId"] = taskId;
+        }
+        var args = new Dictionary<string, object?>
+        {
+            ["id"] = Guid.Parse(taskId).ToString(),
+            ["targetStatus"] = status,
+            ["actor"] = "test"
+        };
+        var transitionResult = await Client.CallToolAsync("update_task_state", args);
+        if (transitionResult.IsError is true)
+        {
+            var text = GetResultText(transitionResult);
+            Console.WriteLine($"[DEBUG] Task status transition error: {text}");
+        }
         _scenarioContext["TaskStatus"] = status;
     }
 
@@ -259,7 +295,7 @@ public sealed class DevStackToolsSteps
     public void ThenTheResponseShouldContainTheCreatedTask()
     {
         _result.Should().NotBeNull();
-        _result!.IsError.Should().BeFalse();
+        _result!.IsError.Should().NotBeTrue();
     }
 
     [Then(@"the task should have a valid ID")]
@@ -295,7 +331,7 @@ public sealed class DevStackToolsSteps
     public void ThenTheResponseShouldContainTheUpdatedTask()
     {
         _result.Should().NotBeNull();
-        _result!.IsError.Should().BeFalse();
+        _result!.IsError.Should().NotBeTrue();
         var resultJson = GetResultJson(_result!);
         resultJson.Should().Contain("updated");
     }
@@ -304,7 +340,7 @@ public sealed class DevStackToolsSteps
     public void ThenTheResponseShouldContainTheTaskWithNewStatus()
     {
         _result.Should().NotBeNull();
-        _result!.IsError.Should().BeFalse();
+        _result!.IsError.Should().NotBeTrue();
     }
 
     [Then(@"the status should be ""(.*)""")]

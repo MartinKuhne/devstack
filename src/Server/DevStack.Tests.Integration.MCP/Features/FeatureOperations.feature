@@ -19,7 +19,7 @@ Feature: Feature CRUD and Status Transition Operations
     Scenario: Transition deliverable status
         Given the MCP client is connected
         And an existing deliverable ID
-        And a deliverable in "ready" status
-        When I call update_deliverable_state to "in_progress"
+        And a deliverable in "Design" status
+        When I call update_deliverable_state to "Plan"
         Then the response should contain the deliverable with new status
-        And the status should be "InProgress"
+        And the status should be "Plan"

@@ -19,7 +19,7 @@ Feature: Task CRUD and Status Transition Operations
     Scenario: Transition task status
         Given the MCP client is connected
         And an existing task ID
-        And a task in "ready" status
-        When I call update_task_state to "in_progress"
+        And a task in "Ready" status
+        When I call update_task_state to "InProgress"
         Then the response should contain the task with new status
         And the status should be "InProgress"
