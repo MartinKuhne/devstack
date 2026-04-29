@@ -20,7 +20,7 @@ namespace DevStack.Tests.Integration.MCP.Features
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Xunit.TraitAttribute("Category", "tools-list")]
-    public partial class ToolsListMethodFeature : object, Xunit.IClassFixture<ToolsListMethodFeature.FixtureData>, System.IDisposable
+    public partial class ToolsListFeature : object, Xunit.IClassFixture<ToolsListFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -30,7 +30,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-        public ToolsListMethodFeature(ToolsListMethodFeature.FixtureData fixtureData, DevStack_Tests_Integration_MCP_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public ToolsListFeature(ToolsListFeature.FixtureData fixtureData, DevStack_Tests_Integration_MCP_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();
@@ -39,7 +39,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Tools List Method", "    Verify MCP server tools/list method returns available tools", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Tools List", "    Verify MCP server tools/list returns available tools", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -80,7 +80,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         }
         
         [Xunit.SkippableFactAttribute(DisplayName="List all available tools")]
-        [Xunit.TraitAttribute("FeatureTitle", "Tools List Method")]
+        [Xunit.TraitAttribute("FeatureTitle", "Tools List")]
         [Xunit.TraitAttribute("Description", "List all available tools")]
         public void ListAllAvailableTools()
         {
@@ -95,8 +95,8 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a valid tools/list request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I send the tools/list request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.Given("the MCP client is connected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.When("I request the tool list", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain a list of tools", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the tools should include \"get_projects\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"get_project\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -111,7 +111,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         }
         
         [Xunit.SkippableFactAttribute(DisplayName="Tool schema is properly defined")]
-        [Xunit.TraitAttribute("FeatureTitle", "Tools List Method")]
+        [Xunit.TraitAttribute("FeatureTitle", "Tools List")]
         [Xunit.TraitAttribute("Description", "Tool schema is properly defined")]
         public void ToolSchemaIsProperlyDefined()
         {
@@ -126,8 +126,8 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a valid tools/list request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I send the tools/list request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.Given("the MCP client is connected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.When("I request the tool list", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("each tool should have a name", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("each tool should have a description", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("each tool should have inputSchema", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -142,12 +142,12 @@ namespace DevStack.Tests.Integration.MCP.Features
             
             public FixtureData()
             {
-                ToolsListMethodFeature.FeatureSetup();
+                ToolsListFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                ToolsListMethodFeature.FeatureTearDown();
+                ToolsListFeature.FeatureTearDown();
             }
         }
     }

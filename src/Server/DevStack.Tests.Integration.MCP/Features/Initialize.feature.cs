@@ -20,7 +20,7 @@ namespace DevStack.Tests.Integration.MCP.Features
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Xunit.TraitAttribute("Category", "initialize")]
-    public partial class InitializeMethodFeature : object, Xunit.IClassFixture<InitializeMethodFeature.FixtureData>, System.IDisposable
+    public partial class InitializeFeature : object, Xunit.IClassFixture<InitializeFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -30,7 +30,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-        public InitializeMethodFeature(InitializeMethodFeature.FixtureData fixtureData, DevStack_Tests_Integration_MCP_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public InitializeFeature(InitializeFeature.FixtureData fixtureData, DevStack_Tests_Integration_MCP_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();
@@ -39,8 +39,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Initialize Method", "    Verify MCP server initialize method returns correct protocol version and capa" +
-                    "bilities", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Initialize", "    Verify MCP server connection and capability negotiation", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -80,14 +79,14 @@ namespace DevStack.Tests.Integration.MCP.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Initialize with valid request")]
-        [Xunit.TraitAttribute("FeatureTitle", "Initialize Method")]
-        [Xunit.TraitAttribute("Description", "Initialize with valid request")]
-        public void InitializeWithValidRequest()
+        [Xunit.SkippableFactAttribute(DisplayName="Connect and initialize server")]
+        [Xunit.TraitAttribute("FeatureTitle", "Initialize")]
+        [Xunit.TraitAttribute("Description", "Connect and initialize server")]
+        public void ConnectAndInitializeServer()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Initialize with valid request", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Connect and initialize server", null, tagsOfScenario, argumentsOfScenario, featureTags);
             this.ScenarioInitialize(scenarioInfo);
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -96,11 +95,11 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a valid initialize request with protocol version \"2024-11-05\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I send the initialize request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-                testRunner.Then("the response should contain protocol version \"2024-11-05\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the response should contain server name \"DevStack MCP Server\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should contain tools capability", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.Given("the MCP server is available", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.When("I initialize the client", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.Then("the server should return its protocol version", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the server should return its implementation info", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the server should advertise tools capability", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
@@ -112,12 +111,12 @@ namespace DevStack.Tests.Integration.MCP.Features
             
             public FixtureData()
             {
-                InitializeMethodFeature.FeatureSetup();
+                InitializeFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                InitializeMethodFeature.FeatureTearDown();
+                InitializeFeature.FeatureTearDown();
             }
         }
     }

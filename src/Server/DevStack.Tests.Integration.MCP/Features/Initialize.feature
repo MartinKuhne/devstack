@@ -1,10 +1,10 @@
 @initialize
-Feature: Initialize Method
-    Verify MCP server initialize method returns correct protocol version and capabilities
+Feature: Initialize
+    Verify MCP server connection and capability negotiation
 
-    Scenario: Initialize with valid request
-        Given a valid initialize request with protocol version "2024-11-05"
-        When I send the initialize request
-        Then the response should contain protocol version "2024-11-05"
-        And the response should contain server name "DevStack MCP Server"
-        And the response should contain tools capability
+    Scenario: Connect and initialize server
+        Given the MCP server is available
+        When I initialize the client
+        Then the server should return its protocol version
+        And the server should return its implementation info
+        And the server should advertise tools capability

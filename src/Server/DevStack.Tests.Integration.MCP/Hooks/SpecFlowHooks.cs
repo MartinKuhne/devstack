@@ -2,11 +2,12 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 
 using DevStack.Persistence;
-using DevStack.Tests.Integration.MCP.Client;
 using DevStack.Tests.Integration.Shared;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+using ModelContextProtocol.Client;
 
 using Npgsql;
 
@@ -18,7 +19,7 @@ namespace DevStack.Tests.Integration.MCP.Hooks;
 public sealed class SpecFlowHooks
 {
     private readonly ScenarioContext _scenarioContext;
-    private IMcpJsonRpcClient? _mcpClient;
+    private McpClient? _mcpClient;
     private HttpClient? _httpClient;
     private static DevStackTestEnv? _env;
     private static Guid _seededProjectId = Guid.Empty;
@@ -39,6 +40,9 @@ public sealed class SpecFlowHooks
             .Build();
 
         await SeedDatabaseAsync(_env.PostgresConnectionString);
+
+        WaitForMcpServerReady(_env.AppPort, TimeSpan.FromSeconds(90));
+        Console.WriteLine($"[MCP] Server is ready on port {_env.AppPort}");
     }
 
     private static async Task SeedDatabaseAsync(string connectionString)
@@ -86,7 +90,7 @@ public sealed class SpecFlowHooks
     }
 
     [BeforeScenario]
-    public void BeforeScenario()
+    public async Task BeforeScenarioAsync()
     {
         if (_env is null)
         {
@@ -105,34 +109,33 @@ public sealed class SpecFlowHooks
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
 
-        var services = new ServiceCollection();
-        services.AddSingleton(httpClient);
-        services.AddSingleton<IMcpJsonRpcClient>(sp =>
-            new McpJsonRpcClient(httpClient, $"{appUrl}/mcp"));
+        var transport = new HttpClientTransport(new HttpClientTransportOptions
+        {
+            Endpoint = new Uri($"{appUrl}/mcp"),
+            TransportMode = HttpTransportMode.StreamableHttp,
+        });
 
-        var provider = services.BuildServiceProvider();
-        var mcpClient = provider.GetRequiredService<IMcpJsonRpcClient>();
+        var mcpClient = await McpClient.CreateAsync(transport);
 
         _httpClient = httpClient;
         _mcpClient = mcpClient;
 
-        _scenarioContext["McpClient"] = _mcpClient;
-        _scenarioContext["HttpClient"] = _httpClient;
+        _scenarioContext["McpClient"] = mcpClient;
+        _scenarioContext["HttpClient"] = httpClient;
         _scenarioContext["ConnectionString"] = connectionString;
         _scenarioContext["McpPort"] = port;
         _scenarioContext["ProjectId"] = _seededProjectId.ToString();
         Console.WriteLine($"[MCP] Seeded ProjectId: {_seededProjectId}");
         Console.WriteLine($"[MCP] Port: {port}");
-
-        WaitForMcpServerReady(port, TimeSpan.FromSeconds(90));
     }
 
     [AfterScenario]
     public void AfterScenario()
     {
+        (_mcpClient as IDisposable)?.Dispose();
+        _mcpClient = null;
         _httpClient?.Dispose();
         _httpClient = null;
-        _mcpClient = null;
     }
 
     private static void WaitForMcpServerReady(int port, TimeSpan timeout)
@@ -164,9 +167,9 @@ public sealed class SpecFlowHooks
         throw new TimeoutException($"MCP server did not become ready within {timeout.TotalSeconds} seconds on port {port}");
     }
 
-    public static IMcpJsonRpcClient GetMcpClient(ScenarioContext context)
+    public static McpClient GetMcpClient(ScenarioContext context)
     {
-        return context.TryGetValue<IMcpJsonRpcClient>("McpClient", out var client)
+        return context.TryGetValue<McpClient>("McpClient", out var client)
             ? client
             : throw new InvalidOperationException("MCP client not initialized. Ensure BeforeScenario hook has run.");
     }

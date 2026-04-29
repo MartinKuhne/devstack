@@ -1,10 +1,10 @@
 @tools-list
-Feature: Tools List Method
-    Verify MCP server tools/list method returns available tools
+Feature: Tools List
+    Verify MCP server tools/list returns available tools
 
     Scenario: List all available tools
-        Given a valid tools/list request
-        When I send the tools/list request
+        Given the MCP client is connected
+        When I request the tool list
         Then the response should contain a list of tools
         And the tools should include "get_projects"
         And the tools should include "get_project"
@@ -16,8 +16,8 @@ Feature: Tools List Method
         And the tools should include "update_task_state"
 
     Scenario: Tool schema is properly defined
-        Given a valid tools/list request
-        When I send the tools/list request
+        Given the MCP client is connected
+        When I request the tool list
         Then each tool should have a name
         And each tool should have a description
         And each tool should have inputSchema
