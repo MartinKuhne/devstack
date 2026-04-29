@@ -5,8 +5,8 @@ using DevStack.Application;
 using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks.Queries;
+using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
-using DevStack.Infrastructure.AgentTasks;
 
 using Microsoft.Extensions.Logging;
 
@@ -21,14 +21,14 @@ public class TaskTools
     private readonly ICommandHandler<Guid, CreateAgentTaskCommand> _createAgentTaskHandler;
     private readonly ICommandHandler<UpdateAgentTaskCommand> _updateAgentTaskHandler;
     private readonly ICommandHandler<UpdateAgentTaskStatusCommand> _updateAgentTaskStatusHandler;
-    private readonly GetAgentTaskByIdHandler _getAgentTaskByIdHandler;
+    private readonly ICommandHandler<AgentTask, GetAgentTaskByIdQuery> _getAgentTaskByIdHandler;
 
     public TaskTools(
         ILogger<TaskTools> logger,
         ICommandHandler<Guid, CreateAgentTaskCommand> createAgentTaskHandler,
         ICommandHandler<UpdateAgentTaskCommand> updateAgentTaskHandler,
         ICommandHandler<UpdateAgentTaskStatusCommand> updateAgentTaskStatusHandler,
-        GetAgentTaskByIdHandler getAgentTaskByIdHandler)
+        ICommandHandler<AgentTask, GetAgentTaskByIdQuery> getAgentTaskByIdHandler)
     {
         _logger = logger;
         _createAgentTaskHandler = createAgentTaskHandler;

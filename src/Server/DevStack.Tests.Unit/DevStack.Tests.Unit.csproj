@@ -5,6 +5,7 @@
     <ProjectReference Include="..\DevStack.Domain\DevStack.Domain.csproj" />
     <ProjectReference Include="..\DevStack.Application\DevStack.Application.csproj" />
     <ProjectReference Include="..\DevStack.Infrastructure\DevStack.Infrastructure.csproj" />
+    <ProjectReference Include="..\DevStack.MCP\DevStack.Mcp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

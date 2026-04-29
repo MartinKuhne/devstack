@@ -132,7 +132,7 @@ public class DeleteAgentTaskHandler : ICommandHandler<DeleteAgentTaskCommand>
     }
 }
 
-public class GetAgentTaskByIdHandler
+public class GetAgentTaskByIdHandler : ICommandHandler<AgentTask, GetAgentTaskByIdQuery>
 {
     private readonly DevStackDbContext _dbContext;
 
