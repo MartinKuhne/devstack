@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { ProjectListPage, CreateProjectDialog, ProjectDetailPage } from './pages/ProjectPage.js';
+import {
+    ProjectListPage,
+    CreateProjectDialog,
+    ProjectDetailPage,
+} from './pages/ProjectPage.js';
 import { NavigationHelper } from './helpers/NavigationHelper.js';
 
 test.describe('Project CRUD', () => {
@@ -340,5 +344,71 @@ test.describe('Project Detail View', () => {
         await page.waitForURL('/projects/**');
         await expect(page.getByRole('heading', { name: 'Deliverables', level: 3 })).toBeVisible();
         await expect(page.getByText('No deliverables yet')).toBeVisible();
+    });
+
+    test('should open edit dialog and fill all project fields', async ({ page }) => {
+        await projectListPage.navigate();
+        await projectListPage.waitForProjectList();
+        await projectListPage.clickNewProject();
+        await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
+
+        await createProjectDialog.createProject(
+            'DeleteAfterTest - Full Edit Test',
+            'Test description for editing',
+            'https://github.com/example/repo2'
+        );
+
+        await page.waitForTimeout(2000);
+        await projectListPage.clickProjectRow('DeleteAfterTest - Full Edit Test');
+        await page.waitForURL('/projects/**');
+
+        await projectDetailPage.clickEdit();
+        await expect(page.getByRole('dialog').filter({ hasText: /Edit Project/i })).toBeVisible({
+            timeout: 5000,
+        });
+
+        const nameInput = page.getByLabel('Name *');
+        await expect(nameInput).toBeVisible();
+        const descInput = page.getByLabel('Description');
+        await expect(descInput).toBeVisible();
+        const repoInput = page.getByLabel('Repository URL');
+        await expect(repoInput).toBeVisible();
+    });
+
+    test('project detail page shows all tab contents', async ({ page }) => {
+        await projectListPage.navigate();
+        await projectListPage.waitForProjectList();
+        await projectListPage.clickNewProject();
+        await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
+
+        await createProjectDialog.createProject('DeleteAfterTest - Tab Contents');
+
+        await page.waitForTimeout(2000);
+        await projectListPage.clickProjectRow('DeleteAfterTest - Tab Contents');
+        await page.waitForURL('/projects/**');
+
+        await expect(projectDetailPage.deliverablesTab).toBeVisible();
+        await expect(projectDetailPage.agentTasksTab).toBeVisible();
+
+        await projectDetailPage.clickTab('Agent Tasks');
+        await expect(page.getByRole('heading', { name: 'Agent Tasks', level: 3 })).toBeVisible();
+    });
+
+    test('should navigate to models from project detail page', async ({ page }) => {
+        await projectListPage.navigate();
+        await projectListPage.waitForProjectList();
+        await projectListPage.clickNewProject();
+        await expect(createProjectDialog.dialog).toBeVisible({ timeout: 5000 });
+
+        await createProjectDialog.createProject('DeleteAfterTest - Models Nav');
+
+        await page.waitForTimeout(2000);
+        await projectListPage.clickProjectRow('DeleteAfterTest - Models Nav');
+        await page.waitForURL('/projects/**');
+
+        await navigationHelper.navigateToModels();
+        await expect(
+            page.getByRole('heading', { name: 'Large Language Models', level: 2 })
+        ).toBeVisible();
     });
 });

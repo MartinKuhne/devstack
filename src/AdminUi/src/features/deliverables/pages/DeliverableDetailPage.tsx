@@ -311,6 +311,19 @@ export function DeliverableDetailPage() {
                             </CardContent>
                         </Card>
                     )}
+
+                    {deliverable.design && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Design</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm whitespace-pre-wrap">
+                                    {deliverable.design}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 <div className="lg:col-span-1">
@@ -398,6 +411,7 @@ export function DeliverableDetailPage() {
                     testPlan: deliverable.testPlan,
                     deploymentPlan: deliverable.deploymentPlan,
                     blocking: deliverable.blocking,
+                    design: deliverable.design,
                 }}
                 onSuccess={() => refetch()}
             />

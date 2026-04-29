@@ -21,6 +21,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         modelAlias?: string;
         url: string;
         apiKey?: string;
+        cost: number;
         maxComplexity: number;
     } | null>(null);
     const [deleteLargeLanguageModel, { loading: deleting }] = useDeleteLargeLanguageModelMutation();
@@ -30,12 +31,14 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         model?: string | null | undefined;
         modelAlias?: string | null | undefined;
         url?: string | null | undefined;
+        cost?: number | null | undefined;
         maxComplexity?: number | null | undefined;
     }) => {
         setEditingModel({
             id: model.id ?? '',
             model: model.model ?? '',
             url: model.url ?? '',
+            cost: model.cost ?? 0,
             maxComplexity: model.maxComplexity ?? 0,
         });
     };
@@ -127,6 +130,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                                 model: string;
                                 modelAlias?: string | null;
                                 url: string;
+                                cost: number;
                                 maxComplexity: number;
                             } | null
                         ) =>
@@ -169,6 +173,10 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                                             >
                                                 {config.url}
                                             </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-muted-foreground">Cost</p>
+                                            <p className="text-sm font-medium">{config.cost ?? 0}</p>
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-xs text-muted-foreground">

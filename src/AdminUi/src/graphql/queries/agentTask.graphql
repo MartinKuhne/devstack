@@ -1,9 +1,10 @@
 query GetAgentTask($id: UUID!) {
     agentTask(id: $id) {
         id
+        projectId
+        deliverableId
         title
         status
-        deliverableId
         description
         result
         errors
@@ -14,6 +15,14 @@ query GetAgentTask($id: UUID!) {
         completionTokens
         executionDurationInSeconds
         agent
+        deliverable {
+            id
+            title
+        }
+        project {
+            id
+            name
+        }
     }
 }
 
@@ -21,9 +30,10 @@ query GetAgentTasks($deliverableId: UUID) {
     agentTasks(where: { deliverableId: { eq: $deliverableId } }) {
         nodes {
             id
+            projectId
+            deliverableId
             title
             status
-            deliverableId
             description
             result
             errors
@@ -34,6 +44,14 @@ query GetAgentTasks($deliverableId: UUID) {
             completionTokens
             executionDurationInSeconds
             agent
+            deliverable {
+                id
+                title
+            }
+            project {
+                id
+                name
+            }
         }
     }
 }

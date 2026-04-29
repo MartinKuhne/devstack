@@ -15,6 +15,7 @@ query GetAllDeliverables {
             testPlan
             deploymentPlan
             blocking
+            design
         }
     }
 }
@@ -36,6 +37,7 @@ query GetDeliverablesByProject($projectId: UUID!) {
             testPlan
             deploymentPlan
             blocking
+            design
         }
     }
 }
@@ -56,5 +58,6 @@ query GetDeliverable($id: UUID!) {
         testPlan
         deploymentPlan
         blocking
+        design
     }
 }

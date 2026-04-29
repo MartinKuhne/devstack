@@ -3,5 +3,6 @@ mutation CreateDeliverable($input: CreateDeliverableInput!) {
         id
         title
         status
+        design
     }
 }

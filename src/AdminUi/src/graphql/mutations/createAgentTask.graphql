@@ -1,8 +1,10 @@
 mutation CreateAgentTask($input: CreateAgentTaskInput!) {
     createAgentTask(input: $input) {
         id
-        title
+        projectId
         deliverableId
+        title
+        status
         description
         complexityRating
         result

@@ -1,13 +1,15 @@
 mutation UpdateAgentTask($input: UpdateAgentTaskInput!) {
     updateAgentTask(input: $input) {
         id
-        title
+        projectId
         deliverableId
+        title
+        status
         description
-        complexityRating
         result
         errors
         commitHash
+        complexityRating
         dependsOnAgentTaskId
         promptTokens
         completionTokens

@@ -27,6 +27,7 @@ interface EditDeliverableFormData {
     testPlan: string;
     deploymentPlan: string;
     blocking: string;
+    design: string;
 }
 
 interface EditDeliverableDialogProps {
@@ -43,6 +44,7 @@ interface EditDeliverableDialogProps {
         testPlan?: string | null;
         deploymentPlan?: string | null;
         blocking?: string | null;
+        design?: string | null;
     } | null;
     onSuccess: () => void;
 }
@@ -72,6 +74,7 @@ export function EditDeliverableDialog({
             testPlan: '',
             deploymentPlan: '',
             blocking: '',
+            design: '',
         },
     });
 
@@ -86,6 +89,7 @@ export function EditDeliverableDialog({
             setValue('testPlan', deliverable.testPlan ?? '');
             setValue('deploymentPlan', deliverable.deploymentPlan ?? '');
             setValue('blocking', deliverable.blocking ?? '');
+            setValue('design', deliverable.design ?? '');
         }
     }, [deliverable, open, setValue]);
 
@@ -129,6 +133,7 @@ export function EditDeliverableDialog({
                         testPlan: data.testPlan || null,
                         deploymentPlan: data.deploymentPlan || null,
                         blocking: data.blocking || null,
+                        design: data.design || null,
                     },
                 },
             });
@@ -229,6 +234,10 @@ export function EditDeliverableDialog({
                         <div className="grid gap-2">
                             <Label htmlFor="blocking">Blocking</Label>
                             <Textarea id="blocking" {...register('blocking')} rows={2} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="design">Design</Label>
+                            <Textarea id="design" {...register('design')} rows={3} />
                         </div>
                     </div>
                     <DialogFooter>

@@ -4,6 +4,7 @@ mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) {
         url
         model
         modelAlias
+        cost
         maxComplexity
         maxConcurrency
     }
