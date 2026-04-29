@@ -1,8 +1,0 @@
-query GetProjectById($id: UUID!) {
-  projectById(id: $id) {
-    id
-    name
-    description
-    repository
-  }
-}
