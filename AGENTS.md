@@ -15,11 +15,9 @@ Work only on the item described in the prompt. Do not modify unrelated code or c
 
 ## Quality Gates
 All quality gates must pass before marking an item done and commiting the changes, unless instructed to pause testing
-- Build and deployment succeeds (```docker compose up --build -d```)
-- Admin UI unit tests pass (```npm rum test --prefix src/adminui```)
-- Server unit tests pass
+- Build succeeds
+- Unit tests pass
 - No new lint errors or warnings
-- Every deliverable MUST include automated integration tests that run against the real application container and its real dependencies. A deliverable is not complete unless these integration tests exist, pass, and cover the implemented behavior.
 
 ## Libraries
 - Prefer libraries over re-inventing the wheel
@@ -40,19 +38,12 @@ All quality gates must pass before marking an item done and commiting the change
 - Do not put Client IDs and any passwords and secrets in the code
 - Use immutable data structures, pure and honest functions
 
-
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
 <!-- SPECKIT END -->
 
-## Active Technologies
+# Domain model
 
-- C# + .NET 10.0 + ModelContextProtocol (006-mcp-jsonrpc-compliance)
-- PostgreSQL (006-mcp-jsonrpc-compliance)
-
-## Recent Changes
-
-- 006-mcp-jsonrpc-compliance: Added ModelContextProtocol MCP server with JSON-RPC 2.0 compliance
-
-## Last updated: 2026-04-28
+- ./src/Server/DevStack.Api/ and ./src/Server.DevStack.Domain/ PRODUCE ```src/schema.graphql```. Any changes in these projects MUST be reflected in ```src/schema.graphql```
+- All other projects CONSUME ```src/schema.graphql``` and MUST NOT change it when changes are applied

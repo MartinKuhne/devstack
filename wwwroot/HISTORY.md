@@ -1,6 +1,6 @@
 # devstack progression
 
-# Iteration 4
+# Iteration 4 reflection
 
 The project has some structural deficiencies related to using coding agents
 - The Hot Chocolate (graphQL) library is implemented as a code-first approach. That's great for getting results quickly, however there is no schema.graphql for clients to consume directly
@@ -12,9 +12,22 @@ The project has some structural deficiencies related to using coding agents
 - The models I have at my disposal aren't particuarly adept at writing Powershell, and I haven't gotten over my dislike for Python.
 - I made a lot of changes to the schema over time
 
-These factors combined have made it really time-consuming and error prone to keep integration tests, the MCP server, the runner, the admin UI and the admin UI tests up to date. I tried to produce a schema.graphql derived from the Hot Chocolate implementation but then that was not fully correct and any errors propagate through the system quickly. I also procured an alternative implementation on node.js/apollo which I thought would be a better fit for a schema-first approach, however I haven't had a chance to test that. I haven't decided on the best path forward for the API surface.
+These factors combined have made it really time-consuming and error prone to keep integration tests, the MCP server, the runner, the admin UI and the admin UI tests up to date. I tried to produce a schema.graphql derived from the Hot Chocolate implementation but then that was not fully correct and any errors propagate through the system quickly. I also procured an alternative implementation on node.js/apollo which I thought would be a better fit for a schema-first approach, however I haven't had a chance to test that.
 
-I have the MCP server use the DbContext for writes and the commands for writes.
+I have the MCP server use the DbContext for writes and the commands for writes to avoid graphql entanglements, but ideally the MCP server would be it's own unit.
+
+Plan: I haven't decided on the best path forward for the API surface. I'll make onre more attempt at anchoring the client code around a single ```schema.graphql```.
+
+- Opencode (on Windows) is run via npm/npx and that itself is a batch file. There seem to be a lot of complication capturing and/or displaying the output
+- I'd like to run Opencode with user prompts off (so it doesn't get stuck) and bash off (to limit the damage potential a little bit) however there is no commandline option to do so. Ironically there is a commandline option to disable all the protections. The runner could write these permissions into the local ```opencode.json``` but then that would hamper interactive development.
+
+Plan: There are a couple of options for coding agents that have an API (including Opencode). Need to investigate and compare.
+
+- There is a feature gap where I had planned to run tasks one by one, and how I manage git branches. I initially thought to create a branch, then run all the agent task, then run the pull request job. However that's a nontrivial state machine and it makes cleanup of failed operations difficult. Coding tasks are expected to fail and will also be frequently rejected if there are open questions.
+
+I think there is wisdom in SpecKit's approach to try and front load a lot of planning and implementation decisions to then one-shot the entire implementation.
+
+Plan: Rewrite the execution step for the coding agent to enumerate and execute the tasks on it's own. This has worked well even with the 'lesser' models I run locally.
 
 # Iteration 3
 

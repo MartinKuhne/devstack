@@ -50,7 +50,7 @@ Execute prompts with OpenCode
 - [REQ-AG-102] When an AgentTask execution completes, the system shall update the ExecutionDurationInSeconds of the AgentTask with the time it took to run OpenCode
 - [REQ-AG-103] When all the AgentTasks of a deliverable are in the DONE Status, the system shall execute the [pull-reqest] prompt with a minimum complextity of 4
 - [REQ-AG-104] When a deliverable has multiple AgentTasks and any one of them is in the [Failed], [Rejected] or [NeedsReview] state, change the Deliverable Status to [Failed]
-- [REQ-AG-105] When the system invokes OpenCode, it shall use the least cost model that has a complexity value equal or higher of what is required [OpenCode CLI Run](https://opencode.ai/docs/cli/#run-1)
+- [REQ-AG-105] When the system invokes OpenCode, it shall use the least cost model that has the a complexity value equal or higher of what is required [OpenCode CLI Run](https://opencode.ai/docs/cli/#run-1). Choose the lowest maximum complexity model if costs are identical.
 - [REQ-AG-106] When the system invokes are GraphQL query or mutation, it shall log the name of the operation
 - [REQ-AG-107] When the system queries Deliverables from Graphql by Status, it shall retrieve one Deliverable at a time to avoid having stale data in memory
 

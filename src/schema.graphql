@@ -1,0 +1,632 @@
+"""
+The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response.
+"""
+directive @cost(
+  """
+  The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc.
+  """
+  weight: String!
+) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+
+"""
+The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information.
+"""
+directive @listSize(
+  """
+  The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field.
+  """
+  assumedSize: Int
+
+  """
+  The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments.
+  """
+  slicingArguments: [String!]
+
+  """
+  The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query.
+  """
+  slicingArgumentDefaultValue: Int
+
+  """
+  The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields.
+  """
+  sizedFields: [String!]
+
+  """
+  The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error.
+  """
+  requireOneSlicingArgument: Boolean! = true
+) on FIELD_DEFINITION
+
+input DeliverableFilterInput {
+  and: [DeliverableFilterInput!]
+  or: [DeliverableFilterInput!]
+  id: UuidOperationFilterInput
+  projectId: UuidOperationFilterInput
+  project: ProjectFilterInput
+  type: DeliverableTypeOperationFilterInput
+  title: StringOperationFilterInput
+  status: DeliverableStatusOperationFilterInput
+  description: StringOperationFilterInput
+  design: StringOperationFilterInput
+  acceptanceCriteria: StringOperationFilterInput
+  executionPlan: StringOperationFilterInput
+  agentFeedback: StringOperationFilterInput
+  securityImpact: StringOperationFilterInput
+  performanceImpact: StringOperationFilterInput
+  testPlan: StringOperationFilterInput
+  deploymentPlan: StringOperationFilterInput
+  blocking: StringOperationFilterInput
+  agentTasks: ListFilterInputTypeOfAgentTaskFilterInput
+}
+
+input UpdateLargeLanguageModelInput {
+  id: UUID!
+  url: String
+  model: String
+  modelAlias: String
+  apiKey: String
+  cost: Int
+  maxComplexity: Int
+  maxConcurrency: Int
+}
+
+input UpdateProjectInput {
+  id: UUID!
+  name: String
+  description: String
+  repository: String
+}
+
+type Mutation {
+  createProject(input: CreateProjectInput!): Project
+  updateProject(input: UpdateProjectInput!): Project
+  deleteProject(id: UUID!): Boolean!
+  createDeliverable(input: CreateDeliverableInput!): Deliverable
+  updateDeliverable(input: UpdateDeliverableInput!): Deliverable!
+  updateDeliverableStatus(id: UUID!, targetStatus: DeliverableStatus!, actor: String): DeliverableStatus!
+  deleteDeliverable(id: UUID!): Boolean!
+  createAgentTask(input: CreateAgentTaskInput!): AgentTask!
+  updateAgentTask(input: UpdateAgentTaskInput!): AgentTask!
+  updateAgentTaskStatus(id: UUID!, targetStatus: AgentTaskStatus!): AgentTaskStatus!
+  deleteAgentTask(id: UUID!): Boolean!
+  createLargeLanguageModel(input: CreateLargeLanguageModelInput!): LargeLanguageModel
+  updateLargeLanguageModel(input: UpdateLargeLanguageModelInput!): LargeLanguageModel
+  deleteLargeLanguageModel(id: UUID!): Boolean!
+  deleteTestData: DeleteTestDataPayload!
+  checkAndMarkDeliverableDone(deliverableId: UUID!): Boolean!
+}
+
+input IntOperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+enum AgentTaskStatus {
+  READY
+  IN_PROGRESS
+  DONE
+  FAILED
+  REJECTED
+  NEEDS_REVIEW
+}
+
+"""An edge in a connection."""
+type LargeLanguageModelsEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: LargeLanguageModel!
+}
+
+"""Information about pagination in a connection."""
+type PageInfo {
+  """
+  Indicates whether more edges exist following the set defined by the clients arguments.
+  """
+  hasNextPage: Boolean!
+
+  """
+  Indicates whether more edges exist prior the set defined by the clients arguments.
+  """
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: String
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: String
+}
+
+input CreateProjectInput {
+  name: String!
+  repository: String!
+  description: String
+}
+
+input ListFilterInputTypeOfDeliverableFilterInput {
+  all: DeliverableFilterInput
+  none: DeliverableFilterInput
+  some: DeliverableFilterInput
+  any: Boolean
+}
+
+"""An edge in a connection."""
+type AgentTasksEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: AgentTask!
+}
+
+"""An edge in a connection."""
+type DeliverablesEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: Deliverable!
+}
+
+enum DeliverableType {
+  FEATURE
+  DEFECT
+  MAINTENANCE
+  SPIKE
+}
+
+input LargeLanguageModelFilterInput {
+  and: [LargeLanguageModelFilterInput!]
+  or: [LargeLanguageModelFilterInput!]
+  id: UuidOperationFilterInput
+  url: StringOperationFilterInput
+  model: StringOperationFilterInput
+  modelAlias: StringOperationFilterInput
+  apiKey: StringOperationFilterInput
+  maxComplexity: IntOperationFilterInput
+  maxConcurrency: IntOperationFilterInput
+  cost: IntOperationFilterInput
+}
+
+type LargeLanguageModel {
+  id: UUID!
+  url: String!
+  model: String!
+  modelAlias: String!
+  apiKey: String!
+  maxComplexity: Int!
+  maxConcurrency: Int!
+  cost: Int!
+}
+
+input DeliverableTypeOperationFilterInput {
+  eq: DeliverableType
+  neq: DeliverableType
+  in: [DeliverableType!]
+  nin: [DeliverableType!]
+}
+
+enum DeliverableStatus {
+  DRAFT
+  DESIGN
+  PLAN
+  IMPLEMENT
+  MERGE
+  DEPLOY
+  TEST
+  DONE
+  FAILED
+  REJECTED
+  NEEDS_REVIEW
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input AgentTaskStatusOperationFilterInput {
+  eq: AgentTaskStatus
+  neq: AgentTaskStatus
+  in: [AgentTaskStatus!]
+  nin: [AgentTaskStatus!]
+}
+
+input ProjectSortInput {
+  id: SortEnumType
+  name: SortEnumType
+  description: SortEnumType
+  repository: SortEnumType
+}
+
+input UpdateAgentTaskInput {
+  id: UUID!
+  title: String
+  description: String
+  result: String
+  errors: String
+  commitHash: String
+  dependsOnAgentTaskId: UUID
+  complexityRating: Int
+  promptTokens: Int
+  completionTokens: Int
+  executionDurationInSeconds: Int
+  agent: String
+}
+
+input LargeLanguageModelSortInput {
+  id: SortEnumType
+  url: SortEnumType
+  model: SortEnumType
+  modelAlias: SortEnumType
+  apiKey: SortEnumType
+  maxComplexity: SortEnumType
+  maxConcurrency: SortEnumType
+  cost: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+input DeliverableStatusOperationFilterInput {
+  eq: DeliverableStatus
+  neq: DeliverableStatus
+  in: [DeliverableStatus!]
+  nin: [DeliverableStatus!]
+}
+
+input UuidOperationFilterInput {
+  eq: UUID
+  neq: UUID
+  in: [UUID]
+  nin: [UUID]
+  gt: UUID
+  ngt: UUID
+  gte: UUID
+  ngte: UUID
+  lt: UUID
+  nlt: UUID
+  lte: UUID
+  nlte: UUID
+}
+
+type AgentTask {
+  id: UUID!
+  projectId: UUID!
+  deliverableId: UUID!
+  title: String!
+  status: AgentTaskStatus!
+  description: String!
+  result: String
+  errors: String
+  commitHash: String
+  complexityRating: Int!
+  dependsOnAgentTaskId: UUID
+  promptTokens: Int
+  completionTokens: Int
+  executionDurationInSeconds: Int
+  agent: String
+  deliverable: Deliverable
+  project: Project
+  dependsOnAgentTask: AgentTask
+}
+
+type DeleteTestDataPayload {
+  success: Boolean!
+  message: String
+}
+
+input ProjectFilterInput {
+  and: [ProjectFilterInput!]
+  or: [ProjectFilterInput!]
+  id: UuidOperationFilterInput
+  name: StringOperationFilterInput
+  description: StringOperationFilterInput
+  repository: StringOperationFilterInput
+  deliverables: ListFilterInputTypeOfDeliverableFilterInput
+}
+
+input CreateLargeLanguageModelInput {
+  url: String!
+  model: String!
+  modelAlias: String
+  apiKey: String
+  cost: Int! = 0
+  maxComplexity: Int! = 10
+  maxConcurrency: Int! = 1
+}
+
+type Query {
+  project(id: UUID!): Project
+  projects(
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: ProjectFilterInput
+    order: [ProjectSortInput!]
+  ): ProjectsConnection
+  largeLanguageModel(id: UUID!): LargeLanguageModel
+  largeLanguageModels(
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: LargeLanguageModelFilterInput
+    order: [LargeLanguageModelSortInput!]
+  ): LargeLanguageModelsConnection
+  deliverable(id: UUID!): Deliverable
+  deliverables(
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: DeliverableFilterInput
+    order: [DeliverableSortInput!]
+  ): DeliverablesConnection
+  agentTask(id: UUID!): AgentTask
+  agentTasks(
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: AgentTaskFilterInput
+    order: [AgentTaskSortInput!]
+  ): AgentTasksConnection
+}
+
+input CreateAgentTaskInput {
+  deliverableId: UUID!
+  projectId: UUID!
+  title: String!
+  description: String!
+  dependsOnAgentTaskId: UUID
+  complexityRating: Int! = 5
+}
+
+input AgentTaskSortInput {
+  id: SortEnumType
+  projectId: SortEnumType
+  deliverableId: SortEnumType
+  title: SortEnumType
+  status: SortEnumType
+  description: SortEnumType
+  result: SortEnumType
+  errors: SortEnumType
+  commitHash: SortEnumType
+  complexityRating: SortEnumType
+  dependsOnAgentTaskId: SortEnumType
+  promptTokens: SortEnumType
+  completionTokens: SortEnumType
+  executionDurationInSeconds: SortEnumType
+  agent: SortEnumType
+  deliverable: DeliverableSortInput
+  project: ProjectSortInput
+  dependsOnAgentTask: AgentTaskSortInput
+}
+
+"""A connection to a list of items."""
+type LargeLanguageModelsConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [LargeLanguageModelsEdge!]
+
+  """A flattened list of the nodes."""
+  nodes: [LargeLanguageModel!]
+}
+
+input ListFilterInputTypeOfAgentTaskFilterInput {
+  all: AgentTaskFilterInput
+  none: AgentTaskFilterInput
+  some: AgentTaskFilterInput
+  any: Boolean
+}
+
+type Project {
+  id: UUID!
+  name: String!
+  description: String!
+  repository: String!
+  deliverables: [Deliverable!]!
+}
+
+input UpdateDeliverableInput {
+  id: UUID!
+  title: String
+  description: String
+  acceptanceCriteria: String
+  agentFeedback: String
+  executionPlan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  blocking: String
+  design: String
+}
+
+type Deliverable {
+  id: UUID!
+  projectId: UUID!
+  project: Project
+  type: DeliverableType!
+  title: String!
+  status: DeliverableStatus!
+  description: String
+  design: String
+  acceptanceCriteria: String
+  executionPlan: String
+  agentFeedback: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  blocking: String
+  agentTasks: [AgentTask!]!
+}
+
+input DeliverableSortInput {
+  id: SortEnumType
+  projectId: SortEnumType
+  project: ProjectSortInput
+  type: SortEnumType
+  title: SortEnumType
+  status: SortEnumType
+  description: SortEnumType
+  design: SortEnumType
+  acceptanceCriteria: SortEnumType
+  executionPlan: SortEnumType
+  agentFeedback: SortEnumType
+  securityImpact: SortEnumType
+  performanceImpact: SortEnumType
+  testPlan: SortEnumType
+  deploymentPlan: SortEnumType
+  blocking: SortEnumType
+}
+
+input CreateDeliverableInput {
+  projectId: UUID!
+  title: String!
+  type: String!
+  description: String!
+  initialStatus: DeliverableStatus!
+  acceptanceCriteria: String
+  executionPlan: String
+  securityImpact: String
+  performanceImpact: String
+  testPlan: String
+  deploymentPlan: String
+  design: String
+}
+
+"""A connection to a list of items."""
+type AgentTasksConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [AgentTasksEdge!]
+
+  """A flattened list of the nodes."""
+  nodes: [AgentTask!]
+}
+
+input AgentTaskFilterInput {
+  and: [AgentTaskFilterInput!]
+  or: [AgentTaskFilterInput!]
+  id: UuidOperationFilterInput
+  projectId: UuidOperationFilterInput
+  deliverableId: UuidOperationFilterInput
+  title: StringOperationFilterInput
+  status: AgentTaskStatusOperationFilterInput
+  description: StringOperationFilterInput
+  result: StringOperationFilterInput
+  errors: StringOperationFilterInput
+  commitHash: StringOperationFilterInput
+  complexityRating: IntOperationFilterInput
+  dependsOnAgentTaskId: UuidOperationFilterInput
+  promptTokens: IntOperationFilterInput
+  completionTokens: IntOperationFilterInput
+  executionDurationInSeconds: IntOperationFilterInput
+  agent: StringOperationFilterInput
+  deliverable: DeliverableFilterInput
+  project: ProjectFilterInput
+  dependsOnAgentTask: AgentTaskFilterInput
+}
+
+"""A connection to a list of items."""
+type ProjectsConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [ProjectsEdge!]
+
+  """A flattened list of the nodes."""
+  nodes: [Project!]
+}
+
+"""An edge in a connection."""
+type ProjectsEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: Project!
+}
+
+"""A connection to a list of items."""
+type DeliverablesConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [DeliverablesEdge!]
+
+  """A flattened list of the nodes."""
+  nodes: [Deliverable!]
+}
+
+scalar UUID
