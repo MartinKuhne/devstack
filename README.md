@@ -1,6 +1,6 @@
 # devstack
 
-When I started experimenting with local LLMs for coding, I quickly discovered that they are very slow andnot very capable. You may have a free resource but actually using that resource requires different patterns. Having gone thought a few coding projects,
+When I started experimenting with local LLMs for coding, I quickly discovered that they are very slow and not very capable. You may have a free resource but actually using that resource requires different patterns. Having gone through a few coding projects,
 I realized I needed a framework to analyze requirements, break them down into scoped work items that can be performed by a local LLM, and to run this in a loop until all the work is done. It also needs to have a library of prompts on hand to perform a variety of tasks.
 
 And, to be fair, a vibe coding project to do more vibe coding? What could go wrong?
@@ -24,15 +24,15 @@ You enter features, requirements and the occasional bug report, the automation d
 
 # Stack
 
-The project can't build itself unfortunately (maybe it will be able to improve itself). My coding agent is opencode and I have the following tools installed to help with the coding
-- saga: The closest I could find to meet my requirements. Models epics, stories and tasks internally.  On the initially planning pass, gpt-5.4 generated more than a hundred tasks to execute. (saga-mcp)
+The project can't build itself unfortunately (maybe it will be able to improve itself). My coding agent is OpenCode and I have the following tools installed to help with the coding
+- Saga: The closest I could find to meet my requirements. Models epics, stories and tasks internally.  On the initially planning pass, GPT-4o generated more than a hundred tasks to execute. (saga-mcp)
 - codebase-memory: Indexes the codebase and also has an architecture tool call
 - context7: Code samples for many use cases
 - dotnet: Dotnet sdk for solutions, projects, test runs and nuget (Community.Mcp.DotNet)
 - fetch: web fetch (mcp-server-fetch)
 - filesystem: better access to local files (@modelcontextprotocol/server-filesystem)
 - git: naturally (mcp-server-git)
-- refactor: bulk edits, not sure how to get opencode to use this more (@myuon/refactor-mcp@latest)
+- refactor: bulk edits, not sure how to get OpenCode to use this more (@myuon/refactor-mcp@latest)
 
 # Coding flow
 
@@ -77,11 +77,11 @@ I think there are a couple of useful tiers to be considered
 - A larger local LLM. Quen3 coder next seems to be a reasonable compromise between speed, capability and stability. I wanted to try gemma 4 but it crashes every 5 minutes under llama.cpp.
 - I am not sure if there is an edge model that can run coding tasks and tool calls. So far it has been discouraging. Hopefully eventually a model can be found to run on 8 or 16gb VRAM.
 
-The core planning prompt is to split the work into tasks that can be performed by an AI coding agent in under 20 minutes, to be specific about what is to be accomplished, and to rate the complexity.
+The core planning prompt is to split the work into tasks that can be performed by an AI coding agent in under 20 minutes, to be specific about what is to be accomplished, and to rate the complexity of the task.
 
 # References and inspriration
 - [Prompt Kit](https://github.com/microsoft/PromptKit)
 - [Spec Kit](https://github.com/github/spec-kit)
 - [Awesome Copilot](https://github.com/github/awesome-copilot)
-- [Awesome Copilot](https://github.com/github/awesome-copilot)
 - [Agent Skills For Real Engineers](https://github.com/mattpocock/skills)
+
