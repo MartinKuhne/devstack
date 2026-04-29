@@ -1,14 +1,10 @@
 <Solution>
-  <Folder Name="/DevStack.Client/">
-    <Project Path="DevStack.Client/Devstack.Client.csproj" />
-  </Folder>
   <Project Path="DevStack.Api/DevStack.Api.csproj" />
   <Project Path="DevStack.Application/DevStack.Application.csproj" />
   <Project Path="DevStack.Contracts/DevStack.Contracts.csproj" />
   <Project Path="DevStack.Domain/DevStack.Domain.csproj" />
   <Project Path="DevStack.Infrastructure/DevStack.Infrastructure.csproj" />
   <Project Path="DevStack.Mcp/DevStack.Mcp.csproj" />
-  
   <Project Path="DevStack.Persistence/DevStack.Persistence.csproj" />
   <Project Path="DevStack.Tests.Integration.GraphQL/DevStack.Tests.Integration.GraphQL.csproj" />
   <Project Path="DevStack.Tests.Integration.MCP/DevStack.Tests.Integration.MCP.csproj" />
