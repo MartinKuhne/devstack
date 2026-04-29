@@ -6,14 +6,14 @@ public record JsonRpcRequest(
     [property: JsonPropertyName("jsonrpc")] string JsonRpc,
     [property: JsonPropertyName("method")] string Method,
     [property: JsonPropertyName("params")] object? Params = null,
-    [property: JsonPropertyName("id")] int? Id = null
+    [property: JsonPropertyName("id")] object? Id = null
 );
 
 public record JsonRpcResponse(
     [property: JsonPropertyName("jsonrpc")] string JsonRpc,
     [property: JsonPropertyName("result")] object? Result = null,
     [property: JsonPropertyName("error")] JsonRpcError? Error = null,
-    [property: JsonPropertyName("id")] int? Id = null
+    [property: JsonPropertyName("id")] object? Id = null
 );
 
 public record JsonRpcError(

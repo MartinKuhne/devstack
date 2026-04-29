@@ -39,7 +39,8 @@ namespace DevStack.Tests.Integration.MCP.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Empty Body Handling", "    Verify proper error handling for empty request bodies", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Empty Body Handling", "    Verify proper error handling for empty request bodies with JSON-RPC 2.0 compl" +
+                    "iance", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -99,6 +100,8 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.When("I send the POST request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32700", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the error message should indicate parse error", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have an error object with code, message, and optional data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
@@ -122,6 +125,8 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.Given("a request body with only whitespace", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.When("I send the POST request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32700", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have an error object with code, message, and optional data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
@@ -145,6 +150,8 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.Given("a request body with literal \"null\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.When("I send the POST request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32700", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have an error object with code, message, and optional data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }

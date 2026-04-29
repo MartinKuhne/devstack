@@ -39,7 +39,8 @@ namespace DevStack.Tests.Integration.MCP.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Not Implemented Methods", "    Verify MCP server returns Method not found for unimplemented methods", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Not Implemented Methods", "    Verify MCP server returns Method not found for unimplemented methods with JSO" +
+                    "N-RPC 2.0 compliance", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -99,6 +100,8 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.When("I send the unimplemented request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32601", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the error message should contain \"Method not found\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have an error object with code, message, and optional data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
@@ -122,6 +125,8 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.Given("a prompts/list request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.When("I send the unimplemented request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32601", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have an error object with code, message, and optional data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
@@ -145,6 +150,8 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.Given("a prompts/get request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.When("I send the unimplemented request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32601", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have an error object with code, message, and optional data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
@@ -168,6 +175,8 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.Given("a completion/complete request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.When("I send the unimplemented request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain error code -32601", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have an error object with code, message, and optional data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }

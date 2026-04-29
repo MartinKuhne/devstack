@@ -19,18 +19,18 @@ namespace DevStack.Tests.Integration.MCP.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [Xunit.TraitAttribute("Category", "error-handling")]
-    public partial class ParseErrorFeature : object, Xunit.IClassFixture<ParseErrorFeature.FixtureData>, System.IDisposable
+    [Xunit.TraitAttribute("Category", "notifications")]
+    public partial class NotificationsFeature : object, Xunit.IClassFixture<NotificationsFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
         
         private static string[] featureTags = new string[] {
-                "error-handling"};
+                "notifications"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-        public ParseErrorFeature(ParseErrorFeature.FixtureData fixtureData, DevStack_Tests_Integration_MCP_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public NotificationsFeature(NotificationsFeature.FixtureData fixtureData, DevStack_Tests_Integration_MCP_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();
@@ -39,8 +39,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Parse Error", "    Verify JSON-RPC -32700 ParseError for malformed JSON with JSON-RPC 2.0 compli" +
-                    "ance", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Notifications", "    Verify MCP server notification handling with JSON-RPC 2.0 compliance", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -80,14 +79,14 @@ namespace DevStack.Tests.Integration.MCP.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Send malformed JSON")]
-        [Xunit.TraitAttribute("FeatureTitle", "Parse Error")]
-        [Xunit.TraitAttribute("Description", "Send malformed JSON")]
-        public void SendMalformedJSON()
+        [Xunit.SkippableFactAttribute(DisplayName="Send valid notification")]
+        [Xunit.TraitAttribute("FeatureTitle", "Notifications")]
+        [Xunit.TraitAttribute("Description", "Send valid notification")]
+        public void SendValidNotification()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Send malformed JSON", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Send valid notification", null, tagsOfScenario, argumentsOfScenario, featureTags);
             this.ScenarioInitialize(scenarioInfo);
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -96,24 +95,22 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a request with invalid JSON syntax", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I send the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-                testRunner.Then("the response should contain error code -32700", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the error message should contain \"Parse error\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should have an error object with code, message, and optional data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.Given("a valid JSON-RPC notification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.When("I send the notification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.Then("the server should return HTTP 204 No Content", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the server should not send a JSON-RPC response", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Send truncated JSON")]
-        [Xunit.TraitAttribute("FeatureTitle", "Parse Error")]
-        [Xunit.TraitAttribute("Description", "Send truncated JSON")]
-        public void SendTruncatedJSON()
+        [Xunit.SkippableFactAttribute(DisplayName="Send notification for unimplemented method")]
+        [Xunit.TraitAttribute("FeatureTitle", "Notifications")]
+        [Xunit.TraitAttribute("Description", "Send notification for unimplemented method")]
+        public void SendNotificationForUnimplementedMethod()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Send truncated JSON", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Send notification for unimplemented method", null, tagsOfScenario, argumentsOfScenario, featureTags);
             this.ScenarioInitialize(scenarioInfo);
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -122,11 +119,10 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a request with truncated JSON body", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.When("I send the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-                testRunner.Then("the response should contain error code -32700", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should have an error object with code, message, and optional data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.Given("a notification for an unimplemented method", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.When("I send the notification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.Then("the server should return HTTP 204 No Content", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the server should not send an error response", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
@@ -138,12 +134,12 @@ namespace DevStack.Tests.Integration.MCP.Features
             
             public FixtureData()
             {
-                ParseErrorFeature.FeatureSetup();
+                NotificationsFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                ParseErrorFeature.FeatureTearDown();
+                NotificationsFeature.FeatureTearDown();
             }
         }
     }

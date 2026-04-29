@@ -39,7 +39,8 @@ namespace DevStack.Tests.Integration.MCP.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Tools List Method", "    Verify MCP server tools/list method returns available tools", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Tools List Method", "    Verify MCP server tools/list method returns available tools with JSON-RPC 2.0" +
+                    " compliance", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -98,6 +99,10 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.Given("a valid tools/list request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.When("I send the tools/list request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain a list of tools", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should echo the request id", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should have a result field", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the response should not have an error field", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"get_projects\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"get_project\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"create_deliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");

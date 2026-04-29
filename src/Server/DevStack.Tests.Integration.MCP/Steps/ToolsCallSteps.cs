@@ -80,4 +80,24 @@ public sealed class ToolsCallSteps
     {
         _response!.Error!.Code.Should().Be(expectedCode);
     }
+
+    [Then(@"the response should have an error field")]
+    public void ThenTheResponseShouldHaveAnErrorField()
+    {
+        _response!.Error.Should().NotBeNull();
+    }
+
+    [Then(@"the response should not have a result field")]
+    public void ThenTheResponseShouldNotHaveAResultField()
+    {
+        _response!.Result.Should().BeNull();
+    }
+
+    [Then(@"the result should contain a content array")]
+    public void ThenTheResultShouldContainAContentArray()
+    {
+        _response!.Result.Should().NotBeNull();
+        var resultJson = JsonSerializer.Serialize(_response.Result);
+        resultJson.Should().Contain("content");
+    }
 }

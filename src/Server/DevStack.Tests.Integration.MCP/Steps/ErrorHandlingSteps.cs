@@ -104,6 +104,7 @@ public sealed class ErrorHandlingSteps
     public void ThenTheResponseShouldContainErrorCode(int expectedCode)
     {
         _response.Should().NotBeNull();
+        _response!.Error.Should().NotBeNull("Expected an error response but got none");
         _response!.Error!.Code.Should().Be(expectedCode);
     }
 
@@ -117,6 +118,81 @@ public sealed class ErrorHandlingSteps
     public void ThenTheErrorMessageShouldIndicateParseError()
     {
         _response!.Error!.Message.ToLower().Should().Contain("parse");
+    }
+
+    #endregion
+
+    #region ID Type Tests
+
+    [Given(@"a valid tools/list request with string id")]
+    public void GivenAValidToolsListRequestWithStringId()
+    {
+        _scenarioContext["TestId"] = "string-id-123";
+    }
+
+    [Given(@"a valid tools/list request with numeric id")]
+    public void GivenAValidToolsListRequestWithNumericId()
+    {
+        _scenarioContext["TestId"] = 42;
+    }
+
+    [When(@"I send the request with the test id")]
+    public async Task WhenISendTheRequestWithTheTestId()
+    {
+        var testId = _scenarioContext.TryGetValue<object>("TestId", out var id) ? id : 1;
+        var request = new { jsonrpc = "2.0", method = "tools/list", id = testId };
+        var json = System.Text.Json.JsonSerializer.Serialize(request);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var port = _scenarioContext["McpPort"];
+        _httpResponse = await HttpClient.PostAsync($"http://localhost:{port}/mcp", content);
+        var responseContent = await _httpResponse.Content.ReadAsStringAsync();
+
+        try
+        {
+            _response = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse>(responseContent);
+        }
+        catch
+        {
+            _response = new JsonRpcResponse("2.0", null, new JsonRpcError(-32700, "Parse error", null), null);
+        }
+
+        _scenarioContext["Response"] = _response;
+    }
+
+    [Then(@"the response should echo the string id ""(.*)""")]
+    public void ThenTheResponseShouldEchoTheStringId(string expectedId)
+    {
+        _response!.Id.Should().Be(expectedId);
+    }
+
+    [Then(@"the response should echo the numeric id (\d+)")]
+    public void ThenTheResponseShouldEchoTheNumericId(int expectedId)
+    {
+        _response!.Id.Should().Be(expectedId);
+    }
+
+    #endregion
+
+    #region JSON-RPC 2.0 Structure Steps
+
+    [Then(@"the response should have jsonrpc field ""(.*)""")]
+    public void ThenTheResponseShouldHaveJsonRpcField(string expectedValue)
+    {
+        _response!.JsonRpc.Should().Be(expectedValue);
+    }
+
+    [Then(@"the response should echo the request id")]
+    public void ThenTheResponseShouldEchoTheRequestId()
+    {
+        _response!.Id.Should().NotBeNull();
+    }
+
+    [Then(@"the response should have an error object with code, message, and optional data")]
+    public void ThenTheResponseShouldHaveAnErrorObjectWithCodeMessageAndOptionalData()
+    {
+        _response!.Error.Should().NotBeNull();
+        _response!.Error!.Code.Should().BeGreaterOrEqualTo(-32768);
+        _response!.Error!.Message.Should().NotBeNullOrEmpty();
     }
 
     #endregion
@@ -237,7 +313,7 @@ public sealed class ErrorHandlingSteps
             responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
         }
         responses!.Should().NotBeEmpty();
-        var responseCount = responses!.Count(r => r.Id.HasValue);
+        var responseCount = responses!.Count(r => r.Id != null);
         responseCount.Should().Be(expectedCount);
     }
 
@@ -332,6 +408,25 @@ public sealed class ErrorHandlingSteps
             responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
         }
         responses!.Should().NotBeEmpty();
+    }
+
+    [Then(@"each response should have jsonrpc field ""(.*)""")]
+    public void ThenEachResponseShouldHaveJsonRpcField(string expectedValue)
+    {
+        JsonRpcResponse[]? responses = null;
+        if (_scenarioContext.TryGetValue<JsonRpcResponse[]>("BatchResponses", out var batchResponses))
+        {
+            responses = batchResponses;
+        }
+        else if (_response?.Result != null)
+        {
+            var result = _response.Result.ToString()!;
+            responses = System.Text.Json.JsonSerializer.Deserialize<JsonRpcResponse[]>(result)!;
+        }
+        foreach (var response in responses!)
+        {
+            response.JsonRpc.Should().Be(expectedValue);
+        }
     }
 
     [Then(@"the invalid request response should contain error")]

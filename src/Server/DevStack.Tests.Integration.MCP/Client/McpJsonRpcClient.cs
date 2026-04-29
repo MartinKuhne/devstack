@@ -10,7 +10,7 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
     private readonly HttpClient _httpClient;
     private readonly string _endpoint;
     private readonly JsonSerializerOptions _jsonOptions;
-    private int _requestId;
+    private int _requestIdCounter;
 
     public McpJsonRpcClient(HttpClient httpClient, string endpoint)
     {
@@ -25,7 +25,7 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
 
     public async Task<JsonRpcResponse> SendRequestAsync<TParams>(string method, TParams? @params, CancellationToken cancellationToken = default)
     {
-        var request = new JsonRpcRequest("2.0", method, @params, Interlocked.Increment(ref _requestId));
+        var request = new JsonRpcRequest("2.0", method, @params, Interlocked.Increment(ref _requestIdCounter));
         return await SendPrivateRequestAsync(request, cancellationToken);
     }
 
@@ -93,7 +93,7 @@ public class McpJsonRpcClient : IMcpJsonRpcClient
             throw new JsonException("No JSON-RPC responses received from MCP server");
         }
 
-        var matchingResponse = jsonRpcResponses.FirstOrDefault(r => r.Id == request.Id);
+        var matchingResponse = jsonRpcResponses.FirstOrDefault(r => Equals(r.Id, request.Id));
         if (matchingResponse != null)
         {
             if (matchingResponse.Error != null)

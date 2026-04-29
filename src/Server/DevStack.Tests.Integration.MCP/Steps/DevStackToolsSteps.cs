@@ -332,13 +332,32 @@ public sealed class DevStackToolsSteps
     [Then(@"the status should be ""(.*)""")]
     public void ThenTheStatusShouldBe(string expectedStatus)
     {
+        _response.Should().NotBeNull();
+        _response!.Result.Should().NotBeNull("Expected a result in the response");
+
         var resultJson = GetResultJson(_response!);
-        var jsonDoc = JsonDocument.Parse(resultJson);
-        if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement))
+
+        if (string.IsNullOrWhiteSpace(resultJson))
         {
-            statusElement.GetString().Should().Contain(expectedStatus);
+            var text = GetResultText(_response!);
+            text.Should().Contain(expectedStatus);
+            return;
         }
-        else
+
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(resultJson);
+            if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement))
+            {
+                statusElement.GetString().Should().Contain(expectedStatus);
+            }
+            else
+            {
+                var text = GetResultText(_response!);
+                text.Should().Contain(expectedStatus);
+            }
+        }
+        catch (JsonException)
         {
             var text = GetResultText(_response!);
             text.Should().Contain(expectedStatus);
