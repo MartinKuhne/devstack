@@ -130,7 +130,7 @@ public class DeleteDeliverableHandler : ICommandHandler<DeleteDeliverableCommand
     }
 }
 
-public class GetDeliverableByIdHandler
+public class GetDeliverableByIdHandler : ICommandHandler<Deliverable?, GetDeliverableByIdQuery>
 {
     private readonly DevStackDbContext _dbContext;
 

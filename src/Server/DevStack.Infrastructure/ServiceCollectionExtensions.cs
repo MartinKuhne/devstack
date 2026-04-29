@@ -1,8 +1,11 @@
 using DevStack.Application;
 using DevStack.Application.AgentTasks.Commands;
+using DevStack.Application.AgentTasks.Queries;
 using DevStack.Application.Deliverables.Commands;
+using DevStack.Application.Deliverables.Queries;
 using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Application.Projects.Commands;
+using DevStack.Domain.Entities;
 using DevStack.Infrastructure.AgentTasks;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
@@ -25,13 +28,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICommandHandler<UpdateDeliverableCommand>, UpdateDeliverableHandler>();
         services.AddScoped<ICommandHandler<UpdateDeliverableStatusCommand>, UpdateDeliverableStatusHandler>();
         services.AddScoped<ICommandHandler<DeleteDeliverableCommand>, DeleteDeliverableHandler>();
-        services.AddScoped<GetDeliverableByIdHandler>();
+        services.AddScoped<ICommandHandler<Deliverable?, GetDeliverableByIdQuery>, GetDeliverableByIdHandler>();
 
         services.AddScoped<ICommandHandler<Guid, CreateAgentTaskCommand>, CreateAgentTaskHandler>();
         services.AddScoped<ICommandHandler<UpdateAgentTaskCommand>, UpdateAgentTaskHandler>();
         services.AddScoped<ICommandHandler<UpdateAgentTaskStatusCommand>, UpdateAgentTaskStatusHandler>();
         services.AddScoped<ICommandHandler<DeleteAgentTaskCommand>, DeleteAgentTaskHandler>();
-        services.AddScoped<GetAgentTaskByIdHandler>();
+        services.AddScoped<ICommandHandler<AgentTask, GetAgentTaskByIdQuery>, GetAgentTaskByIdHandler>();
 
         services.AddScoped<ICommandHandler<Guid, CreateLargeLanguageModelCommand>, CreateLargeLanguageModelHandler>();
         services.AddScoped<ICommandHandler<UpdateLargeLanguageModelCommand>, UpdateLargeLanguageModelHandler>();

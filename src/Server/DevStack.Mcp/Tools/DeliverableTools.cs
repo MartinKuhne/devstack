@@ -8,8 +8,8 @@ using DevStack.Application.AgentTasks.Queries;
 using DevStack.Application.Deliverables;
 using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.Deliverables.Queries;
+using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
-using DevStack.Infrastructure.Deliverables;
 
 using Microsoft.Extensions.Logging;
 
@@ -24,14 +24,14 @@ public class DeliverableTools
     private readonly ICommandHandler<Guid, CreateDeliverableCommand> _createDeliverableHandler;
     private readonly ICommandHandler<UpdateDeliverableCommand> _updateDeliverableHandler;
     private readonly ICommandHandler<UpdateDeliverableStatusCommand> _updateDeliverableStatusHandler;
-    private readonly GetDeliverableByIdHandler _getDeliverableByIdHandler;
+    private readonly ICommandHandler<Deliverable?, GetDeliverableByIdQuery> _getDeliverableByIdHandler;
 
     public DeliverableTools(
         ILogger<DeliverableTools> logger,
         ICommandHandler<Guid, CreateDeliverableCommand> createDeliverableHandler,
         ICommandHandler<UpdateDeliverableCommand> updateDeliverableHandler,
         ICommandHandler<UpdateDeliverableStatusCommand> updateDeliverableStatusHandler,
-        GetDeliverableByIdHandler getDeliverableByIdHandler)
+        ICommandHandler<Deliverable?, GetDeliverableByIdQuery> getDeliverableByIdHandler)
     {
         _logger = logger;
         _createDeliverableHandler = createDeliverableHandler;
