@@ -1,15 +1,11 @@
 @tools-list
-Feature: Tools List Method
-    Verify MCP server tools/list method returns available tools with JSON-RPC 2.0 compliance
+Feature: Tools List
+    Verify MCP server tools/list returns available tools
 
     Scenario: List all available tools
-        Given a valid tools/list request
-        When I send the tools/list request
+        Given the MCP client is connected
+        When I request the tool list
         Then the response should contain a list of tools
-        And the response should have jsonrpc field "2.0"
-        And the response should echo the request id
-        And the response should have a result field
-        And the response should not have an error field
         And the tools should include "get_projects"
         And the tools should include "get_project"
         And the tools should include "create_deliverable"
@@ -20,8 +16,8 @@ Feature: Tools List Method
         And the tools should include "update_task_state"
 
     Scenario: Tool schema is properly defined
-        Given a valid tools/list request
-        When I send the tools/list request
+        Given the MCP client is connected
+        When I request the tool list
         Then each tool should have a name
         And each tool should have a description
         And each tool should have inputSchema

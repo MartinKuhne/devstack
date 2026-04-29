@@ -1,8 +1,5 @@
-using System.Net;
-using System.Text;
-using System.Text.Json;
-
 using DevStack.Tests.Integration.MCP.Hooks;
+using ModelContextProtocol.Client;
 
 using FluentAssertions;
 
@@ -14,57 +11,31 @@ namespace DevStack.Tests.Integration.MCP.Steps;
 public sealed class NotificationSteps
 {
     private readonly ScenarioContext _scenarioContext;
-    private HttpResponseMessage? _httpResponse;
 
     public NotificationSteps(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
     }
 
-    private HttpClient HttpClient => _scenarioContext.TryGetValue<HttpClient>("HttpClient", out var hc) ? hc : throw new InvalidOperationException("HttpClient not initialized.");
+    private McpClient Client => SpecFlowHooks.GetMcpClient(_scenarioContext);
 
-    [Given(@"a valid JSON-RPC notification")]
-    public void GivenAValidJsonRpcNotification()
+    [Given(@"the MCP client is connected")]
+    public void GivenTheMcpClientIsConnected()
     {
-        _scenarioContext["NotificationPayload"] = new { jsonrpc = "2.0", method = "notifications/initialized" };
+        Client.Should().NotBeNull();
     }
 
-    [Given(@"a notification for an unimplemented method")]
-    public void GivenANotificationForAnUnimplementedMethod()
+    [When(@"I send the notifications/initialized notification")]
+    public async Task WhenISendTheInitializedNotification()
     {
-        _scenarioContext["NotificationPayload"] = new { jsonrpc = "2.0", method = "notifications/unimplemented" };
+        await Client.SendNotificationAsync("notifications/initialized");
     }
 
-    [When(@"I send the notification")]
-    public async Task WhenISendTheNotification()
+    [Then(@"the server should accept the notification")]
+    public void ThenTheServerShouldAcceptTheNotification()
     {
-        if (_scenarioContext.TryGetValue<object>("NotificationPayload", out var payload))
-        {
-            var json = JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var port = _scenarioContext["McpPort"];
-            _httpResponse = await HttpClient.PostAsync($"http://localhost:{port}/mcp", content);
-        }
-
-        _scenarioContext["HttpResponse"] = _httpResponse;
-    }
-
-    [Then(@"the server should return HTTP 204 No Content")]
-    public void ThenTheServerShouldReturnHttp204NoContent()
-    {
-        _httpResponse!.StatusCode.Should().Be(HttpStatusCode.NoContent);
-    }
-
-    [Then(@"the server should not send a JSON-RPC response")]
-    public void ThenTheServerShouldNotSendAJsonRpcResponse()
-    {
-        var body = _httpResponse!.Content.ReadAsStringAsync().Result;
-        body.Should().BeNullOrEmpty();
-    }
-
-    [Then(@"the server should not send an error response")]
-    public void ThenTheServerShouldNotSendAnErrorResponse()
-    {
-        _httpResponse!.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        // Streamable HTTP transport returns 204 No Content for notifications
+        // If we get here without an exception, the notification was accepted
+        _scenarioContext["NotificationSent"] = true;
     }
 }

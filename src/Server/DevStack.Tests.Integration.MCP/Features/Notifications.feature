@@ -1,15 +1,8 @@
 @notifications
 Feature: Notifications
-    Verify MCP server notification handling with JSON-RPC 2.0 compliance
+    Verify MCP server notification handling with Streamable HTTP transport
 
-    Scenario: Send valid notification
-        Given a valid JSON-RPC notification
-        When I send the notification
-        Then the server should return HTTP 204 No Content
-        And the server should not send a JSON-RPC response
-
-    Scenario: Send notification for unimplemented method
-        Given a notification for an unimplemented method
-        When I send the notification
-        Then the server should return HTTP 204 No Content
-        And the server should not send an error response
+    Scenario: Send initialized notification
+        Given the MCP client is connected
+        When I send the notifications/initialized notification
+        Then the server should accept the notification

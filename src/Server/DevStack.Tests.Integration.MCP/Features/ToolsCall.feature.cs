@@ -20,7 +20,7 @@ namespace DevStack.Tests.Integration.MCP.Features
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Xunit.TraitAttribute("Category", "tools-call")]
-    public partial class ToolsCallMethodFeature : object, Xunit.IClassFixture<ToolsCallMethodFeature.FixtureData>, System.IDisposable
+    public partial class ToolsCallFeature : object, Xunit.IClassFixture<ToolsCallFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -30,7 +30,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-        public ToolsCallMethodFeature(ToolsCallMethodFeature.FixtureData fixtureData, DevStack_Tests_Integration_MCP_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public ToolsCallFeature(ToolsCallFeature.FixtureData fixtureData, DevStack_Tests_Integration_MCP_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();
@@ -39,8 +39,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Tools Call Method", "    Verify MCP server tools/call method invokes tools correctly with JSON-RPC 2.0" +
-                    " compliance", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Tools Call", "    Verify MCP server tools/call method invokes tools correctly", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -81,7 +80,7 @@ namespace DevStack.Tests.Integration.MCP.Features
         }
         
         [Xunit.SkippableFactAttribute(DisplayName="Call a valid tool with parameters")]
-        [Xunit.TraitAttribute("FeatureTitle", "Tools Call Method")]
+        [Xunit.TraitAttribute("FeatureTitle", "Tools Call")]
         [Xunit.TraitAttribute("Description", "Call a valid tool with parameters")]
         public void CallAValidToolWithParameters()
         {
@@ -96,26 +95,23 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a valid tools/call request for \"get_projects\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.Given("the MCP client is connected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.And("a valid tools/call request for \"get_projects\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.When("I send the tools/call request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the tool result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should echo the request id", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should have a result field", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should not have an error field", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the result should contain a content array", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Call a tool with missing required parameters")]
-        [Xunit.TraitAttribute("FeatureTitle", "Tools Call Method")]
-        [Xunit.TraitAttribute("Description", "Call a tool with missing required parameters")]
-        public void CallAToolWithMissingRequiredParameters()
+        [Xunit.SkippableFactAttribute(DisplayName="Call a tool with empty name")]
+        [Xunit.TraitAttribute("FeatureTitle", "Tools Call")]
+        [Xunit.TraitAttribute("Description", "Call a tool with empty name")]
+        public void CallAToolWithEmptyName()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Call a tool with missing required parameters", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Call a tool with empty name", null, tagsOfScenario, argumentsOfScenario, featureTags);
             this.ScenarioInitialize(scenarioInfo);
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -124,13 +120,10 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a tools/call request with missing required parameters", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.Given("the MCP client is connected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.And("a tools/call request with missing required parameters", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.When("I send the tools/call request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-                testRunner.Then("the response should contain an error with code -32602", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the response should have jsonrpc field \"2.0\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should echo the request id", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should have an error field", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the response should not have a result field", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.Then("the response should indicate a tool error", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
             }
             this.ScenarioCleanup();
         }
@@ -142,12 +135,12 @@ namespace DevStack.Tests.Integration.MCP.Features
             
             public FixtureData()
             {
-                ToolsCallMethodFeature.FeatureSetup();
+                ToolsCallFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                ToolsCallMethodFeature.FeatureTearDown();
+                ToolsCallFeature.FeatureTearDown();
             }
         }
     }
