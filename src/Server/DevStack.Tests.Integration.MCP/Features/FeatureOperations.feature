@@ -3,20 +3,23 @@ Feature: Feature CRUD and Status Transition Operations
     Verify MCP server devstack tools for deliverable management
 
     Scenario: Create a new deliverable
-        Given a valid deliverable creation request with title "Test Deliverable"
+        Given the MCP client is connected
+        And a valid deliverable creation request with title "Test Deliverable"
         When I call create_deliverable
         Then the response should contain the created deliverable
         And the deliverable should have a valid ID
         And the deliverable status should be "Ready"
 
     Scenario: Update a deliverable
-        Given an existing deliverable ID
+        Given the MCP client is connected
+        And an existing deliverable ID
         When I call update_deliverable with updated description "Updated Description"
         Then the response should contain the updated deliverable
 
     Scenario: Transition deliverable status
-        Given an existing deliverable ID
-        And a deliverable in "ready" status
-        When I call update_deliverable_state to "in_progress"
+        Given the MCP client is connected
+        And an existing deliverable ID
+        And a deliverable in "Design" status
+        When I call update_deliverable_state to "Plan"
         Then the response should contain the deliverable with new status
-        And the status should be "InProgress"
+        And the status should be "Plan"

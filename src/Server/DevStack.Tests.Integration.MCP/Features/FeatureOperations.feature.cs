@@ -95,7 +95,8 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("a valid deliverable creation request with title \"Test Deliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.Given("the MCP client is connected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.And("a valid deliverable creation request with title \"Test Deliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.When("I call create_deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the created deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the deliverable should have a valid ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -120,7 +121,8 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("an existing deliverable ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.Given("the MCP client is connected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.And("an existing deliverable ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.When("I call update_deliverable with updated description \"Updated Description\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the updated deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
             }
@@ -143,11 +145,12 @@ namespace DevStack.Tests.Integration.MCP.Features
             else
             {
                 this.ScenarioStart();
-                testRunner.Given("an existing deliverable ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-                testRunner.And("a deliverable in \"ready\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.When("I call update_deliverable_state to \"in_progress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.Given("the MCP client is connected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+                testRunner.And("an existing deliverable ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("a deliverable in \"Design\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.When("I call update_deliverable_state to \"Plan\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the deliverable with new status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-                testRunner.And("the status should be \"InProgress\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the status should be \"Plan\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
