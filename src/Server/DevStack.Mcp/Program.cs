@@ -12,10 +12,19 @@ using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Projects;
 using DevStack.Mcp;
+using DevStack.Mcp.Logging;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
+    .Enrich.WithProperty("Application", "DevStack.Mcp")
+    .Enrich.FromLogContext()
+    .Enrich.WithCorrelationId()
     .WriteTo.Console()
+    .WriteTo.File(
+        new Serilog.Formatting.Json.JsonFormatter(),
+        "logs/devstack-mcp-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 7)
     .CreateLogger();
 
 try
@@ -24,7 +33,15 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.AddSerilog();
+    builder.Host.UseSerilog((hostContext, services, configuration) =>
+    {
+        configuration
+            .ReadFrom.Configuration(hostContext.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.WithProperty("Application", "DevStack.Mcp")
+            .Enrich.FromLogContext()
+            .Enrich.WithCorrelationId();
+    });
 
     builder.Services.AddMcpServer()
         .WithHttpTransport(options =>
@@ -45,7 +62,36 @@ try
 
     builder.Services.RegisterCommandHandlers();
 
+    builder.Services.AddOpenTelemetry()
+        .WithTracing(tracing =>
+        {
+            tracing
+                .AddSource("DevStack.Mcp")
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation();
+
+            var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+            if (!string.IsNullOrEmpty(otlpEndpoint))
+            {
+                tracing.AddOtlpExporter();
+            }
+        })
+        .WithMetrics(metrics =>
+        {
+            metrics
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation();
+
+            var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+            if (!string.IsNullOrEmpty(otlpEndpoint))
+            {
+                metrics.AddOtlpExporter();
+            }
+        });
+
     var app = builder.Build();
+
+    app.UseExceptionHandler();
 
     app.MapMcp("/mcp");
 
