@@ -256,9 +256,8 @@ public sealed class DevStackToolsSteps
         var args = new Dictionary<string, object?>
         {
             ["projectId"] = projectId,
-            ["itemId"] = deliverableId,
+            ["deliverableId"] = deliverableId,
             ["title"] = title,
-            ["deliverableDescription"] = "Test deliverable"
         };
         _result = await Client.CallToolAsync("create_task", args);
         _scenarioContext["Result"] = _result;
