@@ -1,3 +1,5 @@
+using DevStack.Persistence;
+
 using HotChocolate.Data;
 using HotChocolate.Types;
 
@@ -7,7 +9,8 @@ public class Query
 {
     public Project? GetProject([Service] DevStackDbContext dbContext, Guid id)
     {
-        return dbContext.Projects.Find(id);
+        var predicate = QuerySpecifications.ProjectById(id);
+        return dbContext.Projects.FirstOrDefault(predicate);
     }
 
     [UsePaging(MaxPageSize = 100)]
@@ -21,7 +24,8 @@ public class Query
 
     public LargeLanguageModel? GetLargeLanguageModel([Service] DevStackDbContext dbContext, Guid id)
     {
-        return dbContext.LargeLanguageModels.Find(id);
+        var predicate = QuerySpecifications.LargeLanguageModelById(id);
+        return dbContext.LargeLanguageModels.FirstOrDefault(predicate);
     }
 
     [UsePaging(MaxPageSize = 100)]
@@ -35,7 +39,8 @@ public class Query
 
     public Deliverable? GetDeliverable([Service] DevStackDbContext dbContext, Guid id)
     {
-        return dbContext.Deliverables.Find(id);
+        var predicate = QuerySpecifications.DeliverableById(id);
+        return dbContext.Deliverables.FirstOrDefault(predicate);
     }
 
     [UsePaging(MaxPageSize = 100)]
@@ -49,7 +54,8 @@ public class Query
 
     public AgentTask? GetAgentTask([Service] DevStackDbContext dbContext, Guid id)
     {
-        return dbContext.AgentTasks.Find(id);
+        var predicate = QuerySpecifications.AgentTaskById(id);
+        return dbContext.AgentTasks.FirstOrDefault(predicate);
     }
 
     [UsePaging(MaxPageSize = 100)]

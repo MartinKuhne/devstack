@@ -2,78 +2,34 @@ using DevStack.Domain.Entities;
 
 using Microsoft.EntityFrameworkCore;
 
+using System.Linq.Expressions;
+
 namespace DevStack.Persistence;
 
 public static class DevStackDbContextExtensions
 {
-    private const string TestDataMarker = "[DeleteAfterTest]";
-
     public static async Task CleanupTestDataAsync(
         this DevStackDbContext context,
         CancellationToken cancellationToken = default)
     {
-        await CleanupDeliverablesAsync(context, cancellationToken);
-        await CleanupAgentTasksAsync(context, cancellationToken);
-        await CleanupProjectsAsync(context, cancellationToken);
-        await CleanupLargeLanguageModelsAsync(context, cancellationToken);
+        await CleanupAsync(context, context.Deliverables, TestDataPredicate.Deliverable(), cancellationToken);
+        await CleanupAsync(context, context.AgentTasks, TestDataPredicate.AgentTask(), cancellationToken);
+        await CleanupAsync(context, context.Projects, TestDataPredicate.Project(), cancellationToken);
+        await CleanupAsync(context, context.LargeLanguageModels, TestDataPredicate.LargeLanguageModel(), cancellationToken);
     }
 
-    private static async Task CleanupLargeLanguageModelsAsync(
+    private static async Task CleanupAsync<TEntity>(
         DevStackDbContext context,
+        DbSet<TEntity> dbSet,
+        Expression<Func<TEntity, bool>> predicate,
         CancellationToken cancellationToken)
+        where TEntity : class
     {
-        var models = await context.LargeLanguageModels
-            .Where(m => m.Url.Contains(TestDataMarker))
-            .ToListAsync(cancellationToken);
+        var testItems = await dbSet.Where(predicate).ToListAsync(cancellationToken);
 
-        if (models.Any())
+        if (testItems.Any())
         {
-            context.LargeLanguageModels.RemoveRange(models);
-            await context.SaveChangesAsync(cancellationToken);
-        }
-    }
-
-    private static async Task CleanupDeliverablesAsync(
-        DevStackDbContext context,
-        CancellationToken cancellationToken)
-    {
-        var deliverables = await context.Deliverables
-            .Where(d => d.Title.Contains(TestDataMarker))
-            .ToListAsync(cancellationToken);
-
-        if (deliverables.Any())
-        {
-            context.Deliverables.RemoveRange(deliverables);
-            await context.SaveChangesAsync(cancellationToken);
-        }
-    }
-
-    private static async Task CleanupAgentTasksAsync(
-        DevStackDbContext context,
-        CancellationToken cancellationToken)
-    {
-        var tasks = await context.AgentTasks
-            .Where(t => t.Title.Contains(TestDataMarker))
-            .ToListAsync(cancellationToken);
-
-        if (tasks.Any())
-        {
-            context.AgentTasks.RemoveRange(tasks);
-            await context.SaveChangesAsync(cancellationToken);
-        }
-    }
-
-    private static async Task CleanupProjectsAsync(
-        DevStackDbContext context,
-        CancellationToken cancellationToken)
-    {
-        var projects = await context.Projects
-            .Where(p => p.Name.Contains(TestDataMarker))
-            .ToListAsync(cancellationToken);
-
-        if (projects.Any())
-        {
-            context.Projects.RemoveRange(projects);
+            dbSet.RemoveRange(testItems);
             await context.SaveChangesAsync(cancellationToken);
         }
     }
