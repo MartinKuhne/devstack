@@ -47,7 +47,7 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.expectNoErrors();
     });
 
-    test('should validate required fields are empty', async ({ page }) => {
+    test('should validate required fields are empty', async () => {
         await llmPage.navigate();
         await llmPage.waitForPageLoaded();
         await llmPage.clickAddModel();
@@ -73,7 +73,7 @@ test.describe('Large Language Model CRUD', () => {
         await llmPage.expectNoErrors();
     });
 
-    test('should validate cost field range', async ({ page: _page }) => {
+    test('should validate cost field range', async ({ page }) => {
         await llmPage.navigate();
         await llmPage.waitForPageLoaded();
         await llmPage.clickAddModel();

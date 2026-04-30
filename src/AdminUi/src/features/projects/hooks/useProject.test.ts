@@ -21,7 +21,7 @@ describe('useProject', () => {
 
     it('returns the project from data', async () => {
         const hooks = await getMockedQueries();
-        const mockProject = { id: 'proj-1', name: 'Test Project' } as any;
+        const mockProject = { id: 'proj-1', name: 'Test Project' };
         hooks.useGetProjectQuery.mockReturnValue({
             data: { project: mockProject },
             loading: false,
