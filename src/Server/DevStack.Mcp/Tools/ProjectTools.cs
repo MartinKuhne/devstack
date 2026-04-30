@@ -1,3 +1,5 @@
+using ModelContextProtocol;
+
 namespace DevStack.Mcp.Tools;
 
 [McpServerToolType]
@@ -24,13 +26,13 @@ public class ProjectTools
     {
         if (id == null)
         {
-            throw new ArgumentException("Project ID is required");
+            throw new McpProtocolException("Project ID is required", McpErrorCode.InvalidParams);
         }
 
         var project = await _dbContext.Projects.Where(p => p.Id == id.Value).Select(p => new { p.Name, p.Id, p.Repository }).FirstOrDefaultAsync(ct);
         if (project == null)
         {
-            throw new KeyNotFoundException($"Project with ID {id.Value} not found");
+            throw new McpProtocolException($"Project with ID {id.Value} not found", McpErrorCode.InvalidParams);
         }
 
         return FormatMarkdownTable(new[] { project }, "Project");

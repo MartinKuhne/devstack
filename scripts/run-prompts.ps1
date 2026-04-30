@@ -1,33 +1,33 @@
 # This is a developer maintained file. Do not modfiy or delete.
 
-$AgentsFile = Join-Path $PSScriptRoot "..\agents.md"
+$AgentsFile = Join-Path (Split-Path $PSScriptRoot -Parent) "AGENTS.md"
 Write-Host $AgentsFile
 $DelaySeconds = 2
 
 $Prompts = @(
     @"
-Compare the specification under ```specs/graphql/**``` with the actual implementation 
+Compare the specification under ```spec/graphql/**``` with the actual implementation 
 and create todos to change the implementation to match the specification.
 Execute the todos.
 The spec is the source of truth. Commit the changes once quality gates pass.
 "@,
 
     @"
-Compare the specification under ```specs/mcp/**``` with the actual implementation 
+Compare the specification under ```spec/mcp/**``` with the actual implementation 
 and create todos to change the implementation to match the specification.
 Execute the todos.
 The spec is the source of truth. Commit the changes once quality gates pass.
 "@,
 
 @"
-Compare the specification under ```specs/adminui/**``` with the actual implementation 
+Compare the specification under ```spec/adminui/**``` with the actual implementation 
 and create todos to change the implementation to match the specification.
 Execute the todos.
 The spec is the source of truth. Commit the changes once quality gates pass.
 "@,
 
 @"
-Compare the specification under ```specs/runner/**``` with the actual implementation
+Compare the specification under ```spec/runner/**``` with the actual implementation
  and create todos to change the implementation to match the specification.
 Execute the todos.
 The spec is the source of truth. Commit the changes once quality gates pass.

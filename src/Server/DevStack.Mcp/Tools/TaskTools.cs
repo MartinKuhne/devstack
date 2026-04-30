@@ -37,7 +37,7 @@ public class TaskTools
     {
         var agentTask = await _getAgentTaskByIdHandler.Handle(new GetAgentTaskByIdQuery(id), ct);
         if (agentTask == null)
-            throw new KeyNotFoundException($"AgentTask with ID {id} not found");
+            throw new McpProtocolException($"AgentTask with ID {id} not found", McpErrorCode.InvalidParams);
 
         var data = new { id = agentTask.Id.ToString(), projectId = agentTask.ProjectId.ToString(), title = agentTask.Title, status = agentTask.Status.ToString(), description = agentTask.Description, result = agentTask.Result, errors = agentTask.Errors, commitHash = agentTask.CommitHash, agent = agentTask.Agent };
         return $"## Agent Task\n\n```json\n{JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true })}\n```\n\n";

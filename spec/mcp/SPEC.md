@@ -33,7 +33,7 @@ Enable an AI coding agent and coding tool to access the devstack data
 - [MCP-002] The system shall be deployable as a container
 - [MCP-003] The system shall use the http streamable protocol
 - [MCP-004] The system shall access and store data using the shared DbContext
-- [MCP-005] The system shall create AgentTasks in the READY state
+- [MCP-005] The system shall create AgentTasks in the READY status
 - [MCP-006] The system shall accept MCP requests at the /mcp endpoint
 
 - [MCP-050] The system shall apply [McpServerToolType] on classes containing related tools.
@@ -93,11 +93,11 @@ Enable an AI coding agent and coding tool to access the devstack data
 | create_deliverable | Create Deliverable (Fields: ProjectId (required), Type (required), Status, Title (required), Description (required), AcceptanceCriteria, ExecutionPlan, SecurityImpact PerformanceImpact, TestPlan, DeploymentPlan) |
 | get_deliverable | Read Deliverable |
 | update_deliverable | Update Deliverable (Fields: Description, AcceptanceCriteria, ExecutionPlan, SecurityImpact, PerformanceImpact, TestPlan, DeploymentPlan, AgentFeedback, Blocking) |
-| update_deliverable_state | Change Deliverable state |
+| update_deliverable_status | Change Deliverable status |
 | create_task | Create AgentTask (Fields: ProjectId (required), DeliverableId (required), Title (required), Status, Description (required)) |
 | get_task | Read AgentTask |
 | update_task | Update AgentTask (Fields: Status, Description, Result, Errors, CommitHash, Agent) |
-| update_task_state: Change AgentTask state |
+| update_task_status: Change AgentTask status |
 
 Include [Global non-functional requirements](../NON-FUNCTIONAL.md)
 
