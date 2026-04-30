@@ -3,6 +3,7 @@ using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Application.Projects.Commands;
 using DevStack.Domain.Exceptions;
+using DevStack.Domain.Services;
 
 namespace DevStack.Api.GraphQL.Types;
 
@@ -383,14 +384,7 @@ public class Mutation
             .Where(t => t.DeliverableId == deliverableId)
             .ToListAsync(cancellationToken);
 
-        if (!allTasks.Any())
-        {
-            await SetDeliverableToDoneAsync(dbContext, deliverableId, cancellationToken);
-            return true;
-        }
-
-        var allDone = allTasks.All(t => t.Status == AgentTaskStatus.Done);
-        if (allDone)
+        if (DeliverableCompletionService.CheckAllTasksDone(allTasks))
         {
             await SetDeliverableToDoneAsync(dbContext, deliverableId, cancellationToken);
             return true;
