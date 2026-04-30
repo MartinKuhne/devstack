@@ -80,7 +80,7 @@ public class DeliverableTools
 
             _logger.LogInformation("Created deliverable with ID: {Id}", id);
             var result = new { id = id.ToString(), projectId = projectId.Value.ToString(), type = "Feature", status = "Ready" };
-            return $"## Deliverable Created\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use the returned ID for subsequent get_deliverable, update_deliverable, or update_deliverable_state calls.";
+            return $"## Deliverable Created\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use the returned ID for subsequent get_deliverable, update_deliverable, or update_deliverable_status calls.";
         }
         catch (Exception ex)
         {
@@ -133,7 +133,7 @@ public class DeliverableTools
         }
     }
 
-    [McpServerTool(Name = "update_deliverable_state"), Description("Change the state of a deliverable in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.")]
+    [McpServerTool(Name = "update_deliverable_status"), Description("Change the state of a deliverable in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.")]
     public async Task<string> TransitionDeliverableStatus(
         [Description("The deliverable ID")] Guid id,
         [Description("The target status")] DeliverableStatus targetStatus,

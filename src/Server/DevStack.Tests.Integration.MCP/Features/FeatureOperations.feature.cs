@@ -148,7 +148,7 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.Given("the MCP client is connected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
                 testRunner.And("an existing deliverable ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("a deliverable in \"Design\" status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.When("I call update_deliverable_state to \"Plan\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                testRunner.When("I call update_deliverable_status to \"Plan\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
                 testRunner.Then("the response should contain the deliverable with new status", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
                 testRunner.And("the status should be \"Plan\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }

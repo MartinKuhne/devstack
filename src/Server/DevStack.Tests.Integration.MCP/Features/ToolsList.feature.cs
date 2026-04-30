@@ -102,10 +102,10 @@ namespace DevStack.Tests.Integration.MCP.Features
                 testRunner.And("the tools should include \"get_project\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"create_deliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"update_deliverable\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the tools should include \"update_deliverable_state\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the tools should include \"update_deliverable_status\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"create_task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
                 testRunner.And("the tools should include \"update_task\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-                testRunner.And("the tools should include \"update_task_state\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                testRunner.And("the tools should include \"update_task_status\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
             }
             this.ScenarioCleanup();
         }
