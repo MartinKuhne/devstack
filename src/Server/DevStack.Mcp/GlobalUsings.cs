@@ -13,4 +13,9 @@ global using Microsoft.Extensions.Logging;
 
 global using ModelContextProtocol.Server;
 
+global using OpenTelemetry.Metrics;
+global using OpenTelemetry.Trace;
+
 global using Serilog;
+global using Serilog.Core;
+global using Serilog.Events;
