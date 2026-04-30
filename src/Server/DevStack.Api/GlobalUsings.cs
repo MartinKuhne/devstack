@@ -1,3 +1,6 @@
+global using System;
+global using System.Net;
+
 global using DevStack.Application;
 global using DevStack.Domain.Entities;
 global using DevStack.Domain.Enums;
@@ -14,6 +17,3 @@ global using OpenTelemetry.Trace;
 global using Serilog;
 global using Serilog.Core;
 global using Serilog.Events;
-
-global using System;
-global using System.Net;
