@@ -250,13 +250,13 @@ public sealed class DevStackToolsSteps
     [When(@"I call create_task")]
     public async Task WhenICallDevstackCreateAgentTask()
     {
-        var projectId = await GetOrCreateTestProjectIdAsync();
-        var deliverableId = await GetOrCreateTestDeliverableIdAsync();
+        var projectId = Guid.Parse(await GetOrCreateTestProjectIdAsync());
+        var deliverableId = Guid.Parse(await GetOrCreateTestDeliverableIdAsync());
         var title = _scenarioContext.GetString("TaskTitle") ?? "Test Task";
         var args = new Dictionary<string, object?>
         {
-            ["projectId"] = projectId,
-            ["deliverableId"] = deliverableId,
+            ["projectId"] = projectId.ToString(),
+            ["deliverableId"] = deliverableId.ToString(),
             ["title"] = title,
         };
         _result = await Client.CallToolAsync("create_task", args);
@@ -470,9 +470,8 @@ public sealed class DevStackToolsSteps
         var args = new Dictionary<string, object?>
         {
             ["projectId"] = projectId.ToString(),
-            ["itemId"] = deliverableId.ToString(),
+            ["deliverableId"] = deliverableId.ToString(),
             ["title"] = $"Test Task {Guid.NewGuid()}",
-            ["deliverableDescription"] = "Auto-generated test task"
         };
         var callResult = await Client.CallToolAsync("create_task", args);
 

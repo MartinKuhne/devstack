@@ -45,6 +45,9 @@ The Admin UI supports a human software engineer, software engineering manager or
 - [REQ-UI-015] The system shall provide a graphical user interface to View a dashboard showing the Count of Deliverables per Status each
 - [REQ-UI-016] When the user has provided valid input to create an object, the system should [enable the Create button]
 - [REQ-UI-017] When the user input is invalid, the system shall [display validation errors] and [disable the Create button].
+- [REQ-UI-018] When a text field contains markdown, the system shall render the markdown content
+- [REQ-UI-019] When a text field contains markdown and the user edits a [Deliverable] or [AgentTask], the system shall display and save plaintext
+
 - [REQ-UI-108] The system shall display the [Count of Deliverables] per [Status] using a [Table].
 
 - [REQ-UI-200] The system shall allow the user to search for [Deliverables] by [Title] using the [SearchBar].

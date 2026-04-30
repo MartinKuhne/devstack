@@ -5,6 +5,8 @@ using DevStack.Application.Deliverables;
 using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.Deliverables.Queries;
 
+using ModelContextProtocol;
+
 namespace DevStack.Mcp.Tools;
 
 [McpServerToolType]
@@ -59,7 +61,7 @@ public class DeliverableTools
         {
             if (projectId == null || projectId == Guid.Empty)
             {
-                throw new ArgumentException("Project ID is required");
+                throw new McpProtocolException("Project ID is required", McpErrorCode.InvalidParams);
             }
 
             var id = await _createDeliverableHandler.Handle(

@@ -8,6 +8,46 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+function ConvertTo-Hashtable {
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        $InputObject
+    )
+    process {
+        if ($null -eq $InputObject) {
+            return $null
+        }
+        if ($InputObject -is [System.Collections.IDictionary]) {
+            $ht = [ordered]@{}
+            foreach ($key in $InputObject.Keys) {
+                $ht[$key] = ConvertTo-Hashtable $InputObject[$key]
+            }
+            return $ht
+        }
+        if ($InputObject -is [System.Array]) {
+            $arr = @()
+            foreach ($item in $InputObject) {
+                $arr += ConvertTo-Hashtable $item
+            }
+            return $arr
+        }
+        $primitiveTypes = [System.String], [System.Int32], [System.Int64], [System.Single], [System.Double], [System.Boolean], [System.DateTime]
+        foreach ($t in $primitiveTypes) {
+            if ($InputObject -is $t) {
+                return $InputObject
+            }
+        }
+        if ($null -ne $InputObject.PSObject.Properties) {
+            $ht = [ordered]@{}
+            foreach ($prop in $InputObject.PSObject.Properties) {
+                $ht[$prop.Name] = ConvertTo-Hashtable $prop.Value
+            }
+            return $ht
+        }
+        return $InputObject
+    }
+}
+
 $ProjectRoot = & git rev-parse --show-toplevel 2>$null
 if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
     $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
@@ -57,6 +97,7 @@ query GetDeliverables($first: Int!, $projectId: UUID!) {
       projectId
       description
       acceptanceCriteria
+      design
       executionPlan
       agentFeedback
       securityImpact
@@ -84,6 +125,7 @@ query GetDeliverablesByStatus($first: Int!, $projectId: UUID!, $status: Delivera
       projectId
       description
       acceptanceCriteria
+      design
       executionPlan
       agentFeedback
       securityImpact
@@ -152,7 +194,7 @@ query GetAgentTasksByStatus($first: Int!, $deliverableId: UUID!, $status: AgentT
 
 $GetFailedAgentTasksQuery = @'
 query GetFailedAgentTasks($first: Int!, $deliverableId: UUID!) {
-  agentTasks(first: $first, where: { deliverableId: { eq: $deliverableId }, status: { in: [FAILED, REJECTED] } }) {
+  agentTasks(first: $first, where: { deliverableId: { eq: $deliverableId }, status: { in: [FAILED, REJECTED, NEEDS_REVIEW] } }) {
     nodes {
       id
       title
@@ -418,10 +460,11 @@ function Update-AgentTask {
         $updateVars.input.executionDurationInSeconds = $ExecutionDurationSeconds
     }
 
+    $operationName = if ($WithDuration) { "UpdateAgentTaskWithDuration" } else { "UpdateAgentTask" }
     $mutation = if ($WithDuration) { $UpdateAgentTaskWithDurationMutation } else { $UpdateAgentTaskMutation }
 
     try {
-        $result = Invoke-GraphQL -Operation $mutation -Variables $updateVars -IsMutation -OperationName "UpdateAgentTask"
+        $result = Invoke-GraphQL -Operation $mutation -Variables $updateVars -IsMutation -OperationName $operationName
         if ($result.errors) {
             Log-Error "Failed to update AgentTask ${TaskId}: $($result.errors -join ', ')"
             return $false
@@ -534,7 +577,7 @@ function Select-ModelForComplexity {
         $eligibleModels = $models
     }
 
-    $selectedModel = $eligibleModels | Sort-Object cost | Select-Object -First 1
+    $selectedModel = $eligibleModels | Sort-Object cost, maxComplexity | Select-Object -First 1
     Log-Info "Selected model: $($selectedModel.model) (cost: $($selectedModel.cost), maxComplexity: $($selectedModel.maxComplexity))"
     return $selectedModel
 }
@@ -553,20 +596,20 @@ function Sync-OpencodeProviders {
         $existingJson = Get-Content $OpencodeConfigPath -Raw
     }
 
-    $config = [ordered]@{}
-
+    $config = $null
     if ($existingJson) {
-        $existing = $existingJson | ConvertFrom-Json -ErrorAction SilentlyContinue
-        if ($existing) {
-            foreach ($prop in $existing.PSObject.Properties) {
-                if ($prop.Name -ne 'provider') {
-                    $config[$prop.Name] = $prop.Value
-                }
-            }
-        }
+        $config = $existingJson | ConvertFrom-Json -ErrorAction SilentlyContinue | ConvertTo-Hashtable
     }
 
-    $providerSection = [ordered]@{}
+    if (-not $config) {
+        $config = [ordered]@{}
+    }
+
+    if (-not ($config.PSObject.Properties['provider'])) {
+        $config['provider'] = [ordered]@{}
+    }
+
+    $providerSection = $config.provider
 
     foreach ($model in $models) {
         $providerName = "devstack-$($model.id)"
@@ -590,8 +633,6 @@ function Sync-OpencodeProviders {
             }
         }
     }
-
-    $config['provider'] = $providerSection
 
 [System.IO.File]::WriteAllText($OpencodeConfigPath, ($config | ConvertTo-Json -Depth 10))
     Log-Info "Synced $($models.Count) LLM configurations to opencode.json"
@@ -694,7 +735,7 @@ function Invoke-DeliverableStateTransitions {
             if ($deliverable.status -eq "DESIGN") {
                 if ($deliverable.type -eq "SPIKE") {
                     $promptTemplate = Load-PromptFile "research.prompt"
-                    $complexity = 10
+                    $complexity = 8
                     $promptName = "research"
                     $processed = $true
                 }
@@ -720,7 +761,7 @@ function Invoke-DeliverableStateTransitions {
                 }
             }
             elseif ($deliverable.status -eq "MERGE") {
-                $promptTemplate = Load-PromptFile "pr.prompt"
+                $promptTemplate = Load-PromptFile "merge.prompt"
                 $complexity = 8
                 $promptName = "merge"
                 $processed = $true
@@ -733,6 +774,7 @@ function Invoke-DeliverableStateTransitions {
                 $prompt = $prompt -replace '\{\{Title\}\}', $deliverable.title
                 $prompt = $prompt -replace '\{\{Description\}\}', $deliverable.description
                 $prompt = $prompt -replace '\{\{AcceptanceCriteria\}\}', $deliverable.acceptanceCriteria
+                $prompt = $prompt -replace '\{\{Design\}\}', $deliverable.design
                 $prompt = $prompt -replace '\{\{DeliverableId\}\}', $deliverable.id
 
                 $opencodeResult = Run-OpencodePrompt -Prompt $prompt -PromptName $promptName -RequiredComplexity $complexity
@@ -802,7 +844,7 @@ function Invoke-ExecutionPhase {
         $prompt = $prompt -replace '\{\{Description\}\}', $task.description
         $prompt = $prompt -replace '\{\{AgentTaskId\}\}', $task.id
 
-        $opencodeResult = Run-OpencodePrompt -Prompt $prompt -PromptName "implement" -RequiredComplexity $task.complexityRating
+        $opencodeResult = Run-OpencodePrompt -Prompt $prompt -PromptName "implement" -RequiredComplexity 4
         $commitHash = Get-LatestCommitHash
 
         if ($opencodeResult.Success) {
@@ -840,18 +882,22 @@ function Invoke-ExecutionPhase {
         $doneResult = Invoke-GraphQL -Operation $GetDoneAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id } -OperationName "GetDoneAgentTasks"
         if ($doneResult.errors) { continue }
 
+        $allTasksResult = Invoke-GraphQL -Operation $GetAgentTasksQuery -Variables @{ first = 100; deliverableId = $deliverable.id } -OperationName "GetAgentTasks"
+        if ($allTasksResult.errors) { continue }
+
         $doneTasks = $doneResult.data.agentTasks.nodes
-        $allDone = $doneTasks -and $doneTasks.Count -gt 0
+        $allTasks = $allTasksResult.data.agentTasks.nodes
+        $allDone = $allTasks -and $allTasks.Count -gt 0 -and $doneTasks -and $doneTasks.Count -eq $allTasks.Count
         
         if ($allDone -and $deliverable.status -ne "DONE" -and $deliverable.status -ne "NEEDS_REVIEW") {
-            Log-Info "All tasks for deliverable $($deliverable.id) are DONE, running pr.prompt"
+            Log-Info "All tasks for deliverable $($deliverable.id) are DONE, running pull-request.prompt"
 
-            $prPromptTemplate = Load-PromptFile "pr.prompt"
+            $prPromptTemplate = Load-PromptFile "pull-request.prompt"
             $prPrompt = $prPromptTemplate
             $prPrompt = $prPrompt -replace '\{\{Title\}\}', $deliverable.title
             $prPrompt = $prPrompt -replace '\{\{DeliverableId\}\}', $deliverable.id
 
-            $prResult = Run-OpencodePrompt -Prompt $prPrompt -PromptName "pull-request" -RequiredComplexity 4
+            $prResult = Run-OpencodePrompt -Prompt $prPrompt -PromptName "pull-request" -RequiredComplexity 8
 
             if ($prResult.Success) {
                 Log-Info "PR prompt completed for deliverable $($deliverable.id)"
@@ -900,33 +946,32 @@ function Initialize-Project {
 
     $opencodePath = Join-Path (Split-Path $PSScriptRoot -Parent) "opencode.json"
 
-    $config = [ordered]@{
-        '$schema' = "https://opencode.ai/config.json"
-        mcp       = [ordered]@{
-            devstack = [ordered]@{
-                type    = "remote"
-                url     = "http://localhost:8088/mcp"
-                enabled = $true
-            }
+    $config = $null
+    if (Test-Path $opencodePath) {
+        $existing = Get-Content $opencodePath -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue | ConvertTo-Hashtable
+        if ($existing) {
+            $config = $existing
         }
     }
 
-    if (Test-Path $opencodePath) {
-        $existing = Get-Content $opencodePath -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
-        if ($existing) {
-            foreach ($prop in $existing.PSObject.Properties) {
-                if ($prop.Name -notin @('$schema', 'mcp', 'provider')) {
-                    $config[$prop.Name] = $prop.Value
-                }
-            }
-            if ($existing.mcp) {
-                foreach ($prop in $existing.mcp.PSObject.Properties) {
-                    if ($prop.Name -ne 'devstack') {
-                        $config['mcp'][$prop.Name] = $prop.Value
-                    }
-                }
-            }
-        }
+    if (-not $config) {
+        $config = [ordered]@{}
+    }
+
+    if (-not ($config.PSObject.Properties['$schema'])) {
+        $config['$schema'] = "https://opencode.ai/config.json"
+    }
+
+    if (-not ($config.PSObject.Properties['mcp'])) {
+        $config['mcp'] = [ordered]@{}
+    }
+
+    $mcpSection = $config['mcp']
+
+    $mcpSection['devstack'] = [ordered]@{
+        type    = "remote"
+        url     = "http://localhost:8088/mcp"
+        enabled = $true
     }
 
     [System.IO.File]::WriteAllText($opencodePath, ($config | ConvertTo-Json -Depth 10))

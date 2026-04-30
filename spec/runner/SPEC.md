@@ -129,7 +129,7 @@ Execute prompts with OpenCode
 
 ### Deliverable
 
-Substitute {{Title}}, {{Description}}, {{AcceptanceCriteria}}, {{DeliverableId}} with the fields of the same name from the Deliverable
+Substitute {{Title}}, {{Description}}, {{AcceptanceCriteria}}, {{DeliverableId}}, {{Design}} and {{ProjectId}} with the fields of the same name from the Deliverable
 
 ### AgentTask
 
