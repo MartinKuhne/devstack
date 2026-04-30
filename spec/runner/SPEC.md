@@ -48,7 +48,7 @@ Execute prompts with OpenCode
 - [REQ-AG-100] When there is no project matching the current repository in GraphQL, the system shall create it
 - [REQ-AG-101] When the ```opencode.json``` file in the repository root does not contain an entry for the DevStack MCP server, the system shall add it
 - [REQ-AG-102] When an AgentTask execution completes, the system shall update the ExecutionDurationInSeconds of the AgentTask with the time it took to run OpenCode
-- [REQ-AG-103] When all the AgentTasks of a deliverable are in the DONE Status, the system shall execute the [pull-reqest] prompt with a minimum complextity of 4
+- [REQ-AG-103] When all the AgentTasks of a deliverable are in the DONE Status, the system shall execute the [pull-reqest] prompt 
 - [REQ-AG-104] When a deliverable has multiple AgentTasks and any one of them is in the [Failed], [Rejected] or [NeedsReview] state, change the Deliverable Status to [Failed]
 - [REQ-AG-105] When the system invokes OpenCode, it shall use the least cost model that has the a complexity value equal or higher of what is required [OpenCode CLI Run](https://opencode.ai/docs/cli/#run-1). Choose the lowest maximum complexity model if costs are identical.
 - [REQ-AG-106] When the system invokes are GraphQL query or mutation, it shall log the name of the operation
@@ -103,19 +103,27 @@ Execute prompts with OpenCode
 
 ## Deliverable Status transitions
 
-| Current Status| Deliverable Type | Prompt     | Min complexity | 
-| ------------- | ---------------- | ---------- | -------------- | 
-| Design        | Spike            | research   | 10             | 
-| Design        | Feature          | design     | 10             | 
-| Plan          | Defect           | root-cause | 8              |
-| Plan          | Feature, Maintenance | plan   | 8              | 
-| Merge         | (all)            | merge      | 8              | 
+| Current Status| Deliverable Type     | Prompt     | Min complexity | 
+| ------------- | -------------------- | ---------- | -------------- | 
+| Design        | Spike                | research   | 8              | 
+| Design        | Feature              | design     | 10             | 
+| Plan          | Defect               | root-cause | 8              |
+| Plan          | Feature, Maintenance | plan       | 8              | 
+| Merge         | (all)                | merge      | 8              | 
+
+### Other deliverable flows
+
+| Deliverable Type | Prompt           | Min complexity | 
+| ---------------- | ---------------- | -------------- | 
+| All              | pull-request     | 8              | 
 
 ## AgentTask Status transitions
 
 | Current status | Prompt      | Min complexity | 
 | -------------- | ----------- | -------------- | 
-| Ready          | implement   | 4              | 
+| Ready          | Implement   | 4              | 
+
+
 
 ## Variable substitions
 

@@ -3,7 +3,6 @@ using DevStack.Api.GraphQL.Types;
 using DevStack.Api.HealthChecks;
 using DevStack.Api.Logging;
 using DevStack.Api.Middlewares;
-using DevStack.Application;
 using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Application.Projects.Commands;
@@ -12,16 +11,6 @@ using DevStack.Infrastructure.AgentTasks;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Projects;
-using DevStack.Persistence;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.FeatureManagement;
-
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
-
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 

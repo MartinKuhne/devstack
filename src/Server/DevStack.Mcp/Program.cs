@@ -1,4 +1,3 @@
-using DevStack.Application;
 using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Queries;
 using DevStack.Application.Deliverables;
@@ -13,14 +12,6 @@ using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Projects;
 using DevStack.Mcp;
-using DevStack.Persistence;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-
-using ModelContextProtocol.Server;
-
-using Serilog;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()

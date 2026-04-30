@@ -1,6 +1,3 @@
-using ModelContextProtocol.Server;
-using System.ComponentModel;
-
 namespace DevStack.Mcp;
 
 [McpServerPromptType]

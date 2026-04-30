@@ -1,16 +1,6 @@
-using System.ComponentModel;
-using System.Text.Json;
-
-using DevStack.Application;
 using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks.Queries;
-using DevStack.Domain.Entities;
-using DevStack.Domain.Enums;
-
-using Microsoft.Extensions.Logging;
-
-using ModelContextProtocol.Server;
 
 namespace DevStack.Mcp.Tools;
 

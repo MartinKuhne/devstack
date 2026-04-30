@@ -1,5 +1,3 @@
-using System.Net;
-
 using DevStack.Domain.Exceptions;
 
 using Microsoft.AspNetCore.Mvc;
