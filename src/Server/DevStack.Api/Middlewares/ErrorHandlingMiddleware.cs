@@ -1,4 +1,5 @@
 using DevStack.Domain.Exceptions;
+using DevStack.Infrastructure.Mapping;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,63 +31,10 @@ public class ErrorHandlingMiddleware
 
     private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        context.Response.ContentType = "application/problem+json";
-
-        var problemDetails = exception switch
-        {
-            NotFoundException notFound => new ProblemDetails
-            {
-                Status = (int)HttpStatusCode.NotFound,
-                Type = "https://devstack.io/errors/not-found",
-                Title = "Resource not found",
-                Detail = notFound.Message,
-                Instance = context.Request.Path,
-                Extensions =
-                {
-                    ["errorCode"] = "NOT_FOUND",
-                    ["entityType"] = notFound.Type,
-                    ["entityKey"] = notFound.Key.ToString()
-                }
-            },
-            ConcurrencyException concurrency => new ProblemDetails
-            {
-                Status = (int)HttpStatusCode.Conflict,
-                Type = "https://devstack.io/errors/concurrency",
-                Title = "Concurrency conflict",
-                Detail = concurrency.Message,
-                Instance = context.Request.Path,
-                Extensions =
-                {
-                    ["errorCode"] = "CONCURRENCY_CONFLICT"
-                }
-            },
-            ValidationException validation => new ProblemDetails
-            {
-                Status = (int)HttpStatusCode.BadRequest,
-                Type = "https://devstack.io/errors/validation",
-                Title = "Validation failed",
-                Detail = validation.Message,
-                Instance = context.Request.Path,
-                Extensions =
-                {
-                    ["errorCode"] = "VALIDATION_ERROR"
-                }
-            },
-            _ => new ProblemDetails
-            {
-                Status = (int)HttpStatusCode.InternalServerError,
-                Type = "https://devstack.io/errors/server-error",
-                Title = "An error occurred",
-                Detail = "An unexpected error occurred. Please try again later.",
-                Instance = context.Request.Path,
-                Extensions =
-                {
-                    ["errorCode"] = "SERVER_ERROR"
-                }
-            }
-        };
+        var problemDetails = ExceptionMapper.ToProblemDetails(exception, context);
 
         context.Response.StatusCode = problemDetails.Status!.Value;
+        context.Response.ContentType = "application/problem+json";
 
         var serializerOptions = new System.Text.Json.JsonSerializerOptions
         {
