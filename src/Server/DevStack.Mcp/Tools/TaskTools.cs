@@ -73,7 +73,7 @@ public class TaskTools
 
             _logger.LogInformation("Created agent task with ID: {Id}", id);
             var result = new { id = id.ToString(), status = "Ready" };
-            return $"## Task Created\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use the returned ID for subsequent get_task, update_task, or update_task_state calls.";
+            return $"## Task Created\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use the returned ID for subsequent get_task, update_task, or update_task_status calls.";
         }
         catch (Exception ex)
         {
@@ -122,7 +122,7 @@ public class TaskTools
         }
     }
 
-    [McpServerTool(Name = "update_task_state"), Description("Change the state of an agent task in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.")]
+    [McpServerTool(Name = "update_task_status"), Description("Change the state of an agent task in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.")]
     public async Task<string> TransitionAgentTaskStatus(
         [Description("The agent task ID")] Guid id,
         [Description("The target status")] AgentTaskStatus targetStatus,

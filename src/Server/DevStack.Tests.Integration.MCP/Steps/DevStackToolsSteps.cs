@@ -90,7 +90,7 @@ public sealed class DevStackToolsSteps
             ["targetStatus"] = status,
             ["actor"] = "test"
         };
-        var transitionResult = await Client.CallToolAsync("update_deliverable_state", args);
+        var transitionResult = await Client.CallToolAsync("update_deliverable_status", args);
         if (transitionResult.IsError is true)
         {
             var text = GetResultText(transitionResult);
@@ -128,7 +128,7 @@ public sealed class DevStackToolsSteps
         _scenarioContext["Result"] = _result;
     }
 
-    [When(@"I call update_deliverable_state to ""(.*)""")]
+    [When(@"I call update_deliverable_status to ""(.*)""")]
     public async Task WhenICallDevstackTransitionDeliverableStatus(string targetStatus)
     {
         var deliverableId = _scenarioContext.GetString("DeliverableId") ?? "";
@@ -138,7 +138,7 @@ public sealed class DevStackToolsSteps
             ["targetStatus"] = targetStatus,
             ["actor"] = "test"
         };
-        _result = await Client.CallToolAsync("update_deliverable_state", args);
+        _result = await Client.CallToolAsync("update_deliverable_status", args);
         _scenarioContext["Result"] = _result;
     }
 
@@ -238,7 +238,7 @@ public sealed class DevStackToolsSteps
             ["targetStatus"] = status,
             ["actor"] = "test"
         };
-        var transitionResult = await Client.CallToolAsync("update_task_state", args);
+        var transitionResult = await Client.CallToolAsync("update_task_status", args);
         if (transitionResult.IsError is true)
         {
             var text = GetResultText(transitionResult);
@@ -277,7 +277,7 @@ public sealed class DevStackToolsSteps
         _scenarioContext["Result"] = _result;
     }
 
-    [When(@"I call update_task_state to ""(.*)""")]
+    [When(@"I call update_task_status to ""(.*)""")]
     public async Task WhenICallDevstackTransitionAgentTaskStatus(string targetStatus)
     {
         var taskId = _scenarioContext.GetString("TaskId") ?? "";
@@ -287,7 +287,7 @@ public sealed class DevStackToolsSteps
             ["targetStatus"] = targetStatus,
             ["actor"] = "test"
         };
-        _result = await Client.CallToolAsync("update_task_state", args);
+        _result = await Client.CallToolAsync("update_task_status", args);
         _scenarioContext["Result"] = _result;
     }
 

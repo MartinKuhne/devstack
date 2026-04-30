@@ -10,10 +10,10 @@ Feature: Tools List
         And the tools should include "get_project"
         And the tools should include "create_deliverable"
         And the tools should include "update_deliverable"
-        And the tools should include "update_deliverable_state"
+        And the tools should include "update_deliverable_status"
         And the tools should include "create_task"
         And the tools should include "update_task"
-        And the tools should include "update_task_state"
+        And the tools should include "update_task_status"
 
     Scenario: Tool schema is properly defined
         Given the MCP client is connected
