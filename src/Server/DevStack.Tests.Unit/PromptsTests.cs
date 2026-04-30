@@ -48,6 +48,31 @@ public class PromptsTests
     }
 
     [Fact]
+    public void Greeting_WithWhitespaceName_ReturnsGenericGreeting()
+    {
+        // Act
+        var result = GreetingPrompt.Greeting(name: "   ");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Role.Should().Be(ChatRole.User);
+        result.Text.Should().NotContain("   ");
+        result.Text.Should().Contain("Hello");
+    }
+
+    [Fact]
+    public void Greeting_WithNullName_ReturnsGenericGreeting()
+    {
+        // Act
+        var result = GreetingPrompt.Greeting(name: null!);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Role.Should().Be(ChatRole.User);
+        result.Text.Should().Contain("Hello");
+    }
+
+    [Fact]
     public void Help_ReturnsHelpMessage()
     {
         // Act
@@ -80,5 +105,68 @@ public class PromptsTests
         result.Should().NotBeNull();
         result.Role.Should().Be(ChatRole.User);
         result.Text.Should().Contain("get_deliverable");
+    }
+
+    [Fact]
+    public void Help_WithWhitespaceCommand_ReturnsGenericHelp()
+    {
+        // Act
+        var result = HelpPrompt.Help(command: "   ");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Role.Should().Be(ChatRole.User);
+        result.Text.Should().Contain("Available commands");
+    }
+
+    [Fact]
+    public void Help_WithNullCommand_ReturnsGenericHelp()
+    {
+        // Act
+        var result = HelpPrompt.Help(command: null!);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Role.Should().Be(ChatRole.User);
+        result.Text.Should().Contain("Available commands");
+    }
+
+    [Fact]
+    public void Help_WithGetTaskCommand_ReturnsGetTaskHelp()
+    {
+        // Act
+        var result = HelpPrompt.Help(command: "get_task");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Role.Should().Be(ChatRole.User);
+        result.Text.Should().Contain("get_task");
+        result.Text.Should().Contain("Help for 'get_task'");
+    }
+
+    [Fact]
+    public void Greeting_OutputFormat_IsValidChatMessage()
+    {
+        // Act
+        var result = GreetingPrompt.Greeting(name: "Test");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Role.Should().Be(ChatRole.User);
+        result.Text.Should().NotBeNullOrEmpty();
+        result.Text.Should().StartWith("Hello, Test");
+    }
+
+    [Fact]
+    public void Help_OutputFormat_IsValidChatMessage()
+    {
+        // Act
+        var result = HelpPrompt.Help(command: "create_task");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Role.Should().Be(ChatRole.User);
+        result.Text.Should().NotBeNullOrEmpty();
+        result.Text.Should().Contain("create_task");
     }
 }

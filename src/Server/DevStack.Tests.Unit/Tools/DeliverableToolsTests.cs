@@ -11,7 +11,11 @@ using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Mcp.Tools;
 
+using FluentAssertions;
+
 using Microsoft.Extensions.Logging;
+
+using ModelContextProtocol;
 
 using NSubstitute;
 
@@ -65,18 +69,18 @@ public class DeliverableToolsTests
         var result = await _tools.GetDeliverable(id);
 
         // Assert
-        Assert.Contains("Test Deliverable", result);
-        Assert.Contains("Test description", result);
-        Assert.Contains("```json", result);
-        Assert.Contains("## Deliverable", result);
+        result.Should().Contain("Test Deliverable");
+        result.Should().Contain("Test description");
+        result.Should().Contain("```json");
+        result.Should().Contain("## Deliverable");
 
         var jsonStart = result.IndexOf("{");
         var jsonEnd = result.LastIndexOf("}");
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
         var json = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        Assert.NotNull(json);
+        json.Should().NotBeNull();
         var idValue = json!["id"]?.ToString() ?? string.Empty;
-        Assert.Equal(id.ToString().ToLowerInvariant(), idValue.ToLowerInvariant());
+        idValue.ToLowerInvariant().Should().Be(id.ToString().ToLowerInvariant());
     }
 
     [Fact]
@@ -91,7 +95,7 @@ public class DeliverableToolsTests
         var result = await _tools.GetDeliverable(id);
 
         // Assert
-        Assert.Contains("Deliverable not found", result);
+        result.Should().Contain("Deliverable not found");
     }
 
     [Fact]
@@ -114,10 +118,10 @@ public class DeliverableToolsTests
             null, null, null, null, null, null, null);
 
         // Assert
-        Assert.Contains("Deliverable Created", result);
-        Assert.Contains(newId.ToString(), result);
-        Assert.Contains("Feature", result);
-        Assert.Contains("Ready", result);
+        result.Should().Contain("Deliverable Created");
+        result.Should().Contain(newId.ToString());
+        result.Should().Contain("Feature");
+        result.Should().Contain("Ready");
 
         await _createDeliverableHandler.Received(1).Handle(
             Arg.Is<CreateDeliverableCommand>(cmd =>
@@ -130,29 +134,31 @@ public class DeliverableToolsTests
     }
 
     [Fact]
-    public async Task CreateDeliverable_WithNullProjectId_ThrowsArgumentException()
+    public async Task CreateDeliverable_WithNullProjectId_ThrowsMcpProtocolException()
     {
         // Arrange
         var title = "New Deliverable";
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => _tools.CreateDeliverable(null, title, null, null, null, null, null, null, null, null));
 
-        Assert.Equal("Project ID is required", exception.Message);
+        exception.Message.Should().Be("Project ID is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
-    public async Task CreateDeliverable_WithEmptyProjectId_ThrowsArgumentException()
+    public async Task CreateDeliverable_WithEmptyProjectId_ThrowsMcpProtocolException()
     {
         // Arrange
         var title = "New Deliverable";
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => _tools.CreateDeliverable(Guid.Empty, title, null, null, null, null, null, null, null, null));
 
-        Assert.Equal("Project ID is required", exception.Message);
+        exception.Message.Should().Be("Project ID is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
@@ -185,7 +191,7 @@ public class DeliverableToolsTests
             deploymentPlan);
 
         // Assert
-        Assert.Contains("Deliverable Created", result);
+        result.Should().Contain("Deliverable Created");
         await _createDeliverableHandler.Received(1).Handle(
             Arg.Is<CreateDeliverableCommand>(cmd =>
                 cmd.AcceptanceCriteria == acceptanceCriteria &&
@@ -195,6 +201,42 @@ public class DeliverableToolsTests
                 cmd.TestPlan == testPlan &&
                 cmd.DeploymentPlan == deploymentPlan),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateDeliverable_WithNullTitle_CreatesDeliverable()
+    {
+        // Arrange
+        var projectId = Guid.NewGuid();
+        var newId = Guid.NewGuid();
+
+        _createDeliverableHandler.Handle(Arg.Any<CreateDeliverableCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(newId));
+
+        // Act
+        var result = await _tools.CreateDeliverable(
+            projectId,
+            null!,
+            null, null, null, null, null, null, null, null);
+
+        // Assert
+        result.Should().Contain("Deliverable Created");
+        result.Should().Contain(newId.ToString());
+    }
+
+    [Fact]
+    public async Task GetDeliverable_WithNullResult_ReturnsErrorMessage()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _getDeliverableByIdHandler.Handle(Arg.Any<GetDeliverableByIdQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<Deliverable?>(null));
+
+        // Act
+        var result = await _tools.GetDeliverable(id);
+
+        // Assert
+        result.Should().Contain("Deliverable not found");
     }
 
     [Fact]
@@ -214,9 +256,9 @@ public class DeliverableToolsTests
             null, null, null, null, null, null, null, null, null);
 
         // Assert
-        Assert.Contains("Deliverable Updated", result);
-        Assert.Contains(id.ToString(), result);
-        Assert.Contains("true", result);
+        result.Should().Contain("Deliverable Updated");
+        result.Should().Contain(id.ToString());
+        result.Should().Contain("true");
 
         await _updateDeliverableHandler.Received(1).Handle(
             Arg.Is<UpdateDeliverableCommand>(cmd => cmd.Id == id && cmd.Description == newDescription),
@@ -239,7 +281,7 @@ public class DeliverableToolsTests
             "feedback", "blocking");
 
         // Assert
-        Assert.Contains("Deliverable Updated", result);
+        result.Should().Contain("Deliverable Updated");
         await _updateDeliverableHandler.Received(1).Handle(
             Arg.Is<UpdateDeliverableCommand>(cmd =>
                 cmd.Id == id &&
@@ -271,10 +313,10 @@ public class DeliverableToolsTests
         var result = await _tools.TransitionDeliverableStatus(id, targetStatus, actor);
 
         // Assert
-        Assert.Contains("Deliverable State Transitioned", result);
-        Assert.Contains(id.ToString(), result);
-        Assert.Contains("Design", result);
-        Assert.Contains("test-user", result);
+        result.Should().Contain("Deliverable State Transitioned");
+        result.Should().Contain(id.ToString());
+        result.Should().Contain("Design");
+        result.Should().Contain("test-user");
 
         await _updateDeliverableStatusHandler.Received(1).Handle(
             Arg.Is<UpdateDeliverableStatusCommand>(cmd =>
@@ -298,8 +340,29 @@ public class DeliverableToolsTests
         foreach (var status in Enum.GetValues<DeliverableStatus>())
         {
             var result = await _tools.TransitionDeliverableStatus(id, status, actor);
-            Assert.Contains(status.ToString(), result);
+            result.Should().Contain(status.ToString());
         }
+    }
+
+    [Fact]
+    public async Task UpdateDeliverable_WithAllNullFields_UpdatesOnlyId()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _updateDeliverableHandler.Handle(Arg.Any<UpdateDeliverableCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _tools.UpdateDeliverable(
+            id,
+            null, null, null, null, null, null, null, null, null, null);
+
+        // Assert
+        result.Should().Contain("Deliverable Updated");
+        result.Should().Contain(id.ToString());
+        await _updateDeliverableHandler.Received(1).Handle(
+            Arg.Is<UpdateDeliverableCommand>(cmd => cmd.Id == id),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -318,6 +381,6 @@ public class DeliverableToolsTests
         var result = await _tools.TransitionDeliverableStatus(id, targetStatus, actor);
 
         // Assert
-        Assert.Contains(errorMessage, result);
+        result.Should().Contain(errorMessage);
     }
 }
