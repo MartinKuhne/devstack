@@ -32,7 +32,8 @@ try
             options.Stateless = true;
         })
         .WithToolsFromAssembly()
-        .WithPrompts<Prompts>()
+        .WithPrompts<GreetingPrompt>()
+        .WithPrompts<HelpPrompt>()
         .WithResources<ResourceType>();
 
     builder.Services.AddDbContext<DevStackDbContext>(options =>
