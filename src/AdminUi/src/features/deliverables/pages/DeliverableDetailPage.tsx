@@ -23,6 +23,7 @@ import {
     AGENT_TASK_STATUS_COLORS,
     getStatusColor,
 } from '@/lib/constants';
+import { MarkdownViewer } from '@/components/MarkdownViewer';
 export function DeliverableDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -201,9 +202,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Description</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.description}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.description} />
                             </CardContent>
                         </Card>
                     )}
@@ -214,9 +213,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Acceptance Criteria</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.acceptanceCriteria}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.acceptanceCriteria} />
                             </CardContent>
                         </Card>
                     )}
@@ -227,9 +224,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Execution Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.executionPlan}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.executionPlan} />
                             </CardContent>
                         </Card>
                     )}
@@ -240,9 +235,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Security Impact</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.securityImpact}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.securityImpact} />
                             </CardContent>
                         </Card>
                     )}
@@ -253,9 +246,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Performance Impact</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.performanceImpact}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.performanceImpact} />
                             </CardContent>
                         </Card>
                     )}
@@ -266,9 +257,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Test Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.testPlan}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.testPlan} />
                             </CardContent>
                         </Card>
                     )}
@@ -279,9 +268,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Deployment Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.deploymentPlan}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.deploymentPlan} />
                             </CardContent>
                         </Card>
                     )}
@@ -292,9 +279,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Agent Feedback</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.agentFeedback}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.agentFeedback} />
                             </CardContent>
                         </Card>
                     )}
@@ -305,9 +290,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Blocking</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.blocking}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.blocking} />
                             </CardContent>
                         </Card>
                     )}
@@ -318,9 +301,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Design</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {deliverable.design}
-                                </p>
+                                <MarkdownViewer className="text-sm" content={deliverable.design} />
                             </CardContent>
                         </Card>
                     )}
