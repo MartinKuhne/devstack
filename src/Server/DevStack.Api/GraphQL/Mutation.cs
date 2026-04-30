@@ -4,6 +4,7 @@ using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Application.Projects.Commands;
 using DevStack.Domain.Exceptions;
 using DevStack.Domain.Services;
+using DevStack.Infrastructure.AgentTasks;
 
 namespace DevStack.Api.GraphQL.Types;
 
@@ -274,22 +275,24 @@ public class Mutation
 
     public async Task<AgentTaskStatus> UpdateAgentTaskStatusAsync(
         [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<UpdateAgentTaskStatusCommand> taskHandler,
+        [Service] ICommandHandler<UpdateDeliverableStatusCommand> statusHandler,
         Guid id,
         AgentTaskStatus targetStatus,
+        string? actor,
         CancellationToken cancellationToken)
     {
+        await taskHandler.Handle(new UpdateAgentTaskStatusCommand(id, targetStatus, actor ?? string.Empty), cancellationToken);
+
         var agentTask = await dbContext.AgentTasks.FindAsync(id, cancellationToken);
         if (agentTask == null)
         {
             throw new InvalidOperationException("AgentTask does not exist");
         }
 
-        agentTask.Status = targetStatus;
-        await dbContext.SaveChangesAsync(cancellationToken);
-
         if (targetStatus == AgentTaskStatus.Done)
         {
-            await CheckAndMarkDeliverableDoneAsync(dbContext, agentTask.DeliverableId, cancellationToken);
+            await CheckAndMarkDeliverableDoneAsync(dbContext, statusHandler, agentTask.DeliverableId, cancellationToken);
         }
 
         return targetStatus;
@@ -371,35 +374,20 @@ public class Mutation
 
     public async Task<bool> CheckAndMarkDeliverableDoneAsync(
         [Service] DevStackDbContext dbContext,
+        [Service] ICommandHandler<UpdateDeliverableStatusCommand> statusHandler,
         Guid deliverableId,
         CancellationToken cancellationToken)
     {
-        var deliverable = await dbContext.Deliverables.FindAsync(deliverableId, cancellationToken);
-        if (deliverable == null)
-        {
-            return false;
-        }
-
         var allTasks = await dbContext.AgentTasks
             .Where(t => t.DeliverableId == deliverableId)
             .ToListAsync(cancellationToken);
 
         if (DeliverableCompletionService.CheckAllTasksDone(allTasks))
         {
-            await SetDeliverableToDoneAsync(dbContext, deliverableId, cancellationToken);
+            await statusHandler.Handle(new UpdateDeliverableStatusCommand(deliverableId, DeliverableStatus.Done, "System"), cancellationToken);
             return true;
         }
 
         return false;
-    }
-
-    private async Task SetDeliverableToDoneAsync(DevStackDbContext dbContext, Guid deliverableId, CancellationToken cancellationToken)
-    {
-        var deliverable = await dbContext.Deliverables.FindAsync(deliverableId, cancellationToken);
-        if (deliverable != null && deliverable.Status != DeliverableStatus.Done)
-        {
-            deliverable.Status = DeliverableStatus.Done;
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
     }
 }

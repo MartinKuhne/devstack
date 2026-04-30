@@ -102,20 +102,8 @@ using (var scope = app.Services.CreateScope())
 app.UseSerilogRequestLogging(options =>
 {
     options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-    options.GetLevel = (httpContext, elapsed, ex) =>
-    {
-        if (ex != null) return Serilog.Events.LogEventLevel.Error;
-        if (httpContext.Response.StatusCode > 500) return Serilog.Events.LogEventLevel.Error;
-        if (httpContext.Response.StatusCode > 400 && httpContext.Response.StatusCode < 500) return Serilog.Events.LogEventLevel.Warning;
-        return Serilog.Events.LogEventLevel.Information;
-    };
-    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
-    {
-        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? "");
-        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme ?? "");
-        diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
-        diagnosticContext.Set("ContentType", httpContext.Request.ContentType ?? "");
-    };
+    options.GetLevel = DevStack.Api.Logging.LogLevelResolver.ResolveLevel;
+    options.EnrichDiagnosticContext = DevStack.Api.Logging.RequestEnricher.EnrichDiagnosticContext;
 });
 
 app.UseRouting();
