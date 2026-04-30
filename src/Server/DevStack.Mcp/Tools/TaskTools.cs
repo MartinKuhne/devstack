@@ -2,12 +2,15 @@ using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks.Queries;
 
+using ModelContextProtocol;
+
 namespace DevStack.Mcp.Tools;
 
 [McpServerToolType]
 public class TaskTools
 {
     private readonly ILogger<TaskTools> _logger;
+    private readonly DevStackDbContext _dbContext;
     private readonly ICommandHandler<Guid, CreateAgentTaskCommand> _createAgentTaskHandler;
     private readonly ICommandHandler<UpdateAgentTaskCommand> _updateAgentTaskHandler;
     private readonly ICommandHandler<UpdateAgentTaskStatusCommand> _updateAgentTaskStatusHandler;
@@ -15,12 +18,14 @@ public class TaskTools
 
     public TaskTools(
         ILogger<TaskTools> logger,
+        DevStackDbContext dbContext,
         ICommandHandler<Guid, CreateAgentTaskCommand> createAgentTaskHandler,
         ICommandHandler<UpdateAgentTaskCommand> updateAgentTaskHandler,
         ICommandHandler<UpdateAgentTaskStatusCommand> updateAgentTaskStatusHandler,
         ICommandHandler<AgentTask, GetAgentTaskByIdQuery> getAgentTaskByIdHandler)
     {
         _logger = logger;
+        _dbContext = dbContext;
         _createAgentTaskHandler = createAgentTaskHandler;
         _updateAgentTaskHandler = updateAgentTaskHandler;
         _updateAgentTaskStatusHandler = updateAgentTaskStatusHandler;
@@ -38,36 +43,45 @@ public class TaskTools
         return $"## Agent Task\n\n```json\n{JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true })}\n```\n\n";
     }
 
-    [McpServerTool(Name = "create_task"), Description("Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: Both ProjectId and DeliverableId (itemId) must reference existing entities.")]
+    [McpServerTool(Name = "create_task"), Description("Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: Both ProjectId and DeliverableId must reference existing entities.")]
     public async Task<string> CreateAgentTask(
         [Description("The project ID")][DefaultValue(null)] Guid? projectId,
-        [Description("The deliverable/feature ID")][DefaultValue(null)] Guid? itemId,
+        [Description("The deliverable/feature ID")][DefaultValue(null)] Guid? deliverableId,
         [Description("The task title")] string title,
-        [Description("The task status")][DefaultValue(null)] AgentTaskStatus? status,
         [Description("The task description")][DefaultValue(null)] string? description,
-        [Description("The deliverable description")][DefaultValue(null)] string? deliverableDescription,
-        [Description("The complexity rating (1-10)")] int complexityRating = 5,
         CancellationToken ct = default)
     {
         try
         {
             if (projectId == null || projectId == Guid.Empty)
             {
-                throw new ArgumentException("Project ID is required");
+                throw new McpProtocolException("Project ID is required", McpErrorCode.InvalidParams);
             }
 
-            if (itemId == null || itemId == Guid.Empty)
+            var projectExists = await _dbContext.Projects.AnyAsync(p => p.Id == projectId, ct);
+            if (!projectExists)
             {
-                throw new ArgumentException("Deliverable ID is required");
+                throw new McpProtocolException($"Project with ID {projectId} not found", McpErrorCode.InvalidParams);
+            }
+
+            if (deliverableId == null || deliverableId == Guid.Empty)
+            {
+                throw new McpProtocolException("Deliverable ID is required", McpErrorCode.InvalidParams);
+            }
+
+            var deliverableExists = await _dbContext.Deliverables.AnyAsync(d => d.Id == deliverableId, ct);
+            if (!deliverableExists)
+            {
+                throw new McpProtocolException($"Deliverable with ID {deliverableId} not found", McpErrorCode.InvalidParams);
             }
 
             var id = await _createAgentTaskHandler.Handle(
                 new CreateAgentTaskCommand(
                     projectId.Value,
-                    itemId.Value,
+                    deliverableId.Value,
                     title,
                     description ?? string.Empty,
-                    complexityRating,
+                    5,
                     null),
                 ct);
 
