@@ -7,8 +7,12 @@ using DevStack.Domain.Entities;
 using DevStack.Mcp.Tools;
 using DevStack.Persistence;
 
+using FluentAssertions;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+using ModelContextProtocol;
 
 using NSubstitute;
 
@@ -49,17 +53,17 @@ public class ProjectToolsTests
         var result = await tools.GetProjects();
 
         // Assert
-        Assert.Contains("## Projects", result);
-        Assert.Contains("```json", result);
-        Assert.Contains("Project Alpha", result);
-        Assert.Contains("Project Beta", result);
-        Assert.Contains("Project Gamma", result);
+        result.Should().Contain("## Projects");
+        result.Should().Contain("```json");
+        result.Should().Contain("Project Alpha");
+        result.Should().Contain("Project Beta");
+        result.Should().Contain("Project Gamma");
 
         var jsonStart = result.IndexOf("[");
         var jsonEnd = result.LastIndexOf("]");
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
         var projects = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(jsonStr);
-        Assert.Equal(3, projects.GetArrayLength());
+        projects.GetArrayLength().Should().Be(3);
     }
 
     [Fact]
@@ -77,7 +81,7 @@ public class ProjectToolsTests
         var projects = dbContext.Projects.ToList();
         foreach (var project in projects)
         {
-            Assert.Contains(project.Id.ToString(), result);
+            result.Should().Contain(project.Id.ToString());
         }
     }
 
@@ -96,7 +100,7 @@ public class ProjectToolsTests
         var projects = dbContext.Projects.ToList();
         foreach (var project in projects)
         {
-            Assert.Contains(project.Repository, result);
+            result.Should().Contain(project.Repository);
         }
     }
 
@@ -113,12 +117,12 @@ public class ProjectToolsTests
         var result = await tools.GetProjects();
 
         // Assert
-        Assert.Contains("## Projects", result);
+        result.Should().Contain("## Projects");
         var jsonStart = result.IndexOf("[");
         var jsonEnd = result.LastIndexOf("]");
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
         var projects = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(jsonStr);
-        Assert.Equal(0, projects.GetArrayLength());
+        projects.GetArrayLength().Should().Be(0);
     }
 
     [Fact]
@@ -134,14 +138,14 @@ public class ProjectToolsTests
         var result = await tools.GetProjectById(targetProject.Id);
 
         // Assert
-        Assert.Contains("## Project", result);
-        Assert.Contains(targetProject.Name, result);
-        Assert.Contains(targetProject.Repository, result);
-        Assert.Contains(targetProject.Id.ToString(), result);
+        result.Should().Contain("## Project");
+        result.Should().Contain(targetProject.Name);
+        result.Should().Contain(targetProject.Repository);
+        result.Should().Contain(targetProject.Id.ToString());
     }
 
     [Fact]
-    public async Task GetProjectById_WithNotFoundId_ThrowsKeyNotFoundException()
+    public async Task GetProjectById_WithNotFoundId_ThrowsMcpProtocolException()
     {
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
@@ -150,14 +154,15 @@ public class ProjectToolsTests
         var nonExistentId = Guid.NewGuid();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => tools.GetProjectById(nonExistentId));
 
-        Assert.Equal($"Project with ID {nonExistentId} not found", exception.Message);
+        exception.Message.Should().BeEquivalentTo($"Project with ID {nonExistentId} not found");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
-    public async Task GetProjectById_WithNullId_ThrowsArgumentException()
+    public async Task GetProjectById_WithNullId_ThrowsMcpProtocolException()
     {
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
@@ -165,10 +170,11 @@ public class ProjectToolsTests
         var tools = new ProjectTools(logger, dbContext);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => tools.GetProjectById(null));
 
-        Assert.Equal("Project ID is required", exception.Message);
+        exception.Message.Should().Be("Project ID is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
@@ -184,16 +190,16 @@ public class ProjectToolsTests
         var result = await tools.GetProjectById(targetProject.Id);
 
         // Assert
-        Assert.Contains("```json", result);
+        result.Should().Contain("```json");
         var jsonStart = result.IndexOf("{");
         var jsonEnd = result.LastIndexOf("}");
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
         var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(jsonStr);
-        Assert.True(json.TryGetProperty("Id", out var idProp));
-        Assert.Equal(targetProject.Id.ToString(), idProp.GetString());
-        Assert.True(json.TryGetProperty("Name", out var nameProp));
-        Assert.Equal(targetProject.Name, nameProp.GetString());
-        Assert.True(json.TryGetProperty("Repository", out var repoProp));
-        Assert.Equal(targetProject.Repository, repoProp.GetString());
+        json.TryGetProperty("Id", out var idProp).Should().BeTrue();
+        idProp.GetString().Should().Be(targetProject.Id.ToString());
+        json.TryGetProperty("Name", out var nameProp).Should().BeTrue();
+        nameProp.GetString().Should().Be(targetProject.Name);
+        json.TryGetProperty("Repository", out var repoProp).Should().BeTrue();
+        repoProp.GetString().Should().Be(targetProject.Repository);
     }
 }

@@ -12,10 +12,16 @@ using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Mcp.Tools;
 using DevStack.Persistence;
+
+using FluentAssertions;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
 using ModelContextProtocol;
+
 using NSubstitute;
+
 using Xunit;
 
 namespace DevStack.Tests.Unit.Tools;
@@ -73,19 +79,19 @@ public class TaskToolsTests
         var result = await _tools.GetTask(id);
 
         // Assert
-        Assert.Contains("Test Task", result);
-        Assert.Contains("Test description", result);
-        Assert.Contains("```json", result);
-        Assert.Contains("## Agent Task", result);
-        Assert.Contains("Ready", result);
+        result.Should().Contain("Test Task");
+        result.Should().Contain("Test description");
+        result.Should().Contain("```json");
+        result.Should().Contain("## Agent Task");
+        result.Should().Contain("Ready");
 
         var jsonStart = result.IndexOf("{");
         var jsonEnd = result.LastIndexOf("}");
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
         var json = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        Assert.NotNull(json);
+        json.Should().NotBeNull();
         var idValue = json!["id"]?.ToString() ?? string.Empty;
-        Assert.Equal(id.ToString().ToLowerInvariant(), idValue.ToLowerInvariant());
+        idValue.ToLowerInvariant().Should().Be(id.ToString().ToLowerInvariant());
     }
 
     [Fact]
@@ -100,7 +106,23 @@ public class TaskToolsTests
         var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _tools.GetTask(id));
 
-        Assert.Equal($"AgentTask with ID {id} not found", exception.Message);
+        exception.Message.Should().BeEquivalentTo($"AgentTask with ID {id} not found");
+    }
+
+    [Fact]
+    public async Task GetTask_WithNullResult_ThrowsMcpProtocolException()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _getAgentTaskByIdHandler.Handle(Arg.Any<GetAgentTaskByIdQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<AgentTask>(null!));
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
+            () => _tools.GetTask(id));
+
+        exception.Message.Should().BeEquivalentTo($"AgentTask with ID {id} not found");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
@@ -127,9 +149,9 @@ public class TaskToolsTests
             null);
 
         // Assert
-        Assert.Contains("Task Created", result);
-        Assert.Contains(newId.ToString(), result);
-        Assert.Contains("Ready", result);
+        result.Should().Contain("Task Created");
+        result.Should().Contain(newId.ToString());
+        result.Should().Contain("Ready");
 
         await _createAgentTaskHandler.Received(1).Handle(
             Arg.Is<CreateAgentTaskCommand>(cmd =>
@@ -151,7 +173,8 @@ public class TaskToolsTests
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => _tools.CreateAgentTask(null, deliverableId, title, null));
 
-        Assert.Equal("Project ID is required", exception.Message);
+        exception.Message.Should().Be("Project ID is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
@@ -165,7 +188,8 @@ public class TaskToolsTests
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => _tools.CreateAgentTask(Guid.Empty, deliverableId, title, null));
 
-        Assert.Equal("Project ID is required", exception.Message);
+        exception.Message.Should().Be("Project ID is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
@@ -182,7 +206,8 @@ public class TaskToolsTests
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => _tools.CreateAgentTask(projectId, null, title, null));
 
-        Assert.Equal("Deliverable ID is required", exception.Message);
+        exception.Message.Should().Be("Deliverable ID is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
@@ -199,7 +224,8 @@ public class TaskToolsTests
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => _tools.CreateAgentTask(projectId, Guid.Empty, title, null));
 
-        Assert.Equal("Deliverable ID is required", exception.Message);
+        exception.Message.Should().Be("Deliverable ID is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
@@ -214,8 +240,9 @@ public class TaskToolsTests
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => _tools.CreateAgentTask(projectId, deliverableId, title, null));
 
-        Assert.Contains("Project", exception.Message);
-        Assert.Contains("not found", exception.Message);
+        exception.Message.Should().Contain("Project");
+        exception.Message.Should().Contain("not found");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
@@ -233,8 +260,9 @@ public class TaskToolsTests
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
             () => _tools.CreateAgentTask(projectId, deliverableId, title, null));
 
-        Assert.Contains("Deliverable", exception.Message);
-        Assert.Contains("not found", exception.Message);
+        exception.Message.Should().Contain("Deliverable");
+        exception.Message.Should().Contain("not found");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
@@ -262,7 +290,7 @@ public class TaskToolsTests
             description);
 
         // Assert
-        Assert.Contains("Task Created", result);
+        result.Should().Contain("Task Created");
         await _createAgentTaskHandler.Received(1).Handle(
             Arg.Is<CreateAgentTaskCommand>(cmd => cmd.Description == description),
             Arg.Any<CancellationToken>());
@@ -286,9 +314,9 @@ public class TaskToolsTests
             null, null, null, null);
 
         // Assert
-        Assert.Contains("Task Updated", result);
-        Assert.Contains(id.ToString(), result);
-        Assert.Contains("true", result);
+        result.Should().Contain("Task Updated");
+        result.Should().Contain(id.ToString());
+        result.Should().Contain("true");
 
         await _updateAgentTaskHandler.Received(1).Handle(
             Arg.Is<UpdateAgentTaskCommand>(cmd => cmd.Id == id && cmd.Description == newDescription),
@@ -314,7 +342,7 @@ public class TaskToolsTests
             "agent-name");
 
         // Assert
-        Assert.Contains("Task Updated", result);
+        result.Should().Contain("Task Updated");
         await _updateAgentTaskHandler.Received(1).Handle(
             Arg.Is<UpdateAgentTaskCommand>(cmd =>
                 cmd.Id == id &&
@@ -341,10 +369,10 @@ public class TaskToolsTests
         var result = await _tools.TransitionAgentTaskStatus(id, targetStatus, actor);
 
         // Assert
-        Assert.Contains("Task State Transitioned", result);
-        Assert.Contains(id.ToString(), result);
-        Assert.Contains("InProgress", result);
-        Assert.Contains("test-user", result);
+        result.Should().Contain("Task State Transitioned");
+        result.Should().Contain(id.ToString());
+        result.Should().Contain("InProgress");
+        result.Should().Contain("test-user");
 
         await _updateAgentTaskStatusHandler.Received(1).Handle(
             Arg.Is<UpdateAgentTaskStatusCommand>(cmd =>
@@ -368,8 +396,29 @@ public class TaskToolsTests
         foreach (var status in Enum.GetValues<AgentTaskStatus>())
         {
             var result = await _tools.TransitionAgentTaskStatus(id, status, actor);
-            Assert.Contains(status.ToString(), result);
+            result.Should().Contain(status.ToString());
         }
+    }
+
+    [Fact]
+    public async Task UpdateAgentTask_WithAllNullFields_UpdatesOnlyId()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _updateAgentTaskHandler.Handle(Arg.Any<UpdateAgentTaskCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _tools.UpdateAgentTask(
+            id,
+            null, null, null, null, null, null);
+
+        // Assert
+        result.Should().Contain("Task Updated");
+        result.Should().Contain(id.ToString());
+        await _updateAgentTaskHandler.Received(1).Handle(
+            Arg.Is<UpdateAgentTaskCommand>(cmd => cmd.Id == id),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -388,6 +437,6 @@ public class TaskToolsTests
         var result = await _tools.TransitionAgentTaskStatus(id, targetStatus, actor);
 
         // Assert
-        Assert.Contains(errorMessage, result);
+        result.Should().Contain(errorMessage);
     }
 }
