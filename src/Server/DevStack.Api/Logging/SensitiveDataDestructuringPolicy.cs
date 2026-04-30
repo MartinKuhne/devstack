@@ -1,6 +1,3 @@
-using Serilog.Core;
-using Serilog.Events;
-
 namespace DevStack.Api.Logging;
 
 public class SensitiveDataDestructuringPolicy : IDestructuringPolicy

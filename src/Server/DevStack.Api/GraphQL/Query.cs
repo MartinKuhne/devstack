@@ -1,7 +1,3 @@
-using DevStack.Domain.Entities;
-using DevStack.Domain.Enums;
-using DevStack.Persistence;
-
 using HotChocolate.Data;
 using HotChocolate.Types;
 

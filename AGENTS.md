@@ -47,3 +47,4 @@ shell commands, and other important information, read the current plan
 
 - ./src/Server/DevStack.Api/ and ./src/Server.DevStack.Domain/ PRODUCE ```src/schema.graphql```. Any changes in these projects MUST be reflected in ```src/schema.graphql```
 - All other projects CONSUME ```src/schema.graphql``` and MUST NOT change it when changes are applied
+

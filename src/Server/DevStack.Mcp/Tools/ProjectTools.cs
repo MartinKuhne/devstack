@@ -1,13 +1,3 @@
-using System.ComponentModel;
-using System.Text.Json;
-
-using DevStack.Persistence;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-
-using ModelContextProtocol.Server;
-
 namespace DevStack.Mcp.Tools;
 
 [McpServerToolType]

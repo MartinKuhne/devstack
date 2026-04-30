@@ -1,8 +1,5 @@
-using DevStack.Application;
 using DevStack.Application.Projects.Commands;
 using DevStack.Application.Projects.Queries;
-using DevStack.Domain.Entities;
-using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.Projects;
 

@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace DevStack.Domain.Entities;
 
 public class Project

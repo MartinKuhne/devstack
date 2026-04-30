@@ -1,10 +1,6 @@
-using DevStack.Application;
 using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks.Queries;
-using DevStack.Domain.Entities;
-using DevStack.Domain.Enums;
-using DevStack.Persistence;
 
 namespace DevStack.Infrastructure.AgentTasks;
 
