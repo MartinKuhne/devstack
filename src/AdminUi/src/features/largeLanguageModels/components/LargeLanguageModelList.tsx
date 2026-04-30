@@ -126,7 +126,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                     {largeLanguageModels.map(
                         (
                             config: {
-                                id: any;
+                                id: string | null | undefined;
                                 model: string;
                                 modelAlias?: string | null;
                                 url: string;

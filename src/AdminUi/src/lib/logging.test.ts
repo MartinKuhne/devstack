@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createModuleLogger, formatGraphQLError } from './logging';
 
 vi.mock('loglevel', () => ({
@@ -128,7 +128,7 @@ describe('formatGraphQLError', () => {
         };
         const result = formatGraphQLError(error);
         expect(result.details).toHaveLength(1);
-        expect((result.details as any)[0].message).toBe('Bad query');
+        expect(result.details![0].message).toBe('Bad query');
     });
 
     it('handles empty graphQLErrors array', () => {
