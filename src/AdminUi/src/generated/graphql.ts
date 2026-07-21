@@ -1485,7 +1485,7 @@ export type GetAgentTasksSuspenseQueryHookResult = ReturnType<typeof useGetAgent
 export type GetAgentTasksQueryResult = Apollo.QueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
 export const GetAllDeliverablesDocument = gql`
     query GetAllDeliverables {
-  deliverables {
+  deliverables(first: 100) {
     nodes {
       id
       title

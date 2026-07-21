@@ -1,5 +1,5 @@
 query GetAllDeliverables {
-    deliverables {
+    deliverables(first: 100) {
         nodes {
             id
             title
