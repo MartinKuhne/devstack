@@ -8,6 +8,7 @@ Feature: Tools List
         Then the response should contain a list of tools
         And the tools should include "get_projects"
         And the tools should include "get_project"
+        And the tools should include "create_project"
         And the tools should include "create_deliverable"
         And the tools should include "update_deliverable"
         And the tools should include "update_deliverable_status"
