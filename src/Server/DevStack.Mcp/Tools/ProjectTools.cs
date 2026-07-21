@@ -47,7 +47,7 @@ public class ProjectTools
             throw new McpProtocolException($"Project with ID {id.Value} not found", McpErrorCode.InvalidParams);
         }
 
-        return ToolResponse.Success("Project", project);
+        return ToolResponse.Success("Project", new GetProjectResponse(project.Id, project.Name, project.Description, project.Repository));
     }
 
     [McpServerTool(Name = "create_project"), Description("Create a new project in DevStack. Usage hint: Name and repository are required fields.")]
@@ -60,6 +60,11 @@ public class ProjectTools
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new McpProtocolException("Project name is required", McpErrorCode.InvalidParams);
+        }
+
+        if (string.IsNullOrWhiteSpace(repository))
+        {
+            throw new McpProtocolException("Repository is required", McpErrorCode.InvalidParams);
         }
 
         var id = await _createProjectHandler.Handle(
