@@ -10,9 +10,11 @@ using DevStack.Application.Deliverables.Queries;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Mcp.Tools;
+using DevStack.Persistence;
 
 using FluentAssertions;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using ModelContextProtocol;
@@ -26,21 +28,31 @@ namespace DevStack.Tests.Unit.Tools;
 public class DeliverableToolsTests
 {
     private readonly ILogger<DeliverableTools> _logger;
+    private readonly DevStackDbContext _dbContext;
     private readonly ICommandHandler<Guid, CreateDeliverableCommand> _createDeliverableHandler;
     private readonly ICommandHandler<UpdateDeliverableCommand> _updateDeliverableHandler;
     private readonly ICommandHandler<UpdateDeliverableStatusCommand> _updateDeliverableStatusHandler;
     private readonly ICommandHandler<Deliverable?, GetDeliverableByIdQuery> _getDeliverableByIdHandler;
     private readonly DeliverableTools _tools;
 
+    private static DbContextOptions<DevStackDbContext> CreateOptions()
+    {
+        return new DbContextOptionsBuilder<DevStackDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+    }
+
     public DeliverableToolsTests()
     {
         _logger = Substitute.For<ILogger<DeliverableTools>>();
+        _dbContext = new DevStackDbContext(CreateOptions());
         _createDeliverableHandler = Substitute.For<ICommandHandler<Guid, CreateDeliverableCommand>>();
         _updateDeliverableHandler = Substitute.For<ICommandHandler<UpdateDeliverableCommand>>();
         _updateDeliverableStatusHandler = Substitute.For<ICommandHandler<UpdateDeliverableStatusCommand>>();
         _getDeliverableByIdHandler = Substitute.For<ICommandHandler<Deliverable?, GetDeliverableByIdQuery>>();
         _tools = new DeliverableTools(
             _logger,
+            _dbContext,
             _createDeliverableHandler,
             _updateDeliverableHandler,
             _updateDeliverableStatusHandler,
@@ -79,8 +91,8 @@ public class DeliverableToolsTests
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
         var json = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         json.Should().NotBeNull();
-        var idValue = json!["id"]?.ToString() ?? string.Empty;
-        idValue.ToLowerInvariant().Should().Be(id.ToString().ToLowerInvariant());
+        json!.TryGetValue("Id", out var idProp).Should().BeTrue();
+        idProp!.ToString()!.ToLowerInvariant().Should().Be(id.ToString().ToLowerInvariant());
     }
 
     [Fact]
@@ -366,7 +378,7 @@ public class DeliverableToolsTests
     }
 
     [Fact]
-    public async Task TransitionDeliverableStatus_WithHandlerException_ReturnsErrorMessage()
+    public async Task TransitionDeliverableStatus_WithHandlerException_ThrowsException()
     {
         // Arrange
         var id = Guid.NewGuid();
@@ -377,10 +389,10 @@ public class DeliverableToolsTests
         _updateDeliverableStatusHandler.Handle(Arg.Any<UpdateDeliverableStatusCommand>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException<UpdateDeliverableStatusCommand>(new Exception(errorMessage)));
 
-        // Act
-        var result = await _tools.TransitionDeliverableStatus(id, targetStatus, actor);
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<Exception>(
+            () => _tools.TransitionDeliverableStatus(id, targetStatus, actor));
 
-        // Assert
-        result.Should().Contain(errorMessage);
+        exception.Message.Should().Be(errorMessage);
     }
 }

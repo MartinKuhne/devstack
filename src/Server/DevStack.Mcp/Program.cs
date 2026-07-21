@@ -14,6 +14,8 @@ using DevStack.Infrastructure.Projects;
 using DevStack.Mcp;
 using DevStack.Mcp.Logging;
 
+using ModelContextProtocol.Server;
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.WithProperty("Application", "DevStack.Mcp")
@@ -57,7 +59,11 @@ try
         .WithToolsFromAssembly()
         .WithPrompts<GreetingPrompt>()
         .WithPrompts<HelpPrompt>()
-        .WithResources<ResourceType>();
+        .WithResources<ResourceType>()
+        .WithRequestFilters(filters =>
+        {
+            filters.AddCallToolFilter(McpToolLoggingFilter.Create(builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()));
+        });
 
     builder.Services.AddDbContext<DevStackDbContext>(options =>
     {
