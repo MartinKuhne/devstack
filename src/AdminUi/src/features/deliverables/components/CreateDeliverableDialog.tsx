@@ -27,6 +27,8 @@ import {
 
 const logger = createModuleLogger('CreateDeliverableDialog');
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const deliverableSchema = z.object({
     title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
     description: z.string().optional(),
@@ -75,6 +77,18 @@ export function CreateDeliverableDialog({
 
     const onSubmit = async (data: DeliverableFormData) => {
         setServerError(null);
+
+        if (!UUID_REGEX.test(projectId)) {
+            const errorMsg = 'Cannot create deliverable: missing or invalid project ID. Please navigate to a project page to create a deliverable.';
+            logger.error('Failed to create deliverable', {
+                type: data.type,
+                title: data.title,
+                error: errorMsg,
+            });
+            setServerError(errorMsg);
+            return;
+        }
+
         logger.info('Creating deliverable', { type: data.type, title: data.title });
 
         try {
