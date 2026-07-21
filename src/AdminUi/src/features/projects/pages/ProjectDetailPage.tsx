@@ -385,11 +385,8 @@ export function ProjectDetailPage() {
                 open={createDeliverableDialogOpen}
                 onOpenChange={setCreateDeliverableDialogOpen}
                 projectId={project?.id ?? ''}
-                onSuccess={(deliverableId) => {
+                onSuccess={() => {
                     refetchDeliverables();
-                    if (deliverableId) {
-                        navigate(`/deliverables/${deliverableId}`);
-                    }
                 }}
             />
             <CreateAgentTaskDialog

@@ -246,11 +246,8 @@ export function DeliverableListPage() {
                 open={createDialogOpen}
                 onOpenChange={setCreateDialogOpen}
                 projectId={searchParams.get('project') ?? ''}
-                onSuccess={(deliverableId) => {
+                onSuccess={() => {
                     refetch();
-                    if (deliverableId) {
-                        navigate(`/deliverables/${deliverableId}`);
-                    }
                 }}
             />
         </div>
