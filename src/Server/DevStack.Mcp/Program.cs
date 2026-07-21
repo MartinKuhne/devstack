@@ -38,6 +38,12 @@ try
         configuration
             .ReadFrom.Configuration(hostContext.Configuration)
             .ReadFrom.Services(services)
+            .WriteTo.Console()
+            .WriteTo.File(
+                new Serilog.Formatting.Json.JsonFormatter(),
+                "logs/devstack-mcp-.log",
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 7)
             .Enrich.WithProperty("Application", "DevStack.Mcp")
             .Enrich.FromLogContext()
             .Enrich.WithCorrelationId();
@@ -88,6 +94,8 @@ try
                 metrics.AddOtlpExporter();
             }
         });
+
+    builder.Services.AddProblemDetails();
 
     var app = builder.Build();
 
