@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, LayoutDashboard, Folder, Brain, GitBranch } from 'lucide-react';
+import { Menu, LayoutDashboard, Folder, Brain, GitBranch, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
@@ -34,6 +34,11 @@ function SidebarContent() {
 
     const currentProjectId = location.pathname.match(/\/projects\/([^/]+)/)?.[1] ?? '';
     const currentDeliverableId = location.pathname.match(/\/deliverables\/([^/]+)/)?.[1] ?? '';
+
+    const isActive = (path: string) => {
+        if (path === '/') return location.pathname === '/';
+        return location.pathname.startsWith(path);
+    };
 
     const handleProjectSelect = (value: string) => {
         logger.debug('Project selection changed', { projectId: value });
@@ -74,21 +79,21 @@ function SidebarContent() {
             </Select>
 
             <Link to="/">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className={`w-full justify-start ${isActive('/') ? 'bg-accent text-accent-foreground' : ''}`}>
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     Dashboard
                 </Button>
             </Link>
 
             <Link to="/models">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className={`w-full justify-start ${isActive('/models') ? 'bg-accent text-accent-foreground' : ''}`}>
                     <Brain className="mr-2 h-4 w-4" />
                     Large Language Models
                 </Button>
             </Link>
 
             <Link to="/projects">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className={`w-full justify-start ${isActive('/projects') ? 'bg-accent text-accent-foreground' : ''}`}>
                     <Folder className="mr-2 h-4 w-4" />
                     Projects
                 </Button>
@@ -96,7 +101,7 @@ function SidebarContent() {
 
             {currentProjectId && (
                 <Link to={`/deliverables?project=${currentProjectId}`}>
-                    <Button variant="ghost" className="w-full justify-start">
+                    <Button variant="ghost" className={`w-full justify-start ${isActive('/deliverables') ? 'bg-accent text-accent-foreground' : ''}`}>
                         <GitBranch className="mr-2 h-4 w-4" />
                         Deliverables
                     </Button>
@@ -105,7 +110,7 @@ function SidebarContent() {
 
             {currentDeliverableId && (
                 <Link to="/agent-tasks">
-                    <Button variant="ghost" className="w-full justify-start">
+                    <Button variant="ghost" className={`w-full justify-start ${isActive('/agent-tasks') ? 'bg-accent text-accent-foreground' : ''}`}>
                         <Brain className="mr-2 h-4 w-4" />
                         Agent Tasks
                     </Button>
@@ -157,7 +162,7 @@ export function AppShell() {
             </a>
             <div className="flex min-h-screen w-full">
                 {/* Desktop Sidebar */}
-                <aside className="hidden w-64 border-r bg-background md:block">
+                <aside className="hidden w-64 border-r bg-background md:block relative">
                     <div className="flex h-16 items-center border-b px-6">
                         <Link to="/" className="flex items-center gap-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -167,6 +172,16 @@ export function AppShell() {
                         </Link>
                     </div>
                     <SidebarContent />
+                    <div className="absolute bottom-4 left-4">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDarkMode(!darkMode)}
+                            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                        >
+                            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                        </Button>
+                    </div>
                 </aside>
 
                 {/* Mobile Sidebar */}
@@ -199,6 +214,14 @@ export function AppShell() {
                                     <SidebarContent />
                                 </SheetContent>
                             </Sheet>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDarkMode(!darkMode)}
+                                aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                            >
+                                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                            </Button>
                         </div>
                     </div>
                     <Header />

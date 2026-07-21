@@ -15,6 +15,12 @@ import {
 import { Plus, BrainCircuit, Clock } from 'lucide-react';
 import { useDeliverableCounts } from '@/features/dashboard/hooks/useDeliverableCounts';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
+import {
+    DELIVERABLE_STATUS_COLORS,
+    getStatusColor,
+} from '@/lib/constants';
+import { ErrorState } from '@/components/layout';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface StatCardProps {
     title: string;
@@ -54,6 +60,8 @@ export function DashboardPage() {
         deliverablesNeedsReview,
         deliverablesFailed,
         deliverablesRejected,
+        loading,
+        error,
     } = useDeliverableCounts();
     const [showCreateProject, setShowCreateProject] = useState(false);
 
@@ -73,34 +81,40 @@ export function DashboardPage() {
         { status: 'REJECTED', count: deliverablesRejected },
     ];
 
-    const getStatusColor = (status: string): string => {
-        switch (status) {
-            case 'DRAFT':
-                return 'bg-gray-100 text-gray-800';
-            case 'DESIGN':
-                return 'bg-indigo-100 text-indigo-800';
-            case 'PLAN':
-                return 'bg-blue-100 text-blue-800';
-            case 'IMPLEMENT':
-                return 'bg-cyan-100 text-cyan-800';
-            case 'MERGE':
-                return 'bg-teal-100 text-teal-800';
-            case 'DEPLOY':
-                return 'bg-green-100 text-green-800';
-            case 'TEST':
-                return 'bg-lime-100 text-lime-800';
-            case 'NEEDS_REVIEW':
-                return 'bg-purple-100 text-purple-800';
-            case 'DONE':
-                return 'bg-emerald-100 text-emerald-800';
-            case 'FAILED':
-                return 'bg-red-100 text-red-800';
-            case 'REJECTED':
-                return 'bg-gray-100 text-gray-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-4 w-64 mt-2" />
+                    </div>
+                    <Skeleton className="h-10 w-32" />
+                </div>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="space-y-3">
+                            {[1, 2, 3, 4].map((i) => (
+                                <Skeleton key={i} className="h-4 w-full" />
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="space-y-6">
+                <PageHeader title="Dashboard" description="Welcome to your DevStack dashboard." />
+                <ErrorState
+                    message={error.message}
+                    onRetry={() => window.location.reload()}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -151,7 +165,7 @@ export function DashboardPage() {
                             {statusCounts.map(({ status, count }) => (
                                 <TableRow key={status}>
                                     <TableCell>
-                                        <Badge className={getStatusColor(status)}>
+                                        <Badge className={getStatusColor(status, DELIVERABLE_STATUS_COLORS)}>
                                             {status.replace('_', ' ')}
                                         </Badge>
                                     </TableCell>

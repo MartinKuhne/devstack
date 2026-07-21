@@ -21,17 +21,9 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'react-toastify';
 import { createModuleLogger } from '@/lib/logging';
+import { AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
 
 const logger = createModuleLogger('AgentTaskDetailPage');
-
-const STATUS_COLORS: Record<string, string> = {
-    READY: 'bg-blue-500',
-    IN_PROGRESS: 'bg-yellow-500',
-    NEEDS_REVIEW: 'bg-purple-500',
-    DONE: 'bg-green-500',
-    FAILED: 'bg-red-500',
-    REJECTED: 'bg-gray-500',
-};
 
 export function AgentTaskDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -147,7 +139,7 @@ export function AgentTaskDetailPage() {
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">{agentTask.title}</h2>
                     <div className="flex items-center gap-2 mt-2">
-                        <Badge className={STATUS_COLORS[agentTask.status ?? ''] || 'bg-gray-500'}>
+                        <Badge className={getStatusColor(agentTask.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
                             {agentTask.status}
                         </Badge>
                         <span className="text-sm text-muted-foreground">

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import {
     Dialog,
     DialogContent,
@@ -17,18 +19,20 @@ import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
 
 const logger = createModuleLogger('EditDeliverableDialog');
 
-interface EditDeliverableFormData {
-    title: string;
-    description: string;
-    acceptanceCriteria: string;
-    executionPlan: string;
-    securityImpact: string;
-    performanceImpact: string;
-    testPlan: string;
-    deploymentPlan: string;
-    blocking: string;
-    design: string;
-}
+const deliverableSchema = z.object({
+    title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
+    description: z.string().optional(),
+    acceptanceCriteria: z.string().optional(),
+    executionPlan: z.string().optional(),
+    securityImpact: z.string().optional(),
+    performanceImpact: z.string().optional(),
+    testPlan: z.string().optional(),
+    deploymentPlan: z.string().optional(),
+    blocking: z.string().optional(),
+    design: z.string().optional(),
+});
+
+type EditDeliverableFormData = z.infer<typeof deliverableSchema>;
 
 interface EditDeliverableDialogProps {
     open: boolean;
@@ -55,15 +59,15 @@ export function EditDeliverableDialog({
     deliverable,
     onSuccess,
 }: EditDeliverableDialogProps) {
-    const [submitting, setSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
 
     const {
         register,
-        handleSubmit: formHandleSubmit,
-        setValue,
+        handleSubmit,
         reset,
+        formState: { errors, isValid },
     } = useForm<EditDeliverableFormData>({
+        resolver: zodResolver(deliverableSchema),
         defaultValues: {
             title: '',
             description: '',
@@ -80,43 +84,37 @@ export function EditDeliverableDialog({
 
     useEffect(() => {
         if (deliverable && open) {
-            setValue('title', deliverable.title ?? '');
-            setValue('description', deliverable.description ?? '');
-            setValue('acceptanceCriteria', deliverable.acceptanceCriteria ?? '');
-            setValue('executionPlan', deliverable.executionPlan ?? '');
-            setValue('securityImpact', deliverable.securityImpact ?? '');
-            setValue('performanceImpact', deliverable.performanceImpact ?? '');
-            setValue('testPlan', deliverable.testPlan ?? '');
-            setValue('deploymentPlan', deliverable.deploymentPlan ?? '');
-            setValue('blocking', deliverable.blocking ?? '');
-            setValue('design', deliverable.design ?? '');
+            reset({
+                title: deliverable.title ?? '',
+                description: deliverable.description ?? '',
+                acceptanceCriteria: deliverable.acceptanceCriteria ?? '',
+                executionPlan: deliverable.executionPlan ?? '',
+                securityImpact: deliverable.securityImpact ?? '',
+                performanceImpact: deliverable.performanceImpact ?? '',
+                testPlan: deliverable.testPlan ?? '',
+                deploymentPlan: deliverable.deploymentPlan ?? '',
+                blocking: deliverable.blocking ?? '',
+                design: deliverable.design ?? '',
+            });
         }
-    }, [deliverable, open, setValue]);
+    }, [deliverable, open, reset]);
 
-    const [updateDeliverable] = useUpdateDeliverableMutation();
-
-    const resetForm = () => {
-        reset();
-    };
+    const [updateDeliverable, { loading }] = useUpdateDeliverableMutation();
 
     const handleOpenChange = (newOpen: boolean) => {
         if (!newOpen) {
-            resetForm();
+            reset();
             setServerError(null);
         }
         onOpenChange(newOpen);
     };
 
-    const handleSubmit = async (data: EditDeliverableFormData) => {
+    const onSubmit = async (data: EditDeliverableFormData) => {
         if (!deliverable?.id) {
             return;
         }
 
-        if (!data.title.trim()) {
-            return;
-        }
-
-        setSubmitting(true);
+        setServerError(null);
         logger.info('Updating deliverable', { id: deliverable.id, title: data.title });
 
         try {
@@ -144,7 +142,6 @@ export function EditDeliverableDialog({
                     id: deliverable.id,
                 });
                 setServerError('Failed to update deliverable');
-                setSubmitting(false);
                 return;
             }
 
@@ -152,7 +149,7 @@ export function EditDeliverableDialog({
                 id: deliverable.id,
                 title: data.title,
             });
-            resetForm();
+            reset();
             onOpenChange(false);
             onSuccess();
         } catch (error) {
@@ -164,8 +161,6 @@ export function EditDeliverableDialog({
                 details: errorInfo.details,
             });
             setServerError(errorInfo.message || 'Failed to update deliverable');
-        } finally {
-            setSubmitting(false);
         }
     };
 
@@ -175,17 +170,20 @@ export function EditDeliverableDialog({
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Deliverable</DialogTitle>
                     <DialogDescription>Update the deliverable details.</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={formHandleSubmit(handleSubmit)}>
+                <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="grid gap-4 py-4">
                         {serverError && <p className="text-sm text-destructive">{serverError}</p>}
                         <div className="grid gap-2">
-                            <Label htmlFor="title">Title</Label>
-                            <Input id="title" {...register('title')} required />
+                            <Label htmlFor="title">Title *</Label>
+                            <Input id="title" {...register('title')} placeholder="Deliverable title" />
+                            {errors.title && (
+                                <p className="text-sm text-destructive">{errors.title.message}</p>
+                            )}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="description">Description</Label>
@@ -248,8 +246,8 @@ export function EditDeliverableDialog({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={submitting}>
-                            {submitting ? 'Saving...' : 'Save Changes'}
+                        <Button type="submit" disabled={!isValid || loading}>
+                            {loading ? 'Saving...' : 'Save Changes'}
                         </Button>
                     </DialogFooter>
                 </form>
