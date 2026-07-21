@@ -1,9 +1,7 @@
-using DevStack.Application.AgentTasks;
-using DevStack.Application.AgentTasks.Commands;
-using DevStack.Application.AgentTasks.Queries;
 using DevStack.Application.Deliverables;
 using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.Deliverables.Queries;
+using DevStack.Mcp.Dto;
 
 using ModelContextProtocol;
 
@@ -13,6 +11,7 @@ namespace DevStack.Mcp.Tools;
 public class DeliverableTools
 {
     private readonly ILogger<DeliverableTools> _logger;
+    private readonly DevStackDbContext _dbContext;
     private readonly ICommandHandler<Guid, CreateDeliverableCommand> _createDeliverableHandler;
     private readonly ICommandHandler<UpdateDeliverableCommand> _updateDeliverableHandler;
     private readonly ICommandHandler<UpdateDeliverableStatusCommand> _updateDeliverableStatusHandler;
@@ -20,12 +19,14 @@ public class DeliverableTools
 
     public DeliverableTools(
         ILogger<DeliverableTools> logger,
+        DevStackDbContext dbContext,
         ICommandHandler<Guid, CreateDeliverableCommand> createDeliverableHandler,
         ICommandHandler<UpdateDeliverableCommand> updateDeliverableHandler,
         ICommandHandler<UpdateDeliverableStatusCommand> updateDeliverableStatusHandler,
         ICommandHandler<Deliverable?, GetDeliverableByIdQuery> getDeliverableByIdHandler)
     {
         _logger = logger;
+        _dbContext = dbContext;
         _createDeliverableHandler = createDeliverableHandler;
         _updateDeliverableHandler = updateDeliverableHandler;
         _updateDeliverableStatusHandler = updateDeliverableStatusHandler;
@@ -37,10 +38,72 @@ public class DeliverableTools
     {
         var deliverable = await _getDeliverableByIdHandler.Handle(new GetDeliverableByIdQuery(id), ct);
         if (deliverable == null)
-            return JsonSerializer.Serialize(new { error = "Deliverable not found" });
+            return ToolResponse.Error("Deliverable not found");
 
-        var data = new { id = deliverable.Id.ToString(), projectId = deliverable.ProjectId.ToString(), title = deliverable.Title, description = deliverable.Description, design = deliverable.Design, acceptanceCriteria = deliverable.AcceptanceCriteria, executionPlan = deliverable.ExecutionPlan, securityImpact = deliverable.SecurityImpact, performanceImpact = deliverable.PerformanceImpact, testPlan = deliverable.TestPlan, deploymentPlan = deliverable.DeploymentPlan, agentFeedback = deliverable.AgentFeedback, blocking = deliverable.Blocking };
-        return $"## Deliverable\n\n```json\n{JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true })}\n```\n\n";
+        var data = new GetDeliverableResponse(
+            deliverable.Id.ToString(),
+            deliverable.ProjectId.ToString(),
+            deliverable.Title,
+            deliverable.Description,
+            deliverable.Design,
+            deliverable.AcceptanceCriteria,
+            deliverable.ExecutionPlan,
+            deliverable.SecurityImpact,
+            deliverable.PerformanceImpact,
+            deliverable.TestPlan,
+            deliverable.DeploymentPlan,
+            deliverable.AgentFeedback,
+            deliverable.Blocking);
+
+        return ToolResponse.Success("Deliverable", data);
+    }
+
+    [McpServerTool(Name = "get_next_deliverable"), Description("Find the next deliverable in Implement status for a project. Provide either a repository URL or a project ID.")]
+    public async Task<string> GetNextDeliverable(
+        [Description("The repository URL")][DefaultValue(null)] string? repositoryUrl,
+        [Description("The project ID")][DefaultValue(null)] Guid? projectId,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(repositoryUrl) && (projectId == null || projectId == Guid.Empty))
+            throw new McpProtocolException("Either repositoryUrl or projectId must be provided", McpErrorCode.InvalidParams);
+
+        Project? project;
+        if (projectId is not null && projectId != Guid.Empty)
+        {
+            project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Id == projectId.Value, ct);
+        }
+        else
+        {
+            project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Repository == repositoryUrl, ct);
+        }
+
+        if (project == null)
+            return ToolResponse.Error("Project not found");
+
+        var deliverable = await _dbContext.Deliverables
+            .Where(d => d.ProjectId == project.Id && d.Status == DeliverableStatus.Implement)
+            .OrderBy(d => d.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (deliverable == null)
+            return ToolResponse.Error("No deliverable found in Implement status for this project");
+
+        var data = new GetDeliverableResponse(
+            deliverable.Id.ToString(),
+            deliverable.ProjectId.ToString(),
+            deliverable.Title,
+            deliverable.Description,
+            deliverable.Design,
+            deliverable.AcceptanceCriteria,
+            deliverable.ExecutionPlan,
+            deliverable.SecurityImpact,
+            deliverable.PerformanceImpact,
+            deliverable.TestPlan,
+            deliverable.DeploymentPlan,
+            deliverable.AgentFeedback,
+            deliverable.Blocking);
+
+        return ToolResponse.Success("Next Deliverable", data);
     }
 
     [McpServerTool(Name = "create_deliverable"), Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state. Usage hint: ProjectId must reference an existing project. Title and description are required fields.")]
@@ -57,38 +120,31 @@ public class DeliverableTools
         [Description("The deployment plan")][DefaultValue(null)] string? deploymentPlan,
         CancellationToken ct = default)
     {
-        try
+        if (projectId == null || projectId == Guid.Empty)
         {
-            if (projectId == null || projectId == Guid.Empty)
-            {
-                throw new McpProtocolException("Project ID is required", McpErrorCode.InvalidParams);
-            }
-
-            var id = await _createDeliverableHandler.Handle(
-                new CreateDeliverableCommand(
-                    projectId.Value,
-                    DeliverableType.Feature,
-                    title,
-                    description,
-                    acceptanceCriteria,
-                    executionPlan,
-                    securityImpact,
-                    performanceImpact,
-                    testPlan,
-                    deploymentPlan,
-                    Domain.Enums.DeliverableStatus.Draft,
-                    design),
-                ct);
-
-            _logger.LogInformation("Created deliverable with ID: {Id}", id);
-            var result = new { id = id.ToString(), projectId = projectId.Value.ToString(), type = "Feature", status = "Ready" };
-            return $"## Deliverable Created\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use the returned ID for subsequent get_deliverable, update_deliverable, or update_deliverable_status calls.";
+            throw new McpProtocolException("Project ID is required", McpErrorCode.InvalidParams);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating deliverable");
-            throw;
-        }
+
+        var id = await _createDeliverableHandler.Handle(
+            new CreateDeliverableCommand(
+                projectId.Value,
+                DeliverableType.Feature,
+                title,
+                description,
+                acceptanceCriteria,
+                executionPlan,
+                securityImpact,
+                performanceImpact,
+                testPlan,
+                deploymentPlan,
+                Domain.Enums.DeliverableStatus.Draft,
+                design),
+            ct);
+
+        _logger.LogInformation("Created deliverable with ID: {Id}", id);
+        return ToolResponse.Success("Deliverable Created",
+            new CreateDeliverableResponse(id.ToString(), projectId.Value.ToString(), "Feature", "Ready"),
+            "Use the returned ID for subsequent get_deliverable, update_deliverable, or update_deliverable_status calls.");
     }
 
     [McpServerTool(Name = "update_deliverable"), Description("Modify an existing deliverable in DevStack. Only non-null fields are updated. Usage hint: Provide the deliverable ID and only the fields you want to change.")]
@@ -106,33 +162,26 @@ public class DeliverableTools
         [Description("The updated blocking issues")][DefaultValue(null)] string? blocking,
         CancellationToken ct = default)
     {
-        try
-        {
-            await _updateDeliverableHandler.Handle(
-                new UpdateDeliverableCommand(
-                    id,
-                    null,
-                    description,
-                    acceptanceCriteria,
-                    executionPlan,
-                    agentFeedback,
-                    securityImpact,
-                    performanceImpact,
-                    testPlan,
-                    deploymentPlan,
-                    blocking,
-                    design),
-                ct);
+        await _updateDeliverableHandler.Handle(
+            new UpdateDeliverableCommand(
+                id,
+                null,
+                description,
+                acceptanceCriteria,
+                executionPlan,
+                agentFeedback,
+                securityImpact,
+                performanceImpact,
+                testPlan,
+                deploymentPlan,
+                blocking,
+                design),
+            ct);
 
-            _logger.LogInformation("Updated deliverable with ID: {Id}", id);
-            var result = new { id = id.ToString(), updated = true };
-            return $"## Deliverable Updated\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use get_deliverable to verify the changes.";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating deliverable: {Id}", id);
-            throw;
-        }
+        _logger.LogInformation("Updated deliverable with ID: {Id}", id);
+        return ToolResponse.Success("Deliverable Updated",
+            new UpdateDeliverableResponse(id.ToString(), true),
+            "Use get_deliverable to verify the changes.");
     }
 
     [McpServerTool(Name = "update_deliverable_status"), Description("Change the state of a deliverable in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.")]
@@ -142,20 +191,12 @@ public class DeliverableTools
         [Description("The actor performing the transition")] string actor,
         CancellationToken ct = default)
     {
-        try
-        {
-            await _updateDeliverableStatusHandler.Handle(
-                new UpdateDeliverableStatusCommand(id, targetStatus, actor),
-                ct);
+        await _updateDeliverableStatusHandler.Handle(
+            new UpdateDeliverableStatusCommand(id, targetStatus, actor),
+            ct);
 
-            _logger.LogInformation("Transitioned deliverable {Id} to {Status} by {Actor}", id, targetStatus, actor);
-            var response = new { id = id.ToString(), status = targetStatus.ToString(), actor };
-            return $"## Deliverable State Transitioned\n\n```json\n{JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true })}\n```\n\n";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error transitioning deliverable status: {Id}", id);
-            return JsonSerializer.Serialize(new { error = ex.Message });
-        }
+        _logger.LogInformation("Transitioned deliverable {Id} to {Status} by {Actor}", id, targetStatus, actor);
+        return ToolResponse.Success("Deliverable State Transitioned",
+            new TransitionDeliverableStatusResponse(id.ToString(), targetStatus.ToString(), actor));
     }
 }

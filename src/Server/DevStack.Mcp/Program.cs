@@ -13,6 +13,9 @@ using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Projects;
 using DevStack.Mcp;
 using DevStack.Mcp.Logging;
+using DevStack.Mcp.Tools;
+
+using ModelContextProtocol.Server;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -49,15 +52,31 @@ try
             .Enrich.WithCorrelationId();
     });
 
-    builder.Services.AddMcpServer()
+    builder.Services.AddFeatureManagement();
+
+    var mcpBuilder = builder.Services.AddMcpServer()
         .WithHttpTransport(options =>
         {
             options.Stateless = true;
-        })
-        .WithToolsFromAssembly()
-        .WithPrompts<GreetingPrompt>()
-        .WithPrompts<HelpPrompt>()
-        .WithResources<ResourceType>();
+        });
+
+    mcpBuilder.WithTools<ProjectTools>(null);
+    mcpBuilder.WithTools<DeliverableTools>(null);
+
+    if (builder.Configuration.GetValue<bool>("FeatureManagement:AgentTaskTools"))
+    {
+        mcpBuilder.WithTools<TaskTools>(null);
+    }
+
+    mcpBuilder
+        .WithPrompts<GreetingPrompt>(null)
+        .WithPrompts<HelpPrompt>(null)
+        .WithPrompts<DeliverableWorkflowPrompt>(null)
+        .WithResources<ResourceType>()
+        .WithRequestFilters(filters =>
+        {
+            filters.AddCallToolFilter(McpToolLoggingFilter.Create(builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()));
+        });
 
     builder.Services.AddDbContext<DevStackDbContext>(options =>
     {
@@ -99,6 +118,7 @@ try
 
     var app = builder.Build();
 
+    app.UseMiddleware<McpExceptionHandlingMiddleware>();
     app.UseExceptionHandler();
 
     app.MapMcp("/mcp");

@@ -1,4 +1,5 @@
 using DevStack.Application.Projects.Commands;
+using DevStack.Mcp.Dto;
 
 using ModelContextProtocol;
 
@@ -21,8 +22,11 @@ public class ProjectTools
     [McpServerTool(Name = "get_projects"), Description("Read all projects from DevStack. Returns project name, id, and repository. Usage hint: Call this first to get a list of available projects before performing other operations.")]
     public async Task<string> GetProjects(CancellationToken ct = default)
     {
-        var projects = await _dbContext.Projects.Select(p => new { p.Name, p.Id, p.Repository }).ToListAsync(ct);
-        return FormatMarkdownTable(projects, "Projects");
+        var projects = await _dbContext.Projects
+            .Select(p => new ProjectDto(p.Id.ToString(), p.Name, null, p.Repository))
+            .ToListAsync(ct);
+
+        return ToolResponse.Success("Projects", new ProjectListResponse(projects));
     }
 
     [McpServerTool(Name = "get_project"), Description("Read a project by its ID. Returns project name and repository. Usage hint: Provide a valid project ID obtained from get_projects.")]
@@ -33,46 +37,43 @@ public class ProjectTools
             throw new McpProtocolException("Project ID is required", McpErrorCode.InvalidParams);
         }
 
-        var project = await _dbContext.Projects.Where(p => p.Id == id.Value).Select(p => new { p.Name, p.Id, p.Repository }).FirstOrDefaultAsync(ct);
+        var project = await _dbContext.Projects
+            .Where(p => p.Id == id.Value)
+            .Select(p => new ProjectDto(p.Id.ToString(), p.Name, null, p.Repository))
+            .FirstOrDefaultAsync(ct);
+
         if (project == null)
         {
             throw new McpProtocolException($"Project with ID {id.Value} not found", McpErrorCode.InvalidParams);
         }
 
-        return FormatMarkdownTable(new[] { project }, "Project");
+        return ToolResponse.Success("Project", new GetProjectResponse(project.Id, project.Name, project.Description, project.Repository));
     }
 
     [McpServerTool(Name = "create_project"), Description("Create a new project in DevStack. Usage hint: Name and repository are required fields.")]
     public async Task<string> CreateProject(
         [Description("The project name")] string name,
+        [Description("The repository URL")] string repository,
         [Description("The project description")][DefaultValue(null)] string? description,
-        [Description("The repository URL")][DefaultValue(null)] string? repository,
         CancellationToken ct = default)
     {
-        try
+        if (string.IsNullOrWhiteSpace(name))
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new McpProtocolException("Project name is required", McpErrorCode.InvalidParams);
-            }
-
-            var id = await _createProjectHandler.Handle(
-                new CreateProjectCommand(name, description, repository),
-                ct);
-
-            _logger.LogInformation("Created project with ID: {Id}", id);
-            var result = new { id = id.ToString(), name, description, repository };
-            return $"## Project Created\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use the returned ID for subsequent get_project, create_deliverable, or update operations.";
+            throw new McpProtocolException("Project name is required", McpErrorCode.InvalidParams);
         }
-        catch (Exception ex)
+
+        if (string.IsNullOrWhiteSpace(repository))
         {
-            _logger.LogError(ex, "Error creating project");
-            throw;
+            throw new McpProtocolException("Repository is required", McpErrorCode.InvalidParams);
         }
-    }
 
-    private string FormatMarkdownTable<T>(IEnumerable<T> items, string title)
-    {
-        return $"## {title}\n\n```json\n{JsonSerializer.Serialize(items, new JsonSerializerOptions { WriteIndented = true })}\n```";
+        var id = await _createProjectHandler.Handle(
+            new CreateProjectCommand(name, description, repository),
+            ct);
+
+        _logger.LogInformation("Created project with ID: {Id}", id);
+        return ToolResponse.Success("Project Created",
+            new CreateProjectResponse(id.ToString(), name, description, repository),
+            "Use the returned ID for subsequent get_project, create_deliverable, or update operations.");
     }
 }

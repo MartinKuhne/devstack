@@ -1,7 +1,8 @@
 using DevStack.Tests.Integration.MCP.Hooks;
-using ModelContextProtocol.Client;
 
 using FluentAssertions;
+
+using ModelContextProtocol.Client;
 
 using TechTalk.SpecFlow;
 
