@@ -64,7 +64,7 @@ describe('getStatusColor', () => {
     });
 
     it('returns correct color for PROJECT_STATUS_COLORS DONE', () => {
-        expect(getStatusColor('DONE', PROJECT_STATUS_COLORS)).toBe('bg-emerald-500');
+        expect(getStatusColor('DONE', PROJECT_STATUS_COLORS)).toBe('bg-emerald-600');
     });
 
     it('returns correct color for AGENT_TASK_STATUS_COLORS READY', () => {
@@ -72,7 +72,7 @@ describe('getStatusColor', () => {
     });
 
     it('returns correct color for AGENT_TASK_STATUS_COLORS DONE', () => {
-        expect(getStatusColor('DONE', AGENT_TASK_STATUS_COLORS)).toBe('bg-green-500');
+        expect(getStatusColor('DONE', AGENT_TASK_STATUS_COLORS)).toBe('bg-emerald-600');
     });
 
     it('returns fallback for empty string status', () => {

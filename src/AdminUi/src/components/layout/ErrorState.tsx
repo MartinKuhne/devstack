@@ -19,7 +19,7 @@ export function ErrorState({
     className,
 }: ErrorStateProps) {
     return (
-        <div className={className}>
+        <div className={className} role="alert">
             <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6">
                 <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />

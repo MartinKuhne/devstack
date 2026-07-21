@@ -1,7 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, RefreshCw, Copy } from 'lucide-react';
+import { AlertCircle, RefreshCw, Copy, Check } from 'lucide-react';
 import { createModuleLogger } from '@/lib/logging';
 
 const errorBoundaryLogger = createModuleLogger('ErrorBoundary');
@@ -16,6 +16,7 @@ interface State {
     hasError: boolean;
     error: Error | null;
     errorInfo: ErrorInfo | null;
+    copied: boolean;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -23,10 +24,11 @@ export class ErrorBoundary extends Component<Props, State> {
         hasError: false,
         error: null,
         errorInfo: null,
+        copied: false,
     };
 
     public static getDerivedStateFromError(error: Error): State {
-        return { hasError: true, error, errorInfo: null };
+        return { hasError: true, error, errorInfo: null, copied: false };
     }
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -65,7 +67,10 @@ export class ErrorBoundary extends Component<Props, State> {
             errorInfo?.componentStack,
         ].join('\n');
 
-        navigator.clipboard.writeText(errorReport).catch(() => {
+        navigator.clipboard.writeText(errorReport).then(() => {
+            this.setState({ copied: true });
+            setTimeout(() => this.setState({ copied: false }), 2000);
+        }).catch(() => {
             errorBoundaryLogger.warn('Failed to copy error to clipboard');
         });
     };
@@ -129,8 +134,12 @@ export class ErrorBoundary extends Component<Props, State> {
                                     Reset
                                 </Button>
                                 <Button variant="outline" onClick={this.handleCopyError}>
-                                    <Copy className="h-4 w-4 mr-2" />
-                                    Copy Error
+                                    {this.state.copied ? (
+                                        <Check className="h-4 w-4 mr-2" />
+                                    ) : (
+                                        <Copy className="h-4 w-4 mr-2" />
+                                    )}
+                                    {this.state.copied ? 'Copied!' : 'Copy Error'}
                                 </Button>
                             </div>
 

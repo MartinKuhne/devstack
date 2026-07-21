@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { createModuleLogger } from './lib/logging';
@@ -9,7 +9,10 @@ const routeLogger = createModuleLogger('App');
 function LoadingFallback() {
     return (
         <div className="flex items-center justify-center p-8">
-            <div className="text-muted-foreground">Loading...</div>
+            <div className="text-muted-foreground flex items-center gap-2">
+                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Loading...
+            </div>
         </div>
     );
 }
@@ -23,9 +26,9 @@ function NotFoundPage() {
                 <p className="text-muted-foreground mb-4">
                     The page you are looking for does not exist.
                 </p>
-                <a href="/" className="text-primary underline hover:text-primary/80">
+                <Link to="/" className="text-primary underline hover:text-primary/80">
                     Go back to Dashboard
-                </a>
+                </Link>
             </div>
         </div>
     );
