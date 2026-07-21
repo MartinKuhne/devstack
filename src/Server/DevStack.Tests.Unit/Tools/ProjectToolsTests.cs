@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using DevStack.Application;
+using DevStack.Application.Projects.Commands;
 using DevStack.Domain.Entities;
 using DevStack.Mcp.Tools;
 using DevStack.Persistence;
@@ -22,6 +24,13 @@ namespace DevStack.Tests.Unit.Tools;
 
 public class ProjectToolsTests
 {
+    private readonly ICommandHandler<Guid, CreateProjectCommand> _createProjectHandler;
+
+    public ProjectToolsTests()
+    {
+        _createProjectHandler = Substitute.For<ICommandHandler<Guid, CreateProjectCommand>>();
+    }
+
     private static DbContextOptions<DevStackDbContext> CreateOptions()
     {
         return new DbContextOptionsBuilder<DevStackDbContext>()
@@ -34,9 +43,9 @@ public class ProjectToolsTests
         var options = CreateOptions();
         var context = new DevStackDbContext(options);
         context.Projects.AddRange(
-            new Project { Id = Guid.NewGuid(), Name = "Project Alpha", Repository = "https://github.com/example/alpha" },
-            new Project { Id = Guid.NewGuid(), Name = "Project Beta", Repository = "https://github.com/example/beta" },
-            new Project { Id = Guid.NewGuid(), Name = "Project Gamma", Repository = "https://github.com/example/gamma" });
+            new Project(Guid.NewGuid(), "Project Alpha", "https://github.com/example/alpha"),
+            new Project(Guid.NewGuid(), "Project Beta", "https://github.com/example/beta"),
+            new Project(Guid.NewGuid(), "Project Gamma", "https://github.com/example/gamma"));
         context.SaveChanges();
         return context;
     }
@@ -47,7 +56,7 @@ public class ProjectToolsTests
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
 
         // Act
         var result = await tools.GetProjects();
@@ -72,7 +81,7 @@ public class ProjectToolsTests
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
 
         // Act
         var result = await tools.GetProjects();
@@ -91,7 +100,7 @@ public class ProjectToolsTests
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
 
         // Act
         var result = await tools.GetProjects();
@@ -111,7 +120,7 @@ public class ProjectToolsTests
         var logger = Substitute.For<ILogger<ProjectTools>>();
         var options = CreateOptions();
         var dbContext = new DevStackDbContext(options);
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
 
         // Act
         var result = await tools.GetProjects();
@@ -131,7 +140,7 @@ public class ProjectToolsTests
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
         var targetProject = dbContext.Projects.First();
 
         // Act
@@ -150,7 +159,7 @@ public class ProjectToolsTests
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
         var nonExistentId = Guid.NewGuid();
 
         // Act & Assert
@@ -167,7 +176,7 @@ public class ProjectToolsTests
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
@@ -183,7 +192,7 @@ public class ProjectToolsTests
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
         var targetProject = dbContext.Projects.First();
 
         // Act
@@ -201,5 +210,111 @@ public class ProjectToolsTests
         nameProp.GetString().Should().Be(targetProject.Name);
         json.TryGetProperty("Repository", out var repoProp).Should().BeTrue();
         repoProp.GetString().Should().Be(targetProject.Repository);
+    }
+
+    [Fact]
+    public async Task CreateProject_WithValidData_CreatesProject()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
+        var newId = Guid.NewGuid();
+        var name = "New Project";
+        var repository = "https://github.com/example/new";
+
+        _createProjectHandler.Handle(Arg.Any<CreateProjectCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(newId));
+
+        // Act
+        var result = await tools.CreateProject(name, null, repository);
+
+        // Assert
+        result.Should().Contain("Project Created");
+        result.Should().Contain(newId.ToString());
+        result.Should().Contain(name);
+        result.Should().Contain(repository);
+
+        await _createProjectHandler.Received(1).Handle(
+            Arg.Is<CreateProjectCommand>(cmd =>
+                cmd.Name == name &&
+                cmd.Repository == repository),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateProject_WithNullName_ThrowsMcpProtocolException()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
+            () => tools.CreateProject(null!, null, null));
+
+        exception.Message.Should().Be("Project name is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
+    }
+
+    [Fact]
+    public async Task CreateProject_WithEmptyName_ThrowsMcpProtocolException()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
+            () => tools.CreateProject("", null, null));
+
+        exception.Message.Should().Be("Project name is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
+    }
+
+    [Fact]
+    public async Task CreateProject_WithWhitespaceName_ThrowsMcpProtocolException()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
+            () => tools.CreateProject("   ", null, null));
+
+        exception.Message.Should().Be("Project name is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
+    }
+
+    [Fact]
+    public async Task CreateProject_WithAllFields_CreatesProjectWithAllFields()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var tools = new ProjectTools(logger, dbContext, _createProjectHandler);
+        var newId = Guid.NewGuid();
+        var name = "New Project";
+        var description = "Project description";
+        var repository = "https://github.com/example/new";
+
+        _createProjectHandler.Handle(Arg.Any<CreateProjectCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(newId));
+
+        // Act
+        var result = await tools.CreateProject(name, description, repository);
+
+        // Assert
+        result.Should().Contain("Project Created");
+        await _createProjectHandler.Received(1).Handle(
+            Arg.Is<CreateProjectCommand>(cmd =>
+                cmd.Name == name &&
+                cmd.Description == description &&
+                cmd.Repository == repository),
+            Arg.Any<CancellationToken>());
     }
 }

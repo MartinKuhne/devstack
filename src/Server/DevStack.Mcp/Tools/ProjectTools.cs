@@ -1,3 +1,6 @@
+using DevStack.Application.Projects.Commands;
+using DevStack.Infrastructure.Utilities;
+
 using ModelContextProtocol;
 
 namespace DevStack.Mcp.Tools;
@@ -7,11 +10,13 @@ public class ProjectTools
 {
     private readonly ILogger<ProjectTools> _logger;
     private readonly DevStackDbContext _dbContext;
+    private readonly ICommandHandler<Guid, CreateProjectCommand> _createProjectHandler;
 
-    public ProjectTools(ILogger<ProjectTools> logger, DevStackDbContext dbContext)
+    public ProjectTools(ILogger<ProjectTools> logger, DevStackDbContext dbContext, ICommandHandler<Guid, CreateProjectCommand> createProjectHandler)
     {
         _logger = logger;
         _dbContext = dbContext;
+        _createProjectHandler = createProjectHandler;
     }
 
     [McpServerTool(Name = "get_projects"), Description("Read all projects from DevStack. Returns project name, id, and repository. Usage hint: Call this first to get a list of available projects before performing other operations.")]
@@ -38,9 +43,37 @@ public class ProjectTools
         return FormatMarkdownTable(new[] { project }, "Project");
     }
 
+    [McpServerTool(Name = "create_project"), Description("Create a new project in DevStack. Usage hint: Name and repository are required fields.")]
+    public async Task<string> CreateProject(
+        [Description("The project name")] string name,
+        [Description("The project description")][DefaultValue(null)] string? description,
+        [Description("The repository URL")][DefaultValue(null)] string? repository,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new McpProtocolException("Project name is required", McpErrorCode.InvalidParams);
+            }
+
+            var id = await _createProjectHandler.Handle(
+                new CreateProjectCommand(name, description, repository),
+                ct);
+
+            _logger.LogInformation("Created project with ID: {Id}", id);
+            var result = new { id = id.ToString(), name, repository };
+            return JsonResponseFormatter.Format(result, "Project Created") + "Usage hint: Use the returned ID for subsequent get_project calls.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating project");
+            throw;
+        }
+    }
+
     private string FormatMarkdownTable<T>(IEnumerable<T> items, string title)
     {
-        var json = JsonSerializer.Serialize(items);
-        return $"## {title}\n\n```json\n{json}\n```\n\n";
+        return JsonResponseFormatter.Format(items, title);
     }
 }
