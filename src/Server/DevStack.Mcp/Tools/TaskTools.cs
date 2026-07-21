@@ -40,7 +40,7 @@ public class TaskTools
         if (agentTask == null)
             throw new McpProtocolException($"AgentTask with ID {id} not found", McpErrorCode.InvalidParams);
 
-        var data = new AgentTaskDto(
+        var data = new GetAgentTaskResponse(
             agentTask.Id.ToString(),
             agentTask.ProjectId.ToString(),
             agentTask.Title,
@@ -52,6 +52,81 @@ public class TaskTools
             agentTask.Agent);
 
         return ToolResponse.Success("Agent Task", data);
+    }
+
+    [McpServerTool(Name = "get_next_task"), Description("Find the next task to work on for a project. Looks at deliverables in Implement status and prioritizes those with partial progress. Provide either a repository URL or project ID.")]
+    public async Task<string> GetNextTask(
+        [Description("The repository URL")][DefaultValue(null)] string? repositoryUrl,
+        [Description("The project ID")][DefaultValue(null)] Guid? projectId,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(repositoryUrl) && (projectId == null || projectId == Guid.Empty))
+            throw new McpProtocolException("Either repositoryUrl or projectId must be provided", McpErrorCode.InvalidParams);
+
+        Project? project;
+        if (projectId is not null && projectId != Guid.Empty)
+        {
+            project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Id == projectId.Value, ct);
+        }
+        else
+        {
+            project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Repository == repositoryUrl, ct);
+        }
+
+        if (project == null)
+            return ToolResponse.Error("Project not found");
+
+        var deliverables = await _dbContext.Deliverables
+            .Where(d => d.ProjectId == project.Id && d.Status == DeliverableStatus.Implement)
+            .ToListAsync(ct);
+
+        if (deliverables.Count == 0)
+            return ToolResponse.Error("No deliverables found in Implement status for this project");
+
+        var deliverableIds = deliverables.Select(d => d.Id).ToList();
+
+        var tasks = await _dbContext.AgentTasks
+            .Where(t => deliverableIds.Contains(t.DeliverableId))
+            .ToListAsync(ct);
+
+        var taskGroups = tasks.GroupBy(t => t.DeliverableId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var bestDeliverable = deliverables
+            .Select(d =>
+            {
+                var deliverableTasks = taskGroups.GetValueOrDefault(d.Id, []);
+                var doneCount = deliverableTasks.Count(t => t.Status == AgentTaskStatus.Done);
+                var notDoneCount = deliverableTasks.Count(t => t.Status != AgentTaskStatus.Done && t.Status != AgentTaskStatus.Failed && t.Status != AgentTaskStatus.Rejected);
+                return (Deliverable: d, Tasks: deliverableTasks, HasPartialProgress: doneCount > 0 && notDoneCount > 0, HasDone: doneCount > 0);
+            })
+            .OrderByDescending(x => x.HasPartialProgress)
+            .ThenByDescending(x => x.HasDone)
+            .ThenBy(x => x.Deliverable.Id)
+            .First();
+
+        var nextTask = bestDeliverable.Tasks
+            .Where(t => t.Status != AgentTaskStatus.Done && t.Status != AgentTaskStatus.Failed && t.Status != AgentTaskStatus.Rejected)
+            .OrderBy(t => t.Status == AgentTaskStatus.Ready ? 0 : t.Status == AgentTaskStatus.InProgress ? 1 : 2)
+            .ThenBy(t => t.Id)
+            .FirstOrDefault();
+
+        if (nextTask == null)
+            return ToolResponse.Success("No Pending Tasks",
+                new { Message = "All tasks are completed for the selected deliverable", bestDeliverable.Deliverable.Id, bestDeliverable.Deliverable.Title });
+
+        var data = new GetAgentTaskResponse(
+            nextTask.Id.ToString(),
+            nextTask.ProjectId.ToString(),
+            nextTask.Title,
+            nextTask.Status.ToString(),
+            nextTask.Description,
+            nextTask.Result,
+            nextTask.Errors,
+            nextTask.CommitHash,
+            nextTask.Agent);
+
+        return ToolResponse.Success("Next Task", data);
     }
 
     [McpServerTool(Name = "create_task"), Description("Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: Both ProjectId and DeliverableId must reference existing entities.")]
@@ -140,20 +215,12 @@ public class TaskTools
         [Description("The actor performing the transition")] string actor,
         CancellationToken ct = default)
     {
-        try
-        {
-            await _updateAgentTaskStatusHandler.Handle(
-                new UpdateAgentTaskStatusCommand(id, targetStatus, actor),
-                ct);
+        await _updateAgentTaskStatusHandler.Handle(
+            new UpdateAgentTaskStatusCommand(id, targetStatus, actor),
+            ct);
 
-            _logger.LogInformation("Transitioned agent task {Id} to {Status} by {Actor}", id, targetStatus, actor);
-            return ToolResponse.Success("Task State Transitioned",
-                new TransitionAgentTaskStatusResponse(id.ToString(), targetStatus.ToString(), actor));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error transitioning agent task status: {Id}", id);
-            return ToolResponse.Error(ex.Message);
-        }
+        _logger.LogInformation("Transitioned agent task {Id} to {Status} by {Actor}", id, targetStatus, actor);
+        return ToolResponse.Success("Task State Transitioned",
+            new TransitionAgentTaskStatusResponse(id.ToString(), targetStatus.ToString(), actor));
     }
 }
