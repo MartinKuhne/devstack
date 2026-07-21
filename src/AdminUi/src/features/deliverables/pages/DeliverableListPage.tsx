@@ -21,6 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { CreateDeliverableDialog } from '../components/CreateDeliverableDialog';
 import { useAllDeliverables } from '../hooks/useAllDeliverables';
+import { useProject } from '@/contexts/ProjectContext';
 import { useDeleteDeliverable } from '../hooks/useDeleteDeliverable';
 import { toast } from 'react-toastify';
 import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
@@ -59,6 +60,7 @@ const STATUS_FILTER_OPTIONS = [
 export function DeliverableListPage() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { projectId } = useProject();
 
     const statusFilter = (searchParams.get('status') || undefined) as DeliverableStatus | undefined;
     const typeFilter = (searchParams.get('type') || undefined) as DeliverableType | undefined;
@@ -245,7 +247,7 @@ export function DeliverableListPage() {
             <CreateDeliverableDialog
                 open={createDialogOpen}
                 onOpenChange={setCreateDialogOpen}
-                projectId={searchParams.get('project') ?? ''}
+                projectId={projectId}
                 onSuccess={() => {
                     refetch();
                 }}

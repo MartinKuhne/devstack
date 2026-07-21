@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useProject as useProjectContext } from '@/contexts/ProjectContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,14 @@ export function ProjectDetailPage() {
         error: agentTasksError,
         refetch: refetchAgentTasks,
     } = useAgentTasks();
+    const { setProjectId } = useProjectContext();
+
+    useEffect(() => {
+        if (id) {
+            setProjectId(id);
+        }
+    }, [id, setProjectId]);
+
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [createDeliverableDialogOpen, setCreateDeliverableDialogOpen] = useState(false);
     const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);

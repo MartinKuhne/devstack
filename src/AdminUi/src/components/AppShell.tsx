@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { useProjects } from '@/features/projects/hooks/useProjects';
 import { createModuleLogger } from '@/lib/logging';
+import { useProject } from '@/contexts/ProjectContext';
 
 const logger = createModuleLogger('AppShell');
 
@@ -31,8 +32,8 @@ function SidebarContent() {
     const location = useLocation();
     const navigate = useNavigate();
     const { projects, loading } = useProjects();
+    const { projectId, setProjectId } = useProject();
 
-    const currentProjectId = location.pathname.match(/\/projects\/([^/]+)/)?.[1] ?? '';
     const currentDeliverableId = location.pathname.match(/\/deliverables\/([^/]+)/)?.[1] ?? '';
 
     const isActive = (path: string) => {
@@ -43,15 +44,17 @@ function SidebarContent() {
     const handleProjectSelect = (value: string) => {
         logger.debug('Project selection changed', { projectId: value });
         if (value === 'all') {
+            setProjectId('');
             navigate('/projects');
         } else {
+            setProjectId(value);
             navigate(`/projects/${value}`);
         }
     };
 
     return (
         <nav className="p-4 space-y-2">
-            <Select value={currentProjectId || 'all'} onValueChange={handleProjectSelect}>
+            <Select value={projectId || 'all'} onValueChange={handleProjectSelect}>
                 <SelectTrigger className="w-full">
                     <Folder className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Select Project" />
@@ -99,8 +102,8 @@ function SidebarContent() {
                 </Button>
             </Link>
 
-            {currentProjectId && (
-                <Link to={`/deliverables?project=${currentProjectId}`}>
+            {projectId && (
+                <Link to={`/deliverables?project=${projectId}`}>
                     <Button variant="ghost" className={`w-full justify-start ${isActive('/deliverables') ? 'bg-accent text-accent-foreground' : ''}`}>
                         <GitBranch className="mr-2 h-4 w-4" />
                         Deliverables
