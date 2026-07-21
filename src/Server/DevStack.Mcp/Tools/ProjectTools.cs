@@ -1,5 +1,4 @@
 using DevStack.Application.Projects.Commands;
-using DevStack.Infrastructure.Utilities;
 
 using ModelContextProtocol;
 
@@ -62,8 +61,8 @@ public class ProjectTools
                 ct);
 
             _logger.LogInformation("Created project with ID: {Id}", id);
-            var result = new { id = id.ToString(), name, repository };
-            return JsonResponseFormatter.Format(result, "Project Created") + "Usage hint: Use the returned ID for subsequent get_project calls.";
+            var result = new { id = id.ToString(), name, description, repository };
+            return $"## Project Created\n\n```json\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}\n```\n\nUsage hint: Use the returned ID for subsequent get_project, create_deliverable, or update operations.";
         }
         catch (Exception ex)
         {
@@ -74,6 +73,6 @@ public class ProjectTools
 
     private string FormatMarkdownTable<T>(IEnumerable<T> items, string title)
     {
-        return JsonResponseFormatter.Format(items, title);
+        return $"## {title}\n\n```json\n{JsonSerializer.Serialize(items, new JsonSerializerOptions { WriteIndented = true })}\n```";
     }
 }
