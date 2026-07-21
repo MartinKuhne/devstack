@@ -28,7 +28,7 @@ public sealed class LargeLanguageModelSteps
         {
             throw new InvalidOperationException($"GraphQL errors: {errors.GetRawText()}");
         }
-        
+
         if (!response.TryGetProperty("data", out var data) || data.ValueKind == JsonValueKind.Null)
         {
             throw new InvalidOperationException($"GraphQL response has no data: {response.GetRawText()}");
@@ -54,18 +54,18 @@ public sealed class LargeLanguageModelSteps
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(mutation), Encoding.UTF8, "application/json")).Result;
         var content = response.Content.ReadAsStringAsync().Result;
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
-        
+
         if (result.TryGetProperty("errors", out var errors) && errors.ValueKind != JsonValueKind.Undefined)
         {
             throw new InvalidOperationException($"GraphQL error: {errors.GetRawText()}");
         }
-        
+
         var data = GetData(result);
         if (!data.TryGetProperty("createLargeLanguageModel", out var llmData) || llmData.ValueKind == JsonValueKind.Null)
         {
             throw new InvalidOperationException($"createLargeLanguageModel returned null. Response: {content}");
         }
-        
+
         var llmId = llmData.GetProperty("id").ToString();
         _scenarioContext["LargeLanguageModelId"] = llmId;
     }

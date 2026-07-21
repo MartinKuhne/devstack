@@ -90,8 +90,8 @@ public class TaskToolsTests
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
         var json = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         json.Should().NotBeNull();
-        var idValue = json!["id"]?.ToString() ?? string.Empty;
-        idValue.ToLowerInvariant().Should().Be(id.ToString().ToLowerInvariant());
+        json!.TryGetValue("Id", out var idProp).Should().BeTrue();
+        idProp!.ToString()!.ToLowerInvariant().Should().Be(id.ToString().ToLowerInvariant());
     }
 
     [Fact]
@@ -422,7 +422,7 @@ public class TaskToolsTests
     }
 
     [Fact]
-    public async Task TransitionAgentTaskStatus_WithHandlerException_ReturnsErrorMessage()
+    public async Task TransitionAgentTaskStatus_WithHandlerException_ThrowsException()
     {
         // Arrange
         var id = Guid.NewGuid();
@@ -433,10 +433,10 @@ public class TaskToolsTests
         _updateAgentTaskStatusHandler.Handle(Arg.Any<UpdateAgentTaskStatusCommand>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException<UpdateAgentTaskStatusCommand>(new Exception(errorMessage)));
 
-        // Act
-        var result = await _tools.TransitionAgentTaskStatus(id, targetStatus, actor);
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<Exception>(
+            () => _tools.TransitionAgentTaskStatus(id, targetStatus, actor));
 
-        // Assert
-        result.Should().Contain(errorMessage);
+        exception.Message.Should().Be(errorMessage);
     }
 }

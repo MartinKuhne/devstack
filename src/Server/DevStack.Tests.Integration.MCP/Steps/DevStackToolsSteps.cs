@@ -2,10 +2,11 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 
 using DevStack.Tests.Integration.MCP.Hooks;
-using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol;
 
 using FluentAssertions;
+
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
 
 using TechTalk.SpecFlow;
 
