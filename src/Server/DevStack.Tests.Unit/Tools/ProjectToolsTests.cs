@@ -1,8 +1,11 @@
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
+using DevStack.Application;
+using DevStack.Application.Projects.Commands;
 using DevStack.Domain.Entities;
 using DevStack.Mcp.Tools;
 using DevStack.Persistence;
@@ -41,13 +44,18 @@ public class ProjectToolsTests
         return context;
     }
 
+    private static ProjectTools CreateTools(DevStackDbContext? dbContext = null)
+    {
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var handler = Substitute.For<ICommandHandler<Guid, CreateProjectCommand>>();
+        return new ProjectTools(logger, dbContext ?? CreateDbContext(), handler);
+    }
+
     [Fact]
     public async Task GetProjects_ReturnsAllProjects()
     {
         // Arrange
-        var logger = Substitute.For<ILogger<ProjectTools>>();
-        var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = CreateTools();
 
         // Act
         var result = await tools.GetProjects();
@@ -62,7 +70,7 @@ public class ProjectToolsTests
         var jsonStart = result.IndexOf("[");
         var jsonEnd = result.LastIndexOf("]");
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
-        var projects = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(jsonStr);
+        var projects = JsonSerializer.Deserialize<JsonElement>(jsonStr);
         projects.GetArrayLength().Should().Be(3);
     }
 
@@ -70,9 +78,8 @@ public class ProjectToolsTests
     public async Task GetProjects_ReturnsProjectIds()
     {
         // Arrange
-        var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = CreateTools(dbContext);
 
         // Act
         var result = await tools.GetProjects();
@@ -89,9 +96,8 @@ public class ProjectToolsTests
     public async Task GetProjects_ReturnsRepositories()
     {
         // Arrange
-        var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = CreateTools(dbContext);
 
         // Act
         var result = await tools.GetProjects();
@@ -108,10 +114,9 @@ public class ProjectToolsTests
     public async Task GetProjects_WithEmptyDatabase_ReturnsEmptyArray()
     {
         // Arrange
-        var logger = Substitute.For<ILogger<ProjectTools>>();
         var options = CreateOptions();
         var dbContext = new DevStackDbContext(options);
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = CreateTools(dbContext);
 
         // Act
         var result = await tools.GetProjects();
@@ -121,7 +126,7 @@ public class ProjectToolsTests
         var jsonStart = result.IndexOf("[");
         var jsonEnd = result.LastIndexOf("]");
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
-        var projects = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(jsonStr);
+        var projects = JsonSerializer.Deserialize<JsonElement>(jsonStr);
         projects.GetArrayLength().Should().Be(0);
     }
 
@@ -129,9 +134,8 @@ public class ProjectToolsTests
     public async Task GetProjectById_WithValidId_ReturnsProject()
     {
         // Arrange
-        var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = CreateTools(dbContext);
         var targetProject = dbContext.Projects.First();
 
         // Act
@@ -148,9 +152,7 @@ public class ProjectToolsTests
     public async Task GetProjectById_WithNotFoundId_ThrowsMcpProtocolException()
     {
         // Arrange
-        var logger = Substitute.For<ILogger<ProjectTools>>();
-        var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = CreateTools();
         var nonExistentId = Guid.NewGuid();
 
         // Act & Assert
@@ -165,9 +167,7 @@ public class ProjectToolsTests
     public async Task GetProjectById_WithNullId_ThrowsMcpProtocolException()
     {
         // Arrange
-        var logger = Substitute.For<ILogger<ProjectTools>>();
-        var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = CreateTools();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
@@ -181,9 +181,8 @@ public class ProjectToolsTests
     public async Task GetProjectById_ReturnsCorrectStructure()
     {
         // Arrange
-        var logger = Substitute.For<ILogger<ProjectTools>>();
         var dbContext = CreateDbContext();
-        var tools = new ProjectTools(logger, dbContext);
+        var tools = CreateTools(dbContext);
         var targetProject = dbContext.Projects.First();
 
         // Act
@@ -194,12 +193,110 @@ public class ProjectToolsTests
         var jsonStart = result.IndexOf("{");
         var jsonEnd = result.LastIndexOf("}");
         var jsonStr = result.Substring(jsonStart, jsonEnd - jsonStart + 1);
-        var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(jsonStr);
+        var json = JsonSerializer.Deserialize<JsonElement>(jsonStr);
         json.TryGetProperty("Id", out var idProp).Should().BeTrue();
         idProp.GetString().Should().Be(targetProject.Id.ToString());
         json.TryGetProperty("Name", out var nameProp).Should().BeTrue();
         nameProp.GetString().Should().Be(targetProject.Name);
         json.TryGetProperty("Repository", out var repoProp).Should().BeTrue();
         repoProp.GetString().Should().Be(targetProject.Repository);
+    }
+
+    [Fact]
+    public async Task CreateProject_WithValidData_CreatesProject()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var handler = Substitute.For<ICommandHandler<Guid, CreateProjectCommand>>();
+        var tools = new ProjectTools(logger, dbContext, handler);
+        var newId = Guid.NewGuid();
+        var name = "New Project";
+        var description = "A new project";
+        var repository = "https://github.com/example/new";
+
+        handler.Handle(Arg.Any<CreateProjectCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(newId));
+
+        // Act
+        var result = await tools.CreateProject(name, description, repository);
+
+        // Assert
+        result.Should().Contain("Project Created");
+        result.Should().Contain(newId.ToString());
+        result.Should().Contain(name);
+        result.Should().Contain(description);
+        result.Should().Contain(repository);
+
+        await handler.Received(1).Handle(
+            Arg.Is<CreateProjectCommand>(cmd =>
+                cmd.Name == name &&
+                cmd.Description == description &&
+                cmd.Repository == repository),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateProject_WithNullName_ThrowsMcpProtocolException()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var handler = Substitute.For<ICommandHandler<Guid, CreateProjectCommand>>();
+        var tools = new ProjectTools(logger, dbContext, handler);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
+            () => tools.CreateProject(null!, null, null));
+
+        exception.Message.Should().Be("Project name is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
+    }
+
+    [Fact]
+    public async Task CreateProject_WithEmptyName_ThrowsMcpProtocolException()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var handler = Substitute.For<ICommandHandler<Guid, CreateProjectCommand>>();
+        var tools = new ProjectTools(logger, dbContext, handler);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
+            () => tools.CreateProject("  ", null, null));
+
+        exception.Message.Should().Be("Project name is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
+    }
+
+    [Fact]
+    public async Task CreateProject_WithOnlyName_CreatesProjectWithDefaults()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var handler = Substitute.For<ICommandHandler<Guid, CreateProjectCommand>>();
+        var tools = new ProjectTools(logger, dbContext, handler);
+        var newId = Guid.NewGuid();
+        var name = "Minimal Project";
+
+        handler.Handle(Arg.Any<CreateProjectCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(newId));
+
+        // Act
+        var result = await tools.CreateProject(name, null, null);
+
+        // Assert
+        result.Should().Contain("Project Created");
+        result.Should().Contain(newId.ToString());
+        result.Should().Contain(name);
+
+        await handler.Received(1).Handle(
+            Arg.Is<CreateProjectCommand>(cmd =>
+                cmd.Name == name &&
+                cmd.Description == null &&
+                cmd.Repository == null),
+            Arg.Any<CancellationToken>());
     }
 }
