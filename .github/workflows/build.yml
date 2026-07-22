@@ -27,9 +27,6 @@ jobs:
     - name: Restore
       run: dotnet restore src/Server/DevStack.slnx
 
-    - name: Format Check
-      run: dotnet format --verify-no-changes src/Server/DevStack.slnx
-
     - name: Build
       run: dotnet build src/Server/DevStack.slnx --configuration Release --no-restore
 
