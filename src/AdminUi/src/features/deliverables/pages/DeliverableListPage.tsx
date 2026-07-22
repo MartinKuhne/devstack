@@ -7,6 +7,7 @@ import {
     DataPanel,
     LoadingState,
     ErrorState,
+    EmptyState,
 } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
@@ -26,6 +27,7 @@ import { useDeleteDeliverable } from '../hooks/useDeleteDeliverable';
 import { toast } from 'react-toastify';
 import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
 import { DELIVERABLE_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 const TYPE_LABELS: Record<string, string> = {
     FEATURE: 'Feature',
@@ -69,16 +71,17 @@ export function DeliverableListPage() {
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
     const { deleteDeliverable, loading: deleteLoading } = useDeleteDeliverable();
+    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
     const { deliverables, loading, error, refetch } = useAllDeliverables(
         statusFilter ? [statusFilter] : undefined,
         typeFilter ? [typeFilter] : undefined
     );
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this deliverable?')) return;
+    const handleDelete = async () => {
+        if (!deleteTargetId) return;
 
-        const result = await deleteDeliverable(id);
+        const result = await deleteDeliverable(deleteTargetId);
 
         if (result.success) {
             toast.success('Deliverable deleted successfully');
@@ -86,6 +89,7 @@ export function DeliverableListPage() {
         } else {
             toast.error(result.errors?.join(', ') ?? 'Failed to delete deliverable');
         }
+        setDeleteTargetId(null);
     };
 
     const handleStatusChange = useCallback(
@@ -134,6 +138,13 @@ export function DeliverableListPage() {
 
     const handleRowClick = (id: string | null | undefined) => {
         if (id) navigate(`/deliverables/${id}`);
+    };
+
+    const handleRowKeyDown = (e: React.KeyboardEvent, id: string | null | undefined) => {
+        if ((e.key === 'Enter' || e.key === ' ') && id) {
+            e.preventDefault();
+            navigate(`/deliverables/${id}`);
+        }
     };
 
     const filteredDeliverables = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && (
@@ -201,7 +212,10 @@ export function DeliverableListPage() {
                                 <TableRow
                                     key={deliverable.id ?? ''}
                                     className="cursor-pointer hover:bg-muted/50"
+                                    tabIndex={0}
+                                    role="button"
                                     onClick={() => handleRowClick(deliverable.id ?? undefined)}
+                                    onKeyDown={(e) => handleRowKeyDown(e, deliverable.id ?? undefined)}
                                 >
                                     <TableCell className="font-medium">
                                         {deliverable.title}
@@ -227,10 +241,11 @@ export function DeliverableListPage() {
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8 text-destructive hover:text-destructive"
-                                           onClick={() =>
-                                                 deliverable.id && handleDelete(deliverable.id)
-                                             }
+                                            onClick={() =>
+                                                deliverable.id && setDeleteTargetId(deliverable.id)
+                                            }
                                             disabled={deleteLoading}
+                                            aria-label={`Delete deliverable ${deliverable.title}`}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -240,7 +255,10 @@ export function DeliverableListPage() {
                         </TableBody>
                     </Table>
                 ) : (
-                    <p className="text-muted-foreground text-sm">No deliverables found.</p>
+                    <EmptyState
+                        description="No deliverables found."
+                        action={{ label: 'New Deliverable', onClick: () => setCreateDialogOpen(true) }}
+                    />
                 )}
             </DataPanel>
 
@@ -249,8 +267,18 @@ export function DeliverableListPage() {
                 onOpenChange={setCreateDialogOpen}
                 projectId={projectId}
                 onSuccess={() => {
+                    toast.success('Deliverable created successfully');
                     refetch();
                 }}
+            />
+            <ConfirmDialog
+                open={!!deleteTargetId}
+                onOpenChange={(open) => !open && setDeleteTargetId(null)}
+                title="Delete Deliverable"
+                description="Are you sure you want to delete this deliverable? This action cannot be undone."
+                confirmLabel="Delete"
+                variant="destructive"
+                onConfirm={handleDelete}
             />
         </div>
     );

@@ -3,7 +3,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUpdateAgentTaskMutation } from '@/generated/graphql';
-import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
+import { createModuleLogger } from '@/lib/logging';
+import { mapMutationError } from '@/lib/mapMutationError';
+import { toast } from 'react-toastify';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -110,28 +112,28 @@ export function UpdateAgentTaskDialog({
                     onSuccess?.();
                     onOpenChange(false);
                     return;
-                } else if (payload.errors.includes('CONCURRENCY_CONFLICT')) {
-                    setServerError(
-                        'The agent task was modified by another user. Please refresh and try again.'
-                    );
                 } else {
-                    setServerError(payload.errors);
+                    const friendlyError = mapMutationError(
+                        new Error(payload.errors),
+                        'agent task'
+                    );
+                    setServerError(friendlyError);
                 }
                 return;
             }
 
             logger.info('Agent task updated successfully', { id: agentTask.id, title: data.title });
+            toast.success('Agent task updated successfully');
             onSuccess?.();
             onOpenChange(false);
         } catch (err) {
-            const errorInfo = formatGraphQLError(err);
+            const errorInfo = mapMutationError(err, 'agent task');
             logger.error('Failed to update agent task', {
                 id: agentTask.id,
                 title: data.title,
-                error: errorInfo.message,
-                details: errorInfo.details,
+                error: errorInfo,
             });
-            setServerError(err instanceof Error ? err.message : 'Failed to update agent task');
+            setServerError(errorInfo);
         }
     };
 
@@ -157,9 +159,17 @@ export function UpdateAgentTaskDialog({
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title *</Label>
-                            <Input id="title" {...register('title')} placeholder="Task title" />
+                            <Input
+                                id="title"
+                                {...register('title')}
+                                placeholder="Task title"
+                                aria-invalid={!!errors.title}
+                                aria-describedby={errors.title ? 'title-error' : undefined}
+                            />
                             {errors.title && (
-                                <p className="text-sm text-destructive">{errors.title.message}</p>
+                                <p id="title-error" className="text-sm text-destructive" role="alert">
+                                    {errors.title.message}
+                                </p>
                             )}
                         </div>
 
@@ -171,9 +181,11 @@ export function UpdateAgentTaskDialog({
                                 min={1}
                                 max={10}
                                 {...register('complexityRating')}
+                                aria-invalid={!!errors.complexityRating}
+                                aria-describedby={errors.complexityRating ? 'complexity-error' : undefined}
                             />
                             {errors.complexityRating && (
-                                <p className="text-sm text-destructive">
+                                <p id="complexity-error" className="text-sm text-destructive" role="alert">
                                     {errors.complexityRating.message}
                                 </p>
                             )}
@@ -199,7 +211,7 @@ export function UpdateAgentTaskDialog({
                             />
                         </div>
 
-                        {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+                        {serverError && <p className="text-sm text-destructive" role="alert">{serverError}</p>}
                     </div>
 
                     <DialogFooter>

@@ -66,6 +66,7 @@ describe('useAgentTasksByDeliverable', () => {
             fetchPolicy: 'cache-and-network',
             skip: true,
             variables: {},
+            pollInterval: 5000,
         });
     });
 

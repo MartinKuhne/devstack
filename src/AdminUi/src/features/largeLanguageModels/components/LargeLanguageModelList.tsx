@@ -7,6 +7,8 @@ import { useLargeLanguageModels } from '@/features/largeLanguageModels/hooks/use
 import { LargeLanguageModelDialog } from './LargeLanguageModelDialog';
 import { useDeleteLargeLanguageModelMutation } from '@/generated/graphql';
 import { toast } from 'react-toastify';
+import { LoadingState, ErrorState, EmptyState } from '@/components/layout';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 interface LargeLanguageModelListProps {
     onAddModel: () => void;
@@ -25,6 +27,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         maxComplexity: number;
     } | null>(null);
     const [deleteLargeLanguageModel, { loading: deleting }] = useDeleteLargeLanguageModelMutation();
+    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
     const handleEdit = (model: {
         id?: string | null | undefined;
@@ -43,12 +46,12 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         });
     };
 
-    const handleDelete = async (modelId: string) => {
-        if (!confirm('Are you sure you want to delete this model configuration?')) return;
+    const handleDelete = async () => {
+        if (!deleteTargetId) return;
         try {
             const result = await deleteLargeLanguageModel({
                 variables: {
-                    id: modelId,
+                    id: deleteTargetId,
                 },
             });
             const deleted = result.data?.deleteLargeLanguageModel;
@@ -61,6 +64,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         } catch {
             toast.error('Failed to delete model');
         }
+        setDeleteTargetId(null);
     };
 
     const handleCloseDialog = () => {
@@ -74,35 +78,17 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                     <h3 className="text-lg font-semibold">Large Language Models</h3>
                     <Button onClick={onAddModel}>Add Model</Button>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {[1, 2, 3].map((i) => (
-                        <Card key={i}>
-                            <CardHeader>
-                                <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="h-4 w-full bg-muted animate-pulse rounded" />
-                                <div className="h-4 w-2/3 bg-muted animate-pulse rounded" />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                <LoadingState cards={3} rows={2} />
             </div>
         );
     }
 
     if (error) {
         return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-destructive">
-                        Error loading large language models
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-destructive">{error.message}</p>
-                </CardContent>
-            </Card>
+            <ErrorState
+                message={error.message}
+                title="Error loading large language models"
+            />
         );
     }
 
@@ -113,14 +99,10 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                 <Button onClick={onAddModel}>Add Model</Button>
             </div>
             {largeLanguageModels.length === 0 ? (
-                <Card>
-                    <CardContent className="pt-6">
-                        <p className="text-muted-foreground text-sm">
-                            No large language models yet. Click &quot;Add Model&quot; to get
-                            started.
-                        </p>
-                    </CardContent>
-                </Card>
+                <EmptyState
+                    description="No large language models yet. Click &quot;Add Model&quot; to get started."
+                    action={{ label: 'Add Model', onClick: onAddModel }}
+                />
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {largeLanguageModels.map(
@@ -146,6 +128,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                                                 size="icon"
                                                 className="h-8 w-8"
                                                 onClick={() => handleEdit(config)}
+                                                aria-label={`Edit model ${config.modelAlias ?? config.model ?? ''}`}
                                             >
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
@@ -153,8 +136,9 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                                                 variant="ghost"
                                                 size="icon"
                                                 className="h-8 w-8 text-destructive hover:text-destructive"
-                                                onClick={() => config.id && handleDelete(config.id)}
+                                                onClick={() => config.id && setDeleteTargetId(config.id)}
                                                 disabled={deleting}
+                                                aria-label={`Delete model ${config.modelAlias ?? config.model ?? ''}`}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
@@ -202,10 +186,20 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                     if (!open) handleCloseDialog();
                 }}
                 onSuccess={() => {
+                    toast.success(editingModel ? 'Model updated successfully' : 'Model created successfully');
                     onRefetch?.();
                     handleCloseDialog();
                 }}
                 model={editingModel}
+            />
+            <ConfirmDialog
+                open={!!deleteTargetId}
+                onOpenChange={(open) => !open && setDeleteTargetId(null)}
+                title="Delete Model"
+                description="Are you sure you want to delete this model configuration? This action cannot be undone."
+                confirmLabel="Delete"
+                variant="destructive"
+                onConfirm={handleDelete}
             />
         </div>
     );
@@ -213,9 +207,9 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
 
 function getComplexityVariant(
     maxComplexity: number
-): 'default' | 'secondary' | 'destructive' | 'outline' {
+): 'default' | 'secondary' | 'outline' | 'warning' {
     if (maxComplexity <= 2) return 'secondary';
     if (maxComplexity <= 4) return 'default';
     if (maxComplexity <= 6) return 'outline';
-    return 'destructive';
+    return 'warning';
 }

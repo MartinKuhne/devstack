@@ -103,7 +103,7 @@ describe('useAgentTasks', () => {
         expect(result.current.agentTasks).toHaveLength(0);
     });
 
-    it('passes deliverableId to query variables', async () => {
+    it('passes deliverableId to query variables with polling', async () => {
         const hooks = await getMockedQuery();
         hooks.useGetAgentTasksQuery.mockReturnValue({
             data: {
@@ -125,6 +125,7 @@ describe('useAgentTasks', () => {
             expect.objectContaining({
                 variables: { deliverableId: 'del-123' },
                 fetchPolicy: 'cache-and-network',
+                pollInterval: 5000,
             }),
         );
     });
@@ -151,6 +152,7 @@ describe('useAgentTasks', () => {
             fetchPolicy: 'cache-and-network',
             skip: true,
             variables: {},
+            pollInterval: 5000,
         });
     });
 

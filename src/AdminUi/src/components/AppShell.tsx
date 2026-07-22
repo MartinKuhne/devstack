@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, LayoutDashboard, Folder, Brain, GitBranch, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
@@ -14,6 +15,8 @@ import {
 import { useProjects } from '@/features/projects/hooks/useProjects';
 import { createModuleLogger } from '@/lib/logging';
 import { useProject } from '@/contexts/ProjectContext';
+import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
+import { AgentTaskStatus } from '@/generated/graphql';
 
 const logger = createModuleLogger('AppShell');
 
@@ -34,7 +37,11 @@ function SidebarContent() {
     const { projects, loading } = useProjects();
     const { projectId, setProjectId } = useProject();
 
-    const currentDeliverableId = location.pathname.match(/\/deliverables\/([^/]+)/)?.[1] ?? '';
+    const { agentTasks: attentionTasks } = useAgentTasks(
+        undefined,
+        [AgentTaskStatus.NEEDS_REVIEW, AgentTaskStatus.FAILED]
+    );
+    const attentionCount = attentionTasks.length;
 
     const isActive = (path: string) => {
         if (path === '/') return location.pathname === '/';
@@ -51,6 +58,8 @@ function SidebarContent() {
             navigate(`/projects/${value}`);
         }
     };
+
+    const hasProject = !!projectId;
 
     return (
         <nav className="p-4 space-y-2">
@@ -102,22 +111,47 @@ function SidebarContent() {
                 </Button>
             </Link>
 
-            {projectId && (
+            {hasProject ? (
                 <Link to={`/deliverables?project=${projectId}`}>
                     <Button variant="ghost" className={`w-full justify-start ${isActive('/deliverables') ? 'bg-accent text-accent-foreground' : ''}`}>
                         <GitBranch className="mr-2 h-4 w-4" />
                         Deliverables
                     </Button>
                 </Link>
+            ) : (
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start opacity-50 cursor-not-allowed"
+                    disabled
+                    aria-label="Deliverables - select a project first"
+                >
+                    <GitBranch className="mr-2 h-4 w-4" />
+                    Deliverables
+                </Button>
             )}
 
-            {currentDeliverableId && (
+            {hasProject ? (
                 <Link to="/agent-tasks">
                     <Button variant="ghost" className={`w-full justify-start ${isActive('/agent-tasks') ? 'bg-accent text-accent-foreground' : ''}`}>
                         <Brain className="mr-2 h-4 w-4" />
                         Agent Tasks
+                        {attentionCount > 0 && (
+                            <Badge variant="destructive" className="ml-auto text-xs">
+                                {attentionCount}
+                            </Badge>
+                        )}
                     </Button>
                 </Link>
+            ) : (
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start opacity-50 cursor-not-allowed"
+                    disabled
+                    aria-label="Agent Tasks - select a project first"
+                >
+                    <Brain className="mr-2 h-4 w-4" />
+                    Agent Tasks
+                </Button>
             )}
         </nav>
     );

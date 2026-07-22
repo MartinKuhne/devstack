@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +32,8 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { LoadingState, ErrorState, DetailLayout } from '@/components/layout';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 const logger = createModuleLogger('AgentTaskDetailPage');
 
@@ -60,15 +62,10 @@ export function AgentTaskDetailPage() {
     const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
     const [rejectFeedback, setRejectFeedback] = useState('');
     const [errorsCopied, setErrorsCopied] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     const handleDelete = async () => {
         if (!agentTask?.id) return;
-        if (
-            !confirm(
-                'Are you sure you want to delete this agent task? This action cannot be undone.'
-            )
-        )
-            return;
         logger.info('Deleting agent task', { id: agentTask.id, title: agentTask.title });
         try {
             const result = await deleteAgentTask({
@@ -91,6 +88,7 @@ export function AgentTaskDetailPage() {
             logger.error('Failed to delete agent task', { id: agentTask.id });
             toast.error('Failed to delete agent task');
         }
+        setConfirmDeleteOpen(false);
     };
 
     const handleStatusChange = async () => {
@@ -175,65 +173,44 @@ export function AgentTaskDetailPage() {
     if (loading) {
         return (
             <div className="space-y-6">
-                <div>
-                    <div className="h-8 w-64 bg-muted rounded" />
-                    <div className="h-4 w-32 mt-2 bg-muted rounded" />
-                </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Agent Task Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="h-20 bg-muted rounded" />
-                        <div className="h-20 bg-muted rounded" />
-                    </CardContent>
-                </Card>
+                <DetailLayout
+                    breadcrumbs={[{ label: 'Agent Tasks', to: '/agent-tasks' }, { label: 'Loading...' }]}
+                    title="Loading..."
+                />
+                <LoadingState cards={1} rows={3} />
             </div>
         );
     }
 
     if (error || !agentTask) {
         return (
-            <div className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Agent Task</h2>
-                </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-destructive">Error loading agent task</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-destructive">
-                            {error?.message ?? 'Agent task not found'}
-                        </p>
-                        <Button
-                            variant="outline"
-                            className="mt-4"
-                            onClick={() => navigate('/agent-tasks')}
-                        >
-                            Back to Agent Tasks
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+            <DetailLayout
+                breadcrumbs={[{ label: 'Agent Tasks', to: '/agent-tasks' }, { label: 'Error' }]}
+                title="Agent Task"
+            >
+                <ErrorState
+                    message={error?.message ?? 'Agent task not found'}
+                    onRetry={() => refetch()}
+                />
+            </DetailLayout>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">{agentTask.title}</h2>
-                    <div className="flex items-center gap-2 mt-2">
-                        <Badge className={getStatusColor(agentTask.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
-                            {agentTask.status}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                            Deliverable: {agentTask.deliverableId ?? '-'}
-                        </span>
-                    </div>
-                </div>
-                <div className="flex gap-2">
+        <DetailLayout
+            breadcrumbs={[
+                { label: 'Agent Tasks', to: '/agent-tasks' },
+                { label: agentTask.title ?? 'Agent Task' },
+            ]}
+            title={agentTask.title ?? 'Agent Task'}
+            typeLabel="Agent Task"
+            statusNode={
+                <Badge className={getStatusColor(agentTask.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
+                    {agentTask.status}
+                </Badge>
+            }
+            actions={
+                <>
                     {canApprove && (
                         <Button onClick={handleApprove} disabled={transitionLoading}>
                             <CheckCircle className="h-4 w-4 mr-2" />
@@ -260,12 +237,12 @@ export function AgentTaskDetailPage() {
                         Back to List
                     </Button>
                     <Button onClick={() => setUpdateDialogOpen(true)}>Edit</Button>
-                    <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                    <Button variant="destructive" onClick={() => setConfirmDeleteOpen(true)} disabled={deleting}>
                         Delete
                     </Button>
-                </div>
-            </div>
-
+                </>
+            }
+        >
             <Card>
                 <CardHeader>
                     <CardTitle>Change Status</CardTitle>
@@ -348,7 +325,15 @@ export function AgentTaskDetailPage() {
 
                     <div className="text-sm text-muted-foreground">
                         <p>Complexity Rating: {agentTask.complexityRating ?? '-'}</p>
-                        <p>Deliverable ID: {agentTask.deliverableId ?? '-'}</p>
+                        <p>
+                            Deliverable:{' '}
+                            <Link
+                                to={`/deliverables/${agentTask.deliverableId}`}
+                                className="text-blue-600 hover:underline"
+                            >
+                                {agentTask.deliverableId ?? '-'}
+                            </Link>
+                        </p>
                     </div>
                 </TabsContent>
 
@@ -465,7 +450,10 @@ export function AgentTaskDetailPage() {
                     status: agentTask.status ?? null,
                     deliverableId: agentTask.deliverableId ?? null,
                 }}
-                onSuccess={() => refetch()}
+                onSuccess={() => {
+                    toast.success('Agent task updated successfully');
+                    refetch();
+                }}
             />
 
             <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
@@ -497,6 +485,16 @@ export function AgentTaskDetailPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                title="Delete Agent Task"
+                description="Are you sure you want to delete this agent task? This action cannot be undone."
+                confirmLabel="Delete"
+                variant="destructive"
+                onConfirm={handleDelete}
+            />
+        </DetailLayout>
     );
 }

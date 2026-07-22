@@ -5,6 +5,7 @@ import {
     DataPanel,
     LoadingState,
     ErrorState,
+    EmptyState,
 } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +19,7 @@ import {
 import { useProjects } from '@/features/projects/hooks/useProjects';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
 import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
+import { toast } from 'react-toastify';
 
 const logger = createModuleLogger('ProjectListPage');
 
@@ -31,8 +33,16 @@ export function ProjectListPage() {
         navigate(`/projects/${id}`);
     };
 
+    const handleRowKeyDown = (e: React.KeyboardEvent, id: string) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleRowClick(id);
+        }
+    };
+
     const handleSuccess = useCallback(() => {
         logger.info('Project created, refetching list');
+        toast.success('Project created successfully');
         refetch();
     }, [refetch]);
 
@@ -91,7 +101,10 @@ export function ProjectListPage() {
                                 <TableRow
                                     key={project.id ?? ''}
                                     className="cursor-pointer hover:bg-muted/50"
+                                    tabIndex={0}
+                                    role="button"
                                     onClick={() => handleRowClick(project.id ?? '')}
+                                    onKeyDown={(e) => handleRowKeyDown(e, project.id ?? '')}
                                 >
                                     <TableCell className="font-medium">
                                         {project.name}
@@ -119,11 +132,10 @@ export function ProjectListPage() {
                         </TableBody>
                     </Table>
                 ) : (
-                    <div className="py-8 text-center">
-                        <p className="text-muted-foreground">
-                            No projects yet. Create your first project to get started.
-                        </p>
-                    </div>
+                    <EmptyState
+                        description="No projects yet. Create your first project to get started."
+                        action={{ label: 'Create Project', onClick: () => setCreateDialogOpen(true) }}
+                    />
                 )}
             </DataPanel>
             <CreateProjectDialog

@@ -76,12 +76,11 @@ function SearchBar() {
                                 key={item.to}
                                 onSelect={() => {
                                     setOpen(false);
+                                    navigate(item.to);
                                 }}
                             >
                                 <item.icon className="mr-2 h-4 w-4" />
-                                <Link to={item.to} onClick={() => setOpen(false)}>
-                                    {item.label}
-                                </Link>
+                                {item.label}
                             </CommandItem>
                         ))}
                     </CommandGroup>

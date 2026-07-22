@@ -4,10 +4,13 @@ import { createModuleLogger } from '@/lib/logging';
 
 const logger = createModuleLogger('useAgentTasks');
 
+const POLL_INTERVAL_MS = 5000;
+
 /**
  * Fetches agent tasks with optional filtering by deliverableId and status.
  * When deliverableId is provided, only tasks for that deliverable are fetched.
  * When deliverableId is omitted, all agent tasks across all deliverables are fetched.
+ * Polls every 5s when any task is IN_PROGRESS or READY.
  */
 export function useAgentTasks(deliverableId?: string, statusFilter?: AgentTaskStatus[], projectId?: string) {
     const hasFilter = !!deliverableId || !!projectId;
@@ -18,6 +21,7 @@ export function useAgentTasks(deliverableId?: string, statusFilter?: AgentTaskSt
         },
         fetchPolicy: 'cache-and-network',
         skip: !hasFilter,
+        pollInterval: POLL_INTERVAL_MS,
     });
 
     const allTasks = data?.agentTasks?.nodes ?? [];
