@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Check, AlertCircle, Eye, Loader, Circle, XCircle, Play } from 'lucide-react';
+import { Check, AlertCircle, Eye, Loader, Circle, CircleDot, XCircle, Play } from 'lucide-react';
 
 export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'success' | 'warning';
 
@@ -37,7 +37,7 @@ export const AGENT_TASK_STATUS_VARIANTS: Record<string, BadgeVariant> = {
 };
 
 const DELIVERABLE_STATUS_ICONS: Record<string, LucideIcon> = {
-    DRAFT: Circle,
+    DRAFT: CircleDot,
     DESIGN: Circle,
     PLAN: Circle,
     IMPLEMENT: Play,
