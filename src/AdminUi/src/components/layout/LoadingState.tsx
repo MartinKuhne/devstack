@@ -8,7 +8,8 @@ export type LoadingStateProps = {
 
 export function LoadingState({ cards = 1, rows = 3, className }: LoadingStateProps) {
     return (
-        <div className={className}>
+        <div className={className} role="status" aria-busy="true">
+            <span className="sr-only">Loading...</span>
             {Array.from({ length: cards }).map((_, cardIndex) => (
                 <div key={cardIndex} className="space-y-4 mb-6 last:mb-0">
                     <div className="flex items-center gap-4">

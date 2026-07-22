@@ -1,6 +1,6 @@
-using DevStack.Domain.Entities;
-
 using System.Linq.Expressions;
+
+using DevStack.Domain.Entities;
 
 namespace DevStack.Persistence;
 

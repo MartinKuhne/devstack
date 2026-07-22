@@ -150,7 +150,7 @@ export function LargeLanguageModelDialog({
             valid = false;
         }
 
-        const modelCost = parseInt(cost, 10);
+        const modelCost = parseFloat(cost);
         if (isNaN(modelCost) || modelCost < 0 || modelCost > 100) {
             setCostError('Cost must be between 0 and 100');
             valid = false;
@@ -184,13 +184,13 @@ export function LargeLanguageModelDialog({
                             modelAlias: modelAlias || null,
                             url,
                             apiKey,
-                            cost: parseInt(cost, 10),
-                            maxComplexity: parseInt(maxComplexity, 10),
-                            maxConcurrency: 1,
-                        },
+                        cost: parseFloat(cost),
+                        maxComplexity: parseInt(maxComplexity, 10),
+                        maxConcurrency: 1,
                     },
-                });
-                const updatedModel = result.data?.updateLargeLanguageModel;
+                },
+            });
+            const updatedModel = result.data?.updateLargeLanguageModel;
                 if (!updatedModel) {
                     logger.warn('Failed to update LLM model', {
                         id: model.id,
@@ -208,13 +208,13 @@ export function LargeLanguageModelDialog({
                             modelAlias: modelAlias || null,
                             url,
                             apiKey,
-                            cost: parseInt(cost, 10),
-                            maxComplexity: parseInt(maxComplexity, 10),
-                            maxConcurrency: 1,
-                        },
+                        cost: parseFloat(cost),
+                        maxComplexity: parseInt(maxComplexity, 10),
+                        maxConcurrency: 1,
                     },
-                });
-                const createdModel = result.data?.createLargeLanguageModel;
+                },
+            });
+            const createdModel = result.data?.createLargeLanguageModel;
                 if (!createdModel) {
                     logger.warn('Failed to create LLM model', {
                         model: modelValue,
@@ -244,6 +244,7 @@ export function LargeLanguageModelDialog({
 
     const handleDelete = async () => {
         if (!model) return;
+        if (!window.confirm('Are you sure you want to delete this model configuration? This action cannot be undone.')) return;
         setError(null);
 
         logger.info('Deleting LLM model', { id: model.id, model: model.model });
@@ -318,7 +319,7 @@ export function LargeLanguageModelDialog({
                 break;
             }
             case 'cost': {
-                const modelCost = parseInt(value, 10);
+                const modelCost = parseFloat(value);
                 setCostError(
                     isNaN(modelCost) || modelCost < 0 || modelCost > 100
                         ? 'Cost must be between 0 and 100'

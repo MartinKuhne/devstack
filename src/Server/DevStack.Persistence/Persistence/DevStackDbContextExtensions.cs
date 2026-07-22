@@ -1,8 +1,8 @@
+using System.Linq.Expressions;
+
 using DevStack.Domain.Entities;
 
 using Microsoft.EntityFrameworkCore;
-
-using System.Linq.Expressions;
 
 namespace DevStack.Persistence;
 

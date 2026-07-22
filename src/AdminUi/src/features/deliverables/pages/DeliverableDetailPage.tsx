@@ -24,6 +24,7 @@ import {
     getStatusColor,
 } from '@/lib/constants';
 import { MarkdownViewer } from '@/components/MarkdownViewer';
+import { ErrorState } from '@/components/layout';
 export function DeliverableDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -86,25 +87,16 @@ export function DeliverableDetailPage() {
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Deliverable</h2>
                 </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-destructive">
-                            Error loading deliverable
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-destructive">
-                            {error?.message ?? 'Deliverable not found'}
-                        </p>
-                        <Button
-                            variant="outline"
-                            className="mt-4"
-                            onClick={() => navigate('/deliverables')}
-                        >
-                            Back to Deliverables
-                        </Button>
-                    </CardContent>
-                </Card>
+                <ErrorState
+                    message={error?.message ?? 'Deliverable not found'}
+                    onRetry={() => refetch()}
+                />
+                <Button
+                    variant="outline"
+                    onClick={() => navigate('/deliverables')}
+                >
+                    Back to Deliverables
+                </Button>
             </div>
         );
     }

@@ -219,7 +219,7 @@ public class ProjectToolsTests
             .Returns(Task.FromResult(newId));
 
         // Act
-        var result = await tools.CreateProject(name, description, repository);
+        var result = await tools.CreateProject(name, repository, description);
 
         // Assert
         result.Should().Contain("Project Created");
@@ -264,14 +264,60 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.CreateProject("  ", null, null));
+            () => tools.CreateProject("", null, null));
 
         exception.Message.Should().Be("Project name is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]
-    public async Task CreateProject_WithOnlyName_CreatesProjectWithDefaults()
+    public async Task CreateProject_WithWhitespaceName_ThrowsMcpProtocolException()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var handler = Substitute.For<ICommandHandler<Guid, CreateProjectCommand>>();
+        var tools = new ProjectTools(logger, dbContext, handler);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
+            () => tools.CreateProject("   ", null, null));
+
+        exception.Message.Should().Be("Project name is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
+    }
+
+    [Fact]
+    public async Task CreateProject_WithAllFields_CreatesProjectWithAllFields()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var handler = Substitute.For<ICommandHandler<Guid, CreateProjectCommand>>();
+        var tools = new ProjectTools(logger, dbContext, handler);
+        var newId = Guid.NewGuid();
+        var name = "New Project";
+        var description = "Project description";
+        var repository = "https://github.com/example/new";
+
+        handler.Handle(Arg.Any<CreateProjectCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(newId));
+
+        // Act
+        var result = await tools.CreateProject(name, repository, description);
+
+        // Assert
+        result.Should().Contain("Project Created");
+        await handler.Received(1).Handle(
+            Arg.Is<CreateProjectCommand>(cmd =>
+                cmd.Name == name &&
+                cmd.Description == description &&
+                cmd.Repository == repository),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateProject_WithOnlyNameAndRepository_CreatesProjectWithDefaults()
     {
         // Arrange
         var logger = Substitute.For<ILogger<ProjectTools>>();
@@ -280,12 +326,13 @@ public class ProjectToolsTests
         var tools = new ProjectTools(logger, dbContext, handler);
         var newId = Guid.NewGuid();
         var name = "Minimal Project";
+        var repository = "https://github.com/example/minimal";
 
         handler.Handle(Arg.Any<CreateProjectCommand>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(newId));
 
         // Act
-        var result = await tools.CreateProject(name, null, null);
+        var result = await tools.CreateProject(name, repository, null);
 
         // Assert
         result.Should().Contain("Project Created");
@@ -296,7 +343,24 @@ public class ProjectToolsTests
             Arg.Is<CreateProjectCommand>(cmd =>
                 cmd.Name == name &&
                 cmd.Description == null &&
-                cmd.Repository == null),
+                cmd.Repository == repository),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateProject_WithNullRepository_ThrowsMcpProtocolException()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<ProjectTools>>();
+        var dbContext = CreateDbContext();
+        var handler = Substitute.For<ICommandHandler<Guid, CreateProjectCommand>>();
+        var tools = new ProjectTools(logger, dbContext, handler);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(
+            () => tools.CreateProject("Project", null!, null));
+
+        exception.Message.Should().Be("Repository is required");
+        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 }

@@ -1,4 +1,5 @@
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -57,6 +58,7 @@ export function FilterBar({
                                 <button
                                     type="button"
                                     onClick={onSearchClear}
+                                    aria-label="Clear search"
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                 >
                                     <X className="h-4 w-4" />
@@ -68,6 +70,9 @@ export function FilterBar({
 
                 {selects?.map((select, index) => (
                     <div key={index} className="w-48">
+                        <Label htmlFor={`filter-select-${index}`} className="sr-only">
+                            {select.label ?? select.placeholder ?? 'Filter'}
+                        </Label>
                         <Select
                             value={select.value}
                             onValueChange={select.onChange}

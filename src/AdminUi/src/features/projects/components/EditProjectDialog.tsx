@@ -55,7 +55,7 @@ export function EditProjectDialog({
         register,
         handleSubmit,
         reset,
-        formState: { errors },
+        formState: { errors, isValid },
     } = useForm<ProjectFormData>({
         resolver: zodResolver(projectSchema),
     });
@@ -176,7 +176,7 @@ export function EditProjectDialog({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={!isValid || loading}>
                             {loading ? 'Saving...' : 'Save Changes'}
                         </Button>
                     </DialogFooter>
