@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
     PageHeader,
@@ -7,9 +7,10 @@ import {
     DataPanel,
     LoadingState,
     ErrorState,
+    EmptyState,
 } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -21,10 +22,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { CreateDeliverableDialog } from '../components/CreateDeliverableDialog';
 import { useAllDeliverables } from '../hooks/useAllDeliverables';
+import { useProjectContext } from '@/contexts/ProjectContext';
 import { useDeleteDeliverable } from '../hooks/useDeleteDeliverable';
 import { toast } from 'react-toastify';
 import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
-import { DELIVERABLE_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import { DELIVERABLE_STATUS_COLORS, DELIVERABLE_STATUS_TEXT_COLORS, getStatusColor, getStatusTextColor, getStatusIcon } from '@/lib/constants';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Pagination } from '@/components/ui/pagination';
 
 const TYPE_LABELS: Record<string, string> = {
     FEATURE: 'Feature',
@@ -59,6 +63,7 @@ const STATUS_FILTER_OPTIONS = [
 export function DeliverableListPage() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { projectId } = useProjectContext();
 
     const statusFilter = (searchParams.get('status') || undefined) as DeliverableStatus | undefined;
     const typeFilter = (searchParams.get('type') || undefined) as DeliverableType | undefined;
@@ -67,16 +72,21 @@ export function DeliverableListPage() {
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [localSearch, setLocalSearch] = useState(searchFilter || '');
     const { deleteDeliverable, loading: deleteLoading } = useDeleteDeliverable();
+    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortField, setSortField] = useState<'title' | 'status' | 'type'>('title');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const pageSize = 25;
 
     const { deliverables, loading, error, refetch } = useAllDeliverables(
         statusFilter ? [statusFilter] : undefined,
         typeFilter ? [typeFilter] : undefined
     );
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this deliverable?')) return;
+    const handleDelete = async () => {
+        if (!deleteTargetId) return;
 
-        const result = await deleteDeliverable(id);
+        const result = await deleteDeliverable(deleteTargetId);
 
         if (result.success) {
             toast.success('Deliverable deleted successfully');
@@ -84,6 +94,7 @@ export function DeliverableListPage() {
         } else {
             toast.error(result.errors?.join(', ') ?? 'Failed to delete deliverable');
         }
+        setDeleteTargetId(null);
     };
 
     const handleStatusChange = useCallback(
@@ -134,10 +145,53 @@ export function DeliverableListPage() {
         if (id) navigate(`/deliverables/${id}`);
     };
 
+    const handleRowKeyDown = (e: React.KeyboardEvent, id: string | null | undefined) => {
+        if ((e.key === 'Enter' || e.key === ' ') && id) {
+            e.preventDefault();
+            navigate(`/deliverables/${id}`);
+        }
+    };
+
     const filteredDeliverables = deliverables.filter((d): d is NonNullable<typeof d> => d !== null && (
         !searchFilter ||
         !!d.title?.toLowerCase().includes(searchFilter.toLowerCase())
     ));
+
+    const sortedDeliverables = useMemo(() => {
+        return [...filteredDeliverables].sort((a, b) => {
+            const aVal = (a[sortField] ?? '').toString().toLowerCase();
+            const bVal = (b[sortField] ?? '').toString().toLowerCase();
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [filteredDeliverables, sortField, sortDirection]);
+
+    const totalPages = Math.ceil(sortedDeliverables.length / pageSize);
+    const paginatedDeliverables = sortedDeliverables.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
+
+    const handleSort = (field: 'title' | 'status' | 'type') => {
+        if (sortField === field) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+        setCurrentPage(1);
+    };
+
+    const renderSortIcon = (field: 'title' | 'status' | 'type') => {
+        if (sortField !== field) return null;
+        return sortDirection === 'asc' ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />;
+    };
+
+    const renderStatusIcon = (status: string | undefined) => {
+        const Icon = getStatusIcon(status, 'deliverable');
+        return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
+    };
 
     const handleCreateDeliverable = useCallback(() => {
         setCreateDialogOpen(true);
@@ -184,22 +238,38 @@ export function DeliverableListPage() {
                 ) : loading ? (
                     <LoadingState rows={3} />
                 ) : filteredDeliverables.length > 0 ? (
+                    <>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Title</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>
+                                    <button type="button" className="flex items-center font-medium" onClick={() => handleSort('title')}>
+                                        Title {renderSortIcon('title')}
+                                    </button>
+                                </TableHead>
+                                <TableHead>
+                                    <button type="button" className="flex items-center font-medium" onClick={() => handleSort('type')}>
+                                        Type {renderSortIcon('type')}
+                                    </button>
+                                </TableHead>
+                                <TableHead>
+                                    <button type="button" className="flex items-center font-medium" onClick={() => handleSort('status')}>
+                                        Status {renderSortIcon('status')}
+                                    </button>
+                                </TableHead>
                                 <TableHead>ID</TableHead>
                                 <TableHead className="w-16"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredDeliverables.map((deliverable) => (
+                            {paginatedDeliverables.map((deliverable) => (
                                 <TableRow
                                     key={deliverable.id ?? ''}
                                     className="cursor-pointer hover:bg-muted/50"
+                                    tabIndex={0}
+                                    role="button"
                                     onClick={() => handleRowClick(deliverable.id ?? undefined)}
+                                    onKeyDown={(e) => handleRowKeyDown(e, deliverable.id ?? undefined)}
                                 >
                                     <TableCell className="font-medium">
                                         {deliverable.title}
@@ -209,11 +279,15 @@ export function DeliverableListPage() {
                                     </TableCell>
                                     <TableCell>
                                         <Badge
-                                            className={getStatusColor(
+                                            className={`${getStatusColor(
                                                 deliverable.status ?? undefined,
                                                 DELIVERABLE_STATUS_COLORS
-                                            )}
+                                            )} ${getStatusTextColor(
+                                                deliverable.status ?? undefined,
+                                                DELIVERABLE_STATUS_TEXT_COLORS
+                                            )}`}
                                         >
+                                            {renderStatusIcon(deliverable.status ?? undefined)}
                                             {deliverable.status}
                                         </Badge>
                                     </TableCell>
@@ -225,10 +299,11 @@ export function DeliverableListPage() {
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8 text-destructive hover:text-destructive"
-                                           onClick={() =>
-                                                 deliverable.id && handleDelete(deliverable.id)
-                                             }
+                                            onClick={() =>
+                                                deliverable.id && setDeleteTargetId(deliverable.id)
+                                            }
                                             disabled={deleteLoading}
+                                            aria-label={`Delete deliverable ${deliverable.title}`}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -237,21 +312,33 @@ export function DeliverableListPage() {
                             ))}
                         </TableBody>
                     </Table>
+                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                    </>
                 ) : (
-                    <p className="text-muted-foreground text-sm">No deliverables found.</p>
+                    <EmptyState
+                        description="No deliverables found."
+                        action={{ label: 'New Deliverable', onClick: () => setCreateDialogOpen(true) }}
+                    />
                 )}
             </DataPanel>
 
             <CreateDeliverableDialog
                 open={createDialogOpen}
                 onOpenChange={setCreateDialogOpen}
-                projectId={searchParams.get('project') ?? ''}
-                onSuccess={(deliverableId) => {
+                projectId={projectId}
+                onSuccess={() => {
+                    toast.success('Deliverable created successfully');
                     refetch();
-                    if (deliverableId) {
-                        navigate(`/deliverables/${deliverableId}`);
-                    }
                 }}
+            />
+            <ConfirmDialog
+                open={!!deleteTargetId}
+                onOpenChange={(open) => !open && setDeleteTargetId(null)}
+                title="Delete Deliverable"
+                description="Are you sure you want to delete this deliverable? This action cannot be undone."
+                confirmLabel="Delete"
+                variant="destructive"
+                onConfirm={handleDelete}
             />
         </div>
     );

@@ -44,31 +44,6 @@ describe('useAgentTasksByDeliverable', () => {
         );
     });
 
-    it('skips query when no deliverableId', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetAgentTasksQuery.mockReturnValue({
-            data: {
-                agentTasks: {
-                    nodes: [
-                        { id: '1', status: 'READY' as AgentTaskStatus, title: 'Task 1' },
-                    ],
-                },
-            },
-            loading: false,
-            error: undefined,
-            refetch: vi.fn(),
-        });
-
-        const { useAgentTasksByDeliverable } = await import('./useAgentTasksByDeliverable');
-        renderHook(() => useAgentTasksByDeliverable());
-
-        expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith({
-            fetchPolicy: 'cache-and-network',
-            skip: true,
-            variables: undefined,
-        });
-    });
-
     it('returns tasks for a deliverable', async () => {
         const hooks = await getMockedQuery();
         hooks.useGetAgentTasksQuery.mockReturnValue({

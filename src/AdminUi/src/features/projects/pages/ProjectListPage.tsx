@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
     PageHeader,
     DataPanel,
     LoadingState,
     ErrorState,
+    EmptyState,
 } from '@/components/layout';
 import { Button } from '@/components/ui/button';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -18,6 +20,8 @@ import {
 import { useProjects } from '@/features/projects/hooks/useProjects';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
 import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
+import { toast } from 'react-toastify';
+import { Pagination } from '@/components/ui/pagination';
 
 const logger = createModuleLogger('ProjectListPage');
 
@@ -25,14 +29,26 @@ export function ProjectListPage() {
     const navigate = useNavigate();
     const { projects, loading, error, refetch } = useProjects();
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortField, setSortField] = useState<'name' | 'description' | 'repository'>('name');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const pageSize = 25;
 
     const handleRowClick = (id: string) => {
         logger.debug('Navigating to project', { id });
         navigate(`/projects/${id}`);
     };
 
+    const handleRowKeyDown = (e: React.KeyboardEvent, id: string) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleRowClick(id);
+        }
+    };
+
     const handleSuccess = useCallback(() => {
         logger.info('Project created, refetching list');
+        toast.success('Project created successfully');
         refetch();
     }, [refetch]);
 
@@ -43,6 +59,38 @@ export function ProjectListPage() {
     const handleRetry = useCallback(() => {
         refetch();
     }, [refetch]);
+
+    const sortedProjects = useMemo(() => {
+        if (!projects) return [];
+        return [...projects].filter((p): p is NonNullable<typeof p> => p !== null).sort((a, b) => {
+            const aVal = (a[sortField] ?? '').toString().toLowerCase();
+            const bVal = (b[sortField] ?? '').toString().toLowerCase();
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [projects, sortField, sortDirection]);
+
+    const totalPages = Math.ceil(sortedProjects.length / pageSize);
+    const paginatedProjects = sortedProjects.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
+
+    const handleSort = (field: 'name' | 'description' | 'repository') => {
+        if (sortField === field) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+        setCurrentPage(1);
+    };
+
+    const renderSortIcon = (field: 'name' | 'description' | 'repository') => {
+        if (sortField !== field) return null;
+        return sortDirection === 'asc' ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />;
+    };
 
     if (loading) {
         return (
@@ -78,20 +126,36 @@ export function ProjectListPage() {
             />
             <DataPanel title="Project List">
                 {projects && projects.length > 0 ? (
+                    <>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Repository</TableHead>
+                                <TableHead>
+                                    <button type="button" className="flex items-center font-medium" onClick={() => handleSort('name')}>
+                                        Name {renderSortIcon('name')}
+                                    </button>
+                                </TableHead>
+                                <TableHead>
+                                    <button type="button" className="flex items-center font-medium" onClick={() => handleSort('description')}>
+                                        Description {renderSortIcon('description')}
+                                    </button>
+                                </TableHead>
+                                <TableHead>
+                                    <button type="button" className="flex items-center font-medium" onClick={() => handleSort('repository')}>
+                                        Repository {renderSortIcon('repository')}
+                                    </button>
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {projects.map((project) => project ? (
+                            {paginatedProjects.map((project) => project ? (
                                 <TableRow
                                     key={project.id ?? ''}
                                     className="cursor-pointer hover:bg-muted/50"
+                                    tabIndex={0}
+                                    role="button"
                                     onClick={() => handleRowClick(project.id ?? '')}
+                                    onKeyDown={(e) => handleRowKeyDown(e, project.id ?? '')}
                                 >
                                     <TableCell className="font-medium">
                                         {project.name}
@@ -118,12 +182,13 @@ export function ProjectListPage() {
                             ) : null)}
                         </TableBody>
                     </Table>
+                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                    </>
                 ) : (
-                    <div className="py-8 text-center">
-                        <p className="text-muted-foreground">
-                            No projects yet. Create your first project to get started.
-                        </p>
-                    </div>
+                    <EmptyState
+                        description="No projects yet. Create your first project to get started."
+                        action={{ label: 'Create Project', onClick: () => setCreateDialogOpen(true) }}
+                    />
                 )}
             </DataPanel>
             <CreateProjectDialog

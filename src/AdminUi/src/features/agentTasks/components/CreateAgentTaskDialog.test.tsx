@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 vi.mock('@/generated/graphql', () => ({
     useCreateAgentTaskMutation: vi.fn(),
+    useGetAgentTasksQuery: vi.fn().mockReturnValue({ data: undefined, loading: false, error: undefined, refetch: vi.fn() }),
 }));
 
 const getMockedHooks = async () => {

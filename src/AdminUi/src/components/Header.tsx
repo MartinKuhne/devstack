@@ -1,4 +1,4 @@
-import { Search, Brain, LayoutDashboard, Folder, User } from 'lucide-react';
+import { Search, Cpu, LayoutDashboard, Folder } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,21 +9,13 @@ import {
     CommandGroup,
     CommandItem,
 } from '@/components/ui/command';
-import {
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuContent,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import { useEffect, useState } from 'react';
 import { useAllDeliverables } from '@/features/deliverables/hooks/useAllDeliverables';
 
 const navigationItems = [
     { label: 'Dashboard', to: '/', icon: LayoutDashboard },
     { label: 'Projects', to: '/projects', icon: Folder },
-    { label: 'Large Language Models', to: '/models', icon: Brain },
+    { label: 'Large Language Models', to: '/models', icon: Cpu },
 ];
 
 function Logo() {
@@ -76,12 +68,11 @@ function SearchBar() {
                                 key={item.to}
                                 onSelect={() => {
                                     setOpen(false);
+                                    navigate(item.to);
                                 }}
                             >
                                 <item.icon className="mr-2 h-4 w-4" />
-                                <Link to={item.to} onClick={() => setOpen(false)}>
-                                    {item.label}
-                                </Link>
+                                {item.label}
                             </CommandItem>
                         ))}
                     </CommandGroup>
@@ -109,23 +100,6 @@ function SearchBar() {
     );
 }
 
-function UserMenu() {
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                    <User className="h-5 w-5" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Log out</DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-}
-
 export function Header() {
     return (
         <header className="flex h-16 items-center justify-between border-b px-4 md:px-6">
@@ -134,7 +108,6 @@ export function Header() {
             </div>
             <div className="flex items-center gap-4">
                 <SearchBar />
-                <UserMenu />
             </div>
         </header>
     );

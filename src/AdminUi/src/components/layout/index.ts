@@ -18,3 +18,9 @@ export type { LoadingStateProps } from './LoadingState';
 
 export { FormField, FormSection, FormGrid } from './FormSection';
 export type { FormFieldProps, FormSectionProps, FormGridProps } from './FormSection';
+
+export { DetailLayout } from './DetailLayout';
+export type { BreadcrumbItem, DetailLayoutProps } from './DetailLayout';
+
+export { ActivityTimeline } from './ActivityTimeline';
+export type { ActivityEvent, ActivityTimelineProps } from './ActivityTimeline';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '@/components/layout';
+import { PageHeader, LoadingState, ErrorState, EmptyState } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,34 +17,11 @@ import { useDeliverableCounts } from '@/features/dashboard/hooks/useDeliverableC
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
 import {
     DELIVERABLE_STATUS_COLORS,
+    DELIVERABLE_STATUS_TEXT_COLORS,
     getStatusColor,
+    getStatusTextColor,
 } from '@/lib/constants';
-import { ErrorState } from '@/components/layout';
-import { Skeleton } from '@/components/ui/skeleton';
-
-interface StatCardProps {
-    title: string;
-    value: number;
-    variant: 'default' | 'warning' | 'danger';
-    description: string;
-}
-
-export function StatCard({ title, value, variant, description }: StatCardProps) {
-    const badgeVariant = variant === 'danger' ? 'destructive' : variant === 'warning' ? 'secondary' : 'default';
-    
-    return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <Badge variant={badgeVariant}>{value}</Badge>
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{value}</div>
-                <p className="text-xs text-muted-foreground">{description}</p>
-            </CardContent>
-        </Card>
-    );
-}
+import { StatCard } from '@/features/dashboard/components/StatCard';
 
 export function DashboardPage() {
     const navigate = useNavigate();
@@ -62,7 +39,9 @@ export function DashboardPage() {
         deliverablesRejected,
         loading,
         error,
+        refetch,
     } = useDeliverableCounts();
+
     const [showCreateProject, setShowCreateProject] = useState(false);
 
     const hasData = deliverablesDraft > 0 || deliverablesDesign > 0 || deliverablesPlan > 0 || deliverablesImplement > 0 || deliverablesMerge > 0 || deliverablesDeploy > 0 || deliverablesTest > 0 || deliverablesDone > 0 || deliverablesNeedsReview > 0 || deliverablesFailed > 0 || deliverablesRejected > 0;
@@ -84,22 +63,8 @@ export function DashboardPage() {
     if (loading) {
         return (
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <Skeleton className="h-8 w-48" />
-                        <Skeleton className="h-4 w-64 mt-2" />
-                    </div>
-                    <Skeleton className="h-10 w-32" />
-                </div>
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="space-y-3">
-                            {[1, 2, 3, 4].map((i) => (
-                                <Skeleton key={i} className="h-4 w-full" />
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                <PageHeader title="Dashboard" description="Welcome to your DevStack dashboard." />
+                <LoadingState cards={2} rows={4} />
             </div>
         );
     }
@@ -110,7 +75,7 @@ export function DashboardPage() {
                 <PageHeader title="Dashboard" description="Welcome to your DevStack dashboard." />
                 <ErrorState
                     message={error.message}
-                    onRetry={() => window.location.reload()}
+                    onRetry={() => refetch()}
                 />
             </div>
         );
@@ -125,11 +90,10 @@ export function DashboardPage() {
             />
 
             {!hasData && (
-                <Card>
-                    <CardContent className="pt-6">
-                        <p className="text-center text-muted-foreground">No data available yet. Create your first project to get started.</p>
-                    </CardContent>
-                </Card>
+                <EmptyState
+                    description="No data available yet. Create your first project to get started."
+                    action={{ label: 'Create Project', onClick: () => setShowCreateProject(true) }}
+                />
             )}
 
             {hasData && (
@@ -165,7 +129,7 @@ export function DashboardPage() {
                             {statusCounts.map(({ status, count }) => (
                                 <TableRow key={status}>
                                     <TableCell>
-                                        <Badge className={getStatusColor(status, DELIVERABLE_STATUS_COLORS)}>
+                                        <Badge className={`${getStatusColor(status, DELIVERABLE_STATUS_COLORS)} ${getStatusTextColor(status, DELIVERABLE_STATUS_TEXT_COLORS)}`}>
                                             {status.replace('_', ' ')}
                                         </Badge>
                                     </TableCell>

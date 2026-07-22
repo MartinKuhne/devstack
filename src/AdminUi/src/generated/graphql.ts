@@ -791,10 +791,10 @@ export type GetAgentTaskQueryVariables = Exact<{
 }>;
 
 
-export type GetAgentTaskQuery = { __typename?: 'Query', agentTask?: { __typename?: 'AgentTask', id: any, projectId: any, deliverableId: any, title: string, status: AgentTaskStatus, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null, deliverable?: { __typename?: 'Deliverable', id: any, title: string } | null, project?: { __typename?: 'Project', id: any, name: string } | null } | null };
+export type GetAgentTaskQuery = { __typename?: 'Query', agentTask?: { __typename?: 'AgentTask', id: any, projectId: any, deliverableId: any, title: string, status: AgentTaskStatus, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null, deliverable?: { __typename?: 'Deliverable', id: any, title: string } | null, project?: { __typename?: 'Project', id: any, name: string, repository: string } | null } | null };
 
 export type GetAgentTasksQueryVariables = Exact<{
-  deliverableId?: InputMaybe<Scalars['UUID']['input']>;
+  deliverableId: Scalars['UUID']['input'];
 }>;
 
 
@@ -817,7 +817,7 @@ export type GetDeliverableQueryVariables = Exact<{
 }>;
 
 
-export type GetDeliverableQuery = { __typename?: 'Query', deliverable?: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null } | null };
+export type GetDeliverableQuery = { __typename?: 'Query', deliverable?: { __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null, agentTasks: Array<{ __typename?: 'AgentTask', id: any, title: string, status: AgentTaskStatus, promptTokens?: number | null, completionTokens?: number | null }> } | null };
 
 export type ModelConfigurationsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1376,6 +1376,7 @@ export const GetAgentTaskDocument = gql`
     project {
       id
       name
+      repository
     }
   }
 }
@@ -1417,7 +1418,7 @@ export type GetAgentTaskLazyQueryHookResult = ReturnType<typeof useGetAgentTaskL
 export type GetAgentTaskSuspenseQueryHookResult = ReturnType<typeof useGetAgentTaskSuspenseQuery>;
 export type GetAgentTaskQueryResult = Apollo.QueryResult<GetAgentTaskQuery, GetAgentTaskQueryVariables>;
 export const GetAgentTasksDocument = gql`
-    query GetAgentTasks($deliverableId: UUID) {
+    query GetAgentTasks($deliverableId: UUID!) {
   agentTasks(where: {deliverableId: {eq: $deliverableId}}) {
     nodes {
       id
@@ -1464,7 +1465,7 @@ export const GetAgentTasksDocument = gql`
  *   },
  * });
  */
-export function useGetAgentTasksQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables>) {
+export function useGetAgentTasksQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetAgentTasksQuery, GetAgentTasksQueryVariables> & ({ variables: GetAgentTasksQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return ApolloReactHooks.useQuery<GetAgentTasksQuery, GetAgentTasksQueryVariables>(GetAgentTasksDocument, options);
       }
@@ -1618,6 +1619,13 @@ export const GetDeliverableDocument = gql`
     deploymentPlan
     blocking
     design
+    agentTasks {
+      id
+      title
+      status
+      promptTokens
+      completionTokens
+    }
   }
 }
     `;

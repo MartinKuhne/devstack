@@ -73,19 +73,6 @@ export { Skeleton } from './skeleton';
 export { Separator } from './separator';
 
 export {
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-    TooltipProvider,
-} from './tooltip';
-
-export {
-    Popover,
-    PopoverTrigger,
-    PopoverContent,
-} from './popover';
-
-export {
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
@@ -110,11 +97,6 @@ export {
 } from './tabs';
 
 export {
-    ScrollArea,
-    ScrollBar,
-} from './scroll-area';
-
-export {
     Command,
     CommandDialog,
     CommandInput,
@@ -125,3 +107,7 @@ export {
     CommandSeparator,
     CommandShortcut,
 } from './command';
+
+export { Progress } from './progress';
+
+export { Pagination } from './pagination';

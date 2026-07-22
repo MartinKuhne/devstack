@@ -7,6 +7,7 @@ import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import './index.css';
 import App from './App.tsx';
 import { setupGlobalErrorHandlers } from './lib/logging';
+import { ProjectProvider } from './contexts/ProjectContext';
 
 if (import.meta.env.DEV) {
     loadDevMessages();
@@ -18,7 +19,9 @@ setupGlobalErrorHandlers();
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <ApolloWrapper>
-            <App />
+            <ProjectProvider>
+                <App />
+            </ProjectProvider>
             <ToastContainer position="top-right" autoClose={3000} />
         </ApolloWrapper>
     </StrictMode>

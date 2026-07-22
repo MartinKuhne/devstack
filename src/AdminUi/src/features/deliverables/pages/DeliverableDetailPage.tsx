@@ -1,8 +1,7 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useDeliverable } from '../hooks/useDeliverable';
 import { useDeleteDeliverable } from '../hooks/useDeleteDeliverable';
 import { EditDeliverableDialog } from '../components/EditDeliverableDialog';
@@ -16,40 +15,35 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'react-toastify';
-import { useAgentTasksByDeliverable } from '@/features/agentTasks/hooks/useAgentTasksByDeliverable';
 import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
 import {
     DELIVERABLE_STATUS_COLORS,
+    DELIVERABLE_STATUS_TEXT_COLORS,
     AGENT_TASK_STATUS_COLORS,
+    AGENT_TASK_STATUS_TEXT_COLORS,
     getStatusColor,
+    getStatusTextColor,
+    getStatusIcon,
 } from '@/lib/constants';
 import { MarkdownViewer } from '@/components/MarkdownViewer';
-import { ErrorState } from '@/components/layout';
+import { LoadingState, ErrorState, EmptyState, DetailLayout, ActivityTimeline } from '@/components/layout';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Skeleton } from '@/components/ui/skeleton';
+
 export function DeliverableDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { deliverable, loading, error, refetch } = useDeliverable(id ?? '');
-    const {
-        agentTasks,
-        loading: agentTasksLoading,
-        error: agentTasksError,
-        refetch: refetchAgentTasks,
-    } = useAgentTasksByDeliverable(id ?? '');
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
     const [updateDeliverableStatus, { loading: transitionLoading }] =
         useUpdateDeliverableStatusMutation();
     const { deleteDeliverable, loading: deleteLoading } = useDeleteDeliverable();
     const [selectedStatus, setSelectedStatus] = useState('');
     const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     const handleDelete = async () => {
         if (!deliverable?.id) return;
-        if (
-            !confirm(
-                'Are you sure you want to delete this deliverable? This action cannot be undone.'
-            )
-        )
-            return;
 
         const result = await deleteDeliverable(deliverable.id);
 
@@ -59,45 +53,44 @@ export function DeliverableDetailPage() {
         } else {
             toast.error(result.errors?.join(', ') ?? 'Failed to delete deliverable');
         }
+        setConfirmDeleteOpen(false);
+    };
+
+    const renderStatusIcon = (status: string | undefined, entity: 'deliverable' | 'project' | 'agentTask') => {
+        const Icon = getStatusIcon(status, entity);
+        return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
+    };
+
+    const handleRowKeyDown = (e: React.KeyboardEvent, path: string) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            navigate(path);
+        }
     };
 
     if (loading) {
         return (
             <div className="space-y-6">
-                <div>
-                    <div className="h-8 w-64 bg-muted rounded" />
-                    <div className="h-4 w-32 mt-2 bg-muted rounded" />
-                </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Deliverable Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="h-20 bg-muted rounded" />
-                        <div className="h-20 bg-muted rounded" />
-                    </CardContent>
-                </Card>
+                <DetailLayout
+                    breadcrumbs={[{ label: 'Deliverables', to: '/deliverables' }, { label: 'Loading...' }]}
+                    title="Loading..."
+                />
+                <LoadingState cards={1} rows={3} />
             </div>
         );
     }
 
     if (error || !deliverable) {
         return (
-            <div className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Deliverable</h2>
-                </div>
+            <DetailLayout
+                breadcrumbs={[{ label: 'Deliverables', to: '/deliverables' }, { label: 'Error' }]}
+                title="Deliverable"
+            >
                 <ErrorState
                     message={error?.message ?? 'Deliverable not found'}
                     onRetry={() => refetch()}
                 />
-                <Button
-                    variant="outline"
-                    onClick={() => navigate('/deliverables')}
-                >
-                    Back to Deliverables
-                </Button>
-            </div>
+            </DetailLayout>
         );
     }
 
@@ -124,38 +117,32 @@ export function DeliverableDetailPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-[1fr_auto_auto] gap-4 items-center border-b pb-4">
-                <h1 className="text-2xl font-bold">{deliverable.title}</h1>
-                <div className="text-center">
-                    <span className="text-xs uppercase text-muted-foreground block mb-1">Type</span>
-                    <span>{deliverable.type}</span>
-                </div>
-                <div className="text-center">
-                    <span className="text-xs uppercase text-muted-foreground block mb-1">
-                        Status
-                    </span>
-                    <Badge
-                        className={getStatusColor(
-                            deliverable.status ?? undefined,
-                            DELIVERABLE_STATUS_COLORS
-                        )}
-                    >
-                        {deliverable.status}
-                    </Badge>
-                </div>
-            </div>
-
-            <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => navigate('/deliverables')}>
-                    Back to List
-                </Button>
-                <Button onClick={() => setUpdateDialogOpen(true)}>Edit</Button>
-                <Button variant="destructive" onClick={handleDelete} disabled={deleteLoading}>
-                    Delete
-                </Button>
-            </div>
-
+        <DetailLayout
+            breadcrumbs={[
+                deliverable.projectId ? { label: 'Projects', to: '/projects' } : { label: 'Deliverables', to: '/deliverables' },
+                deliverable.projectId ? { label: 'Deliverables', to: `/deliverables?project=${deliverable.projectId}` } : { label: deliverable.title ?? 'Deliverable' },
+                { label: deliverable.title ?? 'Deliverable' },
+            ].slice(0, deliverable.projectId ? 3 : 2)}
+            title={deliverable.title ?? 'Deliverable'}
+            typeLabel={deliverable.type}
+            statusNode={
+                <Badge className={`${getStatusColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_COLORS)} ${getStatusTextColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_TEXT_COLORS)}`}>
+                    {renderStatusIcon(deliverable.status ?? undefined, 'deliverable')}
+                    {deliverable.status}
+                </Badge>
+            }
+            actions={
+                <>
+                    <Button variant="outline" onClick={() => navigate('/deliverables')}>
+                        Back to List
+                    </Button>
+                    <Button onClick={() => setUpdateDialogOpen(true)}>Edit</Button>
+                    <Button variant="destructive" onClick={() => setConfirmDeleteOpen(true)} disabled={deleteLoading}>
+                        Delete
+                    </Button>
+                </>
+            }
+        >
             <Card>
                 <CardHeader>
                     <CardTitle>Change Status</CardTitle>
@@ -313,25 +300,26 @@ export function DeliverableDetailPage() {
                             </div>
                         </CardHeader>
                         <CardContent>
-                            {agentTasksError ? (
-                                <p className="text-sm text-destructive">
-                                    {agentTasksError.message}
-                                </p>
-                            ) : agentTasksLoading ? (
+                            {loading ? (
                                 <div className="space-y-2">
                                     {[1, 2, 3].map((item) => (
-                                        <Skeleton key={item} className="h-10 w-full" />
+                                        <Skeleton key={item} className="h-10 w-full animate-pulse" />
                                     ))}
                                 </div>
-                            ) : agentTasks && agentTasks.length > 0 ? (
+                            ) : deliverable.agentTasks && deliverable.agentTasks.length > 0 ? (
                                 <div className="space-y-2">
-                                    {agentTasks.map((task) =>
+                                    {deliverable.agentTasks.map((task) =>
                                         task ? (
                                             <div
                                                 key={task.id ?? ''}
                                                 className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 cursor-pointer"
+                                                tabIndex={0}
+                                                role="button"
                                                 onClick={() =>
                                                     task.id && navigate(`/agent-tasks/${task.id}`)
+                                                }
+                                                onKeyDown={(e) =>
+                                                    task.id && handleRowKeyDown(e, `/agent-tasks/${task.id}`)
                                                 }
                                             >
                                                 <div className="flex-1 min-w-0">
@@ -345,11 +333,15 @@ export function DeliverableDetailPage() {
                                                     </p>
                                                 </div>
                                                 <Badge
-                                                    className={getStatusColor(
+                                                    className={`${getStatusColor(
                                                         task.status ?? undefined,
                                                         AGENT_TASK_STATUS_COLORS
-                                                    )}
+                                                    )} ${getStatusTextColor(
+                                                        task.status ?? undefined,
+                                                        AGENT_TASK_STATUS_TEXT_COLORS
+                                                    )}`}
                                                 >
+                                                    {renderStatusIcon(task.status ?? undefined, 'agentTask')}
                                                     {task.status}
                                                 </Badge>
                                             </div>
@@ -357,18 +349,28 @@ export function DeliverableDetailPage() {
                                     )}
                                 </div>
                             ) : (
-                                <p className="text-muted-foreground text-sm">
-                                    No agent tasks for this deliverable.
-                                </p>
+                                <EmptyState
+                                    description="No agent tasks for this deliverable."
+                                    action={{ label: 'New', onClick: () => setCreateAgentTaskDialogOpen(true) }}
+                                />
                             )}
                         </CardContent>
                     </Card>
                 </div>
             </div>
 
-            <div className="text-sm text-muted-foreground">
-                <p>Deliverable ID: {deliverable.id ?? '-'}</p>
-            </div>
+            {deliverable.projectId && (
+                <div className="text-sm text-muted-foreground">
+                    <p>
+                        Project:{' '}
+                        <Link to={`/projects/${deliverable.projectId}`} className="text-blue-600 hover:underline">
+                            View project
+                        </Link>
+                    </p>
+                </div>
+            )}
+
+            <ActivityTimeline events={[]} />
 
             <EditDeliverableDialog
                 open={updateDialogOpen}
@@ -386,7 +388,10 @@ export function DeliverableDetailPage() {
                     blocking: deliverable.blocking,
                     design: deliverable.design,
                 }}
-                onSuccess={() => refetch()}
+                onSuccess={() => {
+                    toast.success('Deliverable updated successfully');
+                    refetch();
+                }}
             />
             <CreateAgentTaskDialog
                 open={createAgentTaskDialogOpen}
@@ -394,10 +399,19 @@ export function DeliverableDetailPage() {
                 deliverableId={id ?? ''}
                 projectId={deliverable?.projectId ?? ''}
                 onSuccess={() => {
-                    refetchAgentTasks();
+                    toast.success('Agent task created successfully');
                     refetch();
                 }}
             />
-        </div>
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                title="Delete Deliverable"
+                description="Are you sure you want to delete this deliverable? This action cannot be undone."
+                confirmLabel="Delete"
+                variant="destructive"
+                onConfirm={handleDelete}
+            />
+        </DetailLayout>
     );
 }

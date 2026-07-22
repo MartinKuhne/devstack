@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, LayoutDashboard, Folder, Brain, GitBranch, Sun, Moon } from 'lucide-react';
+import { Menu, LayoutDashboard, Folder, Brain, Cpu, GitBranch, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { useProjects } from '@/features/projects/hooks/useProjects';
 import { createModuleLogger } from '@/lib/logging';
+import { useProjectContext } from '@/contexts/ProjectContext';
 
 const logger = createModuleLogger('AppShell');
 
@@ -31,9 +32,7 @@ function SidebarContent() {
     const location = useLocation();
     const navigate = useNavigate();
     const { projects, loading } = useProjects();
-
-    const currentProjectId = location.pathname.match(/\/projects\/([^/]+)/)?.[1] ?? '';
-    const currentDeliverableId = location.pathname.match(/\/deliverables\/([^/]+)/)?.[1] ?? '';
+    const { projectId, setProjectId } = useProjectContext();
 
     const isActive = (path: string) => {
         if (path === '/') return location.pathname === '/';
@@ -43,15 +42,19 @@ function SidebarContent() {
     const handleProjectSelect = (value: string) => {
         logger.debug('Project selection changed', { projectId: value });
         if (value === 'all') {
+            setProjectId('');
             navigate('/projects');
         } else {
+            setProjectId(value);
             navigate(`/projects/${value}`);
         }
     };
 
+    const hasProject = !!projectId;
+
     return (
         <nav className="p-4 space-y-2">
-            <Select value={currentProjectId || 'all'} onValueChange={handleProjectSelect}>
+            <Select value={projectId || 'all'} onValueChange={handleProjectSelect}>
                 <SelectTrigger className="w-full">
                     <Folder className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Select Project" />
@@ -87,7 +90,7 @@ function SidebarContent() {
 
             <Link to="/models">
                 <Button variant="ghost" className={`w-full justify-start ${isActive('/models') ? 'bg-accent text-accent-foreground' : ''}`}>
-                    <Brain className="mr-2 h-4 w-4" />
+                    <Cpu className="mr-2 h-4 w-4" />
                     Large Language Models
                 </Button>
             </Link>
@@ -99,22 +102,42 @@ function SidebarContent() {
                 </Button>
             </Link>
 
-            {currentProjectId && (
-                <Link to={`/deliverables?project=${currentProjectId}`}>
+            {hasProject ? (
+                <Link to={`/deliverables?project=${projectId}`}>
                     <Button variant="ghost" className={`w-full justify-start ${isActive('/deliverables') ? 'bg-accent text-accent-foreground' : ''}`}>
                         <GitBranch className="mr-2 h-4 w-4" />
                         Deliverables
                     </Button>
                 </Link>
+            ) : (
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start opacity-50 cursor-not-allowed"
+                    disabled
+                    aria-label="Deliverables - select a project first"
+                >
+                    <GitBranch className="mr-2 h-4 w-4" />
+                    Deliverables
+                </Button>
             )}
 
-            {currentDeliverableId && (
+            {hasProject ? (
                 <Link to="/agent-tasks">
                     <Button variant="ghost" className={`w-full justify-start ${isActive('/agent-tasks') ? 'bg-accent text-accent-foreground' : ''}`}>
                         <Brain className="mr-2 h-4 w-4" />
                         Agent Tasks
                     </Button>
                 </Link>
+            ) : (
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start opacity-50 cursor-not-allowed"
+                    disabled
+                    aria-label="Agent Tasks - select a project first"
+                >
+                    <Brain className="mr-2 h-4 w-4" />
+                    Agent Tasks
+                </Button>
             )}
         </nav>
     );

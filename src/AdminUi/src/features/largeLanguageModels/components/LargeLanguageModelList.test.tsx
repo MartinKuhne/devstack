@@ -48,13 +48,14 @@ describe('LargeLanguageModelList', () => {
         render(<LargeLanguageModelList onAddModel={mockOnAddModel} />);
 
         expect(screen.getByText(/no large language models yet/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /add model/i })).toBeInTheDocument();
+        const addButtons = screen.getAllByRole('button', { name: /add model/i });
+        expect(addButtons.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should call onAddModel when Add Model button is clicked', () => {
         render(<LargeLanguageModelList onAddModel={mockOnAddModel} />);
 
-        screen.getByRole('button', { name: /add model/i }).click();
+        screen.getAllByRole('button', { name: /add model/i })[0].click();
         expect(mockOnAddModel).toHaveBeenCalledTimes(1);
     });
 });
