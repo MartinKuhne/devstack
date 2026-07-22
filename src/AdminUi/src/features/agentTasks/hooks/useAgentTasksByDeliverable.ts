@@ -8,7 +8,7 @@ const logger = createModuleLogger('useAgentTasksByDeliverable');
  * Fetches agent tasks for a specific deliverable with optional status filtering.
  */
 export function useAgentTasksByDeliverable(
-    deliverableId?: string,
+    deliverableId: string,
     statusFilter?: AgentTaskStatus[]
 ) {
     const { agentTasks, loading, error, refetch } = useAgentTasks(deliverableId, statusFilter);

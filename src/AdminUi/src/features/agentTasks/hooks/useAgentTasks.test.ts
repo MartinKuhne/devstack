@@ -18,7 +18,7 @@ describe('useAgentTasks', () => {
         vi.clearAllMocks();
     });
 
-    it('returns all tasks when no filter', async () => {
+    it('returns all tasks for the deliverable', async () => {
         const hooks = await getMockedQuery();
         hooks.useGetAgentTasksQuery.mockReturnValue({
             data: {
@@ -59,7 +59,7 @@ describe('useAgentTasks', () => {
         });
 
         const { useAgentTasks } = await import('./useAgentTasks');
-        const { result } = renderHook(() => useAgentTasks(undefined, ['READY']));
+        const { result } = renderHook(() => useAgentTasks('del-123', ['READY']));
 
         expect(result.current.agentTasks).toHaveLength(2);
         expect(result.current.agentTasks.every((t) => t.status === 'READY')).toBe(true);
@@ -130,58 +130,23 @@ describe('useAgentTasks', () => {
         );
     });
 
-    it('skips query and passes no variables when no filter is provided', async () => {
+    it('skips query when deliverableId is empty', async () => {
         const hooks = await getMockedQuery();
         hooks.useGetAgentTasksQuery.mockReturnValue({
-            data: {
-                agentTasks: {
-                    nodes: [
-                        { id: '1', status: 'READY' as AgentTaskStatus, title: 'Task 1' },
-                    ],
-                },
-            },
+            data: { agentTasks: { nodes: [] } },
             loading: false,
             error: undefined,
             refetch: vi.fn(),
         });
 
         const { useAgentTasks } = await import('./useAgentTasks');
-        renderHook(() => useAgentTasks());
-
-        expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith({
-            fetchPolicy: 'cache-and-network',
-            skip: true,
-            variables: {},
-            pollInterval: 5000,
-        });
-    });
-
-    it('does not skip query when projectId is provided', async () => {
-        const hooks = await getMockedQuery();
-        hooks.useGetAgentTasksQuery.mockReturnValue({
-            data: {
-                agentTasks: {
-                    nodes: [
-                        { id: '1', status: 'READY' as AgentTaskStatus, title: 'Task 1' },
-                    ],
-                },
-            },
-            loading: false,
-            error: undefined,
-            refetch: vi.fn(),
-        });
-
-        const { useAgentTasks } = await import('./useAgentTasks');
-        const { result } = renderHook(() => useAgentTasks(undefined, undefined, 'proj-123'));
+        renderHook(() => useAgentTasks(''));
 
         expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith(
             expect.objectContaining({
-                variables: { projectId: 'proj-123' },
-                fetchPolicy: 'cache-and-network',
-                skip: false,
+                skip: true,
             }),
         );
-        expect(result.current.agentTasks).toHaveLength(1);
     });
 
     it('returns loading and error states', async () => {

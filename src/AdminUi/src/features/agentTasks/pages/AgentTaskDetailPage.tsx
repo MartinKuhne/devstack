@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'react-toastify';
 import { createModuleLogger } from '@/lib/logging';
-import { AGENT_TASK_STATUS_COLORS, getStatusColor, getStatusIcon } from '@/lib/constants';
+import { AGENT_TASK_STATUS_COLORS, AGENT_TASK_STATUS_TEXT_COLORS, getStatusColor, getStatusTextColor, getStatusIcon } from '@/lib/constants';
 import { Copy, Check, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import {
     Dialog,
@@ -211,7 +211,7 @@ export function AgentTaskDetailPage() {
             title={agentTask.title ?? 'Agent Task'}
             typeLabel="Agent Task"
             statusNode={
-                <Badge className={getStatusColor(agentTask.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
+                <Badge className={`${getStatusColor(agentTask.status ?? undefined, AGENT_TASK_STATUS_COLORS)} ${getStatusTextColor(agentTask.status ?? undefined, AGENT_TASK_STATUS_TEXT_COLORS)}`}>
                     {renderStatusIcon(agentTask.status ?? undefined)}
                     {agentTask.status}
                 </Badge>

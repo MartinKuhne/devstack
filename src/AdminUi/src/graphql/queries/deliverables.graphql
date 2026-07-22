@@ -59,5 +59,12 @@ query GetDeliverable($id: UUID!) {
         deploymentPlan
         blocking
         design
+        agentTasks {
+            id
+            title
+            status
+            promptTokens
+            completionTokens
+        }
     }
 }

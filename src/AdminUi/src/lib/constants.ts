@@ -94,21 +94,47 @@ const VARIANT_TO_BG: Record<BadgeVariant, string> = {
     warning: 'bg-warning',
 };
 
+const VARIANT_TO_TEXT: Record<BadgeVariant, string> = {
+    default: 'text-primary-foreground',
+    secondary: 'text-foreground',
+    destructive: 'text-destructive-foreground',
+    success: 'text-success-foreground',
+    warning: 'text-warning-foreground',
+};
+
 export const DELIVERABLE_STATUS_COLORS = Object.fromEntries(
     Object.entries(DELIVERABLE_STATUS_VARIANTS).map(([k, v]) => [k, VARIANT_TO_BG[v]])
+) as Record<string, string>;
+
+export const DELIVERABLE_STATUS_TEXT_COLORS = Object.fromEntries(
+    Object.entries(DELIVERABLE_STATUS_VARIANTS).map(([k, v]) => [k, VARIANT_TO_TEXT[v]])
 ) as Record<string, string>;
 
 export const PROJECT_STATUS_COLORS = Object.fromEntries(
     Object.entries(PROJECT_STATUS_VARIANTS).map(([k, v]) => [k, VARIANT_TO_BG[v]])
 ) as Record<string, string>;
 
+export const PROJECT_STATUS_TEXT_COLORS = Object.fromEntries(
+    Object.entries(PROJECT_STATUS_VARIANTS).map(([k, v]) => [k, VARIANT_TO_TEXT[v]])
+) as Record<string, string>;
+
 export const AGENT_TASK_STATUS_COLORS = Object.fromEntries(
     Object.entries(AGENT_TASK_STATUS_VARIANTS).map(([k, v]) => [k, VARIANT_TO_BG[v]])
 ) as Record<string, string>;
 
+export const AGENT_TASK_STATUS_TEXT_COLORS = Object.fromEntries(
+    Object.entries(AGENT_TASK_STATUS_VARIANTS).map(([k, v]) => [k, VARIANT_TO_TEXT[v]])
+) as Record<string, string>;
+
 const DEFAULT_COLOR = 'bg-muted';
+const DEFAULT_TEXT_COLOR = 'text-foreground';
 
 export function getStatusColor(status: string | undefined, colorMap: Record<string, string>): string {
     if (!status) return DEFAULT_COLOR;
     return colorMap[status] || DEFAULT_COLOR;
+}
+
+export function getStatusTextColor(status: string | undefined, colorMap: Record<string, string>): string {
+    if (!status) return DEFAULT_TEXT_COLOR;
+    return colorMap[status] || DEFAULT_TEXT_COLOR;
 }

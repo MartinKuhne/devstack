@@ -15,12 +15,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'react-toastify';
-import { useAgentTasksByDeliverable } from '@/features/agentTasks/hooks/useAgentTasksByDeliverable';
 import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
 import {
     DELIVERABLE_STATUS_COLORS,
+    DELIVERABLE_STATUS_TEXT_COLORS,
     AGENT_TASK_STATUS_COLORS,
+    AGENT_TASK_STATUS_TEXT_COLORS,
     getStatusColor,
+    getStatusTextColor,
     getStatusIcon,
 } from '@/lib/constants';
 import { MarkdownViewer } from '@/components/MarkdownViewer';
@@ -32,12 +34,6 @@ export function DeliverableDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { deliverable, loading, error, refetch } = useDeliverable(id ?? '');
-    const {
-        agentTasks,
-        loading: agentTasksLoading,
-        error: agentTasksError,
-        refetch: refetchAgentTasks,
-    } = useAgentTasksByDeliverable(id ?? '');
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
     const [updateDeliverableStatus, { loading: transitionLoading }] =
         useUpdateDeliverableStatusMutation();
@@ -130,7 +126,7 @@ export function DeliverableDetailPage() {
             title={deliverable.title ?? 'Deliverable'}
             typeLabel={deliverable.type}
             statusNode={
-                <Badge className={getStatusColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_COLORS)}>
+                <Badge className={`${getStatusColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_COLORS)} ${getStatusTextColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_TEXT_COLORS)}`}>
                     {renderStatusIcon(deliverable.status ?? undefined, 'deliverable')}
                     {deliverable.status}
                 </Badge>
@@ -304,20 +300,15 @@ export function DeliverableDetailPage() {
                             </div>
                         </CardHeader>
                         <CardContent>
-                            {agentTasksError ? (
-                                <ErrorState
-                                    message={agentTasksError.message}
-                                    onRetry={() => refetchAgentTasks()}
-                                />
-                            ) : agentTasksLoading ? (
+                            {loading ? (
                                 <div className="space-y-2">
                                     {[1, 2, 3].map((item) => (
                                         <Skeleton key={item} className="h-10 w-full animate-pulse" />
                                     ))}
                                 </div>
-                            ) : agentTasks && agentTasks.length > 0 ? (
+                            ) : deliverable.agentTasks && deliverable.agentTasks.length > 0 ? (
                                 <div className="space-y-2">
-                                    {agentTasks.map((task) =>
+                                    {deliverable.agentTasks.map((task) =>
                                         task ? (
                                             <div
                                                 key={task.id ?? ''}
@@ -342,10 +333,13 @@ export function DeliverableDetailPage() {
                                                     </p>
                                                 </div>
                                                 <Badge
-                                                    className={getStatusColor(
+                                                    className={`${getStatusColor(
                                                         task.status ?? undefined,
                                                         AGENT_TASK_STATUS_COLORS
-                                                    )}
+                                                    )} ${getStatusTextColor(
+                                                        task.status ?? undefined,
+                                                        AGENT_TASK_STATUS_TEXT_COLORS
+                                                    )}`}
                                                 >
                                                     {renderStatusIcon(task.status ?? undefined, 'agentTask')}
                                                     {task.status}
@@ -406,7 +400,6 @@ export function DeliverableDetailPage() {
                 projectId={deliverable?.projectId ?? ''}
                 onSuccess={() => {
                     toast.success('Agent task created successfully');
-                    refetchAgentTasks();
                     refetch();
                 }}
             />

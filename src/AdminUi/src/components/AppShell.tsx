@@ -1,7 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, LayoutDashboard, Folder, Brain, Cpu, GitBranch, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
@@ -15,8 +14,6 @@ import {
 import { useProjects } from '@/features/projects/hooks/useProjects';
 import { createModuleLogger } from '@/lib/logging';
 import { useProjectContext } from '@/contexts/ProjectContext';
-import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
-import { AgentTaskStatus } from '@/generated/graphql';
 
 const logger = createModuleLogger('AppShell');
 
@@ -36,12 +33,6 @@ function SidebarContent() {
     const navigate = useNavigate();
     const { projects, loading } = useProjects();
     const { projectId, setProjectId } = useProjectContext();
-
-    const { agentTasks: attentionTasks } = useAgentTasks(
-        undefined,
-        [AgentTaskStatus.NEEDS_REVIEW, AgentTaskStatus.FAILED]
-    );
-    const attentionCount = attentionTasks.length;
 
     const isActive = (path: string) => {
         if (path === '/') return location.pathname === '/';
@@ -135,11 +126,6 @@ function SidebarContent() {
                     <Button variant="ghost" className={`w-full justify-start ${isActive('/agent-tasks') ? 'bg-accent text-accent-foreground' : ''}`}>
                         <Brain className="mr-2 h-4 w-4" />
                         Agent Tasks
-                        {attentionCount > 0 && (
-                            <Badge variant="destructive" className="ml-auto text-xs">
-                                {attentionCount}
-                            </Badge>
-                        )}
                     </Button>
                 </Link>
             ) : (

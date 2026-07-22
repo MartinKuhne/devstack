@@ -26,7 +26,7 @@ import { useProjectContext } from '@/contexts/ProjectContext';
 import { useDeleteDeliverable } from '../hooks/useDeleteDeliverable';
 import { toast } from 'react-toastify';
 import type { DeliverableStatus, DeliverableType } from '@/generated/graphql';
-import { DELIVERABLE_STATUS_COLORS, getStatusColor, getStatusIcon } from '@/lib/constants';
+import { DELIVERABLE_STATUS_COLORS, DELIVERABLE_STATUS_TEXT_COLORS, getStatusColor, getStatusTextColor, getStatusIcon } from '@/lib/constants';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Pagination } from '@/components/ui/pagination';
 
@@ -279,10 +279,13 @@ export function DeliverableListPage() {
                                     </TableCell>
                                     <TableCell>
                                         <Badge
-                                            className={getStatusColor(
+                                            className={`${getStatusColor(
                                                 deliverable.status ?? undefined,
                                                 DELIVERABLE_STATUS_COLORS
-                                            )}
+                                            )} ${getStatusTextColor(
+                                                deliverable.status ?? undefined,
+                                                DELIVERABLE_STATUS_TEXT_COLORS
+                                            )}`}
                                         >
                                             {renderStatusIcon(deliverable.status ?? undefined)}
                                             {deliverable.status}

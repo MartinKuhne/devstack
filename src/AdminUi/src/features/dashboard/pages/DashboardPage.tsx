@@ -12,20 +12,16 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Plus, BrainCircuit, Clock, Inbox } from 'lucide-react';
+import { Plus, BrainCircuit, Clock } from 'lucide-react';
 import { useDeliverableCounts } from '@/features/dashboard/hooks/useDeliverableCounts';
 import { CreateProjectDialog } from '@/features/projects/components/CreateProjectDialog';
 import {
     DELIVERABLE_STATUS_COLORS,
+    DELIVERABLE_STATUS_TEXT_COLORS,
     getStatusColor,
+    getStatusTextColor,
 } from '@/lib/constants';
 import { StatCard } from '@/features/dashboard/components/StatCard';
-import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
-import { AgentTaskStatus } from '@/generated/graphql';
-import { toast } from 'react-toastify';
-import {
-    useUpdateAgentTaskStatusMutation,
-} from '@/generated/graphql';
 
 export function DashboardPage() {
     const navigate = useNavigate();
@@ -46,13 +42,6 @@ export function DashboardPage() {
         refetch,
     } = useDeliverableCounts();
 
-    const { agentTasks: attentionTasks } = useAgentTasks(
-        undefined,
-        [AgentTaskStatus.NEEDS_REVIEW, AgentTaskStatus.FAILED]
-    );
-
-    const [updateAgentTaskStatus] = useUpdateAgentTaskStatusMutation();
-
     const [showCreateProject, setShowCreateProject] = useState(false);
 
     const hasData = deliverablesDraft > 0 || deliverablesDesign > 0 || deliverablesPlan > 0 || deliverablesImplement > 0 || deliverablesMerge > 0 || deliverablesDeploy > 0 || deliverablesTest > 0 || deliverablesDone > 0 || deliverablesNeedsReview > 0 || deliverablesFailed > 0 || deliverablesRejected > 0;
@@ -70,39 +59,6 @@ export function DashboardPage() {
         { status: 'FAILED', count: deliverablesFailed },
         { status: 'REJECTED', count: deliverablesRejected },
     ];
-
-    const handleApproveTask = async (taskId: string) => {
-        try {
-            await updateAgentTaskStatus({
-                variables: { id: taskId, targetStatus: AgentTaskStatus.DONE },
-            });
-            toast.success('Task approved');
-        } catch {
-            toast.error('Failed to approve task');
-        }
-    };
-
-    const handleRejectTask = async (taskId: string) => {
-        try {
-            await updateAgentTaskStatus({
-                variables: { id: taskId, targetStatus: AgentTaskStatus.REJECTED },
-            });
-            toast.success('Task rejected');
-        } catch {
-            toast.error('Failed to reject task');
-        }
-    };
-
-    const handleRetryTask = async (taskId: string) => {
-        try {
-            await updateAgentTaskStatus({
-                variables: { id: taskId, targetStatus: AgentTaskStatus.READY },
-            });
-            toast.success('Task retry initiated');
-        } catch {
-            toast.error('Failed to retry task');
-        }
-    };
 
     if (loading) {
         return (
@@ -157,58 +113,6 @@ export function DashboardPage() {
                 </div>
             )}
 
-            {attentionTasks.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Inbox className="h-5 w-5" />
-                            Needs your attention
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {attentionTasks.map((task) =>
-                                task ? (
-                                    <div
-                                        key={task.id}
-                                        className="flex items-center justify-between p-3 rounded-lg border"
-                                    >
-                                        <div className="flex-1 min-w-0">
-                                            <button
-                                                className="text-sm font-medium hover:underline truncate text-left"
-                                                onClick={() => task.id && navigate(`/agent-tasks/${task.id}`)}
-                                            >
-                                                {task.title}
-                                            </button>
-                                            <p className="text-xs text-muted-foreground">
-                                                {task.status?.replace(/_/g, ' ')}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-2 ml-4">
-                                            {task.status === AgentTaskStatus.NEEDS_REVIEW && (
-                                                <>
-                                                    <Button size="sm" onClick={() => task.id && handleApproveTask(task.id)}>
-                                                        Approve
-                                                    </Button>
-                                                    <Button size="sm" variant="outline" onClick={() => task.id && handleRejectTask(task.id)}>
-                                                        Reject
-                                                    </Button>
-                                                </>
-                                            )}
-                                            {task.status === AgentTaskStatus.FAILED && (
-                                                <Button size="sm" variant="outline" onClick={() => task.id && handleRetryTask(task.id)}>
-                                                    Retry
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ) : null
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
             <Card>
                 <CardHeader>
                     <CardTitle>Count of Deliverables per Status</CardTitle>
@@ -225,7 +129,7 @@ export function DashboardPage() {
                             {statusCounts.map(({ status, count }) => (
                                 <TableRow key={status}>
                                     <TableCell>
-                                        <Badge className={getStatusColor(status, DELIVERABLE_STATUS_COLORS)}>
+                                        <Badge className={`${getStatusColor(status, DELIVERABLE_STATUS_COLORS)} ${getStatusTextColor(status, DELIVERABLE_STATUS_TEXT_COLORS)}`}>
                                             {status.replace('_', ' ')}
                                         </Badge>
                                     </TableCell>
