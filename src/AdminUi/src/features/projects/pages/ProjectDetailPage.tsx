@@ -22,7 +22,7 @@ import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
 import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
 import { useDeleteProjectMutation } from '@/generated/graphql';
 import { toast } from 'react-toastify';
-import { PROJECT_STATUS_COLORS, AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import { DELIVERABLE_STATUS_COLORS, AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
 import { createModuleLogger } from '@/lib/logging';
 
 const logger = createModuleLogger('ProjectDetailPage');
@@ -42,7 +42,7 @@ export function ProjectDetailPage() {
         loading: agentTasksLoading,
         error: agentTasksError,
         refetch: refetchAgentTasks,
-    } = useAgentTasks();
+    } = useAgentTasks(undefined, undefined, id);
     const { setProjectId } = useProjectContext();
 
     useEffect(() => {
@@ -256,7 +256,7 @@ export function ProjectDetailPage() {
                                                         <Badge
                                                             className={getStatusColor(
                                                                 deliverable.status ?? undefined,
-                                                                PROJECT_STATUS_COLORS
+                                                                DELIVERABLE_STATUS_COLORS
                                                             )}
                                                         >
                                                             {deliverable.status}

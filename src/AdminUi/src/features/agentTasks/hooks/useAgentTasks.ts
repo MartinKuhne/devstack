@@ -9,11 +9,15 @@ const logger = createModuleLogger('useAgentTasks');
  * When deliverableId is provided, only tasks for that deliverable are fetched.
  * When deliverableId is omitted, all agent tasks across all deliverables are fetched.
  */
-export function useAgentTasks(deliverableId?: string, statusFilter?: AgentTaskStatus[]) {
+export function useAgentTasks(deliverableId?: string, statusFilter?: AgentTaskStatus[], projectId?: string) {
+    const hasFilter = !!deliverableId || !!projectId;
     const { data, loading, error, refetch } = useGetAgentTasksQuery({
-        variables: deliverableId ? { deliverableId } : undefined,
+        variables: {
+            ...(deliverableId ? { deliverableId } : {}),
+            ...(projectId ? { projectId } : {}),
+        },
         fetchPolicy: 'cache-and-network',
-        skip: !deliverableId,
+        skip: !hasFilter,
     });
 
     const allTasks = data?.agentTasks?.nodes ?? [];

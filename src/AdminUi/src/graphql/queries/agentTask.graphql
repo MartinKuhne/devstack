@@ -22,12 +22,13 @@ query GetAgentTask($id: UUID!) {
         project {
             id
             name
+            repository
         }
     }
 }
 
-query GetAgentTasks($deliverableId: UUID) {
-    agentTasks(where: { deliverableId: { eq: $deliverableId } }) {
+query GetAgentTasks($deliverableId: UUID, $projectId: UUID) {
+    agentTasks(where: { deliverableId: { eq: $deliverableId }, projectId: { eq: $projectId } }) {
         nodes {
             id
             projectId

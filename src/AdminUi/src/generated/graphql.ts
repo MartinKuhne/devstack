@@ -791,10 +791,11 @@ export type GetAgentTaskQueryVariables = Exact<{
 }>;
 
 
-export type GetAgentTaskQuery = { __typename?: 'Query', agentTask?: { __typename?: 'AgentTask', id: any, projectId: any, deliverableId: any, title: string, status: AgentTaskStatus, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null, deliverable?: { __typename?: 'Deliverable', id: any, title: string } | null, project?: { __typename?: 'Project', id: any, name: string } | null } | null };
+export type GetAgentTaskQuery = { __typename?: 'Query', agentTask?: { __typename?: 'AgentTask', id: any, projectId: any, deliverableId: any, title: string, status: AgentTaskStatus, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null, deliverable?: { __typename?: 'Deliverable', id: any, title: string } | null, project?: { __typename?: 'Project', id: any, name: string, repository: string } | null } | null };
 
 export type GetAgentTasksQueryVariables = Exact<{
   deliverableId?: InputMaybe<Scalars['UUID']['input']>;
+  projectId?: InputMaybe<Scalars['UUID']['input']>;
 }>;
 
 
@@ -1376,6 +1377,7 @@ export const GetAgentTaskDocument = gql`
     project {
       id
       name
+      repository
     }
   }
 }
@@ -1417,8 +1419,10 @@ export type GetAgentTaskLazyQueryHookResult = ReturnType<typeof useGetAgentTaskL
 export type GetAgentTaskSuspenseQueryHookResult = ReturnType<typeof useGetAgentTaskSuspenseQuery>;
 export type GetAgentTaskQueryResult = Apollo.QueryResult<GetAgentTaskQuery, GetAgentTaskQueryVariables>;
 export const GetAgentTasksDocument = gql`
-    query GetAgentTasks($deliverableId: UUID) {
-  agentTasks(where: {deliverableId: {eq: $deliverableId}}) {
+    query GetAgentTasks($deliverableId: UUID, $projectId: UUID) {
+  agentTasks(
+    where: {deliverableId: {eq: $deliverableId}, projectId: {eq: $projectId}}
+  ) {
     nodes {
       id
       projectId
@@ -1461,6 +1465,7 @@ export const GetAgentTasksDocument = gql`
  * const { data, loading, error } = useGetAgentTasksQuery({
  *   variables: {
  *      deliverableId: // value for 'deliverableId'
+ *      projectId: // value for 'projectId'
  *   },
  * });
  */

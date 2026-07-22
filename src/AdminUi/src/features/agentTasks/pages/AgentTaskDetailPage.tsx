@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useAgentTask } from '../hooks/useAgentTask';
 import { UpdateAgentTaskDialog } from '../components/UpdateAgentTaskDialog';
-import { useState } from 'react';
+import { MarkdownViewer } from '@/components/MarkdownViewer';
+import { useState, useCallback } from 'react';
 import {
     useUpdateAgentTaskStatusMutation,
     useDeleteAgentTaskMutation,
@@ -22,8 +23,30 @@ import {
 import { toast } from 'react-toastify';
 import { createModuleLogger } from '@/lib/logging';
 import { AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import { Copy, Check, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 const logger = createModuleLogger('AgentTaskDetailPage');
+
+const VALID_TRANSITIONS: Record<string, AgentTaskStatus[]> = {
+    [AgentTaskStatus.READY]: [AgentTaskStatus.IN_PROGRESS, AgentTaskStatus.NEEDS_REVIEW],
+    [AgentTaskStatus.IN_PROGRESS]: [
+        AgentTaskStatus.NEEDS_REVIEW,
+        AgentTaskStatus.DONE,
+        AgentTaskStatus.FAILED,
+    ],
+    [AgentTaskStatus.NEEDS_REVIEW]: [AgentTaskStatus.DONE, AgentTaskStatus.REJECTED],
+    [AgentTaskStatus.FAILED]: [AgentTaskStatus.READY],
+    [AgentTaskStatus.DONE]: [AgentTaskStatus.READY],
+    [AgentTaskStatus.REJECTED]: [AgentTaskStatus.READY],
+};
 
 export function AgentTaskDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -34,6 +57,9 @@ export function AgentTaskDetailPage() {
         useUpdateAgentTaskStatusMutation();
     const [selectedStatus, setSelectedStatus] = useState('');
     const [deleteAgentTask, { loading: deleting }] = useDeleteAgentTaskMutation();
+    const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+    const [rejectFeedback, setRejectFeedback] = useState('');
+    const [errorsCopied, setErrorsCopied] = useState(false);
 
     const handleDelete = async () => {
         if (!agentTask?.id) return;
@@ -85,6 +111,66 @@ export function AgentTaskDetailPage() {
             toast.error('Failed to update status');
         }
     };
+
+    const transitionTo = useCallback(
+        async (targetStatus: AgentTaskStatus) => {
+            if (!agentTask?.id) return;
+            try {
+                await updateAgentTaskStatus({
+                    variables: {
+                        id: agentTask.id,
+                        targetStatus,
+                    },
+                });
+                toast.success('Status updated successfully');
+                refetch();
+            } catch {
+                toast.error('Failed to update status');
+            }
+        },
+        [agentTask, updateAgentTaskStatus, refetch]
+    );
+
+    const handleApprove = () => transitionTo(AgentTaskStatus.DONE);
+
+    const handleReject = async () => {
+        if (!agentTask?.id) return;
+        try {
+            await updateAgentTaskStatus({
+                variables: {
+                    id: agentTask.id,
+                    targetStatus: AgentTaskStatus.REJECTED,
+                },
+            });
+            toast.success('Task rejected');
+            setRejectDialogOpen(false);
+            setRejectFeedback('');
+            refetch();
+        } catch {
+            toast.error('Failed to update status');
+        }
+    };
+
+    const handleRetry = () => transitionTo(AgentTaskStatus.READY);
+
+    const handleCopyErrors = () => {
+        if (!agentTask?.errors) return;
+        navigator.clipboard.writeText(agentTask.errors).then(() => {
+            setErrorsCopied(true);
+            setTimeout(() => setErrorsCopied(false), 2000);
+        });
+    };
+
+    const currentStatus = agentTask?.status ?? '';
+    const allowedTransitions = VALID_TRANSITIONS[currentStatus] ?? [];
+    const canApprove = currentStatus === AgentTaskStatus.NEEDS_REVIEW;
+    const canReject = currentStatus === AgentTaskStatus.NEEDS_REVIEW;
+    const canRetry = currentStatus === AgentTaskStatus.FAILED;
+    const repoUrl = agentTask?.project?.repository;
+    const commitUrl =
+        repoUrl && agentTask?.commitHash
+            ? `${repoUrl.replace(/\/+$/, '')}/commit/${agentTask.commitHash}`
+            : null;
 
     if (loading) {
         return (
@@ -148,6 +234,28 @@ export function AgentTaskDetailPage() {
                     </div>
                 </div>
                 <div className="flex gap-2">
+                    {canApprove && (
+                        <Button onClick={handleApprove} disabled={transitionLoading}>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Approve
+                        </Button>
+                    )}
+                    {canReject && (
+                        <Button
+                            variant="outline"
+                            onClick={() => setRejectDialogOpen(true)}
+                            disabled={transitionLoading}
+                        >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Reject
+                        </Button>
+                    )}
+                    {canRetry && (
+                        <Button onClick={handleRetry} disabled={transitionLoading}>
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Retry
+                        </Button>
+                    )}
                     <Button variant="outline" onClick={() => navigate('/agent-tasks')}>
                         Back to List
                     </Button>
@@ -170,17 +278,33 @@ export function AgentTaskDetailPage() {
                                     <SelectValue placeholder="Select new status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Object.values(AgentTaskStatus).map((status) => (
-                                        <SelectItem key={status} value={status}>
-                                            {status.replace(/_/g, ' ')}
-                                        </SelectItem>
-                                    ))}
+                                    {Object.values(AgentTaskStatus).map((status) => {
+                                        const isAllowed = allowedTransitions.includes(
+                                            status as AgentTaskStatus
+                                        );
+                                        return (
+                                            <SelectItem
+                                                key={status}
+                                                value={status}
+                                                className={!isAllowed ? 'opacity-50' : ''}
+                                            >
+                                                {status.replace(/_/g, ' ')}
+                                                {!isAllowed ? ' (not allowed)' : ''}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         </div>
                         <Button
                             onClick={handleStatusChange}
-                            disabled={!selectedStatus || transitionLoading}
+                            disabled={
+                                !selectedStatus ||
+                                transitionLoading ||
+                                !allowedTransitions.includes(
+                                    selectedStatus as AgentTaskStatus
+                                )
+                            }
                         >
                             {transitionLoading ? 'Updating...' : 'Update Status'}
                         </Button>
@@ -201,9 +325,10 @@ export function AgentTaskDetailPage() {
                             <CardTitle>Description</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm whitespace-pre-wrap">
-                                {agentTask.description ?? 'No description provided.'}
-                            </p>
+                            <MarkdownViewer
+                                content={agentTask.description}
+                                className="prose prose-sm dark:prose-invert max-w-none"
+                            />
                         </CardContent>
                     </Card>
 
@@ -213,7 +338,10 @@ export function AgentTaskDetailPage() {
                                 <CardTitle>Result</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm whitespace-pre-wrap">{agentTask.result}</p>
+                                <MarkdownViewer
+                                    content={agentTask.result}
+                                    className="prose prose-sm dark:prose-invert max-w-none"
+                                />
                             </CardContent>
                         </Card>
                     )}
@@ -237,9 +365,20 @@ export function AgentTaskDetailPage() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Commit Hash</p>
-                                    <p className="font-medium font-mono text-xs">
-                                        {agentTask.commitHash || '-'}
-                                    </p>
+                                    {commitUrl ? (
+                                        <a
+                                            href={commitUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-medium font-mono text-xs text-blue-600 hover:underline"
+                                        >
+                                            {agentTask.commitHash}
+                                        </a>
+                                    ) : (
+                                        <p className="font-medium font-mono text-xs">
+                                            {agentTask.commitHash || '-'}
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Prompt Tokens</p>
@@ -263,11 +402,29 @@ export function AgentTaskDetailPage() {
                             {agentTask.errors && (
                                 <>
                                     <Separator />
-                                    <div>
-                                        <p className="text-sm text-muted-foreground mb-2">Errors</p>
-                                        <p className="text-sm text-destructive whitespace-pre-wrap">
-                                            {agentTask.errors}
-                                        </p>
+                                    <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <p className="text-sm font-medium text-destructive">
+                                                Errors
+                                            </p>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handleCopyErrors}
+                                                className="h-7 text-xs"
+                                            >
+                                                {errorsCopied ? (
+                                                    <Check className="h-3 w-3 mr-1" />
+                                                ) : (
+                                                    <Copy className="h-3 w-3 mr-1" />
+                                                )}
+                                                {errorsCopied ? 'Copied!' : 'Copy'}
+                                            </Button>
+                                        </div>
+                                        <MarkdownViewer
+                                            content={agentTask.errors}
+                                            className="prose prose-sm dark:prose-invert max-w-none text-destructive"
+                                        />
                                     </div>
                                 </>
                             )}
@@ -310,6 +467,36 @@ export function AgentTaskDetailPage() {
                 }}
                 onSuccess={() => refetch()}
             />
+
+            <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Reject Agent Task</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <p className="text-sm text-muted-foreground">
+                            Provide feedback for why this task is being rejected.
+                        </p>
+                        <Textarea
+                            placeholder="Rejection feedback..."
+                            value={rejectFeedback}
+                            onChange={(e) => setRejectFeedback(e.target.value)}
+                            rows={4}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setRejectDialogOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={handleReject}>
+                            Reject Task
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

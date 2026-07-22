@@ -65,7 +65,7 @@ describe('useAgentTasksByDeliverable', () => {
         expect(hooks.useGetAgentTasksQuery).toHaveBeenCalledWith({
             fetchPolicy: 'cache-and-network',
             skip: true,
-            variables: undefined,
+            variables: {},
         });
     });
 

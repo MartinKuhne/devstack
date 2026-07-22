@@ -176,7 +176,6 @@ export function AgentTaskListPage() {
                                     <TableHead>Title</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Agent</TableHead>
-                                    <TableHead>Updated</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -187,9 +186,6 @@ export function AgentTaskListPage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="h-6 w-20 bg-muted rounded" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="h-4 w-24 bg-muted rounded" />
                                         </TableCell>
                                         <TableCell>
                                             <div className="h-4 w-24 bg-muted rounded" />
@@ -206,7 +202,6 @@ export function AgentTaskListPage() {
                                     <TableHead>Status</TableHead>
                                     <TableHead>Agent</TableHead>
                                     <TableHead>Tokens</TableHead>
-                                    <TableHead>Updated</TableHead>
                                     <TableHead className="w-16"></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -233,7 +228,6 @@ export function AgentTaskListPage() {
                                             {(task.promptTokens ?? 0) +
                                                 (task.completionTokens ?? 0)}
                                         </TableCell>
-                                        <TableCell>-</TableCell>
                                         <TableCell onClick={(e) => e.stopPropagation()}>
                                             <Button
                                                 variant="ghost"
