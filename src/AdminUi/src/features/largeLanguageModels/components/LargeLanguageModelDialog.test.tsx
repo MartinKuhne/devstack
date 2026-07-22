@@ -1,12 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { LargeLanguageModelDialog } from './LargeLanguageModelDialog';
+import { CreateLargeLanguageModelDialog } from './CreateLargeLanguageModelDialog';
 import { vi, beforeEach } from 'vitest';
 
-// Mock the GraphQL mutation hooks
 vi.mock('@/generated/graphql', () => ({
     useCreateLargeLanguageModelMutation: vi.fn(),
     useUpdateLargeLanguageModelMutation: vi.fn(),
-    useDeleteLargeLanguageModelMutation: vi.fn(),
 }));
 
 const getMockedGraphqlHooks = async () => {
@@ -14,11 +12,10 @@ const getMockedGraphqlHooks = async () => {
     return {
         useCreateLargeLanguageModelMutation: m.useCreateLargeLanguageModelMutation as ReturnType<typeof vi.fn>,
         useUpdateLargeLanguageModelMutation: m.useUpdateLargeLanguageModelMutation as ReturnType<typeof vi.fn>,
-        useDeleteLargeLanguageModelMutation: m.useDeleteLargeLanguageModelMutation as ReturnType<typeof vi.fn>,
     };
 };
 
-describe('LargeLanguageModelDialog', () => {
+describe('CreateLargeLanguageModelDialog', () => {
     const mockOnSuccess = vi.fn();
     const mockOnOpenChange = vi.fn();
 
@@ -27,12 +24,11 @@ describe('LargeLanguageModelDialog', () => {
         const hooks = await getMockedGraphqlHooks();
         hooks.useCreateLargeLanguageModelMutation.mockReturnValue([vi.fn(), { loading: false }]);
         hooks.useUpdateLargeLanguageModelMutation.mockReturnValue([vi.fn(), { loading: false }]);
-        hooks.useDeleteLargeLanguageModelMutation.mockReturnValue([vi.fn(), { loading: false }]);
     });
 
     it('should render form with correct labels', () => {
         render(
-            <LargeLanguageModelDialog
+            <CreateLargeLanguageModelDialog
                 open={true}
                 onOpenChange={mockOnOpenChange}
                 onSuccess={mockOnSuccess}
@@ -43,11 +39,12 @@ describe('LargeLanguageModelDialog', () => {
         expect(screen.getByLabelText(/model name/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/alias \(optional\)/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/api key/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/max concurrency/i)).toBeInTheDocument();
     });
 
     it('should have correct dialog title', () => {
         render(
-            <LargeLanguageModelDialog
+            <CreateLargeLanguageModelDialog
                 open={true}
                 onOpenChange={mockOnOpenChange}
                 onSuccess={mockOnSuccess}
@@ -59,7 +56,7 @@ describe('LargeLanguageModelDialog', () => {
 
     it('should call onOpenChange when cancel button is clicked', () => {
         render(
-            <LargeLanguageModelDialog
+            <CreateLargeLanguageModelDialog
                 open={true}
                 onOpenChange={mockOnOpenChange}
                 onSuccess={mockOnSuccess}

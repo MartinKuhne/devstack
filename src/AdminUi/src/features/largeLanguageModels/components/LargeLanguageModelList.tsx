@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useLargeLanguageModels } from '@/features/largeLanguageModels/hooks/useLargeLanguageModels';
-import { LargeLanguageModelDialog } from './LargeLanguageModelDialog';
+import { EditLargeLanguageModelDialog } from './EditLargeLanguageModelDialog';
 import { useDeleteLargeLanguageModelMutation } from '@/generated/graphql';
 import { toast } from 'react-toastify';
 import { LoadingState, ErrorState, EmptyState } from '@/components/layout';
@@ -183,13 +183,13 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
                     )}
                 </div>
             )}
-            <LargeLanguageModelDialog
+            <EditLargeLanguageModelDialog
                 open={!!editingModel}
                 onOpenChange={(open) => {
                     if (!open) handleCloseDialog();
                 }}
                 onSuccess={() => {
-                    toast.success(editingModel ? 'Model updated successfully' : 'Model created successfully');
+                    toast.success('Model updated successfully');
                     onRefetch?.();
                     handleCloseDialog();
                 }}

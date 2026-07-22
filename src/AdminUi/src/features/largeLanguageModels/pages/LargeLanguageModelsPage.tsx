@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LargeLanguageModelList } from '../components/LargeLanguageModelList';
-import { LargeLanguageModelDialog } from '../components/LargeLanguageModelDialog';
+import { CreateLargeLanguageModelDialog } from '../components/CreateLargeLanguageModelDialog';
 import { useLargeLanguageModels } from '../hooks/useLargeLanguageModels';
 import { createModuleLogger } from '@/lib/logging';
 
@@ -41,7 +41,7 @@ export function LargeLanguageModelsPage() {
                 </CardContent>
             </Card>
 
-            <LargeLanguageModelDialog
+            <CreateLargeLanguageModelDialog
                 open={addDialogOpen}
                 onOpenChange={setAddDialogOpen}
                 onSuccess={handleRefetch}
