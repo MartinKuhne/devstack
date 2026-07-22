@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'react-toastify';
 import { createModuleLogger } from '@/lib/logging';
-import { AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import { AGENT_TASK_STATUS_COLORS, getStatusColor, getStatusIcon } from '@/lib/constants';
 import { Copy, Check, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import {
     Dialog,
@@ -32,8 +32,9 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { LoadingState, ErrorState, DetailLayout } from '@/components/layout';
+import { LoadingState, ErrorState, DetailLayout, ActivityTimeline } from '@/components/layout';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Progress } from '@/components/ui/progress';
 
 const logger = createModuleLogger('AgentTaskDetailPage');
 
@@ -159,6 +160,11 @@ export function AgentTaskDetailPage() {
         });
     };
 
+    const renderStatusIcon = (status: string | undefined) => {
+        const Icon = getStatusIcon(status, 'agentTask');
+        return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
+    };
+
     const currentStatus = agentTask?.status ?? '';
     const allowedTransitions = VALID_TRANSITIONS[currentStatus] ?? [];
     const canApprove = currentStatus === AgentTaskStatus.NEEDS_REVIEW;
@@ -206,6 +212,7 @@ export function AgentTaskDetailPage() {
             typeLabel="Agent Task"
             statusNode={
                 <Badge className={getStatusColor(agentTask.status ?? undefined, AGENT_TASK_STATUS_COLORS)}>
+                    {renderStatusIcon(agentTask.status ?? undefined)}
                     {agentTask.status}
                 </Badge>
             }
@@ -288,6 +295,17 @@ export function AgentTaskDetailPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {agentTask.status === 'IN_PROGRESS' && (
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-3">
+                            <Progress value={50} className="flex-1" />
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">In Progress</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             <Tabs defaultValue="overview" className="w-full">
                 <TabsList>
@@ -495,6 +513,8 @@ export function AgentTaskDetailPage() {
                 variant="destructive"
                 onConfirm={handleDelete}
             />
+
+            <ActivityTimeline events={[]} />
         </DetailLayout>
     );
 }

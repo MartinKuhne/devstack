@@ -25,6 +25,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         apiKey?: string;
         cost: number;
         maxComplexity: number;
+        maxConcurrency?: number;
     } | null>(null);
     const [deleteLargeLanguageModel, { loading: deleting }] = useDeleteLargeLanguageModelMutation();
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -36,6 +37,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
         url?: string | null | undefined;
         cost?: number | null | undefined;
         maxComplexity?: number | null | undefined;
+        maxConcurrency?: number | null | undefined;
     }) => {
         setEditingModel({
             id: model.id ?? '',
@@ -43,6 +45,7 @@ export function LargeLanguageModelList({ onAddModel, onRefetch }: LargeLanguageM
             url: model.url ?? '',
             cost: model.cost ?? 0,
             maxComplexity: model.maxComplexity ?? 0,
+            maxConcurrency: model.maxConcurrency ?? 1,
         });
     };
 

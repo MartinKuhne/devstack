@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useProject as useProjectContext } from '@/contexts/ProjectContext';
+import { useProjectContext } from '@/contexts/ProjectContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,9 +21,9 @@ import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
 import { CreateAgentTaskDialog } from '@/features/agentTasks/components/CreateAgentTaskDialog';
 import { useDeleteProjectMutation } from '@/generated/graphql';
 import { toast } from 'react-toastify';
-import { DELIVERABLE_STATUS_COLORS, AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import { DELIVERABLE_STATUS_COLORS, AGENT_TASK_STATUS_COLORS, getStatusColor, getStatusIcon } from '@/lib/constants';
 import { createModuleLogger } from '@/lib/logging';
-import { LoadingState, ErrorState, EmptyState, DetailLayout } from '@/components/layout';
+import { LoadingState, ErrorState, EmptyState, DetailLayout, ActivityTimeline } from '@/components/layout';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 const logger = createModuleLogger('ProjectDetailPage');
@@ -88,6 +88,11 @@ export function ProjectDetailPage() {
             e.preventDefault();
             navigate(path);
         }
+    };
+
+    const renderStatusIcon = (status: string | undefined, entity: 'deliverable' | 'agentTask') => {
+        const Icon = getStatusIcon(status, entity);
+        return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
     };
 
     if (loading) {
@@ -211,6 +216,7 @@ export function ProjectDetailPage() {
                                                                 DELIVERABLE_STATUS_COLORS
                                                             )}
                                                         >
+                                                            {renderStatusIcon(deliverable.status ?? undefined, 'deliverable')}
                                                             {deliverable.status}
                                                         </Badge>
                                                     </TableCell>
@@ -287,6 +293,7 @@ export function ProjectDetailPage() {
                                                                 AGENT_TASK_STATUS_COLORS
                                                             )}
                                                         >
+                                                            {renderStatusIcon(task.status ?? undefined, 'agentTask')}
                                                             {task.status}
                                                         </Badge>
                                                     </TableCell>
@@ -357,6 +364,8 @@ export function ProjectDetailPage() {
                 variant="destructive"
                 onConfirm={handleDelete}
             />
+
+            <ActivityTimeline events={[]} />
         </DetailLayout>
     );
 }

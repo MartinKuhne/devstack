@@ -237,6 +237,8 @@ export function CreateDeliverableDialog({
                                     <SelectItem value="DEPLOY">Deploy</SelectItem>
                                     <SelectItem value="TEST">Test</SelectItem>
                                     <SelectItem value="DONE">Done</SelectItem>
+                                    <SelectItem value="FAILED">Failed</SelectItem>
+                                    <SelectItem value="REJECTED">Rejected</SelectItem>
                                     <SelectItem value="NEEDS_REVIEW">Needs Review</SelectItem>
                                 </SelectContent>
                             </Select>

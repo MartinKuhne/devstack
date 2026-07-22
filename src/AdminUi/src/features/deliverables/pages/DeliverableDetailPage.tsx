@@ -21,9 +21,10 @@ import {
     DELIVERABLE_STATUS_COLORS,
     AGENT_TASK_STATUS_COLORS,
     getStatusColor,
+    getStatusIcon,
 } from '@/lib/constants';
 import { MarkdownViewer } from '@/components/MarkdownViewer';
-import { LoadingState, ErrorState, EmptyState, DetailLayout } from '@/components/layout';
+import { LoadingState, ErrorState, EmptyState, DetailLayout, ActivityTimeline } from '@/components/layout';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -57,6 +58,11 @@ export function DeliverableDetailPage() {
             toast.error(result.errors?.join(', ') ?? 'Failed to delete deliverable');
         }
         setConfirmDeleteOpen(false);
+    };
+
+    const renderStatusIcon = (status: string | undefined, entity: 'deliverable' | 'project' | 'agentTask') => {
+        const Icon = getStatusIcon(status, entity);
+        return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
     };
 
     const handleRowKeyDown = (e: React.KeyboardEvent, path: string) => {
@@ -125,6 +131,7 @@ export function DeliverableDetailPage() {
             typeLabel={deliverable.type}
             statusNode={
                 <Badge className={getStatusColor(deliverable.status ?? undefined, DELIVERABLE_STATUS_COLORS)}>
+                    {renderStatusIcon(deliverable.status ?? undefined, 'deliverable')}
                     {deliverable.status}
                 </Badge>
             }
@@ -340,6 +347,7 @@ export function DeliverableDetailPage() {
                                                         AGENT_TASK_STATUS_COLORS
                                                     )}
                                                 >
+                                                    {renderStatusIcon(task.status ?? undefined, 'agentTask')}
                                                     {task.status}
                                                 </Badge>
                                             </div>
@@ -367,6 +375,8 @@ export function DeliverableDetailPage() {
                     </p>
                 </div>
             )}
+
+            <ActivityTimeline events={[]} />
 
             <EditDeliverableDialog
                 open={updateDialogOpen}

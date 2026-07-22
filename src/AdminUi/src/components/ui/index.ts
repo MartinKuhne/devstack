@@ -125,3 +125,9 @@ export {
     CommandSeparator,
     CommandShortcut,
 } from './command';
+
+export { Progress } from './progress';
+
+export { Checkbox } from './checkbox';
+
+export { Pagination } from './pagination';

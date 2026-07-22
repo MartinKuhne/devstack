@@ -1,3 +1,6 @@
+import type { LucideIcon } from 'lucide-react';
+import { Check, AlertCircle, Eye, Loader, Circle, XCircle, Play } from 'lucide-react';
+
 export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'success' | 'warning';
 
 export const DELIVERABLE_STATUS_VARIANTS: Record<string, BadgeVariant> = {
@@ -32,6 +35,51 @@ export const AGENT_TASK_STATUS_VARIANTS: Record<string, BadgeVariant> = {
     FAILED: 'destructive',
     REJECTED: 'destructive',
 };
+
+const DELIVERABLE_STATUS_ICONS: Record<string, LucideIcon> = {
+    DRAFT: Circle,
+    DESIGN: Circle,
+    PLAN: Circle,
+    IMPLEMENT: Play,
+    MERGE: Play,
+    DEPLOY: Play,
+    TEST: Eye,
+    DONE: Check,
+    FAILED: AlertCircle,
+    REJECTED: XCircle,
+    NEEDS_REVIEW: Eye,
+};
+
+const PROJECT_STATUS_ICONS: Record<string, LucideIcon> = {
+    PLANNING: Circle,
+    READY: Check,
+    IN_PROGRESS: Loader,
+    NEEDS_REVIEW: Eye,
+    DONE: Check,
+    FAILED: AlertCircle,
+    REJECTED: XCircle,
+};
+
+const AGENT_TASK_STATUS_ICONS: Record<string, LucideIcon> = {
+    READY: Circle,
+    IN_PROGRESS: Loader,
+    NEEDS_REVIEW: Eye,
+    DONE: Check,
+    FAILED: AlertCircle,
+    REJECTED: XCircle,
+};
+
+export function getStatusIcon(status: string | undefined, entity: 'deliverable' | 'project' | 'agentTask'): LucideIcon | undefined {
+    if (!status) return undefined;
+    switch (entity) {
+        case 'deliverable':
+            return DELIVERABLE_STATUS_ICONS[status];
+        case 'project':
+            return PROJECT_STATUS_ICONS[status];
+        case 'agentTask':
+            return AGENT_TASK_STATUS_ICONS[status];
+    }
+}
 
 export function getStatusVariant(status: string | undefined, variantMap: Record<string, BadgeVariant>): BadgeVariant {
     if (!status) return 'secondary';

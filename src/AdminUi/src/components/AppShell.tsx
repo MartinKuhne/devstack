@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, LayoutDashboard, Folder, Brain, GitBranch, Sun, Moon } from 'lucide-react';
+import { Menu, LayoutDashboard, Folder, Brain, Cpu, GitBranch, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import { useProjects } from '@/features/projects/hooks/useProjects';
 import { createModuleLogger } from '@/lib/logging';
-import { useProject } from '@/contexts/ProjectContext';
+import { useProjectContext } from '@/contexts/ProjectContext';
 import { useAgentTasks } from '@/features/agentTasks/hooks/useAgentTasks';
 import { AgentTaskStatus } from '@/generated/graphql';
 
@@ -35,7 +35,7 @@ function SidebarContent() {
     const location = useLocation();
     const navigate = useNavigate();
     const { projects, loading } = useProjects();
-    const { projectId, setProjectId } = useProject();
+    const { projectId, setProjectId } = useProjectContext();
 
     const { agentTasks: attentionTasks } = useAgentTasks(
         undefined,
@@ -99,7 +99,7 @@ function SidebarContent() {
 
             <Link to="/models">
                 <Button variant="ghost" className={`w-full justify-start ${isActive('/models') ? 'bg-accent text-accent-foreground' : ''}`}>
-                    <Brain className="mr-2 h-4 w-4" />
+                    <Cpu className="mr-2 h-4 w-4" />
                     Large Language Models
                 </Button>
             </Link>

@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import {
     Dialog,
     DialogContent,
@@ -20,11 +23,22 @@ import {
 import {
     useCreateLargeLanguageModelMutation,
     useUpdateLargeLanguageModelMutation,
-    useDeleteLargeLanguageModelMutation,
 } from '@/generated/graphql';
 import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
 
 const logger = createModuleLogger('LargeLanguageModelDialog');
+
+const llmSchema = z.object({
+    url: z.string().min(1, 'URL is required').url('Invalid URL format'),
+    model: z.string().min(1, 'Model name is required'),
+    modelAlias: z.string().optional(),
+    cost: z.number().min(0, 'Cost must be at least 0').max(100, 'Cost must be at most 100'),
+    apiKey: z.string().min(1, 'API key is required'),
+    maxComplexity: z.number().min(1, 'Must be at least 1').max(10, 'Must be at most 10'),
+    maxConcurrency: z.number().min(1, 'Must be at least 1').max(100, 'Must be at most 100'),
+});
+
+type LlmFormData = z.infer<typeof llmSchema>;
 
 interface LargeLanguageModelDialogProps {
     open: boolean;
@@ -38,6 +52,7 @@ interface LargeLanguageModelDialogProps {
         apiKey?: string;
         cost: number;
         maxComplexity: number;
+        maxConcurrency?: number;
     } | null;
 }
 
@@ -48,287 +63,136 @@ export function LargeLanguageModelDialog({
     model,
 }: LargeLanguageModelDialogProps) {
     const isEditMode = !!model;
-    const [modelValue, setModelValue] = useState('');
-    const [modelAlias, setModelAlias] = useState('');
-    const [url, setUrl] = useState('');
-    const [apiKey, setApiKey] = useState('');
-    const [cost, setCost] = useState('0');
-    const [maxComplexity, setMaxComplexity] = useState('3');
+    const [serverError, setServerError] = useState<string | null>(null);
     const [showApiKey, setShowApiKey] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [urlError, setUrlError] = useState<string | null>(null);
-    const [modelError, setModelError] = useState<string | null>(null);
-    const [apiKeyError, setApiKeyError] = useState<string | null>(null);
-    const [complexityError, setComplexityError] = useState<string | null>(null);
-    const [costError, setCostError] = useState<string | null>(null);
 
     const [createLargeLanguageModel, { loading: createLoading }] =
         useCreateLargeLanguageModelMutation();
     const [updateLargeLanguageModel, { loading: updateLoading }] =
         useUpdateLargeLanguageModelMutation();
-    const [deleteLargeLanguageModel, { loading: deleteLoading }] =
-        useDeleteLargeLanguageModelMutation();
 
-    const resetForm = () => {
-        setModelValue('');
-        setModelAlias('');
-        setUrl('');
-        setApiKey('');
-        setCost('0');
-        setMaxComplexity('3');
-        setShowApiKey(false);
-        setError(null);
-        setUrlError(null);
-        setModelError(null);
-        setApiKeyError(null);
-        setComplexityError(null);
-        setCostError(null);
-    };
+    const {
+        register,
+        handleSubmit,
+        reset,
+        setValue,
+        formState: { errors, isValid },
+    } = useForm<LlmFormData>({
+        resolver: zodResolver(llmSchema),
+        defaultValues: {
+            url: '',
+            model: '',
+            modelAlias: '',
+            cost: 0,
+            apiKey: '',
+            maxComplexity: 3,
+            maxConcurrency: 1,
+        },
+    });
 
     /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (open && model) {
-            setModelValue(model.model);
-            setModelAlias(model.modelAlias ?? '');
-            setUrl(model.url);
-            setApiKey(model.apiKey ?? '');
-            setCost((model.cost ?? 0).toString());
-            setMaxComplexity(model.maxComplexity.toString());
+            reset({
+                url: model.url,
+                model: model.model,
+                modelAlias: model.modelAlias ?? '',
+                cost: model.cost ?? 0,
+                apiKey: model.apiKey ?? '',
+                maxComplexity: model.maxComplexity,
+                maxConcurrency: model.maxConcurrency ?? 1,
+            });
             setShowApiKey(false);
         } else if (open && !model) {
-            resetForm();
+            reset({
+                url: '',
+                model: '',
+                modelAlias: '',
+                cost: 0,
+                apiKey: '',
+                maxComplexity: 3,
+                maxConcurrency: 1,
+            });
+            setShowApiKey(false);
         }
-    }, [open, model]);
+    }, [open, model, reset]);
     /* eslint-enable react-hooks/set-state-in-effect */
 
     const handleOpenChange = (newOpen: boolean) => {
-        setError(null);
-        setUrlError(null);
-        setModelError(null);
-        setApiKeyError(null);
-        setComplexityError(null);
-        setCostError(null);
+        setServerError(null);
         if (!newOpen) {
-            resetForm();
+            reset();
         }
         onOpenChange(newOpen);
     };
 
-    const validateForm = () => {
-        let valid = true;
-        setUrlError(null);
-        setModelError(null);
-        setApiKeyError(null);
-        setComplexityError(null);
-        setCostError(null);
-
-        if (!url.trim()) {
-            setUrlError('URL is required');
-            valid = false;
-        } else {
-            try {
-                new URL(url);
-            } catch {
-                setUrlError('Invalid URL format');
-                valid = false;
-            }
-        }
-
-        if (!modelValue.trim()) {
-            setModelError('Model name is required');
-            valid = false;
-        }
-
-        if (!apiKey.trim()) {
-            setApiKeyError('API key is required');
-            valid = false;
-        }
-
-        const complexity = parseInt(maxComplexity, 10);
-        if (isNaN(complexity) || complexity < 1 || complexity > 10) {
-            setComplexityError('Max complexity must be between 1 and 10');
-            valid = false;
-        }
-
-        const modelCost = parseFloat(cost);
-        if (isNaN(modelCost) || modelCost < 0 || modelCost > 100) {
-            setCostError('Cost must be between 0 and 100');
-            valid = false;
-        }
-
-        return { valid };
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        setUrlError(null);
-        setModelError(null);
-        setApiKeyError(null);
-        setComplexityError(null);
-
-        const validationResult = validateForm();
-        if (!validationResult.valid) {
-            logger.warn('Validation failed');
-            return;
-        }
+    const onSubmit = async (data: LlmFormData) => {
+        setServerError(null);
 
         try {
             if (isEditMode && model) {
-                logger.info('Updating LLM model', { id: model.id, model: modelValue });
+                logger.info('Updating LLM model', { id: model.id, model: data.model });
                 const result = await updateLargeLanguageModel({
                     variables: {
                         input: {
                             id: model.id,
-                            model: modelValue,
-                            modelAlias: modelAlias || null,
-                            url,
-                            apiKey,
-                        cost: parseFloat(cost),
-                        maxComplexity: parseInt(maxComplexity, 10),
-                        maxConcurrency: 1,
+                            model: data.model,
+                            modelAlias: data.modelAlias || null,
+                            url: data.url,
+                            apiKey: data.apiKey,
+                            cost: data.cost,
+                            maxComplexity: data.maxComplexity,
+                            maxConcurrency: data.maxConcurrency,
+                        },
                     },
-                },
-            });
-            const updatedModel = result.data?.updateLargeLanguageModel;
+                });
+                const updatedModel = result.data?.updateLargeLanguageModel;
                 if (!updatedModel) {
-                    logger.warn('Failed to update LLM model', {
-                        id: model.id,
-                    });
-                    setError('Failed to update LLM model');
+                    logger.warn('Failed to update LLM model', { id: model.id });
+                    setServerError('Failed to update LLM model');
                     return;
                 }
-                logger.info('LLM model updated successfully', { id: model.id, model: modelValue });
+                logger.info('LLM model updated successfully', { id: model.id, model: data.model });
             } else {
-                logger.info('Creating LLM model', { model: modelValue });
+                logger.info('Creating LLM model', { model: data.model });
                 const result = await createLargeLanguageModel({
                     variables: {
                         input: {
-                            model: modelValue,
-                            modelAlias: modelAlias || null,
-                            url,
-                            apiKey,
-                        cost: parseFloat(cost),
-                        maxComplexity: parseInt(maxComplexity, 10),
-                        maxConcurrency: 1,
+                            model: data.model,
+                            modelAlias: data.modelAlias || null,
+                            url: data.url,
+                            apiKey: data.apiKey,
+                            cost: data.cost,
+                            maxComplexity: data.maxComplexity,
+                            maxConcurrency: data.maxConcurrency,
+                        },
                     },
-                },
-            });
-            const createdModel = result.data?.createLargeLanguageModel;
+                });
+                const createdModel = result.data?.createLargeLanguageModel;
                 if (!createdModel) {
-                    logger.warn('Failed to create LLM model', {
-                        model: modelValue,
-                    });
-                    setError('Failed to create LLM model');
+                    logger.warn('Failed to create LLM model', { model: data.model });
+                    setServerError('Failed to create LLM model');
                     return;
                 }
-                logger.info('LLM model created successfully', {
-                    model: modelValue,
-                });
+                logger.info('LLM model created successfully', { model: data.model });
             }
 
-            resetForm();
+            reset();
             onOpenChange(false);
             onSuccess();
         } catch (err) {
             const errorInfo = formatGraphQLError(err);
             logger.error('Failed to save LLM model', {
                 isEdit: isEditMode,
-                model: modelValue,
+                model: data.model,
                 error: errorInfo.message,
                 details: errorInfo.details,
             });
-            setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+            setServerError(err instanceof Error ? err.message : 'An unexpected error occurred');
         }
     };
 
-    const handleDelete = async () => {
-        if (!model) return;
-        if (!window.confirm('Are you sure you want to delete this model configuration? This action cannot be undone.')) return;
-        setError(null);
-
-        logger.info('Deleting LLM model', { id: model.id, model: model.model });
-
-        try {
-            const result = await deleteLargeLanguageModel({
-                variables: {
-                    id: model.id,
-                },
-            });
-            const deleted = result.data?.deleteLargeLanguageModel;
-            if (!deleted) {
-                logger.warn('Failed to delete LLM model', { id: model.id });
-                setError('Failed to delete LLM model');
-                return;
-            }
-            logger.info('LLM model deleted successfully', { id: model.id });
-            resetForm();
-            onOpenChange(false);
-            onSuccess();
-        } catch (err) {
-            const errorInfo = formatGraphQLError(err);
-            logger.error('Failed to delete LLM model', {
-                id: model.id,
-                model: model.model,
-                error: errorInfo.message,
-                details: errorInfo.details,
-            });
-            setError(err instanceof Error ? err.message : 'Failed to delete model');
-        }
-    };
-
-    const isLoading = createLoading || updateLoading || deleteLoading;
-
-    const isFormValid =
-        url.trim() &&
-        modelValue.trim() &&
-        apiKey.trim() &&
-        !urlError &&
-        !modelError &&
-        !apiKeyError &&
-        !complexityError &&
-        !costError;
-
-    const validateField = (field: string, value: string) => {
-        switch (field) {
-            case 'url':
-                if (!value.trim()) {
-                    setUrlError('URL is required');
-                } else {
-                    try {
-                        new URL(value);
-                        setUrlError(null);
-                    } catch {
-                        setUrlError('Invalid URL format');
-                    }
-                }
-                break;
-            case 'model':
-                setModelError(value.trim() ? null : 'Model name is required');
-                break;
-            case 'apiKey':
-                setApiKeyError(value.trim() ? null : 'API key is required');
-                break;
-            case 'complexity': {
-                const complexity = parseInt(value, 10);
-                setComplexityError(
-                    isNaN(complexity) || complexity < 1 || complexity > 10
-                        ? 'Max complexity must be between 1 and 10'
-                        : null
-                );
-                break;
-            }
-            case 'cost': {
-                const modelCost = parseFloat(value);
-                setCostError(
-                    isNaN(modelCost) || modelCost < 0 || modelCost > 100
-                        ? 'Cost must be between 0 and 100'
-                        : null
-                );
-                break;
-            }
-        }
-    };
+    const isLoading = createLoading || updateLoading;
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -344,46 +208,37 @@ export function LargeLanguageModelDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                {error && (
+                {serverError && (
                     <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-                        {error}
+                        {serverError}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="url">Endpoint URL</Label>
                             <Input
                                 id="url"
-                                value={url}
-                                onChange={(e) => {
-                                    setUrl(e.target.value);
-                                    validateField('url', e.target.value);
-                                }}
+                                {...register('url')}
                                 placeholder="https://api.example.com/v1"
                             />
-                            {urlError && <p className="text-sm text-destructive">{urlError}</p>}
+                            {errors.url && <p className="text-sm text-destructive">{errors.url.message}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="model">Model Name</Label>
                             <Input
                                 id="model"
-                                value={modelValue}
-                                onChange={(e) => {
-                                    setModelValue(e.target.value);
-                                    validateField('model', e.target.value);
-                                }}
+                                {...register('model')}
                                 placeholder="gpt-4o-mini"
                             />
-                            {modelError && <p className="text-sm text-destructive">{modelError}</p>}
+                            {errors.model && <p className="text-sm text-destructive">{errors.model.message}</p>}
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="alias">Alias (optional)</Label>
+                            <Label htmlFor="modelAlias">Alias (optional)</Label>
                             <Input
-                                id="alias"
-                                value={modelAlias}
-                                onChange={(e) => setModelAlias(e.target.value)}
+                                id="modelAlias"
+                                {...register('modelAlias')}
                                 placeholder="Default"
                             />
                         </div>
@@ -394,14 +249,10 @@ export function LargeLanguageModelDialog({
                                 type="number"
                                 min={0}
                                 max={100}
-                                value={cost}
-                                onChange={(e) => {
-                                    setCost(e.target.value);
-                                    validateField('cost', e.target.value);
-                                }}
+                                {...register('cost', { valueAsNumber: true })}
                                 placeholder="0"
                             />
-                            {costError && <p className="text-sm text-destructive">{costError}</p>}
+                            {errors.cost && <p className="text-sm text-destructive">{errors.cost.message}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="apiKey">API Key</Label>
@@ -409,11 +260,7 @@ export function LargeLanguageModelDialog({
                                 <Input
                                     id="apiKey"
                                     type={showApiKey ? 'text' : 'password'}
-                                    value={apiKey}
-                                    onChange={(e) => {
-                                        setApiKey(e.target.value);
-                                        validateField('apiKey', e.target.value);
-                                    }}
+                                    {...register('apiKey')}
                                     placeholder="sk-..."
                                 />
                                 <Button
@@ -424,18 +271,13 @@ export function LargeLanguageModelDialog({
                                     {showApiKey ? 'Hide' : 'Show'}
                                 </Button>
                             </div>
-                            {apiKeyError && (
-                                <p className="text-sm text-destructive">{apiKeyError}</p>
-                            )}
+                            {errors.apiKey && <p className="text-sm text-destructive">{errors.apiKey.message}</p>}
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="complexity">Max Complexity (1-10)</Label>
+                            <Label htmlFor="maxComplexity">Max Complexity (1-10)</Label>
                             <Select
-                                value={maxComplexity}
-                                onValueChange={(value) => {
-                                    setMaxComplexity(value);
-                                    validateField('complexity', value);
-                                }}
+                                value={String(model?.maxComplexity ?? 3)}
+                                onValueChange={(value) => setValue('maxComplexity', Number(value))}
                             >
                                 <SelectTrigger>
                                     <SelectValue />
@@ -448,23 +290,22 @@ export function LargeLanguageModelDialog({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {complexityError && (
-                                <p className="text-sm text-destructive">{complexityError}</p>
-                            )}
+                            {errors.maxComplexity && <p className="text-sm text-destructive">{errors.maxComplexity.message}</p>}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="maxConcurrency">Max Concurrency (1-100)</Label>
+                            <Input
+                                id="maxConcurrency"
+                                type="number"
+                                min={1}
+                                max={100}
+                                {...register('maxConcurrency', { valueAsNumber: true })}
+                                placeholder="1"
+                            />
+                            {errors.maxConcurrency && <p className="text-sm text-destructive">{errors.maxConcurrency.message}</p>}
                         </div>
                     </div>
                     <DialogFooter>
-                        {isEditMode && (
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                onClick={handleDelete}
-                                disabled={isLoading}
-                                className="mr-auto"
-                            >
-                                {deleteLoading ? 'Deleting...' : 'Delete'}
-                            </Button>
-                        )}
                         <Button
                             type="button"
                             variant="outline"
@@ -472,7 +313,7 @@ export function LargeLanguageModelDialog({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isLoading || !isFormValid}>
+                        <Button type="submit" disabled={isLoading || !isValid}>
                             {isLoading
                                 ? isEditMode
                                     ? 'Updating...'

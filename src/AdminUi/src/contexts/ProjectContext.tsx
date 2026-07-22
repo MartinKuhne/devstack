@@ -18,10 +18,10 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useProject(): ProjectContextValue {
+export function useProjectContext(): ProjectContextValue {
     const context = useContext(ProjectContext);
     if (!context) {
-        throw new Error('useProject must be used within a ProjectProvider');
+        throw new Error('useProjectContext must be used within a ProjectProvider');
     }
     return context;
 }

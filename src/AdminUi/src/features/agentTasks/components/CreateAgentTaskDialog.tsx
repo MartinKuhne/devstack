@@ -17,6 +17,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useAgentTasksByDeliverable } from '../hooks/useAgentTasksByDeliverable';
 
 const logger = createModuleLogger('CreateAgentTaskDialog');
 
@@ -50,11 +58,13 @@ export function CreateAgentTaskDialog({
 }: CreateAgentTaskDialogProps) {
     const [serverError, setServerError] = useState<string | null>(null);
     const [createAgentTask, { loading }] = useCreateAgentTaskMutation();
+    const { agentTasks: siblingTasks } = useAgentTasksByDeliverable(deliverableId);
 
     const {
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors, isValid },
     } = useForm<AgentTaskFormData>({
         resolver: zodResolver(agentTaskSchema),
@@ -80,6 +90,7 @@ export function CreateAgentTaskDialog({
                         title: data.title,
                         description: data.description ?? '',
                         complexityRating: Number(data.complexityRating),
+                        dependsOnAgentTaskId: data.dependsOnAgentTaskId || null,
                     },
                 },
             });
@@ -180,6 +191,32 @@ export function CreateAgentTaskDialog({
                                 rows={3}
                             />
                         </div>
+
+                        {siblingTasks.length > 0 && (
+                            <div className="grid gap-2">
+                                <Label>Depends On Task</Label>
+                                <Select
+                                    onValueChange={(value) =>
+                                        setValue('dependsOnAgentTaskId', value === 'none' ? undefined : value)
+                                    }
+                                    defaultValue="none"
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a dependency (optional)" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">None</SelectItem>
+                                        {siblingTasks.map((task) =>
+                                            task ? (
+                                                <SelectItem key={task.id ?? ''} value={task.id ?? ''}>
+                                                    {task.title}
+                                                </SelectItem>
+                                            ) : null
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
 
                         {serverError && <p className="text-sm text-destructive">{serverError}</p>}
                     </div>

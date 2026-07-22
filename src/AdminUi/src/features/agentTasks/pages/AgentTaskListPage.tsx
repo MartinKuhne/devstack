@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
     PageHeader,
@@ -19,13 +19,14 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { useAgentTasks } from '../hooks/useAgentTasks';
 import { useDeleteAgentTaskMutation, type AgentTaskStatus } from '@/generated/graphql';
 import { toast } from 'react-toastify';
-import { AGENT_TASK_STATUS_COLORS, getStatusColor } from '@/lib/constants';
+import { AGENT_TASK_STATUS_COLORS, getStatusColor, getStatusIcon } from '@/lib/constants';
 import { createModuleLogger } from '@/lib/logging';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Pagination } from '@/components/ui/pagination';
 
 const logger = createModuleLogger('AgentTaskListPage');
 
@@ -44,6 +45,10 @@ export function AgentTaskListPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [deleteAgentTask, { loading: deleting }] = useDeleteAgentTaskMutation();
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortField, setSortField] = useState<'title' | 'status' | 'agent'>('title');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const pageSize = 25;
 
     const statusFilter = searchParams.get('status') as AgentTaskStatus | undefined;
     const searchFilter = searchParams.get('search') || undefined;
@@ -129,6 +134,42 @@ export function AgentTaskListPage() {
                 !!task.deliverableId?.toLowerCase().includes(searchFilter.toLowerCase()))
     );
 
+    const sortedTasks = useMemo(() => {
+        return [...filteredTasks].sort((a, b) => {
+            const aVal = (a[sortField] ?? '').toString().toLowerCase();
+            const bVal = (b[sortField] ?? '').toString().toLowerCase();
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [filteredTasks, sortField, sortDirection]);
+
+    const totalPages = Math.ceil(sortedTasks.length / pageSize);
+    const paginatedTasks = sortedTasks.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
+
+    const handleSort = (field: 'title' | 'status' | 'agent') => {
+        if (sortField === field) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+        setCurrentPage(1);
+    };
+
+    const renderSortIcon = (field: 'title' | 'status' | 'agent') => {
+        if (sortField !== field) return null;
+        return sortDirection === 'asc' ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />;
+    };
+
+    const renderStatusIcon = (status: string | undefined) => {
+        const Icon = getStatusIcon(status, 'agentTask');
+        return Icon ? <Icon className="mr-1 h-3 w-3" /> : null;
+    };
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -159,18 +200,31 @@ export function AgentTaskListPage() {
                 ) : loading ? (
                     <LoadingState rows={3} />
                 ) : filteredTasks.length > 0 ? (
+                    <>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Title</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Agent</TableHead>
+                                <TableHead>
+                                    <button type="button" className="flex items-center font-medium" onClick={() => handleSort('title')}>
+                                        Title {renderSortIcon('title')}
+                                    </button>
+                                </TableHead>
+                                <TableHead>
+                                    <button type="button" className="flex items-center font-medium" onClick={() => handleSort('status')}>
+                                        Status {renderSortIcon('status')}
+                                    </button>
+                                </TableHead>
+                                <TableHead>
+                                    <button type="button" className="flex items-center font-medium" onClick={() => handleSort('agent')}>
+                                        Agent {renderSortIcon('agent')}
+                                    </button>
+                                </TableHead>
                                 <TableHead>Tokens</TableHead>
                                 <TableHead className="w-16"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredTasks.map((task) => (
+                            {paginatedTasks.map((task) => (
                                 <TableRow
                                     key={task.id ?? ''}
                                     className="cursor-pointer hover:bg-muted/50"
@@ -187,6 +241,7 @@ export function AgentTaskListPage() {
                                                 AGENT_TASK_STATUS_COLORS
                                             )}
                                         >
+                                            {renderStatusIcon(task.status ?? undefined)}
                                             {task.status}
                                         </Badge>
                                     </TableCell>
@@ -211,6 +266,8 @@ export function AgentTaskListPage() {
                             ))}
                         </TableBody>
                     </Table>
+                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                    </>
                 ) : (
                     <EmptyState description="No agent tasks found." />
                 )}

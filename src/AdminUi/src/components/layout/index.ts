@@ -21,3 +21,6 @@ export type { FormFieldProps, FormSectionProps, FormGridProps } from './FormSect
 
 export { DetailLayout } from './DetailLayout';
 export type { BreadcrumbItem, DetailLayoutProps } from './DetailLayout';
+
+export { ActivityTimeline } from './ActivityTimeline';
+export type { ActivityEvent, ActivityTimelineProps } from './ActivityTimeline';
