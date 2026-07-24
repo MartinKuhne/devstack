@@ -235,6 +235,8 @@ static class Descriptions
             - **Returns**: The newly created deliverable's `id` (UUID).
 
             **Best Practice**: Fill in as many optional fields as you can at creation time to provide full context to agents working on this deliverable.
+
+            **Done when**: The deliverable is created with a meaningful `title` and `description`, and the returned `id` is stored for subsequent operations.
             """;
 
         internal const string UpdateDeliverable = """
@@ -247,6 +249,8 @@ static class Descriptions
             - **Optional fields**: `description`, `design`, `acceptanceCriteria`, `executionPlan`, `securityImpact`, `performanceImpact`, `testPlan`, `deploymentPlan`, `agentFeedback`, `blocking`.
 
             **Best Practice**: After implementation, fill in all structured fields (performance, security, test plan, deployment plan) with thorough analysis to create a complete record.
+
+            **Done when**: All relevant fields are populated with evidence-backed content (see individual field requirements), and `get_deliverable` confirms the changes.
             """;
 
         internal const string UpdateDeliverableStatus = """
@@ -264,6 +268,8 @@ static class Descriptions
             **Terminal states**: Done, Failed, Rejected
 
             **Actor requirement**: Always provide a meaningful `actor` string (e.g., your agent name) for audit trail purposes.
+
+            **Done when**: The status transition is accepted (no error returned) and `get_deliverable` confirms the new status. If the transition fails, investigate why (invalid transition, missing prerequisites) and retry with a valid status.
             """;
 
         internal const string Id = """
@@ -372,23 +378,27 @@ static class Descriptions
 
             The step-by-step plan for implementing the deliverable.
 
+            **Persona**: Adopt the mindset of a **software architect planning incremental delivery** — prefer small, reversible steps over large rewrites.
+
             **Field**: `executionPlan` (String, optional)
 
+            **Protocol — Minimal Edit Discipline**: Each step should represent the smallest possible change that adds value. If a step touches more than 3 files, consider splitting it. Prefer additive changes (new files, new methods) over modifications to existing code where possible.
+
             **Requirements**:
-            - List the implementation steps in order, referencing files, modules, or services that need to be changed.
-            - Include dependencies between steps.
-            - Estimate effort or complexity per step if possible.
+            - List the implementation steps in order, referencing **specific files, modules, or services** that need to be changed.
+            - Include dependencies between steps. Step B must explicitly state "depends on Step A".
+            - Estimate effort or complexity per step (1–5 scale) if possible.
             - Reference the design document where relevant.
+            - For each step, state what constitutes **done**: the pass/fail condition that tells an implementer the step is complete.
 
             **Example**:
             ```
-            1. Add User entity to the domain model (src/Domain/Entities/User.cs)
-            2. Create migration for Users table
-            3. Implement IUserRepository interface and Postgres implementation
-            4. Add Register endpoint in AuthController
-            5. Add Login endpoint with JWT token generation
-            6. Write unit tests for AuthService
-            7. Write integration tests for Auth endpoints
+            1. [1/5] Add User entity to the domain model (src/Domain/Entities/User.cs)
+               Done when: User class with Id, Email, PasswordHash properties compiles
+            2. [2/5] Create migration for Users table
+               Done when: `dotnet ef migrations add` succeeds
+            3. [2/5] Implement IUserRepository interface and Postgres implementation
+               Done when: All CRUD operations pass unit tests (depends on 1, 2)
             ```
             """;
 
@@ -397,16 +407,24 @@ static class Descriptions
 
             Security impact assessment for the deliverable.
 
+            **Persona**: Adopt the mindset of a **security auditor** — assume a threat model, think adversarially, and validate every claim.
+
             **Field**: `securityImpact` (String, optional)
 
+            **Protocol — Adversarial Falsification**: Before reporting a finding, try to **disprove it**. If you claim a vulnerability exists, provide the exact `file:line` where it occurs and a concrete reproduction. If you claim a mitigation exists, show the code that implements it.
+
             **Requirements**: Analyse the following security concerns and document your findings:
-            - **Authentication/Authorization**: Does this change affect who can access what? Are proper permission checks in place?
-            - **Input Validation**: Are all inputs sanitised? Could injection attacks (SQL, XSS, command injection) occur?
+            - **Authentication/Authorization**: Does this change affect who can access what? Are proper permission checks in place? Trace the enforcement path.
+            - **Input Validation**: Are all inputs sanitised? Could injection attacks (SQL, XSS, command injection) occur? List entry points.
             - **Data Protection**: Is sensitive data encrypted at rest and in transit? Are secrets handled properly (not logged, not hardcoded)?
             - **OWASP Top 10**: Review against OWASP Top 10 Web Application Security Risks. Which risks apply and how are they mitigated?
-            - **Dependencies**: Are any new libraries introduced? Do they have known vulnerabilities?
-            - **Audit Trail**: Are security-relevant events logged?
+            - **Dependencies**: Are any new libraries introduced? Do they have known vulnerabilities? Check against known CVEs.
+            - **Audit Trail**: Are security-relevant events logged with sufficient context?
             - **Rate Limiting / Throttling**: Is abuse prevention in place?
+
+            **Epistemic labeling**: Label each claim as `[CONFIRMED]` (code evidence), `[INFERRED]` (logical deduction), or `[UNVERIFIED]` (cannot confirm from available information).
+
+            **Done when**: Every applicable OWASP category is addressed, each claim is labeled with confidence, and no finding is reported without a falsification attempt documented.
             """;
 
         internal const string PerformanceImpact = """
@@ -414,18 +432,26 @@ static class Descriptions
 
             Performance impact assessment for the deliverable.
 
+            **Persona**: Adopt the mindset of a **performance engineer** — measure before claiming improvement, identify bottlenecks, and verify with data.
+
             **Field**: `performanceImpact` (String, optional)
 
+            **Protocol — Baseline Discipline**: Every performance claim requires a baseline comparison. If you state "performance improved by X%", show the before measurement, the after measurement, and the methodology used.
+
             **Requirements**: Analyse the following performance dimensions and document your findings:
-            - **Latency**: Expected response times for the new functionality. Measure p50, p95, p99 if possible.
-            - **Throughput**: How many requests/operations per second can the system handle?
-            - **Resource Usage**: CPU, memory, disk I/O, and network bandwidth impact.
-            - **Database**: New queries, indexes needed, N+1 problems, connection pool usage, query plan analysis.
-            - **Caching Strategy**: What data should be cached? What cache invalidation strategy is used?
-            - **Concurrency**: Thread safety, lock contention, race conditions.
-            - **Scaling**: Horizontal/vertical scaling implications. Does this change affect scalability?
+            - **Latency**: Expected response times for the new functionality. Measure p50, p95, p99 if possible. State units (ms/μs).
+            - **Throughput**: How many requests/operations per second can the system handle? Under what load?
+            - **Resource Usage**: CPU, memory, disk I/O, and network bandwidth impact. Compare to baseline.
+            - **Database**: New queries, indexes needed, N+1 problems, connection pool usage, query plan analysis. Provide the actual SQL queries.
+            - **Caching Strategy**: What data should be cached? What cache invalidation strategy is used? Hit ratio expectations.
+            - **Concurrency**: Thread safety, lock contention, race conditions. How does it behave under contention?
+            - **Scaling**: Horizontal/vertical scaling implications. Does this change affect scalability? Is there a bottleneck that caps throughput?
             - **Bottlenecks**: Identify any potential performance bottlenecks and how they are addressed.
             - **Baseline Comparison**: "Before vs after" measurements to quantify the impact.
+
+            **Self-verification**: Before finalising, try to disprove your own performance claims. Run the numbers again. If you can't reproduce the improvement, label it as `[UNVERIFIED]`.
+
+            **Done when**: Every dimension is addressed, baseline comparisons exist for quantitative claims, and self-verification has been attempted.
             """;
 
         internal const string TestPlan = """
@@ -433,17 +459,24 @@ static class Descriptions
 
             The test plan for verifying the deliverable works correctly.
 
+            **Persona**: Adopt the mindset of a **test engineer** — design tests that can falsify the implementation. A test that always passes proves nothing.
+
             **Field**: `testPlan` (String, optional)
 
+            **Protocol — Verification Loop**: Each test case must have a clear **pass/fail criterion** stated upfront. Tests without falsifiable criteria are not tests — they are descriptions.
+
             **Requirements**: Describe the testing strategy covering:
-            - **Unit Tests**: What individual components/modules are tested in isolation? Target coverage? Framework used.
+            - **Unit Tests**: What individual components/modules are tested in isolation? Target coverage? Framework used. Name the specific test files.
             - **Integration Tests**: How components interact with real dependencies (database, external APIs, message queues).
-            - **End-to-End Tests**: Full user journey tests that exercise the complete system.
-            - **Edge Cases**: Boundary conditions, empty states, error states, concurrent access.
-            - **Performance Tests**: Load tests, stress tests, soak tests if applicable.
+            - **End-to-End Tests**: Full user journey tests that exercise the complete system. List the scenarios.
+            - **Edge Cases**: Boundary conditions, empty states, error states, concurrent access. For each, state the input and expected behaviour.
+            - **Performance Tests**: Load tests, stress tests, soak tests if applicable. Include target thresholds (e.g. "p95 < 200ms under 1000 RPS").
             - **Security Tests**: Penetration testing, SAST/DAST scans, dependency scanning.
             - **Test Data**: What test data is needed? How is it set up and torn down?
-            - **Automation**: Which tests are automated in CI/CD? Which are manual?
+            - **Automation**: Which tests are automated in CI/CD? Which are manual? For manual tests, provide step-by-step instructions.
+            - **Coverage gaps**: Explicitly state what is NOT tested and why.
+
+            **Done when**: Every test case has a falsifiable pass/fail criterion, test files are named, coverage gaps are documented, and the test plan can be executed by another agent.
             """;
 
         internal const string DeploymentPlan = """
@@ -471,13 +504,19 @@ static class Descriptions
 
             **Field**: `agentFeedback` (String, optional)
 
+            **Protocol — Epistemic Labeling**: Label each observation with its confidence level:
+            - `[OBSERVED]` — something you directly experienced (e.g. "the build failed")
+            - `[INFERRED]` — something you deduced logically (e.g. "this approach would not scale because...")
+            - `[ASSUMED]` — something you assumed without verification (e.g. "the API rate limit is 100 req/s")
+
             **Requirements**:
             - Summarise what went well, what was challenging, and any lessons learned.
             - Note any assumptions that proved incorrect.
             - Suggest improvements for future deliverables of similar scope.
             - If the deliverable was rejected or failed, explain why and what would need to change.
+            - Include specific file:line references where relevant.
 
-            **Best Practice**: Always fill this in after completing a deliverable so that future agents benefit from your experience.
+            **Best Practice**: Always fill this in after completing a deliverable so that future agents benefit from your experience. Epistemic labels help downstream agents calibrate trust.
             """;
 
         internal const string Blocking = """
@@ -591,6 +630,8 @@ static class Descriptions
             - Break deliverables into small, focused tasks that can be completed in a single session (15–30 minutes).
             - Provide a descriptive `description` with specific implementation instructions.
             - Reference the deliverable's design and execution plan in the task description.
+
+            **Done when**: The task is created successfully, the returned `id` is stored for subsequent updates, and `get_task` confirms the task exists with the expected status.
             """;
 
         internal const string UpdateTask = """
@@ -603,10 +644,12 @@ static class Descriptions
             - **Optional fields**: `status`, `description`, `result`, `errors`, `commitHash`, `agent`.
 
             **Best Practice**:
-            - Always save the `result` with a summary of what was accomplished.
-            - Save `errors` with any issues encountered (even if resolved).
+            - Always save the `result` with a summary of what was accomplished, citing specific file:line changes and commit hashes.
+            - Save `errors` with exact error messages (copy-pasted from terminal output), not paraphrases.
             - Record the `commitHash` for traceability.
             - After updating, call `get_task` to verify the changes.
+
+            **Done when**: All relevant fields are populated, `get_task` confirms the changes, and no required information (result, errors, commit) is missing.
             """;
 
         internal const string UpdateTaskStatus = """
@@ -631,6 +674,8 @@ static class Descriptions
             | `NeedsReview` | Task requires human review |
 
             **Actor requirement**: Always provide a meaningful `actor` string (e.g., your agent name) for audit trail purposes.
+
+            **Done when**: The status transition is accepted, and `get_task` confirms the new status. If transitioning to `Done`, ensure `result` is populated first. If transitioning to `Failed`, ensure `errors` contains the exact error messages.
             """;
 
         internal const string Id = """
@@ -754,10 +799,13 @@ static class Descriptions
 
             **Field**: `result` (String, optional)
 
+            **Protocol — Anti-Hallucination**: Cite specific evidence for every claim. Do not state "refactored UserService" without naming the file, the change, and the commit. If you did not personally observe a result, label it as `[INFERRED]`.
+
             **Requirements**:
             - Summarise what was accomplished, including key decisions made and any unexpected findings.
-            - Reference specific files changed, commits made, or outputs produced.
+            - Reference **specific files changed, lines modified, and commits made**. Use `file:line` notation.
             - If the task involved code changes, include the commit hash in the `commitHash` field and briefly describe the changes here.
+            - Distinguish between: `[DONE]` (completed), `[PARTIAL]` (partially complete with what's left), `[BLOCKED]` (cannot proceed, see errors field).
 
             **Best Practice**: Always fill this in when completing a task, even if the task failed. It provides context for human reviewers and future agents.
             """;
@@ -769,15 +817,20 @@ static class Descriptions
 
             **Field**: `errors` (String, optional)
 
+            **Protocol — Anti-Hallucination**: Include exact error messages, not paraphrases. Copy-paste the actual terminal output. Distinguish between:
+            - `[OBSERVED]` — error you personally reproduced and witnessed
+            - `[INFERRED]` — error you deduce must exist based on code analysis
+            - `[RESOLVED]` — error that occurred but was fixed (include the fix)
+
             **Requirements**:
             - Include full error messages and stack traces where relevant.
             - Describe what was attempted, what went wrong, and what might fix it.
             - If the error was resolved during the task, note the resolution.
-            - If the error caused the task to fail (status = Failed), explain clearly why.
+            - If the error caused the task to fail (status = Failed), explain clearly why and what would need to change for retry.
 
             **Format**:
             ```
-            ERROR: System.InvalidOperationException: Connection refused at ...
+            [OBSERVED] System.InvalidOperationException: Connection refused at ...
             Resolution: Updated connection string to use the correct port.
             ```
             """;
