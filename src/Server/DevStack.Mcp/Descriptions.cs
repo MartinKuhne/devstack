@@ -432,26 +432,21 @@ static class Descriptions
 
             Performance impact assessment for the deliverable.
 
-            **Persona**: Adopt the mindset of a **performance engineer** — measure before claiming improvement, identify bottlenecks, and verify with data.
+            **Persona**: Adopt the mindset of a **performance engineer** — identify how this change affects system performance and estimate the impact.
 
             **Field**: `performanceImpact` (String, optional)
 
-            **Protocol — Baseline Discipline**: Every performance claim requires a baseline comparison. If you state "performance improved by X%", show the before measurement, the after measurement, and the methodology used.
-
-            **Requirements**: Analyse the following performance dimensions and document your findings:
-            - **Latency**: Expected response times for the new functionality. Measure p50, p95, p99 if possible. State units (ms/μs).
+            **Requirements**: Estimate the performance impact across these dimensions:
+            - **Latency**: Expected effect on response times. Consider p50, p95, p99. State units (ms/μs).
             - **Throughput**: How many requests/operations per second can the system handle? Under what load?
-            - **Resource Usage**: CPU, memory, disk I/O, and network bandwidth impact. Compare to baseline.
-            - **Database**: New queries, indexes needed, N+1 problems, connection pool usage, query plan analysis. Provide the actual SQL queries.
-            - **Caching Strategy**: What data should be cached? What cache invalidation strategy is used? Hit ratio expectations.
-            - **Concurrency**: Thread safety, lock contention, race conditions. How does it behave under contention?
-            - **Scaling**: Horizontal/vertical scaling implications. Does this change affect scalability? Is there a bottleneck that caps throughput?
+            - **Resource Usage**: CPU, memory, disk I/O, and network bandwidth impact. Estimate the delta from current usage.
+            - **Database**: New queries, indexes needed, N+1 problems, connection pool usage, query plan analysis.
+            - **Caching Strategy**: What data should be cached? What cache invalidation strategy is used?
+            - **Concurrency**: Thread safety, lock contention, race conditions.
+            - **Scaling**: Horizontal/vertical scaling implications. Does this change affect scalability?
             - **Bottlenecks**: Identify any potential performance bottlenecks and how they are addressed.
-            - **Baseline Comparison**: "Before vs after" measurements to quantify the impact.
 
-            **Self-verification**: Before finalising, try to disprove your own performance claims. Run the numbers again. If you can't reproduce the improvement, label it as `[UNVERIFIED]`.
-
-            **Done when**: Every dimension is addressed, baseline comparisons exist for quantitative claims, and self-verification has been attempted.
+            **Done when**: Each dimension is assessed with an estimate of impact (positive, neutral, or negative) and supporting reasoning.
             """;
 
         internal const string TestPlan = """
