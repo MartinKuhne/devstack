@@ -1,85 +1,61 @@
 # devstack
 
-When I started experimenting with local LLMs for coding, I quickly discovered that they are very slow and not very capable. You may have a free resource but actually using that resource requires different patterns. Having gone through a few coding projects,
-I realized I needed a framework to analyze requirements, break them down into scoped work items that can be performed by a local LLM, and to run this in a loop until all the work is done. It also needs to have a library of prompts on hand to perform a variety of tasks.
+## Mission
 
-And, to be fair, a vibe coding project to do more vibe coding? What could go wrong?
+_devstack_ is a project management MCP server and UI to enable better interaction with code agents. It provides a Project → Deliverable → AgentTask hierarchy to separate planning from implementation. If you are cost conscious (or otherwise token constrained), use a frontier model for planning and an efficient model for coding.
 
-If you are bored of my musings, head over to the [instructions](wwwroot/HOWTO.md).
-If you are interested in the progress so far, there is a [history](wwwroot/HISTORY.md)
+Deliverables and tasks are tracked through their lifecycle (Draft, Ready, Implement, Review, Done) but the system is not opinionated on state transitions.
 
-# Key learnings
+There is a fully fledged admin UI to add features, or review/approve AI generated tasks:
 
-- Spec is everything. It is very easy to generate a lot of code from a detailed spec. It is much harder to make changes to existing code. At times it may be easier to revise the spec and to throw away the code. Invest in spec engineering.
-- Prompts are everything. AI is not intelligent and there is no intrinsic motivation. You don't (usually) have to ask a software engineer to write tests. Don't take anything for granted for AI work. It sometimes will but if you want to be sure provide instructions.
-- AI likes to succeed at all cost. It will delete code that is considered problematic or completely ignore specific instructions.
-- If the semantics of the library that the AI is using have changed, the AI will assume it knows what to do but it will be several versions behind and it may take a long time to recover. That's the most frequent hallucination I have seen.
-- It's not your tech stack anymore. It's the AI's tech stack. Pick the one it can code in.
+![Screenshot](doc/img/devstack.png)
 
-# Dream
+## Features
 
-![development environment](wwwroot/devstack.png)
+### MCP Server
+Provides tools for AI coding agents (OpenCode, Claude, etc.) to interact with DevStack data via the [Model Context Protocol](https://modelcontextprotocol.io):
+- Read, create, and update **Projects**, **Deliverables**, and **AgentTasks**
+- Smart "get next" tools that find the next item to work on based on priority
+- HTTP streaming protocol, JSON-RPC 2.0, health check endpoint
 
-You enter features, requirements and the occasional bug report, the automation does the rest!
+### MCP Tools
 
-# Stack
+| Tool | Description |
+|------|-------------|
+| `get_projects` | Read all projects from DevStack |
+| `get_project` | Read a project by its ID |
+| `create_project` | Create a new project in DevStack |
+| `get_deliverable` | Read a deliverable by its ID |
+| `get_next_deliverable` | Find the next deliverable in Implement status for a project |
+| `create_deliverable` | Create a new deliverable (Feature) in DevStack |
+| `update_deliverable` | Modify an existing deliverable in DevStack |
+| `update_deliverable_status` | Change the state of a deliverable in DevStack |
+| `get_task` | Read an agent task by its ID |
+| `get_next_task` | Find the next task to work on for a project |
+| `create_task` | Create a new agent task in DevStack |
+| `update_task` | Modify an existing agent task in DevStack |
+| `update_task_status` | Change the state of an agent task in DevStack |
 
-The project can't build itself unfortunately (maybe it will be able to improve itself). My coding agent is OpenCode and I have the following tools installed to help with the coding
-- Saga: The closest I could find to meet my requirements. Models epics, stories and tasks internally.  On the initially planning pass, GPT-4o generated more than a hundred tasks to execute. (saga-mcp)
-- codebase-memory: Indexes the codebase and also has an architecture tool call
-- context7: Code samples for many use cases
-- dotnet: Dotnet sdk for solutions, projects, test runs and nuget (Community.Mcp.DotNet)
-- fetch: web fetch (mcp-server-fetch)
-- filesystem: better access to local files (@modelcontextprotocol/server-filesystem)
-- git: naturally (mcp-server-git)
-- refactor: bulk edits, not sure how to get OpenCode to use this more (@myuon/refactor-mcp@latest)
+### Admin UI
+A web interface built with React, Tailwind, and ShadCN for human interaction:
+- CRUD management for all entities (Projects, LLMs, Deliverables, AgentTasks)
+- Dashboard showing deliverable counts by status
+- Markdown rendering for rich text fields
+- Search and navigation by project
+- Status transitions via dropdown
 
-# Coding flow
+### GraphQL API
+Backend data layer with full CRUD over all entities, filtering, sorting, and paging:
+- **Projects** - top-level containers with repository tracking
+- **Deliverables** (Features, Spikes, Defects, Maintenance) - full lifecycle with design, acceptance criteria, execution plan, security/performance impact, test and deployment plans
+- **AgentTasks** - granular work items linked to deliverables
+- **LargeLanguageModels** - configurable model definitions with cost and complexity tracking
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant AdminUI as Admin UI<br/>(localhost:8087)
-    participant PS as devstack.ps1
-    participant GQL as GraphQL Server<br/>(/graphql)
-    participant MCP as MCP Server<br/>(/mcp)
-    participant Agent as Coding Agent<br/>(opencode)
-    participant DB as Database
+### Note
 
-    User->>AdminUI: Create/edit features, tasks, defects
-    AdminUI->>GQL: GraphQL mutations & queries
-    GQL->>DB: Read / write
+This was intentionally intended to be a fully automated coding system. For the time being, I am focusing on the mcp server and UI parts as the most valuable aspects.
 
-    User->>PS: ./devstack.ps1 run
-    PS->>GQL: Query items by project & status
-    GQL->>DB: Read
-    GQL-->>PS: Features / defects / tasks
-    loop For each item
-        PS->>Agent: npx opencode run <prompt>
-        Agent->>MCP: MCP tool calls<br/>(update_task, create_task,<br/>transition_task_status, …)
-        MCP->>DB: Read / write
-        MCP-->>Agent: Result
-        Agent-->>PS: Exit
-    end
-
-    User->>AdminUI: Review results & status updates
-    AdminUI->>GQL: Query updated items
-    GQL->>DB: Read
-    GQL-->>AdminUI: Updated state
-```
-
-# Models
-
-I think there are a couple of useful tiers to be considered
-
-- A top of the line model (I like GPT 5.4) to do the planning
-- A midrange model to do higher complexity work, hopefully at 10% of the cost (I like MiniMax 2.7)
-- A larger local LLM. Quen3 coder next seems to be a reasonable compromise between speed, capability and stability. I wanted to try gemma 4 but it crashes every 5 minutes under llama.cpp.
-- I am not sure if there is an edge model that can run coding tasks and tool calls. So far it has been discouraging. Hopefully eventually a model can be found to run on 8 or 16gb VRAM.
-
-The core planning prompt is to split the work into tasks that can be performed by an AI coding agent in under 20 minutes, to be specific about what is to be accomplished, and to rate the complexity of the task.
-
-# References and inspriration
+# References and inspiration
 - [Prompt Kit](https://github.com/microsoft/PromptKit)
 - [Spec Kit](https://github.com/github/spec-kit)
 - [Awesome Copilot](https://github.com/github/awesome-copilot)

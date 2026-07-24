@@ -4,7 +4,7 @@
 Work only on the item described in the prompt. Do not modify unrelated code or create unrelated commits.
 
 # Development process
-- Check the quality gats before beginnging work. If there are compilation errors or tests fail, repair the tests before beginning work (unless instrcutged to pause tests). You are allowed to disable tests that test functionality that is no longer a requirement. If substantial test changes were needed, commit the changes and exit.
+- Check the quality gates before beginning work. If there are compilation errors or tests fail, repair the tests before beginning work (unless instructed to pause tests). You are allowed to disable tests that test functionality that is no longer a requirement. If substantial test changes were needed, commit the changes and exit.
 - Create a detailed plan and decompose implementations steps into units of work that can be done by an AI agent in less than 20 minutes
 - Specify dependencies, test impact, architecture changes, risk
 - Specify complexity on a scale of 1 to 10
@@ -14,7 +14,7 @@ Work only on the item described in the prompt. Do not modify unrelated code or c
 - Create a commit message with a summary of changes and commit
 
 ## Quality Gates
-All quality gates must pass before marking an item done and commiting the changes, unless instructed to pause testing
+All quality gates must pass before marking an item done and committing the changes, unless instructed to pause testing
 - Build succeeds
 - Unit tests pass
 - No new lint errors or warnings
@@ -31,7 +31,7 @@ All quality gates must pass before marking an item done and commiting the change
 - Do not commit unrelated changes
 
 # Code quality
-- Once class per file
+- One class per file
 - All public and internal methods have a brief description
 - Follow SOLID principles
 - Say it once
