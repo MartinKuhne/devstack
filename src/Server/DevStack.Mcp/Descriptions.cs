@@ -111,10 +111,7 @@ static class Descriptions
 
             - **Parameter**: `id` (UUID) — Obtained from `get_projects`.
             - **Returns**: Project details including `name`, `description`, and `repository`.
-
-            **Requirements**:
-            - `id` must be a valid GUID (UUID v4 format `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
-            - The project must exist in the database; a missing project returns an error.
+            - **Error**: Returns an error if the project does not exist.
             """;
 
         internal const string CreateProject = """
@@ -144,13 +141,9 @@ static class Descriptions
 
             The unique identifier of a project.
 
-            **Field**: `id` (UUID — `System.Guid`)
+            **Field**: `id` (UUID)
 
-            **Requirements**:
-            - Must be a valid GUID in the standard 8-4-4-4-12 format: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`.
-            - Obtained from `create_project` or `get_projects`.
-            - Case-insensitive.
-            - Example: `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"`
+            **Source**: Obtained from `create_project` or `get_projects`.
             """;
 
         internal const string Name = """
@@ -278,13 +271,9 @@ static class Descriptions
 
             The unique identifier of a deliverable.
 
-            **Field**: `id` (UUID — `System.Guid`)
+            **Field**: `id` (UUID)
 
-            **Requirements**:
-            - Must be a valid GUID in the standard 8-4-4-4-12 format: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`.
-            - Obtained from `create_deliverable` or `get_deliverable`.
-            - Case-insensitive.
-            - Example: `"b2c3d4e5-f6a7-8901-bcde-f12345678901"`
+            **Source**: Obtained from `create_deliverable` or `get_deliverable`.
             """;
 
         internal const string ProjectId = """
@@ -292,12 +281,10 @@ static class Descriptions
 
             The unique identifier of the parent project.
 
-            **Field**: `projectId` (UUID — `System.Guid`)
+            **Field**: `projectId` (UUID)
 
             **Requirements**:
             - Must reference an existing project (obtainable via `get_projects`).
-            - Must be a valid GUID format `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`.
-            - The referenced project must exist; a non-existent project ID returns an error.
             """;
 
         internal const string RepositoryUrl = """
@@ -651,13 +638,9 @@ static class Descriptions
 
             The unique identifier of an agent task.
 
-            **Field**: `id` (UUID — `System.Guid`)
+            **Field**: `id` (UUID)
 
-            **Requirements**:
-            - Must be a valid GUID in the standard 8-4-4-4-12 format: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`.
-            - Obtained from `create_task` or `get_task`.
-            - Case-insensitive.
-            - Example: `"c3d4e5f6-a7b8-9012-cdef-234567890123"`
+            **Source**: Obtained from `create_task` or `get_task`.
             """;
 
         internal const string ProjectId = """
@@ -665,12 +648,10 @@ static class Descriptions
 
             The unique identifier of the parent project for this task.
 
-            **Field**: `projectId` (UUID — `System.Guid`)
+            **Field**: `projectId` (UUID)
 
             **Requirements**:
             - Must reference an existing project.
-            - Must be a valid GUID format.
-            - The referenced project must exist; a non-existent project ID returns an error.
             - Typically obtained from the deliverable or from `get_projects`.
             """;
 
@@ -693,12 +674,10 @@ static class Descriptions
 
             The unique identifier of the parent deliverable/feature.
 
-            **Field**: `deliverableId` (UUID — `System.Guid`)
+            **Field**: `deliverableId` (UUID)
 
             **Requirements**:
             - Must reference an existing deliverable.
-            - Must be a valid GUID format.
-            - The referenced deliverable must exist; a non-existent deliverable ID returns an error.
             - Typically obtained from the deliverable creation response or `get_next_deliverable`.
             """;
 
