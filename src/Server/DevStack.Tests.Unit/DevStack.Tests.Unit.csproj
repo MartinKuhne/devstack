@@ -6,7 +6,7 @@
     <ProjectReference Include="..\DevStack.Application\DevStack.Application.csproj" />
     <ProjectReference Include="..\DevStack.Infrastructure\DevStack.Infrastructure.csproj" />
     <ProjectReference Include="..\DevStack.Persistence\DevStack.Persistence.csproj" />
-    <ProjectReference Include="..\DevStack.MCP\DevStack.Mcp.csproj" />
+    <ProjectReference Include="..\DevStack.Mcp\DevStack.Mcp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
