@@ -19,7 +19,7 @@ public class ProjectTools
         _createProjectHandler = createProjectHandler;
     }
 
-    [McpServerTool(Name = "get_projects"), Description("Read all projects from DevStack. Returns project name, id, and repository. Usage hint: Call this first to get a list of available projects before performing other operations.")]
+    [McpServerTool(Name = "get_projects"), Description(Descriptions.ProjectTools.GetProjects)]
     public async Task<string> GetProjects(CancellationToken ct = default)
     {
         var projects = await _dbContext.Projects
@@ -29,8 +29,8 @@ public class ProjectTools
         return ToolResponse.Success("Projects", new ProjectListResponse(projects));
     }
 
-    [McpServerTool(Name = "get_project"), Description("Read a project by its ID. Returns project name and repository. Usage hint: Provide a valid project ID obtained from get_projects.")]
-    public async Task<string> GetProjectById([Description("The project ID")][DefaultValue(null)] Guid? id, CancellationToken ct = default)
+    [McpServerTool(Name = "get_project"), Description(Descriptions.ProjectTools.GetProject)]
+    public async Task<string> GetProjectById([Description(Descriptions.ProjectTools.Id)][DefaultValue(null)] Guid? id, CancellationToken ct = default)
     {
         if (id == null)
         {
@@ -50,11 +50,11 @@ public class ProjectTools
         return ToolResponse.Success("Project", new GetProjectResponse(project.Id, project.Name, project.Description, project.Repository));
     }
 
-    [McpServerTool(Name = "create_project"), Description("Create a new project in DevStack. Usage hint: Name and repository are required fields.")]
+    [McpServerTool(Name = "create_project"), Description(Descriptions.ProjectTools.CreateProject)]
     public async Task<string> CreateProject(
-        [Description("The project name")] string name,
-        [Description("The repository URL")] string repository,
-        [Description("The project description")][DefaultValue(null)] string? description,
+        [Description(Descriptions.ProjectTools.Name)] string name,
+        [Description(Descriptions.ProjectTools.Repository)] string repository,
+        [Description(Descriptions.ProjectTools.Description)][DefaultValue(null)] string? description,
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -74,6 +74,6 @@ public class ProjectTools
         _logger.LogInformation("Created project with ID: {Id}", id);
         return ToolResponse.Success("Project Created",
             new CreateProjectResponse(id.ToString(), name, description, repository),
-            "Use the returned ID for subsequent get_project, create_deliverable, or update operations.");
+            Descriptions.ProjectTools.CreateUsageHint);
     }
 }

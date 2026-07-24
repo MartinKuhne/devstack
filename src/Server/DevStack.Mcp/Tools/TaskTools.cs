@@ -33,8 +33,8 @@ public class TaskTools
         _getAgentTaskByIdHandler = getAgentTaskByIdHandler;
     }
 
-    [McpServerTool(Name = "get_task"), Description("Read an agent task by its ID. Returns all fields including title, status, description, result, and errors. Usage hint: Provide a valid task ID obtained from create_task or other operations.")]
-    public async Task<string> GetTask([Description("The agent task ID")] Guid id, CancellationToken ct = default)
+    [McpServerTool(Name = "get_task"), Description(Descriptions.TaskTools.GetTask)]
+    public async Task<string> GetTask([Description(Descriptions.TaskTools.Id)] Guid id, CancellationToken ct = default)
     {
         var agentTask = await _getAgentTaskByIdHandler.Handle(new GetAgentTaskByIdQuery(id), ct);
         if (agentTask == null)
@@ -54,10 +54,10 @@ public class TaskTools
         return ToolResponse.Success("Agent Task", data);
     }
 
-    [McpServerTool(Name = "get_next_task"), Description("Find the next task to work on for a project. Looks at deliverables in Implement status and prioritizes those with partial progress. Provide either a repository URL or project ID.")]
+    [McpServerTool(Name = "get_next_task"), Description(Descriptions.TaskTools.GetNextTask)]
     public async Task<string> GetNextTask(
-        [Description("The repository URL")][DefaultValue(null)] string? repositoryUrl,
-        [Description("The project ID")][DefaultValue(null)] Guid? projectId,
+        [Description(Descriptions.TaskTools.RepositoryUrl)][DefaultValue(null)] string? repositoryUrl,
+        [Description(Descriptions.TaskTools.ProjectId)][DefaultValue(null)] Guid? projectId,
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(repositoryUrl) && (projectId == null || projectId == Guid.Empty))
@@ -129,12 +129,12 @@ public class TaskTools
         return ToolResponse.Success("Next Task", data);
     }
 
-    [McpServerTool(Name = "create_task"), Description("Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: Both ProjectId and DeliverableId must reference existing entities.")]
+    [McpServerTool(Name = "create_task"), Description(Descriptions.TaskTools.CreateTask)]
     public async Task<string> CreateAgentTask(
-        [Description("The project ID")][DefaultValue(null)] Guid? projectId,
-        [Description("The deliverable/feature ID")][DefaultValue(null)] Guid? deliverableId,
-        [Description("The task title")] string title,
-        [Description("The task description")][DefaultValue(null)] string? description,
+        [Description(Descriptions.TaskTools.ProjectId)][DefaultValue(null)] Guid? projectId,
+        [Description(Descriptions.TaskTools.DeliverableId)][DefaultValue(null)] Guid? deliverableId,
+        [Description(Descriptions.TaskTools.Title)] string title,
+        [Description(Descriptions.TaskTools.Description)][DefaultValue(null)] string? description,
         CancellationToken ct = default)
     {
         if (projectId == null || projectId == Guid.Empty)
@@ -172,18 +172,18 @@ public class TaskTools
         _logger.LogInformation("Created agent task with ID: {Id}", id);
         return ToolResponse.Success("Task Created",
             new CreateAgentTaskResponse(id.ToString(), "Ready"),
-            "Use the returned ID for subsequent get_task, update_task, or update_task_status calls.");
+            Descriptions.TaskTools.CreateUsageHint);
     }
 
-    [McpServerTool(Name = "update_task"), Description("Modify an existing agent task in DevStack. Only non-null fields are updated. Usage hint: Provide the task ID and only the fields you want to change.")]
+    [McpServerTool(Name = "update_task"), Description(Descriptions.TaskTools.UpdateTask)]
     public async Task<string> UpdateAgentTask(
-        [Description("The agent task ID")] Guid id,
-        [Description("The updated status")][DefaultValue(null)] AgentTaskStatus? status,
-        [Description("The updated description")][DefaultValue(null)] string? description,
-        [Description("The result")][DefaultValue(null)] string? result,
-        [Description("The errors")][DefaultValue(null)] string? errors,
-        [Description("The commit hash")][DefaultValue(null)] string? commitHash,
-        [Description("The agent")][DefaultValue(null)] string? agent,
+        [Description(Descriptions.TaskTools.Id)] Guid id,
+        [Description(Descriptions.TaskTools.Status)][DefaultValue(null)] AgentTaskStatus? status,
+        [Description(Descriptions.TaskTools.Description)][DefaultValue(null)] string? description,
+        [Description(Descriptions.TaskTools.Result)][DefaultValue(null)] string? result,
+        [Description(Descriptions.TaskTools.Errors)][DefaultValue(null)] string? errors,
+        [Description(Descriptions.TaskTools.CommitHash)][DefaultValue(null)] string? commitHash,
+        [Description(Descriptions.TaskTools.Agent)][DefaultValue(null)] string? agent,
         CancellationToken ct = default)
     {
         await _updateAgentTaskHandler.Handle(
@@ -205,14 +205,14 @@ public class TaskTools
         _logger.LogInformation("Updated agent task with ID: {Id}", id);
         return ToolResponse.Success("Task Updated",
             new UpdateAgentTaskResponse(id.ToString(), true),
-            "Use get_task to verify the changes.");
+            Descriptions.TaskTools.UpdateUsageHint);
     }
 
-    [McpServerTool(Name = "update_task_status"), Description("Change the state of an agent task in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.")]
+    [McpServerTool(Name = "update_task_status"), Description(Descriptions.TaskTools.UpdateTaskStatus)]
     public async Task<string> TransitionAgentTaskStatus(
-        [Description("The agent task ID")] Guid id,
-        [Description("The target status")] AgentTaskStatus targetStatus,
-        [Description("The actor performing the transition")] string actor,
+        [Description(Descriptions.TaskTools.Id)] Guid id,
+        [Description(Descriptions.TaskTools.TargetStatus)] AgentTaskStatus targetStatus,
+        [Description(Descriptions.TaskTools.Actor)] string actor,
         CancellationToken ct = default)
     {
         await _updateAgentTaskStatusHandler.Handle(

@@ -33,8 +33,8 @@ public class DeliverableTools
         _getDeliverableByIdHandler = getDeliverableByIdHandler;
     }
 
-    [McpServerTool(Name = "get_deliverable"), Description("Read a deliverable by its ID. Returns all fields including title, description, acceptance criteria, and status. Usage hint: Provide a valid deliverable ID.")]
-    public async Task<string> GetDeliverable([Description("The deliverable ID")] Guid id, CancellationToken ct = default)
+    [McpServerTool(Name = "get_deliverable"), Description(Descriptions.DeliverableTools.GetDeliverable)]
+    public async Task<string> GetDeliverable([Description(Descriptions.DeliverableTools.Id)] Guid id, CancellationToken ct = default)
     {
         var deliverable = await _getDeliverableByIdHandler.Handle(new GetDeliverableByIdQuery(id), ct);
         if (deliverable == null)
@@ -58,10 +58,10 @@ public class DeliverableTools
         return ToolResponse.Success("Deliverable", data);
     }
 
-    [McpServerTool(Name = "get_next_deliverable"), Description("Find the next deliverable in Implement status for a project. Provide either a repository URL or a project ID.")]
+    [McpServerTool(Name = "get_next_deliverable"), Description(Descriptions.DeliverableTools.GetNextDeliverable)]
     public async Task<string> GetNextDeliverable(
-        [Description("The repository URL")][DefaultValue(null)] string? repositoryUrl,
-        [Description("The project ID")][DefaultValue(null)] Guid? projectId,
+        [Description(Descriptions.DeliverableTools.RepositoryUrl)][DefaultValue(null)] string? repositoryUrl,
+        [Description(Descriptions.DeliverableTools.ProjectId)][DefaultValue(null)] Guid? projectId,
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(repositoryUrl) && (projectId == null || projectId == Guid.Empty))
@@ -106,18 +106,18 @@ public class DeliverableTools
         return ToolResponse.Success("Next Deliverable", data);
     }
 
-    [McpServerTool(Name = "create_deliverable"), Description("Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state. Usage hint: ProjectId must reference an existing project. Title and description are required fields.")]
+    [McpServerTool(Name = "create_deliverable"), Description(Descriptions.DeliverableTools.CreateDeliverable)]
     public async Task<string> CreateDeliverable(
-        [Description("The project ID")][DefaultValue(null)] Guid? projectId,
-        [Description("The deliverable title")] string title,
-        [Description("The deliverable description")][DefaultValue(null)] string? description,
-        [Description("The design document")][DefaultValue(null)] string? design,
-        [Description("The acceptance criteria")][DefaultValue(null)] string? acceptanceCriteria,
-        [Description("The execution plan")][DefaultValue(null)] string? executionPlan,
-        [Description("The security impact assessment")][DefaultValue(null)] string? securityImpact,
-        [Description("The performance impact assessment")][DefaultValue(null)] string? performanceImpact,
-        [Description("The test plan")][DefaultValue(null)] string? testPlan,
-        [Description("The deployment plan")][DefaultValue(null)] string? deploymentPlan,
+        [Description(Descriptions.DeliverableTools.ProjectId)][DefaultValue(null)] Guid? projectId,
+        [Description(Descriptions.DeliverableTools.Title)] string title,
+        [Description(Descriptions.DeliverableTools.Description)][DefaultValue(null)] string? description,
+        [Description(Descriptions.DeliverableTools.Design)][DefaultValue(null)] string? design,
+        [Description(Descriptions.DeliverableTools.AcceptanceCriteria)][DefaultValue(null)] string? acceptanceCriteria,
+        [Description(Descriptions.DeliverableTools.ExecutionPlan)][DefaultValue(null)] string? executionPlan,
+        [Description(Descriptions.DeliverableTools.SecurityImpact)][DefaultValue(null)] string? securityImpact,
+        [Description(Descriptions.DeliverableTools.PerformanceImpact)][DefaultValue(null)] string? performanceImpact,
+        [Description(Descriptions.DeliverableTools.TestPlan)][DefaultValue(null)] string? testPlan,
+        [Description(Descriptions.DeliverableTools.DeploymentPlan)][DefaultValue(null)] string? deploymentPlan,
         CancellationToken ct = default)
     {
         if (projectId == null || projectId == Guid.Empty)
@@ -144,22 +144,22 @@ public class DeliverableTools
         _logger.LogInformation("Created deliverable with ID: {Id}", id);
         return ToolResponse.Success("Deliverable Created",
             new CreateDeliverableResponse(id.ToString(), projectId.Value.ToString(), "Feature", "Ready"),
-            "Use the returned ID for subsequent get_deliverable, update_deliverable, or update_deliverable_status calls.");
+            Descriptions.DeliverableTools.CreateUsageHint);
     }
 
-    [McpServerTool(Name = "update_deliverable"), Description("Modify an existing deliverable in DevStack. Only non-null fields are updated. Usage hint: Provide the deliverable ID and only the fields you want to change.")]
+    [McpServerTool(Name = "update_deliverable"), Description(Descriptions.DeliverableTools.UpdateDeliverable)]
     public async Task<string> UpdateDeliverable(
-        [Description("The deliverable ID")] Guid id,
-        [Description("The updated description")][DefaultValue(null)] string? description,
-        [Description("The updated design document")][DefaultValue(null)] string? design,
-        [Description("The updated acceptance criteria")][DefaultValue(null)] string? acceptanceCriteria,
-        [Description("The updated execution plan")][DefaultValue(null)] string? executionPlan,
-        [Description("The updated security impact assessment")][DefaultValue(null)] string? securityImpact,
-        [Description("The updated performance impact assessment")][DefaultValue(null)] string? performanceImpact,
-        [Description("The updated test plan")][DefaultValue(null)] string? testPlan,
-        [Description("The updated deployment plan")][DefaultValue(null)] string? deploymentPlan,
-        [Description("The updated agent feedback")][DefaultValue(null)] string? agentFeedback,
-        [Description("The updated blocking issues")][DefaultValue(null)] string? blocking,
+        [Description(Descriptions.DeliverableTools.Id)] Guid id,
+        [Description(Descriptions.DeliverableTools.Description)][DefaultValue(null)] string? description,
+        [Description(Descriptions.DeliverableTools.Design)][DefaultValue(null)] string? design,
+        [Description(Descriptions.DeliverableTools.AcceptanceCriteria)][DefaultValue(null)] string? acceptanceCriteria,
+        [Description(Descriptions.DeliverableTools.ExecutionPlan)][DefaultValue(null)] string? executionPlan,
+        [Description(Descriptions.DeliverableTools.SecurityImpact)][DefaultValue(null)] string? securityImpact,
+        [Description(Descriptions.DeliverableTools.PerformanceImpact)][DefaultValue(null)] string? performanceImpact,
+        [Description(Descriptions.DeliverableTools.TestPlan)][DefaultValue(null)] string? testPlan,
+        [Description(Descriptions.DeliverableTools.DeploymentPlan)][DefaultValue(null)] string? deploymentPlan,
+        [Description(Descriptions.DeliverableTools.AgentFeedback)][DefaultValue(null)] string? agentFeedback,
+        [Description(Descriptions.DeliverableTools.Blocking)][DefaultValue(null)] string? blocking,
         CancellationToken ct = default)
     {
         await _updateDeliverableHandler.Handle(
@@ -181,14 +181,14 @@ public class DeliverableTools
         _logger.LogInformation("Updated deliverable with ID: {Id}", id);
         return ToolResponse.Success("Deliverable Updated",
             new UpdateDeliverableResponse(id.ToString(), true),
-            "Use get_deliverable to verify the changes.");
+            Descriptions.DeliverableTools.UpdateUsageHint);
     }
 
-    [McpServerTool(Name = "update_deliverable_status"), Description("Change the state of a deliverable in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.")]
+    [McpServerTool(Name = "update_deliverable_status"), Description(Descriptions.DeliverableTools.UpdateDeliverableStatus)]
     public async Task<string> TransitionDeliverableStatus(
-        [Description("The deliverable ID")] Guid id,
-        [Description("The target status")] DeliverableStatus targetStatus,
-        [Description("The actor performing the transition")] string actor,
+        [Description(Descriptions.DeliverableTools.Id)] Guid id,
+        [Description(Descriptions.DeliverableTools.TargetStatus)] DeliverableStatus targetStatus,
+        [Description(Descriptions.DeliverableTools.Actor)] string actor,
         CancellationToken ct = default)
     {
         await _updateDeliverableStatusHandler.Handle(
