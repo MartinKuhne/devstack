@@ -69,8 +69,6 @@ try
     }
 
     mcpBuilder
-        .WithPrompts<GreetingPrompt>(null)
-        .WithPrompts<HelpPrompt>(null)
         .WithPrompts<DeliverableWorkflowPrompt>(null)
         .WithResources<ResourceType>()
         .WithRequestFilters(filters =>

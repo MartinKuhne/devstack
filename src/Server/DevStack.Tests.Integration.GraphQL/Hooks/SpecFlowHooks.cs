@@ -1,18 +1,10 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-using DevStack.Client;
 using DevStack.Tests.Integration.Shared;
-
-using Microsoft.Extensions.DependencyInjection;
-
-using StrawberryShake;
 
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Infrastructure;
@@ -23,8 +15,6 @@ namespace DevStack.Tests.Integration.GraphQL.Client.Hooks;
 public sealed class SpecFlowHooks : IDisposable
 {
     private readonly ScenarioContext _scenarioContext;
-    private IDevStackClient? _client;
-    private IServiceProvider? _serviceProvider;
     private HttpClient? _httpClient;
     private bool _disposed;
 
@@ -57,16 +47,8 @@ public sealed class SpecFlowHooks : IDisposable
 
         var graphQlUrl = $"{_env.AppUrl}/graphql";
 
-        var services = new ServiceCollection();
-        services
-            .AddDevStackClient()
-            .ConfigureHttpClient(client => client.BaseAddress = new Uri(graphQlUrl));
-
-        _serviceProvider = services.BuildServiceProvider();
-        _client = _serviceProvider.GetRequiredService<IDevStackClient>();
         _httpClient = new HttpClient { BaseAddress = new Uri(graphQlUrl) };
 
-        _scenarioContext["GraphQLClient"] = _client;
         _scenarioContext["GraphQLUrl"] = graphQlUrl;
         _scenarioContext["HttpClient"] = _httpClient;
     }
@@ -80,14 +62,8 @@ public sealed class SpecFlowHooks : IDisposable
         {
             httpDisposable.Dispose();
         }
-        if (_serviceProvider is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
 
         _httpClient = null;
-        _serviceProvider = null;
-        _client = null;
     }
 
     private async Task CleanupTestDataAsync()
@@ -115,13 +91,6 @@ public sealed class SpecFlowHooks : IDisposable
         }
     }
 
-    public static IDevStackClient GetClient(ScenarioContext context)
-    {
-        return context.TryGetValue<IDevStackClient>("GraphQLClient", out var client)
-            ? client
-            : throw new InvalidOperationException("GraphQL client not initialized. Ensure BeforeScenario hook has run.");
-    }
-
     public static string GetGraphQLUrl(ScenarioContext context)
     {
         return context.TryGetValue<string>("GraphQLUrl", out var url)
@@ -142,6 +111,5 @@ public sealed class SpecFlowHooks : IDisposable
         _disposed = true;
 
         _httpClient?.Dispose();
-        (_serviceProvider as IDisposable)?.Dispose();
     }
 }

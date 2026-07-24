@@ -2,13 +2,13 @@ namespace DevStack.Mcp;
 
 static class Descriptions
 {
-    static class Resources
+    internal static class Resources
     {
         internal const string ServerInfo = "Server information resource";
         internal const string ServerInfoContent = "DevStack MCP Server v1.0.0.0 - Provides access to DevStack application features";
     }
 
-    static class Prompts
+    internal static class Prompts
     {
         internal const string DeliverableWorkflow = "Guidance on how to pick the next deliverable to work on and mark it complete";
         internal const string DeliverableWorkflowContent = """
@@ -26,7 +26,7 @@ static class Descriptions
             """;
     }
 
-    static class ProjectTools
+    internal static class ProjectTools
     {
         internal const string GetProjects = "Read all projects from DevStack. Returns project name, id, and repository. Usage hint: Call this first to get a list of available projects before performing other operations.";
         internal const string GetProject = "Read a project by its ID. Returns project name and repository. Usage hint: Provide a valid project ID obtained from get_projects.";
@@ -40,7 +40,7 @@ static class Descriptions
         internal const string CreateUsageHint = "Use the returned ID for subsequent get_project, create_deliverable, or update operations.";
     }
 
-    static class DeliverableTools
+    internal static class DeliverableTools
     {
         internal const string GetDeliverable = "Read a deliverable by its ID. Returns all fields including title, description, acceptance criteria, and status. Usage hint: Provide a valid deliverable ID.";
         internal const string GetNextDeliverable = "Find the next deliverable in Implement status for a project. Provide either a repository URL or a project ID.";
@@ -69,7 +69,7 @@ static class Descriptions
         internal const string UpdateUsageHint = "Use get_deliverable to verify the changes.";
     }
 
-    static class TaskTools
+    internal static class TaskTools
     {
         internal const string GetTask = "Read an agent task by its ID. Returns all fields including title, status, description, result, and errors. Usage hint: Provide a valid task ID obtained from create_task or other operations.";
         internal const string GetNextTask = "Find the next task to work on for a project. Looks at deliverables in Implement status and prioritizes those with partial progress. Provide either a repository URL or project ID.";
