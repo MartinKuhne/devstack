@@ -11,12 +11,12 @@ The target agent must be **strictly confined to source code directory operations
 Coding agents fall into two major architectural paradigms regarding tool permissions:
 
 1. **Interactive Developer CLI Harnesses** (e.g., *Claude Code*, *Aider*): Designed around developer-in-the-loop workflows where shell execution is a fundamental primitive. Tool controls in these tools rely primarily on user confirmation popups, command pattern allowlists, or system prompts. Disabling shell access entirely is either unsupported or significantly degrades the agent's core capabilities.
-2. **Programmatic Agent Frameworks & Mode-Based Harnesses** (e.g., *OpenHands SDK*, *LangGraph*, *AutoGen*, *Roo Code / Cline Custom Modes*, *CrewAI*): Expose hard structural mechanisms to whitelist specific file-system tools while **programmatically excluding shell/terminal execution tools from the LLM schema entirely**.
+2. **Programmatic Agent Frameworks & Mode-Based Harnesses** (e.g., *OpenHands SDK*, *LangGraph*, *OpenCode*, *Pi*, *AGY (Antigravity SDK)*, *Roo Code / Cline Custom Modes*, *AutoGen*, *CrewAI*, *Hermes*): Expose hard structural or configuration-level mechanisms to whitelist specific file-system tools while **programmatically excluding or explicitly denying shell/terminal execution tools**.
 
 ### Strategic Recommendation for DevStack
-To achieve a production-grade, prompt-injection-proof automated coding agent limited strictly to source files, DevStack should adopt either:
-- **Primary Option (SDK)**: A lightweight custom agent using **OpenHands SDK** or **LangGraph** configured with a restricted `FileManagementToolkit` scoped strictly to `./src` and zero terminal/shell tools registered.
-- **Secondary Option (Headless Harness)**: **Roo Code / Cline CLI** running in headless mode with a custom `.roomodes` file that completely strips the `command` (`execute_command`) tool group and enables only `read` and `edit` tool groups.
+To achieve a production-grade, prompt-injection-proof automated coding agent limited strictly to source files, DevStack should adopt one of the following top-tier options:
+- **Primary Option (SDK / Ecosystem Native)**: A custom agent using **OpenHands SDK**, **LangGraph**, or **AGY Python SDK (`google-antigravity`)** configured with a restricted tool capabilities set (`CapabilitiesConfig` / `FileManagementToolkit`) scoped strictly to `./src` with zero terminal/shell tools registered.
+- **Secondary Option (Configured Harness)**: **OpenCode** or **Roo Code / Cline CLI** running in headless mode with `"permission": { "bash": "deny" }` in `opencode.json` or a custom `.roomodes` file that completely strips the `command` (`execute_command`) tool group.
 
 ---
 
@@ -28,7 +28,7 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **Overview**: Modular agent framework and evaluation platform designed for autonomous software engineering.
 * **Tool Control Mechanism**:
   - OpenHands provides explicit tool injection when instantiating agents via its Python SDK (`openhands.sdk.Agent`).
-  - Instead of passing default tool suites, developers pass a explicit whitelist of tools:
+  - Instead of passing default tool suites, developers pass an explicit whitelist of tools:
     ```python
     from openhands.sdk import Agent, LLM, Tool
     from openhands.tools.file_editor import FileEditorTool
@@ -63,7 +63,29 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **Workspace Confinement**: High. `root_dir` strictly enforces path canonicalization and blocks path traversal (`../`) attempts.
 * **Fit for DevStack**: **10 / 10** (Ideal for custom pipeline integration and deterministic graph execution).
 
-#### 1.3 Microsoft AutoGen / AutoGen v0.4 (Magentic-One)
+#### 1.3 Antigravity CLI & SDK (`agy`)
+* **Overview**: Google Antigravity AI-first development CLI (`agy`) and Python SDK (`google-antigravity`).
+* **Tool Control Mechanism**:
+  - In CLI mode (`agy`), uses structured permission management (`settings.json` and fine-grained `ask_permission` policy matching per tool action and target).
+  - In Python SDK mode (`google.antigravity`), tool capabilities are configured programmatically via `CapabilitiesConfig` and `LocalAgentConfig`:
+    ```python
+    from google.antigravity import Agent, LocalAgentConfig, CapabilitiesConfig
+
+    # Run with restricted capabilities (command execution tool omitted)
+    config = LocalAgentConfig(
+        system_instructions="Code modification assistant.",
+        capabilities=CapabilitiesConfig(
+            # Command tools excluded
+        )
+    )
+    async with Agent(config) as agent:
+        # Agent execution loop
+    ```
+* **OS / Shell Isolation**: High. Fine-grained tool action permission enforcement (`read_file`, `write_file`, `command`) at the SDK and CLI runtime layer.
+* **Workspace Confinement**: High. Bounded by workspace settings and fine-grained target path permissions.
+* **Fit for DevStack**: **9.5 / 10** (Native alignment with AGY ecosystem and Python SDK agent leasing).
+
+#### 1.4 Microsoft AutoGen / AutoGen v0.4 (Magentic-One)
 * **Overview**: Multi-agent conversation framework for complex workflows.
 * **Tool Control Mechanism**:
   - Execution capability is governed by `code_execution_config` and tool registration.
@@ -73,7 +95,7 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **Workspace Confinement**: Depends on registered custom file functions.
 * **Fit for DevStack**: **9 / 10**.
 
-#### 1.4 CrewAI
+#### 1.5 CrewAI
 * **Overview**: High-level multi-agent orchestration framework centered around role-based agents.
 * **Tool Control Mechanism**:
   - Declarative tool assignment per agent: `Agent(role="Code Writer", tools=[FileReadTool(), FileWriterTool()])`.
@@ -85,7 +107,24 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 
 ### 2. Headless CLI Coding Agents & Harnesses (Configuration-Based Control)
 
-#### 2.1 Roo Code / Cline (Headless / Custom Modes)
+#### 2.1 OpenCode
+* **Overview**: Open-source CLI agent framework and runtime runner.
+* **Tool Control Mechanism**:
+  - Configured via `opencode.json` in project root or globally at `~/.config/opencode/opencode.json`, as well as agent frontmatter (`.opencode/agent/<name>.md`).
+  - Supports explicit permission rules to block shell access entirely:
+    ```json
+    {
+      "permission": {
+        "bash": "deny"
+      }
+    }
+    ```
+  - Allows fine-grained command-level pattern allowlists/denylists (`"bash": { "*": "deny", "git status": "allow" }`).
+* **OS / Shell Isolation**: High. Setting `"bash": "deny"` in `opencode.json` completely prevents the agent from calling shell execution primitives.
+* **Workspace Confinement**: High when restricted via `.opencode/agent` frontmatter and permission settings.
+* **Fit for DevStack**: **9.5 / 10** (Strong candidate; `.opencode` configuration directory structure is already established in DevStack).
+
+#### 2.2 Roo Code / Cline (Headless / Custom Modes)
 * **Overview**: Popular open-source AI coding assistant supporting VS Code extension and headless CLI execution.
 * **Tool Control Mechanism**:
   - Features a **Custom Modes** engine configured via `.roomodes` / `.clinerules` or TOML mode files.
@@ -108,7 +147,27 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **Workspace Confinement**: Confined to workspace directory opened by the harness.
 * **Fit for DevStack**: **9 / 10** (Best option if leveraging an existing IDE/CLI agent harness).
 
-#### 2.2 Goose (Block / Square)
+#### 2.3 Pi Agent Harness & Framework
+* **Overview**: Lightweight, extensible AI coding harness designed for modular agent workflows.
+* **Tool Control Mechanism**:
+  - Uses a minimal core architecture, delegating permission control to extension layers (`pi-permission-system`, `pi-permission-layers`, `pi-sandbox`).
+  - Can disable bash directly via YAML frontmatter in agent definitions:
+    ```yaml
+    ---
+    name: file-only-agent
+    permission:
+      tools:
+        read: allow
+        write: allow
+        bash: "off"
+    ---
+    ```
+  - Leverages OS-level sandboxing extensions (`pi-sandbox` using `bubblewrap` or `sandbox-exec`) to strictly bind read/write access paths (`allowRead: ["./src"]`).
+* **OS / Shell Isolation**: High (when `bash: "off"` is declared in frontmatter or `pi-permission-system` extension is enabled).
+* **Workspace Confinement**: High when combined with `pi-sandbox`.
+* **Fit for DevStack**: **9 / 10**.
+
+#### 2.4 Goose (Block / Square)
 * **Overview**: Open-source extensible AI agent CLI built on the Model Context Protocol (MCP).
 * **Tool Control Mechanism**:
   - Manages capabilities via extensions defined in `config.yaml` and granular permissions in `permission.yaml`.
@@ -117,7 +176,17 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **OS / Shell Isolation**: High (when developer extension is toggled off or custom MCP profiles are configured).
 * **Fit for DevStack**: **8 / 10**.
 
-#### 2.3 Claude Code (Anthropic CLI)
+#### 2.5 Hermes (Nous Research)
+* **Overview**: Autonomous AI agent framework built by Nous Research.
+* **Tool Control Mechanism**:
+  - Configuration managed via `~/.hermes/config.yaml` or `hermes config` CLI.
+  - Controls tool capabilities at the toolset category level (`hermes tools disable <toolset>`).
+  - Provides a "Dangerous Command Approval" system (`approvals.mode`: `manual`, `smart`, `off`).
+  - Supports switching terminal backends (`terminal.backend`: `docker` vs `process`).
+* **OS / Shell Isolation**: Moderate to High. Shell execution can be disabled by toggling off the terminal toolset or sandboxed inside Docker (`terminal.backend: docker`). However, Hermes lacks fine-grained per-command regex allowlisting found in OpenCode or Roo Code.
+* **Fit for DevStack**: **7.5 / 10**.
+
+#### 2.6 Claude Code (Anthropic CLI)
 * **Overview**: Anthropic's official CLI research/development coding agent.
 * **Tool Control Mechanism**:
   - Configuration via `~/.claude/settings.json` or project-level `.claude/settings.json`.
@@ -125,7 +194,7 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **OS / Shell Isolation**: Moderate. While `Bash` can be denied or set to require prompt confirmation, Claude Code's internal agent loop assumes a bash prompt is available for environment inspection (`ls`, `git status`, test execution). Completely denying `Bash` can lead to degraded agent performance or stuck execution loops.
 * **Fit for DevStack**: **6 / 10** (Not optimized for shell-less autonomous operation).
 
-#### 2.4 Aider
+#### 2.7 Aider
 * **Overview**: Leading CLI AI pair programming tool.
 * **Tool Control Mechanism**:
   - Focuses on file manipulation (`/add`, `/read-only`).
@@ -141,10 +210,14 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **OpenHands SDK** | Fine (Per Tool) | **Programmatic Exclusion** | Supported | Excellent (SDK) | **Highest** (No Tool Schema) | **10 / 10** |
 | **LangGraph / LangChain** | Fine (Per Tool) | **Programmatic Exclusion** | Built-in (`root_dir`) | Excellent (SDK) | **Highest** (No Tool Schema) | **10 / 10** |
+| **OpenCode** | Fine (Pattern / Flag) | **Config (`bash: "deny"`)** | Frontmatter / Config | Excellent (CLI) | **High** (Config Boundary) | **9.5 / 10** |
+| **AGY (`google-antigravity`)** | Fine (Action & Target) | **Programmatic (`CapabilitiesConfig`)**| Built-in Policy | Excellent (SDK / CLI) | **High** (Policy / Schema) | **9.5 / 10** |
 | **Roo Code / Cline** | Group & Tool Level | **Config-Based (Remove `command`)** | Workspace Bounded | Good (Headless CLI) | High (Disabled Group) | **9 / 10** |
+| **Pi Agent** | Fine (Extension / Frontmatter)| **Frontmatter (`bash: "off"`)** | Via `pi-sandbox` | Good (CLI) | High | **9 / 10** |
 | **AutoGen v0.4** | Fine (Per Tool) | **Programmatic (`code_execution=False`)** | Via Custom Handlers | Excellent (SDK) | High | **9 / 10** |
 | **CrewAI** | Fine (Per Tool) | **Programmatic Exclusion** | Custom Tools | Good (SDK) | High | **8.5 / 10** |
 | **Goose (Block)** | Extension / MCP Level | **Extension Unloading** | Custom MCP | Good (CLI/Desktop) | High | **8 / 10** |
+| **Hermes** | Toolset Category Level | **Toolset Disable / Docker** | Container Scoped | Good (CLI) | Moderate | **7.5 / 10** |
 | **Claude Code** | Permission Pattern | Soft Deny (`deny: ["Bash"]`) | Project Dir | Moderate (CLI) | Moderate (Agent expects Bash) | **6 / 10** |
 | **Aider** | Coarse | Interactive Prompting Only | Git Repository | Moderate | Low (Requires Docker) | **4 / 10** |
 
@@ -192,7 +265,7 @@ Even when shell tools are removed, file tools (`read_file`, `write_file`) must b
 For DevStack's goal of building an automated, source-code-restricted coding agent, we recommend a **two-tier implementation plan**:
 
 ### Phase 1: Native Custom Subagent (Recommended)
-Build a dedicated DevStack agent runner in Python or TypeScript using **LangGraph** or **OpenHands SDK**.
+Build a dedicated DevStack agent runner in Python or TypeScript using **OpenHands SDK**, **AGY Python SDK (`google-antigravity`)**, or **LangGraph**.
 - **Tools Registered**:
   - `read_file(path: string)`
   - `write_file(path: string, content: string)`
@@ -203,11 +276,11 @@ Build a dedicated DevStack agent runner in Python or TypeScript using **LangGrap
   - `bash`, `powershell`, `exec`, `terminal`, `python_repl`.
 - **Scope**: Restricted strictly to `C:\Users\mkuhn\src\devstack\src` (or target project source directory).
 
-### Phase 2: Defense-in-Depth OS Sandboxing (Optional Hardening)
-In addition to programmatic tool exclusion, run the subagent process inside a restricted container (Docker container with read-only root filesystem and restricted volume mount to `./src`) or an OS sandbox (Linux Landlock / Windows Restricted Token).
+### Phase 2: OpenCode / Roo Code Harness Integration (Alternative)
+If utilizing a pre-built CLI agent runner, integrate **OpenCode** with `"permission": { "bash": "deny" }` in `opencode.json` (or **Roo Code** with custom `.roomodes` excluding the `command` group).
 
 ---
 
 ## Conclusion
 
-The market research confirms that **OpenHands SDK**, **LangGraph**, and **Roo Code (Custom Modes)** provide the highest level of fine-grained tool control for creating a safe, file-only coding agent. By programmatically omitting shell tools from the agent's function definitions, DevStack can achieve a zero-trust, automated code modification engine that operates strictly within source code boundaries.
+The market research confirms that **OpenHands SDK**, **LangGraph**, **AGY (`google-antigravity`)**, **OpenCode**, and **Pi** provide top-tier fine-grained tool control for creating a safe, file-only coding agent. By programmatically omitting shell tools or enforcing strict permission denials at the configuration/frontmatter layer, DevStack can achieve a zero-trust, automated code modification engine operating strictly within source code boundaries.
