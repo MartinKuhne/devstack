@@ -43,7 +43,7 @@ static class Descriptions
     internal static class DeliverableTools
     {
         internal const string GetDeliverable = "Read a deliverable by its ID. Returns all fields including title, description, acceptance criteria, and status. Usage hint: Provide a valid deliverable ID.";
-        internal const string GetNextDeliverable = "Find the next deliverable in Implement status for a project. Provide either a repository URL or a project ID.";
+        internal const string GetNextDeliverable = "Find the next deliverable in Implement status for a project. Provide either a repository URL or a project ID. Do NOT use this tool if the user has already provided a deliverable ID.";
         internal const string CreateDeliverable = "Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state. Usage hint: ProjectId must reference an existing project. Title and description are required fields.";
         internal const string UpdateDeliverable = "Modify an existing deliverable in DevStack. Only non-null fields are updated. Usage hint: Provide the deliverable ID and only the fields you want to change.";
         internal const string UpdateDeliverableStatus = "Change the state of a deliverable in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.";
@@ -121,7 +121,7 @@ static class Descriptions
     internal static class TaskTools
     {
         internal const string GetTask = "Read an agent task by its ID. Returns all fields including title, status, description, result, and errors. Usage hint: Provide a valid task ID obtained from create_task or other operations.";
-        internal const string GetNextTask = "Find the next task to work on for a project. Looks at deliverables in Implement status and prioritizes those with partial progress. Provide either a repository URL or project ID.";
+        internal const string GetNextTask = "Find the next task to work on for a project. Looks at deliverables in Implement status and prioritizes those with partial progress. Provide either a repository URL or project ID. Do NOT use this tool if the user has already provided a deliverable ID or task ID.";
         internal const string CreateTask = "Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: Both ProjectId and DeliverableId must reference existing entities.";
         internal const string UpdateTask = "Modify an existing agent task in DevStack. Only non-null fields are updated. Usage hint: Provide the task ID and only the fields you want to change.";
         internal const string UpdateTaskStatus = "Change the state of an agent task in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.";
