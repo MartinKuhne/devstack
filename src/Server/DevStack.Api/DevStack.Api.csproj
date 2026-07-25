@@ -26,6 +26,8 @@
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
+    <PackageReference Include="ModelContextProtocol" Version="1.2.0" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +35,7 @@
     <ProjectReference Include="..\DevStack.Infrastructure\DevStack.Infrastructure.csproj" />
     <ProjectReference Include="..\DevStack.Persistence\DevStack.Persistence.csproj" />
     <ProjectReference Include="..\DevStack.Contracts\DevStack.Contracts.csproj" />
+    <ProjectReference Include="..\DevStack.Mcp\DevStack.Mcp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
