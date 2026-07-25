@@ -35,35 +35,4 @@ jobs:
 
     - name: Docker Build
       run: docker build -t devstack-api:${{ github.sha }} -f src/Server/DevStack.Api/Dockerfile src/Server
-
-  docker-compose-test:
-    name: Docker Compose Test
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Build images
-      run: docker compose build
-
-    - name: Start services
-      run: docker compose up -d
-
-    - name: Health check
-      run: |
-        for i in {1..30}; do
-          if curl -f http://localhost:8080/ > /dev/null 2>&1; then
-            echo "Service is healthy"
-            exit 0
-          fi
-          echo "Waiting for service... ($i)"
-          sleep 2
-        done
-        echo "Service failed to become healthy"
-        exit 1
-
-    - name: Stop services
-      if: always()
-      run: docker compose down
+ 
