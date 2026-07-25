@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This research note evaluates current market solutions (frameworks, CLI tools, harness platforms, and SDKs) for building an **automated coding agent** that requires strict access control. 
+This research note evaluates current market solutions (frameworks, CLI tools, harness platforms, and SDKs) for building an **automated coding agent** that requires strict access control and compatibility with **.NET 10** (matching DevStack's core server architecture in `src/Server`). 
 
 ### Core Requirement
 The target agent must be **strictly confined to source code directory operations** (reading, writing, searching, listing, and diffing files within a designated workspace directory) and **completely denied access to the operating system**, shell environments (Bash, PowerShell, zsh), subprocess invocation, or network/system administration utilities.
@@ -11,119 +11,80 @@ The target agent must be **strictly confined to source code directory operations
 Coding agents fall into two major architectural paradigms regarding tool permissions:
 
 1. **Interactive Developer CLI Harnesses** (e.g., *Claude Code*, *Aider*): Designed around developer-in-the-loop workflows where shell execution is a fundamental primitive. Tool controls in these tools rely primarily on user confirmation popups, command pattern allowlists, or system prompts. Disabling shell access entirely is either unsupported or significantly degrades the agent's core capabilities.
-2. **Programmatic Agent Frameworks & Mode-Based Harnesses** (e.g., *OpenHands SDK*, *LangGraph*, *OpenCode*, *Pi*, *AGY (Antigravity SDK)*, *Roo Code / Cline Custom Modes*, *Goose*, *AutoGen*, *CrewAI*, *Hermes*): Expose hard structural or configuration-level mechanisms to whitelist specific file-system tools and **Model Context Protocol (MCP)** tools while **programmatically excluding or explicitly denying shell/terminal execution tools**.
+2. **Programmatic Agent Frameworks & Mode-Based Harnesses** (e.g., *Microsoft Semantic Kernel*, *AutoGen.NET*, *OpenHands SDK*, *LangGraph*, *OpenCode*, *Pi*, *AGY*, *Roo Code / Cline Custom Modes*, *Goose*): Expose hard structural or configuration-level mechanisms to whitelist specific file-system tools and **Model Context Protocol (MCP)** tools while **programmatically excluding or explicitly denying shell/terminal execution tools**.
 
 ### Strategic Recommendation for DevStack
-To achieve a production-grade, prompt-injection-proof automated coding agent limited strictly to source files, DevStack should adopt one of the following top-tier options:
-- **Primary Option (SDK / Ecosystem Native)**: A custom agent using **OpenHands SDK**, **LangGraph**, or **AGY Python SDK (`google-antigravity`)** configured with a restricted tool capabilities set (`CapabilitiesConfig` / `FileManagementToolkit`) scoped strictly to `./src`, coupled with **DevStack MCP Server** tools and zero terminal/shell tools registered.
-- **Secondary Option (Configured Harness)**: **OpenCode** or **Roo Code / Cline CLI** running in headless mode with `"permission": { "bash": "deny", "mcp:devstack/*": "allow" }` in `opencode.json` or a custom `.roomodes` file that exposes `mcp`, `read`, and `edit` tool groups while stripping the `command` (`execute_command`) tool group.
+To achieve a production-grade, prompt-injection-proof automated coding agent limited strictly to source files while maintaining architectural consistency with DevStack's **.NET 10 / C#** codebase (`src/Server/DevStack.slnx`):
+
+- **Primary Option (Native .NET Stack)**: **Microsoft Semantic Kernel (`Microsoft.SemanticKernel`)** or **AutoGen.NET (`Microsoft.AutoGen.Core`)**. This approach runs 100% natively in C# / .NET 10, references `DevStack.Domain` and `DevStack.Application` directly, integrates with `DevStack.Mcp` via the C# MCP SDK (`ModelContextProtocol.Sdk`), and enforces a strict C# workspace file plugin with zero terminal/shell tools registered.
+- **Secondary Option (Configured Out-of-Process CLI Harness)**: **OpenCode** or **AGY CLI** running in headless mode with `"permission": { "bash": "deny", "mcp:devstack/*": "allow" }` in `opencode.json` or AGY settings, invoking `DevStack.Mcp` via Stdio execution (`dotnet run --project src/Server/DevStack.Mcp`).
 
 ---
 
 ## Detailed Market Survey of Coding Agents & Frameworks
 
-### 1. Open-Source Agent Frameworks & SDKs (Programmatic Control)
+### 1. Native .NET Agent Frameworks & SDKs (Highest Architectural Consistency)
 
-#### 1.1 OpenHands SDK (formerly OpenDevin)
-* **Overview**: Modular agent framework and evaluation platform designed for autonomous software engineering.
+#### 1.1 Microsoft Semantic Kernel (`Microsoft.SemanticKernel`)
+* **Overview**: Microsoft's official, open-source AI orchestration framework for C# and .NET.
 * **Tool Control Mechanism**:
-  - OpenHands provides explicit tool injection when instantiating agents via its Python SDK (`openhands.sdk.Agent`).
-  - Instead of passing default tool suites, developers pass an explicit whitelist of tools:
-    ```python
-    from openhands.sdk import Agent, LLM, Tool
-    from openhands.tools.file_editor import FileEditorTool
+  - Uses explicit plugin registration (`kernel.Plugins.AddFromType<T>()`).
+  - Only registered plugins and kernel functions are exposed in the LLM's function schema.
+  - **Shell Isolation**: Terminal/process execution plugins are omitted entirely. The agent receives zero command execution functions.
+  - **Workspace Confinement**: A custom `WorkspaceFilePlugin` written in C# enforces path canonicalization (`Path.GetFullPath`) and root directory prefix checks (`path.StartsWith(workspaceRoot)`).
+* **MCP Integration**: Native via `Microsoft.SemanticKernel.Plugins` and `ModelContextProtocol.Sdk`. Connects directly to `DevStack.Mcp` in-process or via Stdio.
+* **.NET Compatibility**: **100% Native C# / .NET 10**. Shares types directly with `DevStack.Domain` and `DevStack.Application`.
+* **Fit for DevStack**: **10 / 10** (Best architectural consistency with `src/Server`).
 
-    # TerminalTool / CmdRunAction is explicitly omitted
-    agent = Agent(
-        llm=llm,
-        tools=[
-            Tool(name=FileEditorTool.name),
-            Tool.from_mcp("devstack_mcp", "get_next_task")
-        ]
-    )
-    ```
-  - Micro-agents and skills can be globally disabled via `config.toml` (`enable_prompt_extensions = false` or `disabled_microagents = [...]`).
-* **OS / Shell Isolation**: Exceptional. When `TerminalTool` / `CmdRunAction` is omitted from `tools`, the LLM function schema contains zero command-execution entries. Prompt injection cannot invoke shell commands because the underlying runtime dispatcher has no shell tool registered.
-* **MCP Integration**: Fully supported via SDK MCP client wrappers.
-* **Workspace Confinement**: High. Supports volume mounting and root directory scoping.
-* **Fit for DevStack**: **10 / 10** (Ideal for building headless, file-only background subagents).
-
-#### 1.2 LangChain / LangGraph
-* **Overview**: Industrial-standard graph-based orchestration framework for stateful AI agents.
+#### 1.2 Microsoft AutoGen.NET (`Microsoft.AutoGen.Core`)
+* **Overview**: Official C# implementation of Microsoft's AutoGen multi-agent framework.
 * **Tool Control Mechanism**:
-  - Provides declarative tool binding via `FileManagementToolkit`.
-  - Developers explicitly select allowed tools and enforce directory scoping via `root_dir`:
-    ```python
-    from langchain_community.agent_toolkits import FileManagementToolkit
-    from langchain_mcp import MCPToolkit
-
-    file_tools = FileManagementToolkit(
-        root_dir="./src",
-        selected_tools=["read_file", "write_file", "list_directory", "file_search"]
-    ).get_tools()
-
-    mcp_tools = MCPToolkit(server_name="devstack").get_tools()
-
-    # ShellTool / BashProcessTool is completely omitted
-    agent_tools = file_tools + mcp_tools
-    ```
-* **OS / Shell Isolation**: Exceptional. Hard structural boundary. The LLM receives function declarations solely for file I/O within `root_dir` and typed MCP endpoints.
-* **MCP Integration**: Native via `langchain-mcp` package. Converts MCP endpoints into standard `StructuredTool` instances.
-* **Workspace Confinement**: High. `root_dir` strictly enforces path canonicalization and blocks path traversal (`../`) attempts.
-* **Fit for DevStack**: **10 / 10** (Ideal for custom pipeline integration and deterministic graph execution).
-
-#### 1.3 Antigravity CLI & SDK (`agy`)
-* **Overview**: Google Antigravity AI-first development CLI (`agy`) and Python SDK (`google-antigravity`).
-* **Tool Control Mechanism**:
-  - In CLI mode (`agy`), uses structured permission management (`settings.json` and fine-grained `ask_permission` policy matching per tool action and target).
-  - In Python SDK mode (`google.antigravity`), tool capabilities are configured programmatically via `CapabilitiesConfig` and `LocalAgentConfig`:
-    ```python
-    from google.antigravity import Agent, LocalAgentConfig, CapabilitiesConfig
-
-    # Run with restricted capabilities (command execution tool omitted)
-    config = LocalAgentConfig(
-        system_instructions="Code modification assistant.",
-        capabilities=CapabilitiesConfig(
-            # Command tools excluded; MCP tools explicitly granted
-        )
-    )
-    async with Agent(config) as agent:
-        # Agent execution loop
-    ```
-* **OS / Shell Isolation**: High. Fine-grained tool action permission enforcement (`read_file`, `write_file`, `command`, `mcp`).
-* **MCP Integration**: Native. MCP servers declared under `mcpServers` in `settings.json` or registered programmatically. Fine-grained permission rules (`Action: mcp`, `Target: devstack/*`).
-* **Workspace Confinement**: High. Bounded by workspace settings and fine-grained target path permissions.
-* **Fit for DevStack**: **9.5 / 10** (Native alignment with AGY ecosystem and Python SDK agent leasing).
-
-#### 1.4 Microsoft AutoGen / AutoGen v0.4 (Magentic-One)
-* **Overview**: Multi-agent conversation framework for complex workflows.
-* **Tool Control Mechanism**:
-  - Execution capability is governed by `code_execution_config` and tool registration.
-  - Setting `code_execution_config=False` on `UserProxyAgent` or omitting execution backends (Docker/LocalCommandLine) completely disables code/shell execution.
-  - Tools are registered granularly per agent using `@agent.register_for_execution`.
-* **OS / Shell Isolation**: Very High. Disabling the execution backend stops all tool call execution requests.
-* **MCP Integration**: Supported via custom MCP tool adapters.
-* **Workspace Confinement**: Depends on registered custom file functions.
-* **Fit for DevStack**: **9 / 10**.
-
-#### 1.5 CrewAI
-* **Overview**: High-level multi-agent orchestration framework centered around role-based agents.
-* **Tool Control Mechanism**:
-  - Declarative tool assignment per agent: `Agent(role="Code Writer", tools=[FileReadTool(), FileWriterTool()])`.
-  - Avoids adding `CodeInterpreterTool` or custom shell execution tools.
-* **OS / Shell Isolation**: Very High.
-* **MCP Integration**: Supported via MCP tool wrappers.
-* **Fit for DevStack**: **8.5 / 10**.
+  - Execution capability is governed by `ICodeExecutor`. Setting code execution handlers to `null` or omitting `LocalCommandLineExecutor` permanently disables command execution.
+* **MCP Integration**: Compatible via .NET MCP client wrappers.
+* **.NET Compatibility**: Native C# / .NET 10.
+* **Fit for DevStack**: **9.5 / 10**.
 
 ---
 
-### 2. Headless CLI Coding Agents & Harnesses (Configuration-Based Control)
+### 2. Open-Source Multi-Language Agent Frameworks & SDKs
 
-#### 2.1 OpenCode
+#### 2.1 OpenHands SDK (formerly OpenDevin)
+* **Overview**: Modular agent framework and evaluation platform designed for autonomous software engineering.
+* **Tool Control Mechanism**:
+  - OpenHands provides explicit tool injection when instantiating agents via its Python SDK (`openhands.sdk.Agent`).
+  - `TerminalTool` / `CmdRunAction` is explicitly omitted from the `tools` array.
+* **OS / Shell Isolation**: Exceptional. Programmatic exclusion.
+* **MCP Integration**: Fully supported via SDK MCP client wrappers.
+* **.NET Compatibility**: Requires a Python sidecar process to run the agent, interacting with .NET over MCP Stdio/HTTP.
+* **Fit for DevStack**: **7.5 / 10** (Requires Python runtime alongside .NET backend).
+
+#### 2.2 LangChain / LangGraph
+* **Overview**: Industrial-standard graph-based orchestration framework for stateful AI agents.
+* **Tool Control Mechanism**:
+  - Provides declarative tool binding via `FileManagementToolkit` and `MCPToolkit`.
+  - `ShellTool` / `BashProcessTool` is completely omitted.
+* **OS / Shell Isolation**: Exceptional. Hard structural boundary.
+* **.NET Compatibility**: Python / TypeScript stack; requires IPC sidecar to interface with DevStack .NET server.
+* **Fit for DevStack**: **7.5 / 10**.
+
+#### 2.3 Antigravity CLI & SDK (`agy`)
+* **Overview**: Google Antigravity AI-first development CLI (`agy`) and Python SDK (`google-antigravity`).
+* **Tool Control Mechanism**:
+  - In CLI mode (`agy`), uses structured permission management (`settings.json`).
+  - In Python SDK mode (`google.antigravity`), tool capabilities are configured programmatically via `CapabilitiesConfig` (command tools excluded, MCP tools explicitly granted).
+* **MCP Integration**: Native support for `mcpServers` (including .NET MCP servers).
+* **.NET Compatibility**: Operates as a CLI or Python SDK; integrates with DevStack .NET server over Stdio/JSON-RPC.
+* **Fit for DevStack**: **9.5 / 10** (Native alignment with AGY ecosystem).
+
+---
+
+### 3. Headless CLI Coding Agents & Harnesses (Configuration-Based Control)
+
+#### 3.1 OpenCode
 * **Overview**: Open-source CLI agent framework and runtime runner.
 * **Tool Control Mechanism**:
-  - Configured via `opencode.json` in project root or globally at `~/.config/opencode/opencode.json`, as well as agent frontmatter (`.opencode/agent/<name>.md`).
-  - Supports explicit permission rules to block shell access entirely while granting access to DevStack MCP tools:
+  - Configured via `opencode.json` in project root or `.opencode/agent/<name>.md`.
+  - Blocks shell access while allowing DevStack .NET MCP server:
     ```json
     {
       "mcpServers": {
@@ -138,223 +99,107 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
       }
     }
     ```
-* **OS / Shell Isolation**: High. Setting `"bash": "deny"` in `opencode.json` completely prevents the agent from calling shell execution primitives.
-* **MCP Integration**: Native first-class support via `mcpServers`. Fine-grained tool permissions per MCP server/endpoint.
-* **Workspace Confinement**: High when restricted via `.opencode/agent` frontmatter and permission settings.
-* **Fit for DevStack**: **9.5 / 10** (Strong candidate; `.opencode` configuration directory structure is already established in DevStack).
+* **OS / Shell Isolation**: High (`"bash": "deny"`).
+* **.NET Compatibility**: Excellent interop over MCP Stdio (`dotnet run`). `.opencode` directory structure is already present in DevStack.
+* **Fit for DevStack**: **9.5 / 10**.
 
-#### 2.2 Roo Code / Cline (Headless / Custom Modes)
+#### 3.2 Roo Code / Cline (Headless / Custom Modes)
 * **Overview**: Popular open-source AI coding assistant supporting VS Code extension and headless CLI execution.
 * **Tool Control Mechanism**:
-  - Features a **Custom Modes** engine configured via `.roomodes` / `.clinerules` or TOML mode files.
-  - Tool access is partitioned into predefined groups: `read`, `edit`, `browser`, `command`, `mcp`.
-  - A custom mode can explicitly disable the `command` group (`execute_command`) while enabling `mcp`, `read`, and `edit`:
-    ```json
-    {
-      "customModes": [
-        {
-          "slug": "devstack-file-coder",
-          "name": "DevStack Task Coder",
-          "roleDefinition": "You are a code modification agent restricted to file edits and DevStack MCP tools.",
-          "groups": ["read", "edit", "mcp"]
-        }
-      ]
-    }
-    ```
-* **OS / Shell Isolation**: High. Stripping the `command` group removes `execute_command` from the active toolset.
-* **MCP Integration**: Native. Configured in `mcpSettings.json` and selectively exposed per custom mode.
-* **Workspace Confinement**: Confined to workspace directory opened by the harness.
-* **Fit for DevStack**: **9 / 10** (Best option if leveraging an existing IDE/CLI agent harness).
-
-#### 2.3 Pi Agent Harness & Framework
-* **Overview**: Lightweight, extensible AI coding harness designed for modular agent workflows.
-* **Tool Control Mechanism**:
-  - Uses a minimal core architecture, delegating permission control to extension layers (`pi-permission-system`, `pi-permission-layers`, `pi-sandbox`).
-  - Disables bash and binds MCP tools in agent definitions:
-    ```yaml
-    ---
-    name: devstack-mcp-agent
-    permission:
-      tools:
-        read: allow
-        write: allow
-        mcp:devstack/*: allow
-        bash: "off"
-    ---
-    ```
-* **OS / Shell Isolation**: High (when `bash: "off"` is declared in frontmatter or `pi-permission-system` extension is enabled).
-* **MCP Integration**: Supported via `pi-extension-mcp`.
-* **Workspace Confinement**: High when combined with `pi-sandbox`.
+  - Custom modes in `.roomodes` strip the `command` group (`execute_command`) while enabling `mcp`, `read`, and `edit`.
+* **.NET Compatibility**: High interop via `mcpSettings.json` running `dotnet run --project ...`.
 * **Fit for DevStack**: **9 / 10**.
 
-#### 2.4 Goose (Block / Square)
-* **Overview**: Open-source extensible AI agent CLI built on the Model Context Protocol (MCP).
-* **Tool Control Mechanism**:
-  - Manages capabilities via extensions defined in `config.yaml` and granular permissions in `permission.yaml`.
-  - 100% MCP-native architecture. Every extension in Goose is an MCP server.
-  - Users add DevStack MCP server to `config.yaml` and disable the built-in "Developer" extension (which exposes shell execution).
-* **OS / Shell Isolation**: High (when developer extension is toggled off).
-* **MCP Integration**: Exceptional (Architecture is natively built around MCP).
+#### 3.3 Pi Agent Harness & Framework
+* **Overview**: Modular AI coding harness with extension permissions (`pi-permission-system`, `pi-sandbox`).
+* **Tool Control Mechanism**: Disables bash (`bash: "off"`) via YAML frontmatter; binds MCP tools via `pi-extension-mcp`.
+* **.NET Compatibility**: Good interop over MCP Stdio.
+* **Fit for DevStack**: **9 / 10**.
+
+#### 3.4 Goose (Block)
+* **Overview**: 100% MCP-native AI agent CLI.
+* **Tool Control Mechanism**: Unloads built-in "Developer" CLI extension; loads DevStack .NET MCP server extension.
+* **.NET Compatibility**: High interop via MCP Stdio.
 * **Fit for DevStack**: **8.5 / 10**.
 
-#### 2.5 Hermes (Nous Research)
-* **Overview**: Autonomous AI agent framework built by Nous Research.
-* **Tool Control Mechanism**:
-  - Configuration managed via `~/.hermes/config.yaml` or `hermes config` CLI.
-  - Controls tool capabilities at the toolset category level (`hermes tools disable <toolset>`).
-  - Supports MCP server integration via custom toolsets.
-* **OS / Shell Isolation**: Moderate to High. Shell execution can be disabled by toggling off the terminal toolset or sandboxed inside Docker (`terminal.backend: docker`).
-* **MCP Integration**: Supported via MCP toolset adapters.
-* **Fit for DevStack**: **7.5 / 10**.
-
 ---
 
-## Model Context Protocol (MCP) Server Integration Architecture
+## .NET Ecosystem Compatibility & Native C# Framework Assessment
 
-### The Strategic Role of MCP in Shell-Less Agents
+Building the restricted agent natively in **.NET 10** offers substantial advantages for DevStack:
+1. **Zero Runtime Overhead**: No need for Python/Node sidecar processes or containerized inter-language RPC.
+2. **Direct Entity Sharing**: C# agents can directly reference `DevStack.Domain` entities (Project, Deliverable, AgentTask) and `DevStack.Application` CQRS handlers.
+3. **In-Process MCP Hosting**: The agent can consume `DevStack.Mcp` tools in-process without needing Stdio subprocess spawning.
 
-The Model Context Protocol (MCP) allows AI agents to interact with external services and project management backends via strongly-typed RPC endpoints rather than raw command-line invocations.
+### Native C# Implementation Pattern (Microsoft Semantic Kernel)
 
-In a restricted agent architecture, **MCP serves as the secure alternative to shell execution**:
+Below is a complete native C# implementation blueprint demonstrating a restricted, file-only, MCP-enabled agent built inside DevStack:
 
-```
- ┌────────────────────────────────────────────────────────────────────────┐
- │                      RESTRICTED AGENT RUNTIME                          │
- │                                                                        │
- │  Allowed Tool Categories:                                              │
- │    1. Workspace File Tools (read_file, write_file, list_dir, grep)     │
- │    2. DevStack MCP Tools (get_next_task, update_task_status, etc.)     │
- │                                                                        │
- │  EXCLUDED Primitive Categories:                                        │
- │    ❌ OS / Shell Primitives (bash, powershell, exec, cmd, terminal)    │
- └───────────────────┬────────────────────────────────┬───────────────────┘
-                     │                                │
-                     ▼                                ▼
-       ┌───────────────────────────┐    ┌───────────────────────────┐
-       │ Workspace Source Directory│    │   DevStack MCP Server     │
-       │ (C:\Users\...\src)        │    │  (DevStack.Mcp.csproj)    │
-       └───────────────────────────┘    └───────────────────────────┘
-```
+```csharp
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Agents;
 
-#### Why MCP + File-Tools is Superior to Shell Execution
-1. **No OS Command Execution Risk**: The agent cannot run `rm -rf`, `npm install`, `git push --force`, or arbitrary shell scripts because no shell process launcher is exposed.
-2. **Structured Task Workflow**: The agent queries DevStack MCP tools directly (e.g. `get_next_task(projectId: "...")`), reads and updates source files in `./src`, and updates task status (`update_task_status(taskId: "...", status: "Review")`) in a clean, programmatic loop.
-3. **Auditability**: Every MCP tool call is logged with explicit JSON-RPC parameters rather than opaque shell strings.
+namespace DevStack.Infrastructure.Agents;
 
----
-
-## Market Comparison Matrix
-
-| Agent / Framework | Tool Exclusion Granularity | OS/Bash Disabling | MCP Integration Support | MCP Tool Filtering | Path Confinement (`root_dir`) | Prompt Injection Safety | Overall Suitability |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **OpenHands SDK** | Fine (Per Tool) | **Programmatic Exclusion** | Native (`Tool.from_mcp`) | Fine (Explicit Whitelist) | Supported | **Highest** (No Shell Tool) | **10 / 10** |
-| **LangGraph / LangChain** | Fine (Per Tool) | **Programmatic Exclusion** | Native (`MCPToolkit`) | Fine (Explicit Whitelist) | Built-in (`root_dir`) | **Highest** (No Shell Tool) | **10 / 10** |
-| **OpenCode** | Fine (Pattern / Flag) | **Config (`bash: "deny"`)** | Native (`mcpServers`) | Fine (`mcp:devstack/*`) | Frontmatter / Config | **High** (Config Boundary) | **9.5 / 10** |
-| **AGY (`google-antigravity`)** | Fine (Action & Target) | **Programmatic (`CapabilitiesConfig`)**| Native (`mcpServers`) | Fine (`Action: mcp`, Target) | Built-in Policy | **High** (Policy / Schema) | **9.5 / 10** |
-| **Roo Code / Cline** | Group & Tool Level | **Config-Based (Remove `command`)** | Native (`mcpSettings`) | Group Level (`mcp` group) | Workspace Bounded | High (Disabled Group) | **9 / 10** |
-| **Pi Agent** | Fine (Extension / Frontmatter)| **Frontmatter (`bash: "off"`)** | Extension (`pi-extension-mcp`)| Fine (Frontmatter Rules) | Via `pi-sandbox` | High | **9 / 10** |
-| **AutoGen v0.4** | Fine (Per Tool) | **Programmatic (`code_execution=False`)** | Via Adapters | Fine (Function Registration) | Via Custom Handlers | High | **9 / 10** |
-| **Goose (Block)** | Extension / MCP Level | **Extension Unloading** | 100% MCP Native Architecture | Extension Level | Custom MCP | High | **8.5 / 10** |
-| **CrewAI** | Fine (Per Tool) | **Programmatic Exclusion** | Via Adapters | Fine (Tool List) | Custom Tools | High | **8.5 / 10** |
-| **Hermes** | Toolset Category Level | **Toolset Disable / Docker** | Toolset Level | Category Level | Container Scoped | Moderate | **7.5 / 10** |
-| **Claude Code** | Permission Pattern | Soft Deny (`deny: ["Bash"]`) | Via Config | Pattern Matching | Project Dir | Moderate (Expects Bash) | **6 / 10** |
-| **Aider** | Coarse | Interactive Prompting Only | Limited | N/A | Git Repository | Low (Requires Docker) | **4 / 10** |
-
----
-
-## Security Architecture: Hard vs. Soft Isolation
-
-When designing an automated coding agent restricted to source files and MCP endpoints, relying on **soft isolation** (system prompts or user confirmation UI) is insufficient.
-
-```
-       [ Prompt Injection Attack ]
-                   │
-                   ▼
-  ┌─────────────────────────────────┐
-  │         LLM Engine              │
-  └────────────────┬────────────────┘
-                   │ Attempted Tool Call
-                   ▼
- ┌────────────────────────────────────────────────────────┐
- │ SECURITY LAYER COMPARISON                              │
- ├──────────────────────────────────┬─────────────────────┤
- │ SOFT ISOLATION                   │ HARD ISOLATION      │
- │ (System Prompt / Deny Rule)      │ (Programmatic Exclusion)│
- ├──────────────────────────────────┼─────────────────────┤
- │ Shell Tool is in API Schema      │ Shell Tool NOT      │
- │ LLM can output tool call payload │ registered in Schema│
- │ Depends on filter/guardrail     │ Execution impossible│
- └──────────────────────────────────┴─────────────────────┘
-```
-
----
-
-## Complete Architectural Blueprint for DevStack
-
-For DevStack's goal of building an automated, source-code-restricted coding agent integrated with DevStack MCP Server, we recommend the following setup:
-
-### Recommended Setup: OpenCode + DevStack MCP Server (OR Custom AGY / LangGraph Runner)
-
-#### Option 1: OpenCode Integration (Config-Driven)
-Place the following `opencode.json` in the DevStack workspace:
-
-```json
+public class WorkspaceFilePlugin
 {
-  "mcpServers": {
-    "devstack": {
-      "command": "dotnet",
-      "args": ["run", "--project", "src/Server/DevStack.Mcp/DevStack.Mcp.csproj"]
+    private readonly string _workspaceRoot;
+
+    public WorkspaceFilePlugin(string workspaceRoot)
+    {
+        _workspaceRoot = Path.GetFullPath(workspaceRoot);
     }
-  },
-  "permission": {
-    "bash": "deny",
-    "mcp:devstack/*": "allow",
-    "read": "allow",
-    "edit": "allow"
-  }
+
+    [KernelFunction, System.ComponentModel.Description("Reads a source code file safely within workspace bounds.")]
+    public async Task<string> ReadFileAsync(string relativePath)
+    {
+        string fullPath = Path.GetFullPath(Path.Combine(_workspaceRoot, relativePath));
+        if (!fullPath.StartsWith(_workspaceRoot, StringComparison.OrdinalIgnoreCase))
+            throw new UnauthorizedAccessException("Path traversal outside workspace is forbidden.");
+
+        return await File.ReadAllTextAsync(fullPath);
+    }
+
+    [KernelFunction, System.ComponentModel.Description("Writes content to a source code file within workspace bounds.")]
+    public async Task WriteFileAsync(string relativePath, string content)
+    {
+        string fullPath = Path.GetFullPath(Path.Combine(_workspaceRoot, relativePath));
+        if (!fullPath.StartsWith(_workspaceRoot, StringComparison.OrdinalIgnoreCase))
+            throw new UnauthorizedAccessException("Path traversal outside workspace is forbidden.");
+
+        await File.WriteAllTextAsync(fullPath, content);
+    }
 }
 ```
 
-#### Option 2: Python Runner (LangGraph / AGY SDK / OpenHands SDK)
-Create a Python runner script that connects to `DevStack.Mcp` and loads workspace file tools:
+---
 
-```python
-import asyncio
-from langchain_community.agent_toolkits import FileManagementToolkit
-from langchain_mcp import MCPToolkit
-from langgraph.prebuilt import create_react_agent
-from langchain_anthropic import ChatAnthropic
+## Comprehensive Market Comparison Matrix
 
-async def run_devstack_agent():
-    # 1. Load File Tools scoped strictly to ./src
-    file_tools = FileManagementToolkit(
-        root_dir="./src",
-        selected_tools=["read_file", "write_file", "list_directory", "file_search"]
-    ).get_tools()
-
-    # 2. Connect to DevStack MCP Server
-    mcp_toolkit = MCPToolkit(
-        server_command=["dotnet", "run", "--project", "src/Server/DevStack.Mcp/DevStack.Mcp.csproj"]
-    )
-    mcp_tools = await mcp_toolkit.get_tools()
-
-    # 3. Combine tools (ZERO shell/bash tools included)
-    agent_tools = file_tools + mcp_tools
-
-    # 4. Instantiate Agent
-    model = ChatAnthropic(model="claude-3-5-sonnet-20241022")
-    agent = create_react_agent(model, agent_tools)
-    
-    # 5. Execute task loop safely
-    response = await agent.ainvoke({"messages": [("user", "Fetch the next task from DevStack and implement it in ./src")]})
-    print(response)
-
-if __name__ == "__main__":
-    asyncio.run(run_devstack_agent())
-```
+| Agent / Framework | Native Language | .NET 10 Compatibility | Tool Exclusion Mechanism | MCP Integration | Path Confinement | Suitability |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Microsoft Semantic Kernel** | **C# / .NET 10** | **100% Native (In-Process)** | **Programmatic Plugin Whitelist** | Native (`ModelContextProtocol.Sdk`) | Custom C# Plugin (`StartsWith`) | **10 / 10** |
+| **AutoGen.NET** | **C# / .NET 10** | **100% Native (In-Process)** | **Programmatic (`ICodeExecutor=null`)** | Native C# MCP | Custom C# Handlers | **9.5 / 10** |
+| **OpenCode** | Go / CLI | High (MCP Stdio Interop) | **Config (`bash: "deny"`)** | Native (`mcpServers`) | Frontmatter / Config | **9.5 / 10** |
+| **AGY (`google-antigravity`)** | Python / CLI | High (MCP Stdio Interop) | **Policy (`CapabilitiesConfig`)** | Native (`mcpServers`) | Built-in Policy | **9.5 / 10** |
+| **Roo Code / Cline** | TS / CLI | High (MCP Stdio Interop) | **Config (Remove `command` group)** | Native (`mcpSettings`) | Workspace Bounded | **9.0 / 10** |
+| **Pi Agent** | TS / CLI | High (MCP Stdio Interop) | **Frontmatter (`bash: "off"`)** | Extension (`pi-extension-mcp`) | Via `pi-sandbox` | **9.0 / 10** |
+| **Goose (Block)** | Rust / CLI | High (MCP Stdio Interop) | **Extension Unloading** | 100% MCP Native | Custom MCP | **8.5 / 10** |
+| **OpenHands SDK** | Python | Requires Python Sidecar | **Programmatic Exclusion** | Native (`Tool.from_mcp`) | Supported | **7.5 / 10** |
+| **LangGraph** | Python / TS | Requires Python Sidecar | **Programmatic Exclusion** | Native (`MCPToolkit`) | Built-in (`root_dir`) | **7.5 / 10** |
+| **Claude Code** | TS / CLI | High (MCP Stdio Interop) | Soft Deny (`deny: ["Bash"]`) | Via Config | Project Dir | **6.0 / 10** |
 
 ---
 
-## Conclusion
+## Conclusion & Architectural Recommendation for DevStack
 
-By integrating **MCP Servers** alongside workspace file tools and programmatically excluding shell/terminal tools, DevStack achieves the gold standard of automated AI coding: **full task management capability and code editing power with zero operating system vulnerability.**
+To maximize architectural consistency with DevStack's C# / .NET 10 codebase (`src/Server`):
+
+1. **Top Native .NET Choice**: **Microsoft Semantic Kernel (`Microsoft.SemanticKernel`)**
+   - Integrates directly into `DevStack.Infrastructure` or `DevStack.Api`.
+   - Programmatically registers only `WorkspaceFilePlugin` and `DevStack.Mcp` endpoints, ensuring 100% shell-less execution with zero Python/Node sidecar overhead.
+
+2. **Top Out-of-Process CLI Choice**: **OpenCode** or **AGY CLI**
+   - Best if an external CLI runner is preferred. Connects to `DevStack.Mcp` via Stdio while setting `"bash": "deny"`.
