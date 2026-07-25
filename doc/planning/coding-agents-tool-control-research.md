@@ -11,12 +11,12 @@ The target agent must be **strictly confined to source code directory operations
 Coding agents fall into two major architectural paradigms regarding tool permissions:
 
 1. **Interactive Developer CLI Harnesses** (e.g., *Claude Code*, *Aider*): Designed around developer-in-the-loop workflows where shell execution is a fundamental primitive. Tool controls in these tools rely primarily on user confirmation popups, command pattern allowlists, or system prompts. Disabling shell access entirely is either unsupported or significantly degrades the agent's core capabilities.
-2. **Programmatic Agent Frameworks & Mode-Based Harnesses** (e.g., *OpenHands SDK*, *LangGraph*, *OpenCode*, *Pi*, *AGY (Antigravity SDK)*, *Roo Code / Cline Custom Modes*, *AutoGen*, *CrewAI*, *Hermes*): Expose hard structural or configuration-level mechanisms to whitelist specific file-system tools while **programmatically excluding or explicitly denying shell/terminal execution tools**.
+2. **Programmatic Agent Frameworks & Mode-Based Harnesses** (e.g., *OpenHands SDK*, *LangGraph*, *OpenCode*, *Pi*, *AGY (Antigravity SDK)*, *Roo Code / Cline Custom Modes*, *Goose*, *AutoGen*, *CrewAI*, *Hermes*): Expose hard structural or configuration-level mechanisms to whitelist specific file-system tools and **Model Context Protocol (MCP)** tools while **programmatically excluding or explicitly denying shell/terminal execution tools**.
 
 ### Strategic Recommendation for DevStack
 To achieve a production-grade, prompt-injection-proof automated coding agent limited strictly to source files, DevStack should adopt one of the following top-tier options:
-- **Primary Option (SDK / Ecosystem Native)**: A custom agent using **OpenHands SDK**, **LangGraph**, or **AGY Python SDK (`google-antigravity`)** configured with a restricted tool capabilities set (`CapabilitiesConfig` / `FileManagementToolkit`) scoped strictly to `./src` with zero terminal/shell tools registered.
-- **Secondary Option (Configured Harness)**: **OpenCode** or **Roo Code / Cline CLI** running in headless mode with `"permission": { "bash": "deny" }` in `opencode.json` or a custom `.roomodes` file that completely strips the `command` (`execute_command`) tool group.
+- **Primary Option (SDK / Ecosystem Native)**: A custom agent using **OpenHands SDK**, **LangGraph**, or **AGY Python SDK (`google-antigravity`)** configured with a restricted tool capabilities set (`CapabilitiesConfig` / `FileManagementToolkit`) scoped strictly to `./src`, coupled with **DevStack MCP Server** tools and zero terminal/shell tools registered.
+- **Secondary Option (Configured Harness)**: **OpenCode** or **Roo Code / Cline CLI** running in headless mode with `"permission": { "bash": "deny", "mcp:devstack/*": "allow" }` in `opencode.json` or a custom `.roomodes` file that exposes `mcp`, `read`, and `edit` tool groups while stripping the `command` (`execute_command`) tool group.
 
 ---
 
@@ -36,11 +36,15 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
     # TerminalTool / CmdRunAction is explicitly omitted
     agent = Agent(
         llm=llm,
-        tools=[Tool(name=FileEditorTool.name)]
+        tools=[
+            Tool(name=FileEditorTool.name),
+            Tool.from_mcp("devstack_mcp", "get_next_task")
+        ]
     )
     ```
   - Micro-agents and skills can be globally disabled via `config.toml` (`enable_prompt_extensions = false` or `disabled_microagents = [...]`).
 * **OS / Shell Isolation**: Exceptional. When `TerminalTool` / `CmdRunAction` is omitted from `tools`, the LLM function schema contains zero command-execution entries. Prompt injection cannot invoke shell commands because the underlying runtime dispatcher has no shell tool registered.
+* **MCP Integration**: Fully supported via SDK MCP client wrappers.
 * **Workspace Confinement**: High. Supports volume mounting and root directory scoping.
 * **Fit for DevStack**: **10 / 10** (Ideal for building headless, file-only background subagents).
 
@@ -51,15 +55,20 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
   - Developers explicitly select allowed tools and enforce directory scoping via `root_dir`:
     ```python
     from langchain_community.agent_toolkits import FileManagementToolkit
+    from langchain_mcp import MCPToolkit
 
-    file_toolkit = FileManagementToolkit(
+    file_tools = FileManagementToolkit(
         root_dir="./src",
         selected_tools=["read_file", "write_file", "list_directory", "file_search"]
-    )
-    tools = file_toolkit.get_tools()
+    ).get_tools()
+
+    mcp_tools = MCPToolkit(server_name="devstack").get_tools()
+
+    # ShellTool / BashProcessTool is completely omitted
+    agent_tools = file_tools + mcp_tools
     ```
-  - Omits `ShellTool`, `BashProcessTool`, and `PythonAstREPLTool`.
-* **OS / Shell Isolation**: Exceptional. Hard structural boundary. The LLM receives function declarations solely for file I/O within `root_dir`.
+* **OS / Shell Isolation**: Exceptional. Hard structural boundary. The LLM receives function declarations solely for file I/O within `root_dir` and typed MCP endpoints.
+* **MCP Integration**: Native via `langchain-mcp` package. Converts MCP endpoints into standard `StructuredTool` instances.
 * **Workspace Confinement**: High. `root_dir` strictly enforces path canonicalization and blocks path traversal (`../`) attempts.
 * **Fit for DevStack**: **10 / 10** (Ideal for custom pipeline integration and deterministic graph execution).
 
@@ -75,13 +84,14 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
     config = LocalAgentConfig(
         system_instructions="Code modification assistant.",
         capabilities=CapabilitiesConfig(
-            # Command tools excluded
+            # Command tools excluded; MCP tools explicitly granted
         )
     )
     async with Agent(config) as agent:
         # Agent execution loop
     ```
-* **OS / Shell Isolation**: High. Fine-grained tool action permission enforcement (`read_file`, `write_file`, `command`) at the SDK and CLI runtime layer.
+* **OS / Shell Isolation**: High. Fine-grained tool action permission enforcement (`read_file`, `write_file`, `command`, `mcp`).
+* **MCP Integration**: Native. MCP servers declared under `mcpServers` in `settings.json` or registered programmatically. Fine-grained permission rules (`Action: mcp`, `Target: devstack/*`).
 * **Workspace Confinement**: High. Bounded by workspace settings and fine-grained target path permissions.
 * **Fit for DevStack**: **9.5 / 10** (Native alignment with AGY ecosystem and Python SDK agent leasing).
 
@@ -92,6 +102,7 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
   - Setting `code_execution_config=False` on `UserProxyAgent` or omitting execution backends (Docker/LocalCommandLine) completely disables code/shell execution.
   - Tools are registered granularly per agent using `@agent.register_for_execution`.
 * **OS / Shell Isolation**: Very High. Disabling the execution backend stops all tool call execution requests.
+* **MCP Integration**: Supported via custom MCP tool adapters.
 * **Workspace Confinement**: Depends on registered custom file functions.
 * **Fit for DevStack**: **9 / 10**.
 
@@ -101,6 +112,7 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
   - Declarative tool assignment per agent: `Agent(role="Code Writer", tools=[FileReadTool(), FileWriterTool()])`.
   - Avoids adding `CodeInterpreterTool` or custom shell execution tools.
 * **OS / Shell Isolation**: Very High.
+* **MCP Integration**: Supported via MCP tool wrappers.
 * **Fit for DevStack**: **8.5 / 10**.
 
 ---
@@ -111,16 +123,23 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **Overview**: Open-source CLI agent framework and runtime runner.
 * **Tool Control Mechanism**:
   - Configured via `opencode.json` in project root or globally at `~/.config/opencode/opencode.json`, as well as agent frontmatter (`.opencode/agent/<name>.md`).
-  - Supports explicit permission rules to block shell access entirely:
+  - Supports explicit permission rules to block shell access entirely while granting access to DevStack MCP tools:
     ```json
     {
+      "mcpServers": {
+        "devstack": {
+          "command": "dotnet",
+          "args": ["run", "--project", "src/Server/DevStack.Mcp/DevStack.Mcp.csproj"]
+        }
+      },
       "permission": {
-        "bash": "deny"
+        "bash": "deny",
+        "mcp:devstack/*": "allow"
       }
     }
     ```
-  - Allows fine-grained command-level pattern allowlists/denylists (`"bash": { "*": "deny", "git status": "allow" }`).
 * **OS / Shell Isolation**: High. Setting `"bash": "deny"` in `opencode.json` completely prevents the agent from calling shell execution primitives.
+* **MCP Integration**: Native first-class support via `mcpServers`. Fine-grained tool permissions per MCP server/endpoint.
 * **Workspace Confinement**: High when restricted via `.opencode/agent` frontmatter and permission settings.
 * **Fit for DevStack**: **9.5 / 10** (Strong candidate; `.opencode` configuration directory structure is already established in DevStack).
 
@@ -129,21 +148,21 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **Tool Control Mechanism**:
   - Features a **Custom Modes** engine configured via `.roomodes` / `.clinerules` or TOML mode files.
   - Tool access is partitioned into predefined groups: `read`, `edit`, `browser`, `command`, `mcp`.
-  - A custom mode can explicitly disable the `command` group (`execute_command`), preventing the agent from invoking terminal commands:
+  - A custom mode can explicitly disable the `command` group (`execute_command`) while enabling `mcp`, `read`, and `edit`:
     ```json
     {
       "customModes": [
         {
-          "slug": "file-only-coder",
-          "name": "Source File Coder",
-          "roleDefinition": "You are a code modification agent restricted strictly to file edits.",
-          "groups": ["read", "edit"]
+          "slug": "devstack-file-coder",
+          "name": "DevStack Task Coder",
+          "roleDefinition": "You are a code modification agent restricted to file edits and DevStack MCP tools.",
+          "groups": ["read", "edit", "mcp"]
         }
       ]
     }
     ```
-  - Auto-approval settings allow enabling file edits while permanently locking/denying `execute_command`.
 * **OS / Shell Isolation**: High. Stripping the `command` group removes `execute_command` from the active toolset.
+* **MCP Integration**: Native. Configured in `mcpSettings.json` and selectively exposed per custom mode.
 * **Workspace Confinement**: Confined to workspace directory opened by the harness.
 * **Fit for DevStack**: **9 / 10** (Best option if leveraging an existing IDE/CLI agent harness).
 
@@ -151,19 +170,20 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **Overview**: Lightweight, extensible AI coding harness designed for modular agent workflows.
 * **Tool Control Mechanism**:
   - Uses a minimal core architecture, delegating permission control to extension layers (`pi-permission-system`, `pi-permission-layers`, `pi-sandbox`).
-  - Can disable bash directly via YAML frontmatter in agent definitions:
+  - Disables bash and binds MCP tools in agent definitions:
     ```yaml
     ---
-    name: file-only-agent
+    name: devstack-mcp-agent
     permission:
       tools:
         read: allow
         write: allow
+        mcp:devstack/*: allow
         bash: "off"
     ---
     ```
-  - Leverages OS-level sandboxing extensions (`pi-sandbox` using `bubblewrap` or `sandbox-exec`) to strictly bind read/write access paths (`allowRead: ["./src"]`).
 * **OS / Shell Isolation**: High (when `bash: "off"` is declared in frontmatter or `pi-permission-system` extension is enabled).
+* **MCP Integration**: Supported via `pi-extension-mcp`.
 * **Workspace Confinement**: High when combined with `pi-sandbox`.
 * **Fit for DevStack**: **9 / 10**.
 
@@ -171,61 +191,80 @@ To achieve a production-grade, prompt-injection-proof automated coding agent lim
 * **Overview**: Open-source extensible AI agent CLI built on the Model Context Protocol (MCP).
 * **Tool Control Mechanism**:
   - Manages capabilities via extensions defined in `config.yaml` and granular permissions in `permission.yaml`.
-  - Operating modes include `Chat Only`, `Smart Approval`, `Manual Approval`, and `Autonomous`.
-  - Built-in "Developer" extension exposes shell tools. Users can disable the Developer extension and load only custom file-system MCP extensions.
-* **OS / Shell Isolation**: High (when developer extension is toggled off or custom MCP profiles are configured).
-* **Fit for DevStack**: **8 / 10**.
+  - 100% MCP-native architecture. Every extension in Goose is an MCP server.
+  - Users add DevStack MCP server to `config.yaml` and disable the built-in "Developer" extension (which exposes shell execution).
+* **OS / Shell Isolation**: High (when developer extension is toggled off).
+* **MCP Integration**: Exceptional (Architecture is natively built around MCP).
+* **Fit for DevStack**: **8.5 / 10**.
 
 #### 2.5 Hermes (Nous Research)
 * **Overview**: Autonomous AI agent framework built by Nous Research.
 * **Tool Control Mechanism**:
   - Configuration managed via `~/.hermes/config.yaml` or `hermes config` CLI.
   - Controls tool capabilities at the toolset category level (`hermes tools disable <toolset>`).
-  - Provides a "Dangerous Command Approval" system (`approvals.mode`: `manual`, `smart`, `off`).
-  - Supports switching terminal backends (`terminal.backend`: `docker` vs `process`).
-* **OS / Shell Isolation**: Moderate to High. Shell execution can be disabled by toggling off the terminal toolset or sandboxed inside Docker (`terminal.backend: docker`). However, Hermes lacks fine-grained per-command regex allowlisting found in OpenCode or Roo Code.
+  - Supports MCP server integration via custom toolsets.
+* **OS / Shell Isolation**: Moderate to High. Shell execution can be disabled by toggling off the terminal toolset or sandboxed inside Docker (`terminal.backend: docker`).
+* **MCP Integration**: Supported via MCP toolset adapters.
 * **Fit for DevStack**: **7.5 / 10**.
 
-#### 2.6 Claude Code (Anthropic CLI)
-* **Overview**: Anthropic's official CLI research/development coding agent.
-* **Tool Control Mechanism**:
-  - Configuration via `~/.claude/settings.json` or project-level `.claude/settings.json`.
-  - Provides tool permission matching (e.g., `Bash(git:*)`, `deny: ["Bash"]`).
-* **OS / Shell Isolation**: Moderate. While `Bash` can be denied or set to require prompt confirmation, Claude Code's internal agent loop assumes a bash prompt is available for environment inspection (`ls`, `git status`, test execution). Completely denying `Bash` can lead to degraded agent performance or stuck execution loops.
-* **Fit for DevStack**: **6 / 10** (Not optimized for shell-less autonomous operation).
+---
 
-#### 2.7 Aider
-* **Overview**: Leading CLI AI pair programming tool.
-* **Tool Control Mechanism**:
-  - Focuses on file manipulation (`/add`, `/read-only`).
-  - Lacks native configuration flags to disable terminal execution (`/run`, `/test`) entirely. Aider relies on interactive user prompts before running terminal commands.
-* **OS / Shell Isolation**: Low natively. Requires external OS sandboxing (Docker container, macOS Seatbelt, or Linux Landlock/seccomp) to prevent shell execution.
-* **Fit for DevStack**: **4 / 10** (Unsuitable for standalone headless shell-less automation without external containerization).
+## Model Context Protocol (MCP) Server Integration Architecture
+
+### The Strategic Role of MCP in Shell-Less Agents
+
+The Model Context Protocol (MCP) allows AI agents to interact with external services and project management backends via strongly-typed RPC endpoints rather than raw command-line invocations.
+
+In a restricted agent architecture, **MCP serves as the secure alternative to shell execution**:
+
+```
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                      RESTRICTED AGENT RUNTIME                          │
+ │                                                                        │
+ │  Allowed Tool Categories:                                              │
+ │    1. Workspace File Tools (read_file, write_file, list_dir, grep)     │
+ │    2. DevStack MCP Tools (get_next_task, update_task_status, etc.)     │
+ │                                                                        │
+ │  EXCLUDED Primitive Categories:                                        │
+ │    ❌ OS / Shell Primitives (bash, powershell, exec, cmd, terminal)    │
+ └───────────────────┬────────────────────────────────┬───────────────────┘
+                     │                                │
+                     ▼                                ▼
+       ┌───────────────────────────┐    ┌───────────────────────────┐
+       │ Workspace Source Directory│    │   DevStack MCP Server     │
+       │ (C:\Users\...\src)        │    │  (DevStack.Mcp.csproj)    │
+       └───────────────────────────┘    └───────────────────────────┘
+```
+
+#### Why MCP + File-Tools is Superior to Shell Execution
+1. **No OS Command Execution Risk**: The agent cannot run `rm -rf`, `npm install`, `git push --force`, or arbitrary shell scripts because no shell process launcher is exposed.
+2. **Structured Task Workflow**: The agent queries DevStack MCP tools directly (e.g. `get_next_task(projectId: "...")`), reads and updates source files in `./src`, and updates task status (`update_task_status(taskId: "...", status: "Review")`) in a clean, programmatic loop.
+3. **Auditability**: Every MCP tool call is logged with explicit JSON-RPC parameters rather than opaque shell strings.
 
 ---
 
 ## Market Comparison Matrix
 
-| Agent / Framework | Tool Exclusion Granularity | OS/Bash Disabling | Path Confinement (`root_dir`) | Headless Automation | Prompt Injection Safety | Overall Suitability |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **OpenHands SDK** | Fine (Per Tool) | **Programmatic Exclusion** | Supported | Excellent (SDK) | **Highest** (No Tool Schema) | **10 / 10** |
-| **LangGraph / LangChain** | Fine (Per Tool) | **Programmatic Exclusion** | Built-in (`root_dir`) | Excellent (SDK) | **Highest** (No Tool Schema) | **10 / 10** |
-| **OpenCode** | Fine (Pattern / Flag) | **Config (`bash: "deny"`)** | Frontmatter / Config | Excellent (CLI) | **High** (Config Boundary) | **9.5 / 10** |
-| **AGY (`google-antigravity`)** | Fine (Action & Target) | **Programmatic (`CapabilitiesConfig`)**| Built-in Policy | Excellent (SDK / CLI) | **High** (Policy / Schema) | **9.5 / 10** |
-| **Roo Code / Cline** | Group & Tool Level | **Config-Based (Remove `command`)** | Workspace Bounded | Good (Headless CLI) | High (Disabled Group) | **9 / 10** |
-| **Pi Agent** | Fine (Extension / Frontmatter)| **Frontmatter (`bash: "off"`)** | Via `pi-sandbox` | Good (CLI) | High | **9 / 10** |
-| **AutoGen v0.4** | Fine (Per Tool) | **Programmatic (`code_execution=False`)** | Via Custom Handlers | Excellent (SDK) | High | **9 / 10** |
-| **CrewAI** | Fine (Per Tool) | **Programmatic Exclusion** | Custom Tools | Good (SDK) | High | **8.5 / 10** |
-| **Goose (Block)** | Extension / MCP Level | **Extension Unloading** | Custom MCP | Good (CLI/Desktop) | High | **8 / 10** |
-| **Hermes** | Toolset Category Level | **Toolset Disable / Docker** | Container Scoped | Good (CLI) | Moderate | **7.5 / 10** |
-| **Claude Code** | Permission Pattern | Soft Deny (`deny: ["Bash"]`) | Project Dir | Moderate (CLI) | Moderate (Agent expects Bash) | **6 / 10** |
-| **Aider** | Coarse | Interactive Prompting Only | Git Repository | Moderate | Low (Requires Docker) | **4 / 10** |
+| Agent / Framework | Tool Exclusion Granularity | OS/Bash Disabling | MCP Integration Support | MCP Tool Filtering | Path Confinement (`root_dir`) | Prompt Injection Safety | Overall Suitability |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **OpenHands SDK** | Fine (Per Tool) | **Programmatic Exclusion** | Native (`Tool.from_mcp`) | Fine (Explicit Whitelist) | Supported | **Highest** (No Shell Tool) | **10 / 10** |
+| **LangGraph / LangChain** | Fine (Per Tool) | **Programmatic Exclusion** | Native (`MCPToolkit`) | Fine (Explicit Whitelist) | Built-in (`root_dir`) | **Highest** (No Shell Tool) | **10 / 10** |
+| **OpenCode** | Fine (Pattern / Flag) | **Config (`bash: "deny"`)** | Native (`mcpServers`) | Fine (`mcp:devstack/*`) | Frontmatter / Config | **High** (Config Boundary) | **9.5 / 10** |
+| **AGY (`google-antigravity`)** | Fine (Action & Target) | **Programmatic (`CapabilitiesConfig`)**| Native (`mcpServers`) | Fine (`Action: mcp`, Target) | Built-in Policy | **High** (Policy / Schema) | **9.5 / 10** |
+| **Roo Code / Cline** | Group & Tool Level | **Config-Based (Remove `command`)** | Native (`mcpSettings`) | Group Level (`mcp` group) | Workspace Bounded | High (Disabled Group) | **9 / 10** |
+| **Pi Agent** | Fine (Extension / Frontmatter)| **Frontmatter (`bash: "off"`)** | Extension (`pi-extension-mcp`)| Fine (Frontmatter Rules) | Via `pi-sandbox` | High | **9 / 10** |
+| **AutoGen v0.4** | Fine (Per Tool) | **Programmatic (`code_execution=False`)** | Via Adapters | Fine (Function Registration) | Via Custom Handlers | High | **9 / 10** |
+| **Goose (Block)** | Extension / MCP Level | **Extension Unloading** | 100% MCP Native Architecture | Extension Level | Custom MCP | High | **8.5 / 10** |
+| **CrewAI** | Fine (Per Tool) | **Programmatic Exclusion** | Via Adapters | Fine (Tool List) | Custom Tools | High | **8.5 / 10** |
+| **Hermes** | Toolset Category Level | **Toolset Disable / Docker** | Toolset Level | Category Level | Container Scoped | Moderate | **7.5 / 10** |
+| **Claude Code** | Permission Pattern | Soft Deny (`deny: ["Bash"]`) | Via Config | Pattern Matching | Project Dir | Moderate (Expects Bash) | **6 / 10** |
+| **Aider** | Coarse | Interactive Prompting Only | Limited | N/A | Git Repository | Low (Requires Docker) | **4 / 10** |
 
 ---
 
 ## Security Architecture: Hard vs. Soft Isolation
 
-When designing an automated coding agent restricted to source files, relying on **soft isolation** (system prompts or user confirmation UI) is insufficient.
+When designing an automated coding agent restricted to source files and MCP endpoints, relying on **soft isolation** (system prompts or user confirmation UI) is insufficient.
 
 ```
        [ Prompt Injection Attack ]
@@ -248,39 +287,74 @@ When designing an automated coding agent restricted to source files, relying on 
  └──────────────────────────────────┴─────────────────────┘
 ```
 
-### Why Programmatic Exclusion is Mandatory
-1. **Prompt Injection Resistance**: If a shell tool (`bash`, `powershell`, `execute_command`) is present in the LLM's tool definition list, malicious code inside source files or user inputs can trick the LLM into generating a tool call. If the tool is **never registered** in the API payload sent to the LLM, the LLM physically cannot generate a valid tool call for it.
-2. **Deterministic Security Boundary**: Programmatic tool exclusion eliminates reliance on prompt alignment or runtime regex command filtering.
-
-### File System Path Confinement Safeguards
-Even when shell tools are removed, file tools (`read_file`, `write_file`) must be secured against workspace escape:
-* **Canonical Path Validation**: Resolve all paths using `realpath` / `Path.resolve()` to prevent symlink traversal.
-* **Prefix Checking**: Ensure `resolved_path.starts_with(workspace_root)` for every read/write action.
-* **Sensitive File Blacklisting**: Exclude hidden security files (`.env`, `.git/config`, SSH keys) even within the workspace.
-
 ---
 
-## Architectural Recommendation for DevStack
+## Complete Architectural Blueprint for DevStack
 
-For DevStack's goal of building an automated, source-code-restricted coding agent, we recommend a **two-tier implementation plan**:
+For DevStack's goal of building an automated, source-code-restricted coding agent integrated with DevStack MCP Server, we recommend the following setup:
 
-### Phase 1: Native Custom Subagent (Recommended)
-Build a dedicated DevStack agent runner in Python or TypeScript using **OpenHands SDK**, **AGY Python SDK (`google-antigravity`)**, or **LangGraph**.
-- **Tools Registered**:
-  - `read_file(path: string)`
-  - `write_file(path: string, content: string)`
-  - `list_directory(path: string)`
-  - `grep_search(query: string, pattern: string)`
-  - `apply_diff(path: string, diff: string)`
-- **Tools Excluded**:
-  - `bash`, `powershell`, `exec`, `terminal`, `python_repl`.
-- **Scope**: Restricted strictly to `C:\Users\mkuhn\src\devstack\src` (or target project source directory).
+### Recommended Setup: OpenCode + DevStack MCP Server (OR Custom AGY / LangGraph Runner)
 
-### Phase 2: OpenCode / Roo Code Harness Integration (Alternative)
-If utilizing a pre-built CLI agent runner, integrate **OpenCode** with `"permission": { "bash": "deny" }` in `opencode.json` (or **Roo Code** with custom `.roomodes` excluding the `command` group).
+#### Option 1: OpenCode Integration (Config-Driven)
+Place the following `opencode.json` in the DevStack workspace:
+
+```json
+{
+  "mcpServers": {
+    "devstack": {
+      "command": "dotnet",
+      "args": ["run", "--project", "src/Server/DevStack.Mcp/DevStack.Mcp.csproj"]
+    }
+  },
+  "permission": {
+    "bash": "deny",
+    "mcp:devstack/*": "allow",
+    "read": "allow",
+    "edit": "allow"
+  }
+}
+```
+
+#### Option 2: Python Runner (LangGraph / AGY SDK / OpenHands SDK)
+Create a Python runner script that connects to `DevStack.Mcp` and loads workspace file tools:
+
+```python
+import asyncio
+from langchain_community.agent_toolkits import FileManagementToolkit
+from langchain_mcp import MCPToolkit
+from langgraph.prebuilt import create_react_agent
+from langchain_anthropic import ChatAnthropic
+
+async def run_devstack_agent():
+    # 1. Load File Tools scoped strictly to ./src
+    file_tools = FileManagementToolkit(
+        root_dir="./src",
+        selected_tools=["read_file", "write_file", "list_directory", "file_search"]
+    ).get_tools()
+
+    # 2. Connect to DevStack MCP Server
+    mcp_toolkit = MCPToolkit(
+        server_command=["dotnet", "run", "--project", "src/Server/DevStack.Mcp/DevStack.Mcp.csproj"]
+    )
+    mcp_tools = await mcp_toolkit.get_tools()
+
+    # 3. Combine tools (ZERO shell/bash tools included)
+    agent_tools = file_tools + mcp_tools
+
+    # 4. Instantiate Agent
+    model = ChatAnthropic(model="claude-3-5-sonnet-20241022")
+    agent = create_react_agent(model, agent_tools)
+    
+    # 5. Execute task loop safely
+    response = await agent.ainvoke({"messages": [("user", "Fetch the next task from DevStack and implement it in ./src")]})
+    print(response)
+
+if __name__ == "__main__":
+    asyncio.run(run_devstack_agent())
+```
 
 ---
 
 ## Conclusion
 
-The market research confirms that **OpenHands SDK**, **LangGraph**, **AGY (`google-antigravity`)**, **OpenCode**, and **Pi** provide top-tier fine-grained tool control for creating a safe, file-only coding agent. By programmatically omitting shell tools or enforcing strict permission denials at the configuration/frontmatter layer, DevStack can achieve a zero-trust, automated code modification engine operating strictly within source code boundaries.
+By integrating **MCP Servers** alongside workspace file tools and programmatically excluding shell/terminal tools, DevStack achieves the gold standard of automated AI coding: **full task management capability and code editing power with zero operating system vulnerability.**
