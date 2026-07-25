@@ -22,6 +22,7 @@ import { CreateProjectDialog } from '@/features/projects/components/CreateProjec
 import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
 import { toast } from 'react-toastify';
 import { Pagination } from '@/components/ui/pagination';
+import { sanitizeUrl } from '@/lib/utils';
 
 const logger = createModuleLogger('ProjectListPage');
 
@@ -165,15 +166,22 @@ export function ProjectListPage() {
                                     </TableCell>
                                     <TableCell>
                                         {project.repository ? (
-                                            <a
-                                                href={project.repository}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:underline"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                {project.repository}
-                                            </a>
+                                            (() => {
+                                                const safeRepo = sanitizeUrl(project.repository);
+                                                return safeRepo ? (
+                                                    <a
+                                                        href={safeRepo}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-600 hover:underline"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        {project.repository}
+                                                    </a>
+                                                ) : (
+                                                    <span>{project.repository}</span>
+                                                );
+                                            })()
                                         ) : (
                                             '-'
                                         )}

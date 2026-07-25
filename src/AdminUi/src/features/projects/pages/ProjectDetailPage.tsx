@@ -21,6 +21,7 @@ import { toast } from 'react-toastify';
 import { DELIVERABLE_STATUS_COLORS, DELIVERABLE_STATUS_TEXT_COLORS, getStatusColor, getStatusTextColor, getStatusIcon } from '@/lib/constants';
 import { createModuleLogger } from '@/lib/logging';
 import { LoadingState, ErrorState, EmptyState, DetailLayout, ActivityTimeline } from '@/components/layout';
+import { sanitizeUrl } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 const logger = createModuleLogger('ProjectDetailPage');
@@ -122,16 +123,22 @@ export function ProjectDetailPage() {
             breadcrumbs={[{ label: 'Projects', to: '/projects' }, { label: project.name }]}
             title={project.name}
             typeLabel="Project"
-            statusNode={project.repository ? (
-                <a
-                    href={project.repository}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline"
-                >
-                    {project.repository}
-                </a>
-            ) : undefined}
+            statusNode={(() => {
+                const safeRepo = sanitizeUrl(project.repository);
+                if (!project.repository) return undefined;
+                return safeRepo ? (
+                    <a
+                        href={safeRepo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                    >
+                        {project.repository}
+                    </a>
+                ) : (
+                    <span className="text-sm text-muted-foreground">{project.repository}</span>
+                );
+            })()}
             actions={
                 <>
                     <Button variant="outline" onClick={() => navigate('/projects')}>
