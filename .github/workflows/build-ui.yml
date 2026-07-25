@@ -1,0 +1,43 @@
+name: Build UI
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'src/AdminUi/**'
+      - '.github/workflows/build-ui.yml'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'src/AdminUi/**'
+      - '.github/workflows/build-ui.yml'
+
+env:
+  NODE_VERSION: '24.x'
+
+jobs:
+  build-and-test:
+    name: Build and Test UI
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: src/AdminUi/package-lock.json
+
+    - name: Install dependencies
+      working-directory: src/AdminUi
+      run: npm ci
+
+    - name: Run unit tests
+      working-directory: src/AdminUi
+      run: npm test
+
+    - name: Build Docker image
+      run: docker build -t devstack-adminui:${{ github.sha }} src/AdminUi
