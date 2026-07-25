@@ -2,6 +2,7 @@ using DevStack.Persistence;
 
 using HotChocolate.Data;
 using HotChocolate.Types;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Api.GraphQL.Types;
 
@@ -39,8 +40,9 @@ public class Query
 
     public Deliverable? GetDeliverable([Service] DevStackDbContext dbContext, Guid id)
     {
-        var predicate = QuerySpecifications.DeliverableById(id);
-        return dbContext.Deliverables.FirstOrDefault(predicate);
+        return dbContext.Deliverables
+            .Include(d => d.AgentTasks)
+            .FirstOrDefault(d => d.Id == id);
     }
 
     [UsePaging(MaxPageSize = 100)]
