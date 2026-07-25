@@ -1,5 +1,5 @@
-query GetAllDeliverables {
-    deliverables {
+query GetAllDeliverables($first: Int, $after: String, $where: DeliverableFilterInput) {
+    deliverables(first: $first, after: $after, where: $where) {
         nodes {
             id
             title
@@ -16,6 +16,10 @@ query GetAllDeliverables {
             deploymentPlan
             blocking
             design
+        }
+        pageInfo {
+            hasNextPage
+            endCursor
         }
     }
 }
