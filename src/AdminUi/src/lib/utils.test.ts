@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { cn } from './utils';
 
 describe('cn', () => {
@@ -40,3 +39,4 @@ describe('cn', () => {
         expect(cn('p-4', 'm-2', 'p-2')).toBe('m-2 p-2');
     });
 });
+
