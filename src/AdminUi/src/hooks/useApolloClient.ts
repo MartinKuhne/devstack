@@ -1,5 +1,6 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, Observable } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { toast } from 'react-toastify';
 import { logger, createModuleLogger, formatGraphQLError } from '@/lib/logging';
 import config from '@/lib/config';
@@ -11,9 +12,9 @@ logger.info('ApolloClient: connecting to', GRAPHQL_API_URL);
 const apolloLogger = createModuleLogger('ApolloClient');
 
 function createErrorLink(): ApolloLink {
-    return onError(({ graphQLErrors, networkError, operation }) => {
-        if (graphQLErrors && graphQLErrors.length > 0) {
-            for (const err of graphQLErrors) {
+    return onError(({ error, operation }) => {
+        if (CombinedGraphQLErrors.is(error)) {
+            for (const err of error.errors) {
                 const message = err.message || 'An unexpected GraphQL error occurred.';
                 apolloLogger.error(`[GraphQL error in ${operation.operationName}]:`, {
                     message,
@@ -22,10 +23,8 @@ function createErrorLink(): ApolloLink {
                 });
                 toast.error(`GraphQL Error: ${message}`);
             }
-        }
-
-        if (networkError) {
-            apolloLogger.error(`[Network error in ${operation.operationName}]:`, networkError);
+        } else if (error) {
+            apolloLogger.error(`[Network error in ${operation.operationName}]:`, error);
             toast.error('Network Error: Unable to connect to backend server.');
         }
     });
@@ -86,9 +85,9 @@ const httpLink = new HttpLink({
     uri: GRAPHQL_API_URL,
 });
 
-let apolloClient: ApolloClient<unknown> | undefined;
+let apolloClient: ApolloClient | undefined;
 
-function createApolloClient(): ApolloClient<unknown> {
+function createApolloClient(): ApolloClient {
     const errorLink = createErrorLink();
     const loggingLink = createLoggingLink();
     const link = ApolloLink.from([errorLink, loggingLink, httpLink]);
@@ -102,31 +101,42 @@ function createApolloClient(): ApolloClient<unknown> {
 }
 
 export function logApolloError(error: unknown): void {
-    const err = error as { graphQLErrors?: unknown[]; networkError?: unknown };
-
-    if (err.graphQLErrors?.length) {
-        for (const gqlErr of err.graphQLErrors) {
-            const e = gqlErr as {
-                message?: string;
-                locations?: unknown;
-                path?: unknown;
-                extensions?: unknown;
-            };
+    if (CombinedGraphQLErrors.is(error)) {
+        for (const gqlErr of error.errors) {
             apolloLogger.error('GraphQL error:', {
-                message: e.message,
-                locations: e.locations,
-                path: e.path,
-                extensions: e.extensions,
+                message: gqlErr.message,
+                locations: gqlErr.locations,
+                path: gqlErr.path,
+                extensions: gqlErr.extensions,
             });
         }
-    }
+    } else {
+        const err = error as { graphQLErrors?: unknown[]; networkError?: unknown };
 
-    if (err.networkError) {
-        apolloLogger.error('Network error:', err.networkError);
+        if (err.graphQLErrors?.length) {
+            for (const gqlErr of err.graphQLErrors) {
+                const e = gqlErr as {
+                    message?: string;
+                    locations?: unknown;
+                    path?: unknown;
+                    extensions?: unknown;
+                };
+                apolloLogger.error('GraphQL error:', {
+                    message: e.message,
+                    locations: e.locations,
+                    path: e.path,
+                    extensions: e.extensions,
+                });
+            }
+        }
+
+        if (err.networkError) {
+            apolloLogger.error('Network error:', err.networkError);
+        }
     }
 }
 
-export function getApolloClient(): ApolloClient<unknown> {
+export function getApolloClient(): ApolloClient {
     if (!apolloClient) {
         apolloClient = createApolloClient();
     }
