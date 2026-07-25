@@ -20,6 +20,7 @@ public static class McpToolLoggingFilter
 
         return next => async (request, ct) =>
         {
+            // OWASP CWE-117: Sanitize user-provided MCP tool name before logging or adding to structured scope
             var toolName = LogSanitizer.Sanitize(request.Params?.Name ?? "unknown");
             var arguments = request.Params?.Arguments;
             var stopwatch = Stopwatch.StartNew();
