@@ -1,7 +1,8 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, Observable } from '@apollo/client';
 import { logger, createModuleLogger, formatGraphQLError } from '@/lib/logging';
+import config from '@/lib/config';
 
-const GRAPHQL_API_URL = import.meta.env.VITE_GRAPHQL_API_URL || 'http://localhost:8087/graphql';
+const GRAPHQL_API_URL = config.GRAPHQL_API_URL;
 
 logger.info('ApolloClient: connecting to', GRAPHQL_API_URL);
 
