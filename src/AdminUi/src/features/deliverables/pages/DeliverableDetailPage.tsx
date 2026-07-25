@@ -181,7 +181,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Description</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.description} />
+                                <MarkdownViewer content={deliverable.description} />
                             </CardContent>
                         </Card>
                     )}
@@ -192,7 +192,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Acceptance Criteria</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.acceptanceCriteria} />
+                                <MarkdownViewer content={deliverable.acceptanceCriteria} />
                             </CardContent>
                         </Card>
                     )}
@@ -203,7 +203,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Execution Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.executionPlan} />
+                                <MarkdownViewer content={deliverable.executionPlan} />
                             </CardContent>
                         </Card>
                     )}
@@ -214,7 +214,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Security Impact</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.securityImpact} />
+                                <MarkdownViewer content={deliverable.securityImpact} />
                             </CardContent>
                         </Card>
                     )}
@@ -225,7 +225,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Performance Impact</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.performanceImpact} />
+                                <MarkdownViewer content={deliverable.performanceImpact} />
                             </CardContent>
                         </Card>
                     )}
@@ -236,7 +236,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Test Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.testPlan} />
+                                <MarkdownViewer content={deliverable.testPlan} />
                             </CardContent>
                         </Card>
                     )}
@@ -247,7 +247,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Deployment Plan</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.deploymentPlan} />
+                                <MarkdownViewer content={deliverable.deploymentPlan} />
                             </CardContent>
                         </Card>
                     )}
@@ -258,7 +258,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Agent Feedback</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.agentFeedback} />
+                                <MarkdownViewer content={deliverable.agentFeedback} />
                             </CardContent>
                         </Card>
                     )}
@@ -269,7 +269,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Blocking</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.blocking} />
+                                <MarkdownViewer content={deliverable.blocking} />
                             </CardContent>
                         </Card>
                     )}
@@ -280,7 +280,7 @@ export function DeliverableDetailPage() {
                                 <CardTitle>Design</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <MarkdownViewer className="text-sm" content={deliverable.design} />
+                                <MarkdownViewer content={deliverable.design} />
                             </CardContent>
                         </Card>
                     )}
