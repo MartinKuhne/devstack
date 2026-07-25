@@ -34,7 +34,7 @@ jobs:
       run: dotnet test src/Server/DevStack.slnx --configuration Release --no-build --verbosity normal
 
     - name: Docker Build
-      run: docker build -t devstack-api:${{ github.sha }} .
+      run: docker build -t devstack-api:${{ github.sha }} -f src/Server/DevStack.Api/Dockerfile src/Server
 
   docker-compose-test:
     name: Docker Compose Test
