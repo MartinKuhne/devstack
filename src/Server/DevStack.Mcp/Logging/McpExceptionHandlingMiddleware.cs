@@ -40,9 +40,12 @@ public class McpExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
+            var sanitizedMethod = SanitizeForLogging(context.Request.Method);
+            var sanitizedPath = SanitizeForLogging(context.Request.Path.Value);
+
             _logger.LogError(ex, "Unhandled exception processing request: {Method} {Path}",
-                context.Request.Method,
-                context.Request.Path);
+                sanitizedMethod,
+                sanitizedPath);
 
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             await context.Response.WriteAsJsonAsync(new
@@ -54,5 +57,15 @@ public class McpExceptionHandlingMiddleware
                 }
             });
         }
+    }
+
+    private static string SanitizeForLogging(string? input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return string.Empty;
+        }
+
+        return input.Replace("\r", string.Empty).Replace("\n", string.Empty);
     }
 }
