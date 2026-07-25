@@ -40,10 +40,10 @@ public class McpExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            var sanitizedMethod = SanitizeForLogging(context.Request.Method);
-            var sanitizedPath = SanitizeForLogging(context.Request.Path.Value);
+            var sanitizedMethod = LogSanitizer.Sanitize(context.Request.Method);
+            var sanitizedPath = LogSanitizer.Sanitize(context.Request.Path.Value);
 
-            _logger.LogError(ex, "Unhandled exception processing request: {Method} {Path}",
+            _logger.LogError(ex, "Unhandled exception processing request: {RequestMethod} {RequestPath}",
                 sanitizedMethod,
                 sanitizedPath);
 
@@ -57,15 +57,5 @@ public class McpExceptionHandlingMiddleware
                 }
             });
         }
-    }
-
-    private static string SanitizeForLogging(string? input)
-    {
-        if (string.IsNullOrEmpty(input))
-        {
-            return string.Empty;
-        }
-
-        return input.Replace("\r", string.Empty).Replace("\n", string.Empty);
     }
 }

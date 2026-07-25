@@ -20,7 +20,7 @@ public static class McpToolLoggingFilter
 
         return next => async (request, ct) =>
         {
-            var toolName = request.Params?.Name ?? "unknown";
+            var toolName = LogSanitizer.Sanitize(request.Params?.Name ?? "unknown");
             var arguments = request.Params?.Arguments;
             var stopwatch = Stopwatch.StartNew();
 
