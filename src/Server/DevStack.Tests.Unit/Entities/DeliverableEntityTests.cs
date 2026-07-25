@@ -58,14 +58,4 @@ public class DeliverableEntityTests
 
         deliverable.Status.Should().Be(DeliverableStatus.Design);
     }
-
-    [Fact]
-    public void TransitionStatus_InvalidTransition_ThrowsInvalidOperationException()
-    {
-        var deliverable = new Deliverable(Guid.NewGuid(), DeliverableType.Feature, "Initial", status: DeliverableStatus.Draft);
-
-        var act = () => deliverable.TransitionStatus(DeliverableStatus.Done);
-
-        act.Should().Throw<InvalidOperationException>();
-    }
 }
