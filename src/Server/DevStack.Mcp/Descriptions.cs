@@ -30,7 +30,7 @@ static class Descriptions
     {
         internal const string GetProjects = "Read all projects from DevStack. Returns project name, id, and repository. Usage hint: Call this first to get a list of available projects before performing other operations.";
         internal const string GetProject = "Read a project by its ID. Returns project name and repository. Usage hint: Provide a valid project ID obtained from get_projects.";
-        internal const string CreateProject = "Create a new project in DevStack. Usage hint: Name and repository are required fields.";
+        internal const string CreateProject = "Create a new project in DevStack. Usage hint: Name and repository are required fields. Use 'git remote get-url origin' from the repository directory to find the repository URL.";
 
         internal const string Id = "The project ID";
         internal const string Name = "The project name";
