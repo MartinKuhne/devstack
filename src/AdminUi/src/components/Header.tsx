@@ -1,5 +1,5 @@
 import { Search, Cpu, LayoutDashboard, Folder } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import {
     CommandDialog,

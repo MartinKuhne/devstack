@@ -1,5 +1,5 @@
 import { ChevronRight, Home } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import type { ReactNode } from 'react';
 
 export type BreadcrumbItem = {
