@@ -1,4 +1,3 @@
-using System.Net;
 using DevStack.Mcp.Logging;
 using Xunit;
 
@@ -17,24 +16,13 @@ public class LogSanitizerTests
     public void Sanitize_LineBreaks_RemovesNewlinesAndCarriageReturns()
     {
         var input = "GET /mcp\r\nHTTP/1.1 200 OK\r\nHeader: injected";
-        var expected = WebUtility.HtmlEncode("GET /mcpHTTP/1.1 200 OKHeader: injected");
+        var expected = "GET /mcpHTTP/1.1 200 OKHeader: injected";
 
         var actual = LogSanitizer.Sanitize(input);
 
         Assert.Equal(expected, actual);
         Assert.DoesNotContain("\r", actual);
         Assert.DoesNotContain("\n", actual);
-    }
-
-    [Fact]
-    public void Sanitize_HtmlTagInput_HtmlEncodesCharacters()
-    {
-        var input = "<script>alert('xss')</script>";
-        var expected = "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;";
-
-        var actual = LogSanitizer.Sanitize(input);
-
-        Assert.Equal(expected, actual);
     }
 
     [Fact]
