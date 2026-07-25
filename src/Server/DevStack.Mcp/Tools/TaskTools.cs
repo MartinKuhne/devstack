@@ -1,6 +1,7 @@
 using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
 using DevStack.Application.AgentTasks.Queries;
+using DevStack.Domain.Services;
 using DevStack.Mcp.Dto;
 
 using ModelContextProtocol;
@@ -89,31 +90,15 @@ public class TaskTools
             .Where(t => deliverableIds.Contains(t.DeliverableId))
             .ToListAsync(ct);
 
-        var taskGroups = tasks.GroupBy(t => t.DeliverableId)
-            .ToDictionary(g => g.Key, g => g.ToList());
+        var selectionResult = TaskSelectionService.SelectNextTask(deliverables, tasks);
+        if (selectionResult == null)
+            return ToolResponse.Error("No deliverables found in Implement status for this project");
 
-        var bestDeliverable = deliverables
-            .Select(d =>
-            {
-                var deliverableTasks = taskGroups.GetValueOrDefault(d.Id, []);
-                var doneCount = deliverableTasks.Count(t => t.Status == AgentTaskStatus.Done);
-                var notDoneCount = deliverableTasks.Count(t => t.Status != AgentTaskStatus.Done && t.Status != AgentTaskStatus.Failed && t.Status != AgentTaskStatus.Rejected);
-                return (Deliverable: d, Tasks: deliverableTasks, HasPartialProgress: doneCount > 0 && notDoneCount > 0, HasDone: doneCount > 0);
-            })
-            .OrderByDescending(x => x.HasPartialProgress)
-            .ThenByDescending(x => x.HasDone)
-            .ThenBy(x => x.Deliverable.Id)
-            .First();
-
-        var nextTask = bestDeliverable.Tasks
-            .Where(t => t.Status != AgentTaskStatus.Done && t.Status != AgentTaskStatus.Failed && t.Status != AgentTaskStatus.Rejected)
-            .OrderBy(t => t.Status == AgentTaskStatus.Ready ? 0 : t.Status == AgentTaskStatus.InProgress ? 1 : 2)
-            .ThenBy(t => t.Id)
-            .FirstOrDefault();
+        var (bestDeliverable, nextTask) = selectionResult.Value;
 
         if (nextTask == null)
             return ToolResponse.Success("No Pending Tasks",
-                new { Message = "All tasks are completed for the selected deliverable", bestDeliverable.Deliverable.Id, bestDeliverable.Deliverable.Title });
+                new { Message = "All tasks are completed for the selected deliverable", bestDeliverable.Id, bestDeliverable.Title });
 
         var data = new GetAgentTaskResponse(
             nextTask.Id.ToString(),
