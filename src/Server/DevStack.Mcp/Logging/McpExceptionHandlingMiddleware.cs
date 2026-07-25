@@ -40,9 +40,15 @@ public class McpExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception processing request: {Method} {Path}",
-                context.Request.Method,
-                context.Request.Path);
+            // OWASP CWE-117 Mitigation: Sanitize untrusted HTTP request properties (Method and Path)
+            // to strip line breaks (\r, \n) and HTML encode to prevent log forging and log injection.
+            // Semantic Logging: Use structured log message template placeholders {RequestMethod} and {RequestPath}.
+            var sanitizedMethod = LogSanitizer.Sanitize(context.Request.Method);
+            var sanitizedPath = LogSanitizer.Sanitize(context.Request.Path.Value);
+
+            _logger.LogError(ex, "Unhandled exception processing request: {RequestMethod} {RequestPath}",
+                sanitizedMethod,
+                sanitizedPath);
 
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             await context.Response.WriteAsJsonAsync(new

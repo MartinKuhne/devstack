@@ -95,7 +95,7 @@ Execute prompts with OpenCode
             },
             "options": {
                 "baseURL": "https://openrouter.ai/api/v1",
-                "apiKey": "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"
+                "apiKey": "sk-or-v1-YOUR_OPENROUTER_API_KEY"
             }
         }
     }
