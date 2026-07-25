@@ -1,11 +1,35 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, Observable } from '@apollo/client';
+import { onError } from '@apollo/client/link/error';
+import { toast } from 'react-toastify';
 import { logger, createModuleLogger, formatGraphQLError } from '@/lib/logging';
+import config from '@/lib/config';
 
-const GRAPHQL_API_URL = import.meta.env.VITE_GRAPHQL_API_URL || 'http://localhost:8087/graphql';
+const GRAPHQL_API_URL = config.GRAPHQL_API_URL;
 
 logger.info('ApolloClient: connecting to', GRAPHQL_API_URL);
 
 const apolloLogger = createModuleLogger('ApolloClient');
+
+function createErrorLink(): ApolloLink {
+    return onError(({ graphQLErrors, networkError, operation }) => {
+        if (graphQLErrors && graphQLErrors.length > 0) {
+            for (const err of graphQLErrors) {
+                const message = err.message || 'An unexpected GraphQL error occurred.';
+                apolloLogger.error(`[GraphQL error in ${operation.operationName}]:`, {
+                    message,
+                    locations: err.locations,
+                    path: err.path,
+                });
+                toast.error(`GraphQL Error: ${message}`);
+            }
+        }
+
+        if (networkError) {
+            apolloLogger.error(`[Network error in ${operation.operationName}]:`, networkError);
+            toast.error('Network Error: Unable to connect to backend server.');
+        }
+    });
+}
 
 function createLoggingLink(): ApolloLink {
     return new ApolloLink((operation, forward) => {
@@ -62,11 +86,12 @@ const httpLink = new HttpLink({
     uri: GRAPHQL_API_URL,
 });
 
-let apolloClient: ApolloClient | undefined;
+let apolloClient: ApolloClient<unknown> | undefined;
 
-function createApolloClient(): ApolloClient {
+function createApolloClient(): ApolloClient<unknown> {
+    const errorLink = createErrorLink();
     const loggingLink = createLoggingLink();
-    const link = loggingLink.concat(httpLink);
+    const link = ApolloLink.from([errorLink, loggingLink, httpLink]);
 
     const client = new ApolloClient({
         cache: new InMemoryCache(),
@@ -101,7 +126,7 @@ export function logApolloError(error: unknown): void {
     }
 }
 
-export function getApolloClient(): ApolloClient {
+export function getApolloClient(): ApolloClient<unknown> {
     if (!apolloClient) {
         apolloClient = createApolloClient();
     }

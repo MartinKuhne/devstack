@@ -7,6 +7,7 @@ using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Application.Projects.Commands;
 using DevStack.Application.Projects.Queries;
 using DevStack.Infrastructure;
+using Npgsql;
 using DevStack.Infrastructure.AgentTasks;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
@@ -90,6 +91,7 @@ try
         {
             tracing
                 .AddSource("DevStack.Mcp")
+                .AddSource("Npgsql")
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation();
 

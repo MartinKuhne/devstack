@@ -87,7 +87,7 @@ public class DeliverableTools
 
     [McpServerTool(Name = "create_deliverable"), Description(Descriptions.DeliverableTools.CreateDeliverable)]
     public async Task<string> CreateDeliverable(
-        [Description(Descriptions.DeliverableTools.ProjectId)][DefaultValue(null)] Guid? projectId,
+        [Description(Descriptions.DeliverableTools.ProjectId)] Guid projectId,
         [Description(Descriptions.DeliverableTools.Title)] string title,
         [Description(Descriptions.DeliverableTools.Description)][DefaultValue(null)] string? description,
         [Description(Descriptions.DeliverableTools.Design)][DefaultValue(null)] string? design,
@@ -99,14 +99,14 @@ public class DeliverableTools
         [Description(Descriptions.DeliverableTools.DeploymentPlan)][DefaultValue(null)] string? deploymentPlan,
         CancellationToken ct = default)
     {
-        if (projectId == null || projectId == Guid.Empty)
+        if (projectId == Guid.Empty)
         {
             throw new McpProtocolException("Project ID is required", McpErrorCode.InvalidParams);
         }
 
         var id = await _createDeliverableHandler.Handle(
             new CreateDeliverableCommand(
-                projectId.Value,
+                projectId,
                 DeliverableType.Feature,
                 title,
                 description,
@@ -122,7 +122,7 @@ public class DeliverableTools
 
         _logger.LogInformation("Created deliverable with ID: {Id}", id);
         return ToolResponse.Success("Deliverable Created",
-            new CreateDeliverableResponse(id.ToString(), projectId.Value.ToString(), "Feature", "Ready"),
+            new CreateDeliverableResponse(id.ToString(), projectId.ToString(), "Feature", "Ready"),
             Descriptions.DeliverableTools.CreateUsageHint);
     }
 

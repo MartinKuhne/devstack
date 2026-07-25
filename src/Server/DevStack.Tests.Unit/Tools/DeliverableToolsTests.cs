@@ -64,15 +64,13 @@ public class DeliverableToolsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var deliverable = new Deliverable
-        {
-            Id = id,
-            ProjectId = Guid.NewGuid(),
-            Title = "Test Deliverable",
-            Description = "Test description",
-            Status = DeliverableStatus.Draft,
-            Type = DeliverableType.Feature
-        };
+        var deliverable = new Deliverable(
+            projectId: Guid.NewGuid(),
+            type: DeliverableType.Feature,
+            title: "Test Deliverable",
+            status: DeliverableStatus.Draft,
+            description: "Test description",
+            id: id);
 
         _getDeliverableByIdHandler.Handle(Arg.Any<GetDeliverableByIdQuery>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Deliverable?>(deliverable));
@@ -143,20 +141,6 @@ public class DeliverableToolsTests
                 cmd.Type == DeliverableType.Feature &&
                 cmd.InitialStatus == DeliverableStatus.Draft),
             Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task CreateDeliverable_WithNullProjectId_ThrowsMcpProtocolException()
-    {
-        // Arrange
-        var title = "New Deliverable";
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateDeliverable(null, title, null, null, null, null, null, null, null, null));
-
-        exception.Message.Should().Be("Project ID is required");
-        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
     }
 
     [Fact]

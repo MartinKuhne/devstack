@@ -32,8 +32,7 @@ public class AgentTaskConfiguration : IEntityTypeConfiguration<AgentTask>
             .HasDefaultValue(1);
 
         builder.Property(t => t.Description)
-            .IsRequired()
-            .HasMaxLength(500);
+            .IsRequired();
 
         builder.Property(t => t.DependsOnAgentTaskId)
             .IsRequired(false);

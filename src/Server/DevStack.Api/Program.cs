@@ -11,6 +11,11 @@ using DevStack.Infrastructure.AgentTasks;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
 using DevStack.Infrastructure.Projects;
+using DevStack.Mcp;
+using DevStack.Mcp.Logging;
+using DevStack.Mcp.Tools;
+using ModelContextProtocol.Server;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,7 +65,8 @@ builder.Services.AddOpenTelemetry()
     {
         tracing
             .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation();
+            .AddHttpClientInstrumentation()
+            .AddSource("Npgsql");
 
         var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
         if (!string.IsNullOrEmpty(otlpEndpoint))
@@ -91,6 +97,28 @@ builder.Services.AddGraphQLServer()
 
 builder.Services.AddFeatureManagement();
 
+var mcpBuilder = builder.Services.AddMcpServer()
+    .WithHttpTransport(options =>
+    {
+        options.Stateless = true;
+    });
+
+mcpBuilder.WithTools<ProjectTools>(null);
+mcpBuilder.WithTools<DeliverableTools>(null);
+
+if (builder.Configuration.GetValue<bool>("FeatureManagement:AgentTaskTools"))
+{
+    mcpBuilder.WithTools<TaskTools>(null);
+}
+
+mcpBuilder
+    .WithPrompts<DeliverableWorkflowPrompt>(null)
+    .WithResources<ResourceType>()
+    .WithRequestFilters(filters =>
+    {
+        filters.AddCallToolFilter(McpToolLoggingFilter.Create(builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()));
+    });
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -108,6 +136,7 @@ app.UseSerilogRequestLogging(options =>
 
 app.UseRouting();
 
+app.UseMiddleware<McpExceptionHandlingMiddleware>();
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseCors("AllowAll");
 
@@ -140,5 +169,6 @@ app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.
 }).WithTags("Health");
 
 app.MapGraphQL("/graphql");
+app.MapMcp("/mcp");
 
 app.Run();
