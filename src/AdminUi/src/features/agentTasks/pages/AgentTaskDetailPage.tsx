@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'react-toastify';
 import { createModuleLogger } from '@/lib/logging';
-import { sanitizeUrl } from '@/lib/utils';
+import DOMPurify from 'dompurify';
 import { AGENT_TASK_STATUS_COLORS, AGENT_TASK_STATUS_TEXT_COLORS, getStatusColor, getStatusTextColor, getStatusIcon } from '@/lib/constants';
 import { Copy, Check, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import {
@@ -171,11 +171,12 @@ export function AgentTaskDetailPage() {
     const canApprove = currentStatus === AgentTaskStatus.NEEDS_REVIEW;
     const canReject = currentStatus === AgentTaskStatus.NEEDS_REVIEW;
     const canRetry = currentStatus === AgentTaskStatus.FAILED;
-    const repoUrl = sanitizeUrl(agentTask?.project?.repository);
+    const rawRepoUrl = agentTask?.project?.repository?.trim();
+    const repoUrl = rawRepoUrl && !rawRepoUrl.startsWith('//') ? DOMPurify.sanitize(rawRepoUrl) : '';
     const commitUrl =
         repoUrl && agentTask?.commitHash
-            ? sanitizeUrl(`${repoUrl.replace(/\/+$/, '')}/commit/${agentTask.commitHash}`)
-            : null;
+            ? DOMPurify.sanitize(`${repoUrl.replace(/\/+$/, '')}/commit/${agentTask.commitHash}`)
+            : '';
 
     if (loading) {
         return (

@@ -2,8 +2,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import type { Components } from 'react-markdown';
+import DOMPurify from 'dompurify';
 import { ExternalLink } from 'lucide-react';
-import { sanitizeUrl } from '@/lib/utils';
 
 interface MarkdownViewerProps {
     content?: string | null;
@@ -11,7 +11,7 @@ interface MarkdownViewerProps {
 }
 
 function LinkRenderer({ href, children, ...props }: { href?: string; children: React.ReactNode; [key: string]: unknown }) {
-    const safeHref = sanitizeUrl(href);
+    const safeHref = href && !href.trim().startsWith('//') ? DOMPurify.sanitize(href) : '';
     if (!safeHref) {
         return <span>{children}</span>;
     }

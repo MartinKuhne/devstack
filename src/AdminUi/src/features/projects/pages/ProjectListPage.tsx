@@ -22,7 +22,7 @@ import { CreateProjectDialog } from '@/features/projects/components/CreateProjec
 import { createModuleLogger, formatGraphQLError } from '@/lib/logging';
 import { toast } from 'react-toastify';
 import { Pagination } from '@/components/ui/pagination';
-import { sanitizeUrl } from '@/lib/utils';
+import DOMPurify from 'dompurify';
 
 const logger = createModuleLogger('ProjectListPage');
 
@@ -167,7 +167,8 @@ export function ProjectListPage() {
                                     <TableCell>
                                         {project.repository ? (
                                             (() => {
-                                                const safeRepo = sanitizeUrl(project.repository);
+                                                const trimmed = project.repository.trim();
+                                                const safeRepo = trimmed && !trimmed.startsWith('//') ? DOMPurify.sanitize(trimmed) : '';
                                                 return safeRepo ? (
                                                     <a
                                                         href={safeRepo}

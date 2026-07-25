@@ -21,7 +21,7 @@ import { toast } from 'react-toastify';
 import { DELIVERABLE_STATUS_COLORS, DELIVERABLE_STATUS_TEXT_COLORS, getStatusColor, getStatusTextColor, getStatusIcon } from '@/lib/constants';
 import { createModuleLogger } from '@/lib/logging';
 import { LoadingState, ErrorState, EmptyState, DetailLayout, ActivityTimeline } from '@/components/layout';
-import { sanitizeUrl } from '@/lib/utils';
+import DOMPurify from 'dompurify';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 const logger = createModuleLogger('ProjectDetailPage');
@@ -124,8 +124,9 @@ export function ProjectDetailPage() {
             title={project.name}
             typeLabel="Project"
             statusNode={(() => {
-                const safeRepo = sanitizeUrl(project.repository);
                 if (!project.repository) return undefined;
+                const trimmed = project.repository.trim();
+                const safeRepo = trimmed && !trimmed.startsWith('//') ? DOMPurify.sanitize(trimmed) : '';
                 return safeRepo ? (
                     <a
                         href={safeRepo}
