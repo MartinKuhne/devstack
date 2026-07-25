@@ -164,14 +164,14 @@ public class ProjectToolsTests
     }
 
     [Fact]
-    public async Task GetProjectById_WithNullId_ThrowsMcpProtocolException()
+    public async Task GetProjectById_WithEmptyId_ThrowsMcpProtocolException()
     {
         // Arrange
         var tools = CreateTools();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.GetProjectById(null));
+            () => tools.GetProjectById(Guid.Empty));
 
         exception.Message.Should().Be("Project ID is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);

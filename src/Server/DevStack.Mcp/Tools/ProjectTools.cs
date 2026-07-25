@@ -30,21 +30,21 @@ public class ProjectTools
     }
 
     [McpServerTool(Name = "get_project"), Description(Descriptions.ProjectTools.GetProject)]
-    public async Task<string> GetProjectById([Description(Descriptions.ProjectTools.Id)][DefaultValue(null)] Guid? id, CancellationToken ct = default)
+    public async Task<string> GetProjectById([Description(Descriptions.ProjectTools.Id)] Guid id, CancellationToken ct = default)
     {
-        if (id == null)
+        if (id == Guid.Empty)
         {
             throw new McpProtocolException("Project ID is required", McpErrorCode.InvalidParams);
         }
 
         var project = await _dbContext.Projects
-            .Where(p => p.Id == id.Value)
+            .Where(p => p.Id == id)
             .Select(p => new ProjectDto(p.Id.ToString(), p.Name, null, p.Repository))
             .FirstOrDefaultAsync(ct);
 
         if (project == null)
         {
-            throw new McpProtocolException($"Project with ID {id.Value} not found", McpErrorCode.InvalidParams);
+            throw new McpProtocolException($"Project with ID {id} not found", McpErrorCode.InvalidParams);
         }
 
         return ToolResponse.Success("Project", new GetProjectResponse(project.Id, project.Name, project.Description, project.Repository));

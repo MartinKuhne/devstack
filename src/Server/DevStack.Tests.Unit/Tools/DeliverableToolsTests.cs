@@ -146,20 +146,6 @@ public class DeliverableToolsTests
     }
 
     [Fact]
-    public async Task CreateDeliverable_WithNullProjectId_ThrowsMcpProtocolException()
-    {
-        // Arrange
-        var title = "New Deliverable";
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateDeliverable(null, title, null, null, null, null, null, null, null, null));
-
-        exception.Message.Should().Be("Project ID is required");
-        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
-    }
-
-    [Fact]
     public async Task CreateDeliverable_WithEmptyProjectId_ThrowsMcpProtocolException()
     {
         // Arrange
