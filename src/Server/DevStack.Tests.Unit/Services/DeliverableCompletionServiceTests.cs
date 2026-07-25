@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
@@ -8,6 +11,11 @@ using Xunit;
 
 public class DeliverableCompletionServiceTests
 {
+    private static AgentTask CreateTask(AgentTaskStatus status)
+    {
+        return new AgentTask(Guid.NewGuid(), Guid.NewGuid(), "Sample Task", status: status);
+    }
+
     [Fact]
     public void CheckAllTasksDone_WithEmptyCollection_ReturnsTrue()
     {
@@ -23,9 +31,9 @@ public class DeliverableCompletionServiceTests
     {
         var tasks = new List<AgentTask>
         {
-            new() { Status = AgentTaskStatus.Done },
-            new() { Status = AgentTaskStatus.Done },
-            new() { Status = AgentTaskStatus.Done }
+            CreateTask(AgentTaskStatus.Done),
+            CreateTask(AgentTaskStatus.Done),
+            CreateTask(AgentTaskStatus.Done)
         };
 
         var result = DeliverableCompletionService.CheckAllTasksDone(tasks);
@@ -38,9 +46,9 @@ public class DeliverableCompletionServiceTests
     {
         var tasks = new List<AgentTask>
         {
-            new() { Status = AgentTaskStatus.Done },
-            new() { Status = AgentTaskStatus.InProgress },
-            new() { Status = AgentTaskStatus.Done }
+            CreateTask(AgentTaskStatus.Done),
+            CreateTask(AgentTaskStatus.InProgress),
+            CreateTask(AgentTaskStatus.Done)
         };
 
         var result = DeliverableCompletionService.CheckAllTasksDone(tasks);
@@ -53,8 +61,8 @@ public class DeliverableCompletionServiceTests
     {
         var tasks = new List<AgentTask>
         {
-            new() { Status = AgentTaskStatus.InProgress },
-            new() { Status = AgentTaskStatus.Ready }
+            CreateTask(AgentTaskStatus.InProgress),
+            CreateTask(AgentTaskStatus.Ready)
         };
 
         var result = DeliverableCompletionService.CheckAllTasksDone(tasks);
@@ -67,8 +75,8 @@ public class DeliverableCompletionServiceTests
     {
         var tasks = new List<AgentTask>
         {
-            new() { Status = AgentTaskStatus.Done },
-            new() { Status = AgentTaskStatus.Failed }
+            CreateTask(AgentTaskStatus.Done),
+            CreateTask(AgentTaskStatus.Failed)
         };
 
         var result = DeliverableCompletionService.CheckAllTasksDone(tasks);
@@ -81,7 +89,7 @@ public class DeliverableCompletionServiceTests
     {
         var tasks = new List<AgentTask>
         {
-            new() { Status = AgentTaskStatus.Done }
+            CreateTask(AgentTaskStatus.Done)
         };
 
         var result = DeliverableCompletionService.CheckAllTasksDone(tasks);
@@ -94,7 +102,7 @@ public class DeliverableCompletionServiceTests
     {
         var tasks = new List<AgentTask>
         {
-            new() { Status = AgentTaskStatus.NeedsReview }
+            CreateTask(AgentTaskStatus.NeedsReview)
         };
 
         var result = DeliverableCompletionService.CheckAllTasksDone(tasks);
@@ -107,8 +115,8 @@ public class DeliverableCompletionServiceTests
     {
         var tasks = new List<AgentTask>
         {
-            new() { Status = AgentTaskStatus.Done },
-            new() { Status = AgentTaskStatus.Rejected }
+            CreateTask(AgentTaskStatus.Done),
+            CreateTask(AgentTaskStatus.Rejected)
         };
 
         var result = DeliverableCompletionService.CheckAllTasksDone(tasks);

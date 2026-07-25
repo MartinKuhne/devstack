@@ -61,16 +61,14 @@ public class TaskToolsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var agentTask = new AgentTask
-        {
-            Id = id,
-            ProjectId = Guid.NewGuid(),
-            DeliverableId = Guid.NewGuid(),
-            Title = "Test Task",
-            Status = AgentTaskStatus.Ready,
-            Description = "Test description",
-            ComplexityRating = 5
-        };
+        var agentTask = new AgentTask(
+            projectId: Guid.NewGuid(),
+            deliverableId: Guid.NewGuid(),
+            title: "Test Task",
+            description: "Test description",
+            complexityRating: 5,
+            status: AgentTaskStatus.Ready,
+            id: id);
 
         _getAgentTaskByIdHandler.Handle(Arg.Any<GetAgentTaskByIdQuery>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<AgentTask>(agentTask));
@@ -134,7 +132,7 @@ public class TaskToolsTests
         var newId = Guid.NewGuid();
         var title = "New Task";
 
-        _dbContext.Deliverables.Add(new Deliverable { Id = deliverableId, ProjectId = projectId, Title = "Test" });
+        _dbContext.Deliverables.Add(new Deliverable(projectId, DeliverableType.Feature, "Test", id: deliverableId));
         await _dbContext.SaveChangesAsync();
 
         _createAgentTaskHandler.Handle(Arg.Any<CreateAgentTaskCommand>(), Arg.Any<CancellationToken>())
@@ -186,7 +184,7 @@ public class TaskToolsTests
         var title = "New Task";
         var description = "Task description";
 
-        _dbContext.Deliverables.Add(new Deliverable { Id = deliverableId, ProjectId = projectId, Title = "Test" });
+        _dbContext.Deliverables.Add(new Deliverable(projectId, DeliverableType.Feature, "Test", id: deliverableId));
         await _dbContext.SaveChangesAsync();
 
         _createAgentTaskHandler.Handle(Arg.Any<CreateAgentTaskCommand>(), Arg.Any<CancellationToken>())

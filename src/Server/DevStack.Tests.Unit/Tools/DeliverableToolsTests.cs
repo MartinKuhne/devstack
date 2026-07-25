@@ -64,15 +64,13 @@ public class DeliverableToolsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var deliverable = new Deliverable
-        {
-            Id = id,
-            ProjectId = Guid.NewGuid(),
-            Title = "Test Deliverable",
-            Description = "Test description",
-            Status = DeliverableStatus.Draft,
-            Type = DeliverableType.Feature
-        };
+        var deliverable = new Deliverable(
+            projectId: Guid.NewGuid(),
+            type: DeliverableType.Feature,
+            title: "Test Deliverable",
+            status: DeliverableStatus.Draft,
+            description: "Test description",
+            id: id);
 
         _getDeliverableByIdHandler.Handle(Arg.Any<GetDeliverableByIdQuery>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Deliverable?>(deliverable));

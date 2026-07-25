@@ -25,21 +25,19 @@ public class CreateDeliverableHandler : ICommandHandler<Guid, CreateDeliverableC
         if (project == null)
             throw new InvalidOperationException($"Project with ID {command.ProjectId} not found.");
 
-        var deliverable = new Deliverable
-        {
-            ProjectId = command.ProjectId,
-            Type = command.Type,
-            Title = command.Title,
-            Description = command.Description,
-            AcceptanceCriteria = command.AcceptanceCriteria,
-            ExecutionPlan = command.ExecutionPlan,
-            SecurityImpact = command.SecurityImpact,
-            PerformanceImpact = command.PerformanceImpact,
-            TestPlan = command.TestPlan,
-            DeploymentPlan = command.DeploymentPlan,
-            Status = command.InitialStatus,
-            Design = command.Design
-        };
+        var deliverable = new Deliverable(
+            projectId: command.ProjectId,
+            type: command.Type,
+            title: command.Title,
+            status: command.InitialStatus,
+            description: command.Description,
+            design: command.Design,
+            acceptanceCriteria: command.AcceptanceCriteria,
+            executionPlan: command.ExecutionPlan,
+            securityImpact: command.SecurityImpact,
+            performanceImpact: command.PerformanceImpact,
+            testPlan: command.TestPlan,
+            deploymentPlan: command.DeploymentPlan);
 
         _dbContext.Deliverables.Add(deliverable);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -63,24 +61,18 @@ public class UpdateDeliverableHandler : ICommandHandler<UpdateDeliverableCommand
         if (deliverable == null)
             throw new InvalidOperationException($"Deliverable with ID {command.Id} not found.");
 
-        if (!string.IsNullOrWhiteSpace(command.Title))
-        {
-            if (command.Title.Length > 200)
-                throw new ArgumentException("Title must be 200 characters or less", nameof(command.Title));
-
-            deliverable.Title = command.Title;
-        }
-
-        if (command.Description is not null) deliverable.Description = command.Description;
-        if (command.AcceptanceCriteria is not null) deliverable.AcceptanceCriteria = command.AcceptanceCriteria;
-        if (command.ExecutionPlan is not null) deliverable.ExecutionPlan = command.ExecutionPlan;
-        if (command.AgentFeedback is not null) deliverable.AgentFeedback = command.AgentFeedback;
-        if (command.SecurityImpact is not null) deliverable.SecurityImpact = command.SecurityImpact;
-        if (command.PerformanceImpact is not null) deliverable.PerformanceImpact = command.PerformanceImpact;
-        if (command.TestPlan is not null) deliverable.TestPlan = command.TestPlan;
-        if (command.DeploymentPlan is not null) deliverable.DeploymentPlan = command.DeploymentPlan;
-        if (command.Blocking is not null) deliverable.Blocking = command.Blocking;
-        if (command.Design is not null) deliverable.Design = command.Design;
+        deliverable.UpdateMetadata(
+            title: command.Title,
+            description: command.Description,
+            acceptanceCriteria: command.AcceptanceCriteria,
+            executionPlan: command.ExecutionPlan,
+            agentFeedback: command.AgentFeedback,
+            securityImpact: command.SecurityImpact,
+            performanceImpact: command.PerformanceImpact,
+            testPlan: command.TestPlan,
+            deploymentPlan: command.DeploymentPlan,
+            blocking: command.Blocking,
+            design: command.Design);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -101,7 +93,7 @@ public class UpdateDeliverableStatusHandler : ICommandHandler<UpdateDeliverableS
         if (deliverable == null)
             throw new InvalidOperationException($"Deliverable with ID {command.Id} not found.");
 
-        deliverable.Status = command.TargetStatus;
+        deliverable.TransitionStatus(command.TargetStatus);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -32,17 +32,14 @@ public class CreateAgentTaskHandler : ICommandHandler<Guid, CreateAgentTaskComma
                 throw new InvalidOperationException($"Dependent AgentTask with ID {command.DependsOnAgentTaskId.Value} not found.");
         }
 
-        var agentTask = new AgentTask
-        {
-            Id = Guid.NewGuid(),
-            ProjectId = deliverable.ProjectId,
-            DeliverableId = command.DeliverableId,
-            Title = command.Title,
-            Description = command.Description,
-            ComplexityRating = command.ComplexityRating,
-            DependsOnAgentTaskId = command.DependsOnAgentTaskId,
-            Status = AgentTaskStatus.Ready
-        };
+        var agentTask = new AgentTask(
+            projectId: deliverable.ProjectId,
+            deliverableId: command.DeliverableId,
+            title: command.Title,
+            description: command.Description,
+            complexityRating: command.ComplexityRating,
+            dependsOnAgentTaskId: command.DependsOnAgentTaskId,
+            status: AgentTaskStatus.Ready);
 
         _dbContext.AgentTasks.Add(agentTask);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -66,23 +63,17 @@ public class UpdateAgentTaskHandler : ICommandHandler<UpdateAgentTaskCommand>
         if (agentTask == null)
             throw new InvalidOperationException($"AgentTask with ID {command.Id} not found.");
 
-        if (!string.IsNullOrWhiteSpace(command.Title))
-        {
-            if (command.Title.Length > 200)
-                throw new ArgumentException("Title must be 200 characters or less", nameof(command.Title));
-
-            agentTask.Title = command.Title;
-        }
-
-        if (command.Description is not null) agentTask.Description = command.Description;
-        if (command.Result is not null) agentTask.Result = command.Result;
-        if (command.Errors is not null) agentTask.Errors = command.Errors;
-        if (command.CommitHash is not null) agentTask.CommitHash = command.CommitHash;
-        if (command.ComplexityRating.HasValue) agentTask.ComplexityRating = command.ComplexityRating.Value;
-        if (command.PromptTokens.HasValue) agentTask.PromptTokens = command.PromptTokens;
-        if (command.CompletionTokens.HasValue) agentTask.CompletionTokens = command.CompletionTokens;
-        if (command.ExecutionDurationInSeconds.HasValue) agentTask.ExecutionDurationInSeconds = command.ExecutionDurationInSeconds;
-        if (command.Agent is not null) agentTask.Agent = command.Agent;
+        agentTask.UpdateMetadata(
+            title: command.Title,
+            description: command.Description,
+            result: command.Result,
+            errors: command.Errors,
+            commitHash: command.CommitHash,
+            complexityRating: command.ComplexityRating,
+            promptTokens: command.PromptTokens,
+            completionTokens: command.CompletionTokens,
+            executionDurationInSeconds: command.ExecutionDurationInSeconds,
+            agent: command.Agent);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -103,7 +94,7 @@ public class UpdateAgentTaskStatusHandler : ICommandHandler<UpdateAgentTaskStatu
         if (agentTask == null)
             throw new InvalidOperationException($"AgentTask with ID {command.Id} not found.");
 
-        agentTask.Status = command.Status;
+        agentTask.TransitionStatus(command.Status);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }
