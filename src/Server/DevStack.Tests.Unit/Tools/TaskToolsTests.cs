@@ -134,7 +134,6 @@ public class TaskToolsTests
         var newId = Guid.NewGuid();
         var title = "New Task";
 
-        _dbContext.Projects.Add(new Project { Id = projectId, Name = "Test" });
         _dbContext.Deliverables.Add(new Deliverable { Id = deliverableId, ProjectId = projectId, Title = "Test" });
         await _dbContext.SaveChangesAsync();
 
@@ -143,7 +142,6 @@ public class TaskToolsTests
 
         // Act
         var result = await _tools.CreateAgentTask(
-            projectId,
             deliverableId,
             title,
             null);
@@ -163,102 +161,15 @@ public class TaskToolsTests
     }
 
     [Fact]
-    public async Task CreateAgentTask_WithNullProjectId_ThrowsMcpProtocolException()
-    {
-        // Arrange
-        var deliverableId = Guid.NewGuid();
-        var title = "New Task";
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateAgentTask(null, deliverableId, title, null));
-
-        exception.Message.Should().Be("Project ID is required");
-        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
-    }
-
-    [Fact]
-    public async Task CreateAgentTask_WithEmptyProjectId_ThrowsMcpProtocolException()
-    {
-        // Arrange
-        var deliverableId = Guid.NewGuid();
-        var title = "New Task";
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateAgentTask(Guid.Empty, deliverableId, title, null));
-
-        exception.Message.Should().Be("Project ID is required");
-        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
-    }
-
-    [Fact]
-    public async Task CreateAgentTask_WithNullDeliverableId_ThrowsMcpProtocolException()
-    {
-        // Arrange
-        var projectId = Guid.NewGuid();
-        var title = "New Task";
-
-        _dbContext.Projects.Add(new Project { Id = projectId, Name = "Test" });
-        await _dbContext.SaveChangesAsync();
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateAgentTask(projectId, null, title, null));
-
-        exception.Message.Should().Be("Deliverable ID is required");
-        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
-    }
-
-    [Fact]
-    public async Task CreateAgentTask_WithEmptyDeliverableId_ThrowsMcpProtocolException()
-    {
-        // Arrange
-        var projectId = Guid.NewGuid();
-        var title = "New Task";
-
-        _dbContext.Projects.Add(new Project { Id = projectId, Name = "Test" });
-        await _dbContext.SaveChangesAsync();
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateAgentTask(projectId, Guid.Empty, title, null));
-
-        exception.Message.Should().Be("Deliverable ID is required");
-        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
-    }
-
-    [Fact]
-    public async Task CreateAgentTask_WithNonExistentProject_ThrowsMcpProtocolException()
-    {
-        // Arrange
-        var projectId = Guid.NewGuid();
-        var deliverableId = Guid.NewGuid();
-        var title = "New Task";
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateAgentTask(projectId, deliverableId, title, null));
-
-        exception.Message.Should().Contain("Project");
-        exception.Message.Should().Contain("not found");
-        exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
-    }
-
-    [Fact]
     public async Task CreateAgentTask_WithNonExistentDeliverable_ThrowsMcpProtocolException()
     {
         // Arrange
-        var projectId = Guid.NewGuid();
         var deliverableId = Guid.NewGuid();
         var title = "New Task";
 
-        _dbContext.Projects.Add(new Project { Id = projectId, Name = "Test" });
-        await _dbContext.SaveChangesAsync();
-
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateAgentTask(projectId, deliverableId, title, null));
+            () => _tools.CreateAgentTask(deliverableId, title, null));
 
         exception.Message.Should().Contain("Deliverable");
         exception.Message.Should().Contain("not found");
@@ -275,7 +186,6 @@ public class TaskToolsTests
         var title = "New Task";
         var description = "Task description";
 
-        _dbContext.Projects.Add(new Project { Id = projectId, Name = "Test" });
         _dbContext.Deliverables.Add(new Deliverable { Id = deliverableId, ProjectId = projectId, Title = "Test" });
         await _dbContext.SaveChangesAsync();
 
@@ -284,7 +194,6 @@ public class TaskToolsTests
 
         // Act
         var result = await _tools.CreateAgentTask(
-            projectId,
             deliverableId,
             title,
             description);

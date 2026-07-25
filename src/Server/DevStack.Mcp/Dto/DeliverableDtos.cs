@@ -35,3 +35,5 @@ public record GetDeliverableResponse(
     string? Blocking);
 
 public record TransitionDeliverableStatusResponse(string Id, string Status, string Actor);
+
+public record GetNextDeliverableResponse(string Id);

@@ -131,38 +131,21 @@ public class TaskTools
 
     [McpServerTool(Name = "create_task"), Description(Descriptions.TaskTools.CreateTask)]
     public async Task<string> CreateAgentTask(
-        [Description(Descriptions.TaskTools.ProjectId)][DefaultValue(null)] Guid? projectId,
-        [Description(Descriptions.TaskTools.DeliverableId)][DefaultValue(null)] Guid? deliverableId,
+        [Description(Descriptions.TaskTools.DeliverableId)] Guid deliverableId,
         [Description(Descriptions.TaskTools.Title)] string title,
         [Description(Descriptions.TaskTools.Description)][DefaultValue(null)] string? description,
         CancellationToken ct = default)
     {
-        if (projectId == null || projectId == Guid.Empty)
-        {
-            throw new McpProtocolException("Project ID is required", McpErrorCode.InvalidParams);
-        }
-
-        var projectExists = await _dbContext.Projects.AnyAsync(p => p.Id == projectId, ct);
-        if (!projectExists)
-        {
-            throw new McpProtocolException($"Project with ID {projectId} not found", McpErrorCode.InvalidParams);
-        }
-
-        if (deliverableId == null || deliverableId == Guid.Empty)
-        {
-            throw new McpProtocolException("Deliverable ID is required", McpErrorCode.InvalidParams);
-        }
-
-        var deliverableExists = await _dbContext.Deliverables.AnyAsync(d => d.Id == deliverableId, ct);
-        if (!deliverableExists)
+        var deliverable = await _dbContext.Deliverables.FirstOrDefaultAsync(d => d.Id == deliverableId, ct);
+        if (deliverable == null)
         {
             throw new McpProtocolException($"Deliverable with ID {deliverableId} not found", McpErrorCode.InvalidParams);
         }
 
         var id = await _createAgentTaskHandler.Handle(
             new CreateAgentTaskCommand(
-                projectId.Value,
-                deliverableId.Value,
+                deliverable.ProjectId,
+                deliverableId,
                 title,
                 description ?? string.Empty,
                 5,

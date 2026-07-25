@@ -5,24 +5,28 @@ static class Descriptions
     internal static class Resources
     {
         internal const string ServerInfo = "Server information resource";
-        internal const string ServerInfoContent = "DevStack MCP Server v1.0.0.0 - Provides access to DevStack application features";
+        internal const string ServerInfoContent = "DevStack MCP Server v1.0.0.0 - Provides access to projects, deliverables and features";
     }
 
     internal static class Prompts
     {
-        internal const string DeliverableWorkflow = "Guidance on how to pick the next deliverable to work on and mark it complete";
+        internal const string DeliverableWorkflow = "Guidance on tool use";
         internal const string DeliverableWorkflowContent = """
-            To work on deliverables in DevStack, follow this workflow:
+            To help the user manage and implement deliverables, follow this workflow:
 
-            1. **Get the next deliverable** — Use the `get_next_deliverable` tool, passing either a `repositoryUrl` or a `projectId`. It returns the next deliverable in "Implement" status, ordered by creation order.
+            1. **Plan a deliverable** — When asked to plan a deliverable, the user needs to provide a deliverable ID. If no ID is provided, stop.  Use the `get_deliverable` tool to read the available information. 
+            Review all the fields needed for the update_deliverable tool. Plan the design, architecture and implementation of the deliverable and provide all the fields used by the update_deliverable tool. Then, break down the work
+            into indepedent tasks that can be done by a coding agent in less than 30 minutes. For each of these tasks, use the create_task tool to create the task. All new tasks should have the 'IMPLEMENT' status.
+            Then, use the change_deliverable_status tool to change the deliverable status to 'IMPLEMENT'.
 
-            2. **Update the deliverable to Done** — After the deliverable is complete, use the `update_deliverable_status` tool with the deliverable's ID, set `targetStatus` to "Done", and provide an `actor` string (e.g., your name or agent name).
+            2. **Implement the deliverable** — When asked to implement the deliverable, the user needs to provide a deliverable ID. If no ID is provided, stop. Investigate if the repository rules require creating a branch.
+            Create a branch if reqquired, then process the tasks associated with the deliverable.
+            Once a task is complete, use the change_task_status tool to change the task status to 'DONE'. When all the tasks are done, use the change_deliverable_status tool to change the deliverable status to 'DONE'.
+            Use sequential subagents to protect the context when possible and appropriate.
 
-            Example:
-            ```
-            get_next_deliverable(repositoryUrl: "https://github.com/example/my-project")
-            update_deliverable_status(id: "<deliverable-id>", targetStatus: "Done", actor: "my-agent")
-            ```
+            3. **Implement the next deliverable** — When asked to implement the next deliverable, use the get_next_deliverable tool with the Status = 'IMPLEMENT'. Then, follow the 'Implement a deliverable' steps with the ID provided.
+
+            4. **Plan the next deliverable** — When asked to plan the next deliverable, use the get_next_deliverable tool with the Status = 'PLAN'. Then, follow the 'Plan a deliverable' steps with the ID provided.
             """;
     }
 
@@ -43,7 +47,7 @@ static class Descriptions
     internal static class DeliverableTools
     {
         internal const string GetDeliverable = "Read a deliverable by its ID. Returns all fields including title, description, acceptance criteria, and status. Usage hint: Provide a valid deliverable ID.";
-        internal const string GetNextDeliverable = "Find the next deliverable in Implement status for a project. Provide either a repository URL or a project ID. Do NOT use this tool if the user has already provided a deliverable ID.";
+        internal const string GetNextDeliverable = "Find the next deliverable in the specified status for a project. Provide the ProjectId and Status parameters. Do NOT use this tool if the user has already provided a deliverable ID.";
         internal const string CreateDeliverable = "Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state. Usage hint: ProjectId must reference an existing project. Title and description are required fields.";
         internal const string UpdateDeliverable = "Modify an existing deliverable in DevStack. Only non-null fields are updated. Usage hint: Provide the deliverable ID and only the fields you want to change.";
         internal const string UpdateDeliverableStatus = "Change the state of a deliverable in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.";
@@ -111,6 +115,7 @@ static class Descriptions
         internal const string DeploymentPlan = "The deployment plan";
         internal const string AgentFeedback = "The updated agent feedback";
         internal const string Blocking = "The updated blocking issues";
+        internal const string Status = "The deliverable status to filter by";
         internal const string TargetStatus = "The target status";
         internal const string Actor = "The actor performing the transition";
 
@@ -122,7 +127,7 @@ static class Descriptions
     {
         internal const string GetTask = "Read an agent task by its ID. Returns all fields including title, status, description, result, and errors. Usage hint: Provide a valid task ID obtained from create_task or other operations.";
         internal const string GetNextTask = "Find the next task to work on for a project. Looks at deliverables in Implement status and prioritizes those with partial progress. Provide either a repository URL or project ID. Do NOT use this tool if the user has already provided a deliverable ID or task ID.";
-        internal const string CreateTask = "Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: Both ProjectId and DeliverableId must reference existing entities.";
+        internal const string CreateTask = "Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: DeliverableId must reference an existing entity. ProjectId is inferred from the deliverable.";
         internal const string UpdateTask = "Modify an existing agent task in DevStack. Only non-null fields are updated. Usage hint: Provide the task ID and only the fields you want to change.";
         internal const string UpdateTaskStatus = "Change the state of an agent task in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.";
 

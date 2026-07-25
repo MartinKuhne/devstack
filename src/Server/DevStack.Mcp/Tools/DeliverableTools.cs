@@ -60,48 +60,27 @@ public class DeliverableTools
 
     [McpServerTool(Name = "get_next_deliverable"), Description(Descriptions.DeliverableTools.GetNextDeliverable)]
     public async Task<string> GetNextDeliverable(
-        [Description(Descriptions.DeliverableTools.RepositoryUrl)][DefaultValue(null)] string? repositoryUrl,
-        [Description(Descriptions.DeliverableTools.ProjectId)][DefaultValue(null)] Guid? projectId,
+        [Description(Descriptions.DeliverableTools.ProjectId)] Guid projectId,
+        [Description(Descriptions.DeliverableTools.Status)] DeliverableStatus status,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(repositoryUrl) && (projectId == null || projectId == Guid.Empty))
-            throw new McpProtocolException("Either repositoryUrl or projectId must be provided", McpErrorCode.InvalidParams);
+        if (projectId == Guid.Empty)
+            throw new McpProtocolException("ProjectId must be provided", McpErrorCode.InvalidParams);
 
-        Project? project;
-        if (projectId is not null && projectId != Guid.Empty)
-        {
-            project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Id == projectId.Value, ct);
-        }
-        else
-        {
-            project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Repository == repositoryUrl, ct);
-        }
+        var project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Id == projectId, ct);
 
         if (project == null)
             return ToolResponse.Error("Project not found");
 
         var deliverable = await _dbContext.Deliverables
-            .Where(d => d.ProjectId == project.Id && d.Status == DeliverableStatus.Implement)
+            .Where(d => d.ProjectId == project.Id && d.Status == status)
             .OrderBy(d => d.Id)
             .FirstOrDefaultAsync(ct);
 
         if (deliverable == null)
-            return ToolResponse.Error("No deliverable found in Implement status for this project");
+            return ToolResponse.Error($"No deliverable found in {status} status for this project");
 
-        var data = new GetDeliverableResponse(
-            deliverable.Id.ToString(),
-            deliverable.ProjectId.ToString(),
-            deliverable.Title,
-            deliverable.Description,
-            deliverable.Design,
-            deliverable.AcceptanceCriteria,
-            deliverable.ExecutionPlan,
-            deliverable.SecurityImpact,
-            deliverable.PerformanceImpact,
-            deliverable.TestPlan,
-            deliverable.DeploymentPlan,
-            deliverable.AgentFeedback,
-            deliverable.Blocking);
+        var data = new GetNextDeliverableResponse(deliverable.Id.ToString());
 
         return ToolResponse.Success("Next Deliverable", data);
     }
