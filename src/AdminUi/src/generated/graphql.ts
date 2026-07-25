@@ -1544,7 +1544,7 @@ export type GetAllDeliverablesSuspenseQueryHookResult = ReturnType<typeof useGet
 export type GetAllDeliverablesQueryResult = Apollo.QueryResult<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>;
 export const GetDeliverablesByProjectDocument = gql`
     query GetDeliverablesByProject($projectId: UUID!) {
-  deliverables(where: {projectId: {eq: $projectId}}) {
+  deliverables(where: {projectId: {eq: $projectId}}, first: 100) {
     nodes {
       id
       title
