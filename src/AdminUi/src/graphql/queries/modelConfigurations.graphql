@@ -1,5 +1,5 @@
 query ModelConfigurations {
-    largeLanguageModels {
+    largeLanguageModels(first: 100) {
         nodes {
             id
             url
