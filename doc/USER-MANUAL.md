@@ -267,3 +267,426 @@ The runner matches prompts to deliverables via the status transition tables in `
 - MCP tools use snake_case naming (`create_deliverable`, `update_task_status`) and include `[Description]` attributes for LLM tool selection.
 - The runner uses `npx opencode run` to invoke AI agents. It selects the cheapest model meeting the complexity requirement.
 - Agent tasks created via the UI start in Draft status; agent tasks created via MCP tools start in Ready status.
+
+---
+
+## Appendix A: MCP Tool Reference
+
+This appendix provides the complete reference for all MCP tool calls, including parameters, return values, and examples.
+
+All responses follow a standard Markdown format:
+- **Success**: `## Title\n\n```json\n{...}\n```\n\nUsage hint: ...`
+- **Error**: `{"error": "message"}`
+
+The JSON block contains the response data. Below are examples showing the JSON content for each tool.
+
+---
+
+### A.1 Project Tools
+
+#### `get_projects`
+
+Retrieves all projects.
+
+**Parameters**: None
+
+**Response Example**:
+```json
+{
+  "projects": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "MyProject",
+      "description": "A sample project",
+      "repository": "https://github.com/user/repo"
+    }
+  ]
+}
+```
+
+**Usage Hint**: Use this tool first to get a list of available projects before performing other operations.
+
+---
+
+#### `get_project`
+
+Retrieves a specific project by ID.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | Guid | Yes | The project ID |
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "MyProject",
+  "description": "A sample project",
+  "repository": "https://github.com/user/repo"
+}
+```
+
+**Usage Hint**: Provide a valid project ID obtained from `get_projects`.
+
+---
+
+#### `create_project`
+
+Creates a new project.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `name` | string | Yes | The project name |
+| `repository` | string | Yes | The repository URL |
+| `description` | string | No | The project description |
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "MyProject",
+  "description": "A sample project",
+  "repository": "https://github.com/user/repo"
+}
+```
+
+**Usage Hint**: `name` and `repository` are required fields.
+
+---
+
+### A.2 Deliverable Tools
+
+#### `get_deliverable`
+
+Reads a deliverable by its ID. Returns all fields including title, description, acceptance criteria, and status.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | Guid | Yes | The deliverable ID |
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "projectId": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Implement login feature",
+  "description": "Add OAuth2 login",
+  "design": "Use IdentityServer4",
+  "acceptanceCriteria": "Users can log in with Google",
+  "executionPlan": "1. Add middleware 2. Configure callbacks",
+  "securityImpact": "OAuth2 tokens stored securely",
+  "performanceImpact": "Minimal latency addition",
+  "testPlan": "Unit tests for token validation",
+  "deploymentPlan": "Deploy to staging first",
+  "agentFeedback": null,
+  "blocking": null
+}
+```
+
+**Usage Hint**: Provide a valid deliverable ID.
+
+---
+
+#### `get_next_deliverable`
+
+Find the next deliverable in the specified status for a project.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `projectId` | Guid | Yes | The project ID |
+| `status` | DeliverableStatus | Yes | The deliverable status to filter by |
+
+**Valid Status Values**: `Draft`, `Design`, `Plan`, `Implement`, `Merge`, `Deploy`, `Test`, `Done`, `Failed`, `NeedsReview`, `Rejected`
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440001"
+}
+```
+
+**Usage Hint**: Provide the ProjectId and Status parameters. Do NOT use this tool if the user has already provided a deliverable ID.
+
+---
+
+#### `create_deliverable`
+
+Creates a new deliverable (Feature) in the project. New deliverables are created in `Draft` status.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `projectId` | Guid | Yes | The project ID |
+| `title` | string | Yes | The deliverable title |
+| `description` | string | No | A high level summary of what is being changed, how, and why. Use markdown format. |
+| `design` | string | No | The feature-level software architecture design. Include module boundaries, contracts, architecture patterns, principles (SOLID, DRY, etc.), and fit with existing architecture. Use markdown format. |
+| `acceptanceCriteria` | string | No | Objective, verifyable criteria signaling completion. Use markdown format. |
+| `executionPlan` | string | No | Summary of what needs to be changed and how. Use markdown format. |
+| `securityImpact` | string | No | Security impact assessment: authentication, authorization, input validation, injection risks, secrets, data protection, logging, dependencies, DoS, threat surface. Use markdown format. |
+| `performanceImpact` | string | No | Performance impact assessment: latency, throughput, scalability, resource utilization, database, caching, concurrency, hot paths, batch operations, external calls, efficiency. Use markdown format. |
+| `testPlan` | string | No | Test plan: unit tests, integration tests, regression tests, negative tests, data-driven tests, concurrency tests, performance tests, security tests, coverage gaps, test data, CI/CD considerations. Use markdown format. |
+| `deploymentPlan` | string | No | The deployment plan. |
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "projectId": "550e8400-e29b-41d4-a716-446655440000",
+  "type": "Feature",
+  "status": "Draft"
+}
+```
+
+**Usage Hint**: `projectId` and `title` are required fields. The deliverable is created as a Feature in Draft status.
+
+---
+
+#### `update_deliverable`
+
+Modifies an existing deliverable. Only non-null fields are updated.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | Guid | Yes | The deliverable ID |
+| `description` | string | No | A high level summary of what is being changed, how, and why. Use markdown format. |
+| `design` | string | No | The feature-level software architecture design. Use markdown format. |
+| `acceptanceCriteria` | string | No | Objective, verifyable criteria signaling completion. Use markdown format. |
+| `executionPlan` | string | No | Summary of what needs to be changed and how. Use markdown format. |
+| `securityImpact` | string | No | Security impact assessment. Use markdown format. |
+| `performanceImpact` | string | No | Performance impact assessment. Use markdown format. |
+| `testPlan` | string | No | Test plan. Use markdown format. |
+| `deploymentPlan` | string | No | The deployment plan. |
+| `agentFeedback` | string | No | The updated agent feedback. |
+| `blocking` | string | No | The updated blocking issues. |
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "updated": true
+}
+```
+
+**Usage Hint**: Provide the deliverable ID and only the fields you want to change.
+
+---
+
+#### `update_deliverable_status`
+
+Changes the state of a deliverable. Valid transitions are enforced by the state machine.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | Guid | Yes | The deliverable ID |
+| `targetStatus` | DeliverableStatus | Yes | The target status |
+| `actor` | string | Yes | The actor performing the transition |
+
+**Valid Status Values**: `Draft`, `Design`, `Plan`, `Implement`, `Merge`, `Deploy`, `Test`, `Done`, `Failed`, `NeedsReview`, `Rejected`
+
+**Valid Transitions**:
+- `Draft` → `Design`, `Rejected`
+- `Design` → `Plan`, `Rejected`
+- `Plan` → `Implement`, `Rejected`
+- `Implement` → `Merge`, `NeedsReview`, `Failed`, `Rejected`
+- `Merge` → `Deploy`, `Failed`, `Rejected`
+- `Deploy` → `Test`, `Failed`, `Rejected`
+- `Test` → `Done`, `Failed`, `Rejected`
+- `NeedsReview` → `Implement`, `Rejected`
+- `Failed` → `Implement`, `Rejected`
+- `Rejected` → (terminal)
+- `Done` → (terminal)
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "status": "Design",
+  "actor": "opencode-agent"
+}
+```
+
+**Usage Hint**: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.
+
+---
+
+### A.3 Task Tools
+
+#### `get_task`
+
+Reads an agent task by its ID. Returns all fields including title, status, description, result, and errors.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | Guid | Yes | The agent task ID |
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "projectId": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Implement login validation",
+  "status": "Done",
+  "description": "Add input validation for login form",
+  "result": "Implemented validation logic in LoginForm.cs",
+  "errors": null,
+  "commitHash": "abc123def456",
+  "agent": "qwen3.7-plus"
+}
+```
+
+**Usage Hint**: Provide a valid task ID obtained from `create_task` or other operations.
+
+---
+
+#### `get_next_task`
+
+Find the next task to work on for a project. Looks at deliverables in `Implement` status and prioritizes those with partial progress.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `repositoryUrl` | string | No | The repository URL |
+| `projectId` | Guid | No | The project ID |
+
+**Note**: At least one of `repositoryUrl` or `projectId` must be provided.
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "projectId": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Implement login validation",
+  "status": "Ready",
+  "description": "Add input validation for login form",
+  "result": null,
+  "errors": null,
+  "commitHash": null,
+  "agent": null
+}
+```
+
+**Usage Hint**: Provide either a repository URL or project ID. Do NOT use this tool if the user has already provided a deliverable ID or task ID.
+
+---
+
+#### `create_task`
+
+Creates a new agent task. New tasks are created in `Ready` status.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `deliverableId` | Guid | Yes | The deliverable/feature ID |
+| `title` | string | Yes | The task title |
+| `description` | string | No | A complete incremental change plan. Include: Objective, Affected code (files, types, functions), Why (reason for change), How (implementation strategy), Risks and dependencies, Test impact. Be concrete and reference real names. Use markdown format. |
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "status": "Ready"
+}
+```
+
+**Usage Hint**: `deliverableId` must reference an existing deliverable. `title` is required. ProjectId is inferred from the deliverable.
+
+---
+
+#### `update_task`
+
+Modifies an existing agent task. Only non-null fields are updated.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | Guid | Yes | The agent task ID |
+| `status` | AgentTaskStatus | No | The updated status |
+| `description` | string | No | A complete incremental change plan. Use markdown format. |
+| `result` | string | No | An overview of what was accomplished. Use markdown format. |
+| `errors` | string | No | If the task failed, list any errors or impediments. Omit if the task succeeded. |
+| `commitHash` | string | No | The commit hash. Only provide this if the task was completed. |
+| `agent` | string | No | The name of the coding agent and model (if known) that completed the task. |
+
+**Valid Status Values**: `Ready`, `InProgress`, `Done`, `Failed`, `NeedsReview`, `Rejected`
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "updated": true
+}
+```
+
+**Usage Hint**: Provide the task ID and only the fields you want to change.
+
+---
+
+#### `update_task_status`
+
+Changes the state of an agent task. Valid transitions are enforced by the state machine.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | Guid | Yes | The agent task ID |
+| `targetStatus` | AgentTaskStatus | Yes | The target status |
+| `actor` | string | Yes | The actor performing the transition |
+
+**Valid Status Values**: `Ready`, `InProgress`, `Done`, `Failed`, `NeedsReview`, `Rejected`
+
+**Valid Transitions**:
+- `Ready` → `InProgress`, `Rejected`
+- `InProgress` → `Done`, `Failed`, `NeedsReview`, `Rejected`
+- `NeedsReview` → `InProgress`, `Rejected`
+- `Failed` → `InProgress`, `Rejected`
+- `Rejected` → (terminal)
+- `Done` → (terminal)
+
+**Response Example**:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "status": "InProgress",
+  "actor": "opencode-agent"
+}
+```
+
+**Usage Hint**: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.
+
+---
+
+### A.4 Prompts
+
+#### `deliverable_workflow`
+
+The only prompt available in the MCP server. It provides comprehensive instructions for working with the deliverable workflow system.
+
+**Usage**: When calling `prompts/get`, use `name: "deliverable_workflow"` with optional arguments:
+- `projectId`: The project ID to work with
+- `mode`: The workflow mode (e.g., "full", "implement")
+
+The prompt includes instructions for:
+- Project discovery and setup
+- Deliverable creation and progression through statuses
+- Task creation and execution
+- Quality gates and verification
+- Code conventions and best practices
