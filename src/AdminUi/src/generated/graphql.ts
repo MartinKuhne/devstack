@@ -1419,7 +1419,7 @@ export type GetAgentTaskSuspenseQueryHookResult = ReturnType<typeof useGetAgentT
 export type GetAgentTaskQueryResult = Apollo.QueryResult<GetAgentTaskQuery, GetAgentTaskQueryVariables>;
 export const GetAgentTasksDocument = gql`
     query GetAgentTasks($deliverableId: UUID!) {
-  agentTasks(where: {deliverableId: {eq: $deliverableId}}) {
+  agentTasks(where: {deliverableId: {eq: $deliverableId}}, first: 100) {
     nodes {
       id
       projectId
@@ -1486,7 +1486,7 @@ export type GetAgentTasksSuspenseQueryHookResult = ReturnType<typeof useGetAgent
 export type GetAgentTasksQueryResult = Apollo.QueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
 export const GetAllDeliverablesDocument = gql`
     query GetAllDeliverables {
-  deliverables {
+  deliverables(first: 100) {
     nodes {
       id
       title
@@ -1544,7 +1544,7 @@ export type GetAllDeliverablesSuspenseQueryHookResult = ReturnType<typeof useGet
 export type GetAllDeliverablesQueryResult = Apollo.QueryResult<GetAllDeliverablesQuery, GetAllDeliverablesQueryVariables>;
 export const GetDeliverablesByProjectDocument = gql`
     query GetDeliverablesByProject($projectId: UUID!) {
-  deliverables(where: {projectId: {eq: $projectId}}) {
+  deliverables(where: {projectId: {eq: $projectId}}, first: 100) {
     nodes {
       id
       title
@@ -1667,7 +1667,7 @@ export type GetDeliverableSuspenseQueryHookResult = ReturnType<typeof useGetDeli
 export type GetDeliverableQueryResult = Apollo.QueryResult<GetDeliverableQuery, GetDeliverableQueryVariables>;
 export const ModelConfigurationsDocument = gql`
     query ModelConfigurations {
-  largeLanguageModels {
+  largeLanguageModels(first: 100) {
     nodes {
       id
       url
@@ -1764,7 +1764,7 @@ export type GetProjectSuspenseQueryHookResult = ReturnType<typeof useGetProjectS
 export type GetProjectQueryResult = Apollo.QueryResult<GetProjectQuery, GetProjectQueryVariables>;
 export const GetProjectsDocument = gql`
     query GetProjects {
-  projects {
+  projects(first: 100) {
     nodes {
       id
       name

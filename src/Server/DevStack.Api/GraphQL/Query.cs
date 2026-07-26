@@ -11,7 +11,7 @@ public class Query
     public Project? GetProject([Service] DevStackDbContext dbContext, Guid id)
     {
         var predicate = QuerySpecifications.ProjectById(id);
-        return dbContext.Projects.FirstOrDefault(predicate);
+        return dbContext.Projects.Include(p => p.Deliverables).FirstOrDefault(predicate);
     }
 
     [UsePaging(MaxPageSize = 100)]

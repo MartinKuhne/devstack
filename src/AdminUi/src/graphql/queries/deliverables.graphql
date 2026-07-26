@@ -1,5 +1,5 @@
 query GetAllDeliverables {
-    deliverables {
+    deliverables(first: 100) {
         nodes {
             id
             title
@@ -21,7 +21,7 @@ query GetAllDeliverables {
 }
 
 query GetDeliverablesByProject($projectId: UUID!) {
-    deliverables(where: { projectId: { eq: $projectId } }) {
+    deliverables(where: { projectId: { eq: $projectId } }, first: 100) {
         nodes {
             id
             title
