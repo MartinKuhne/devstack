@@ -107,9 +107,31 @@ A standalone `CoerciveStringJsonConverter` class is also provided in `Serializat
 
 The filter is registered before the logging filter in the MCP pipeline, so logged arguments reflect the normalized values.
 
+### Pitfall: JsonNode.GetValue<JsonElement>() produces null values
+
+The initial implementation attempted to create a `JsonElement` from a `JsonNode` using:
+
+```csharp
+var normalizedValue = JsonNode.Parse($"\"{escaped}\"");
+arguments[key] = normalizedValue.GetValue<JsonElement>();
+```
+
+This **does not work**. `JsonNode.GetValue<T>()` is designed to convert a `JsonNode` to primitive CLR types (string, int, bool, etc.) using semantics equivalent to `JsonSerializer.Deserialize<T>()`. However, `JsonElement` is not a regular CLR type - it is a struct tightly coupled to `JsonDocument`'s internal parse tree. The deserialization path has no mechanism to construct a valid `JsonElement` from a `JsonNode`, so it returns a **default (empty) `JsonElement` struct** — effectively null.
+
+The compiler warning `CS8602: Dereference of a possibly null reference` on this line was an early indicator that was overlooked.
+
+**Correct approach**: Use `JsonSerializer.SerializeToElement()` which directly creates a properly constructed `JsonElement`:
+
+```csharp
+var normalizedElement = JsonSerializer.SerializeToElement(joined);
+arguments[key] = normalizedElement;
+```
+
+This bug caused all coerced argument values to silently become null, producing the symptom: "The update tool is consistently sending null."
+
 ## Validation & Compliance
 
-* **Unit Tests**: Existing 193 unit tests pass
+* **Unit Tests**: 206 unit tests pass (including 14 new tests for `McpArgumentNormalizationFilter`)
 * **Logging**: Warnings are logged when coercion occurs
 * **Build Verification**: `dotnet build` succeeds with 0 errors
 * **Lint Check**: `dotnet format --verify-no-changes` passes with 0 errors
