@@ -324,7 +324,6 @@ export function AgentTaskDetailPage() {
                         <CardContent>
                             <MarkdownViewer
                                 content={agentTask.description}
-                                className="prose prose-sm dark:prose-invert max-w-none"
                             />
                         </CardContent>
                     </Card>
@@ -337,7 +336,6 @@ export function AgentTaskDetailPage() {
                             <CardContent>
                                 <MarkdownViewer
                                     content={agentTask.result}
-                                    className="prose prose-sm dark:prose-invert max-w-none"
                                 />
                             </CardContent>
                         </Card>
@@ -428,7 +426,7 @@ export function AgentTaskDetailPage() {
                                         </div>
                                         <MarkdownViewer
                                             content={agentTask.errors}
-                                            className="prose prose-sm dark:prose-invert max-w-none text-destructive"
+                                            className="text-destructive"
                                         />
                                     </div>
                                 </>
