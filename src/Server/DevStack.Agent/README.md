@@ -8,8 +8,9 @@ A tiny .NET 10 CLI that drives the **Hello** prompt against a running `opencode 
 2. Fetches the provider/model inventory via `GET /provider` and pretty-prints it. Warns early if the requested `--model` is not in the server's list (so a 500 from the server doesn't come as a surprise).
 3. Creates a fresh session via `POST /session`.
 4. Sends a single `Hello` (or any other) prompt via `POST /session/{id}/message`.
-5. Prints every `text` / `reasoning` / `tool` / `file` / `step-*` part of the assistant's reply, plus the model id, token usage, and cost.
-6. Emits the session id on the way out so the caller can continue the conversation later.
+5. Sends a single `Hello` (or any other) prompt via `POST /session/{id}/message`. While the LLM is running, subscribes to the server's SSE event stream and prints every message and part **live** as the model emits them — reasoning, tool calls, step markers, the assistant's final text. Long calls are also heart-beated every 30s as a fallback in case the SSE stream stalls.
+6. After the assistant's final message is returned, prints a run summary (model, tokens, cost, finish reason).
+7. Emits the session id on the way out so the caller can continue the conversation later.
 
 In addition, the agent can talk to the DevStack GraphQL API through a
 StrawberryShake-generated client (see [GraphQL via StrawberryShake](#graphql-via-strawberryshake) below) for smoke-testing the codegen pipeline.
@@ -38,9 +39,14 @@ dotnet run --project src/Server/DevStack.Agent -- \
 | `--model <provider/model>` | auto — first connected provider's model matching `*free*` (case-insensitive), then the first connected provider's default, then `anthropic/claude-3-5-sonnet` | Model to address. The startup listing will warn if the chosen model isn't in the server's inventory. |
 | `--title <text>` | `DevStack.Agent @ <UTC timestamp>` | Title for the created session. |
 | `--opencode:BaseUrl <url>` | `http://127.0.0.1:4096/` | Override the OpenCode base URL (passed through `IConfiguration.AddCommandLine`). |
+| `--opencode:HttpTimeout <timespan>` | `00:10:00` | Override the per-HTTP-call timeout used by the OpenCode SDK. The default is 10 minutes because `--run-plan` and other LLM-driven flows can take several minutes per call; bump it higher (e.g. `00:30:00`) for very long plan generations or drop it for tighter failure detection. |
 | `--list-projects` *(GraphQL)* | _off_ | List projects from the DevStack GraphQL API instead of running the OpenCode prompt. Pair with `--list-projects-first <n>` to cap the page size (default 50). |
 | `--get-project <uuid>` *(GraphQL)* | _off_ | Look up a single project by id via the DevStack GraphQL API. |
 | `--devstack:graphql:base-url <url>` | `http://localhost:8087/graphql` | Override the DevStack GraphQL endpoint. |
+| `--show-plan` *(GraphQL + Git + GitHub)* | _off_ | Resolve the current git repository, look up the matching DevStack project, and list its `PLAN`-status deliverables. See [Repository-aware plan listing](#repository-aware-plan-listing) below. |
+| `--run-plan` *(GraphQL + Git + GitHub + LLM)* | _off_ | Same discovery as `--show-plan`, then for every `PLAN`-status deliverable, render the plan prompt and execute it through the OpenCode SDK. See [Plan mode](#plan-mode) below. |
+| `--repositoryRoot <path>` | _unset — falls back to the OpenCode server's worktree_ | Override the worktree path used by `--show-plan` / `--run-plan`. Useful when the OpenCode server is not running. |
+| `--plan-prompt <path>` | `prompts/plan.prompt` (relative to the binary's `AppContext.BaseDirectory`) | Path to the prompt template used by `--run-plan`. Relative paths resolve next to the agent binary; absolute paths are used as-is. The default `prompts/plan.prompt` is one of the files bundled with the agent under `src/Server/DevStack.Agent/prompts/`. |
 
 ### Configuration
 
@@ -50,13 +56,13 @@ dotnet run --project src/Server/DevStack.Agent -- \
 {
   "OpenCode": {
     "BaseUrl": "http://127.0.0.1:4096/",
-    "HttpTimeout": "00:01:00",
+    "HttpTimeout": "00:10:00",
     "UserAgent": "DevStack.Agent/0.1"
   }
 }
 ```
 
-You can also override via environment variables (`OpenCode__BaseUrl=http://10.0.0.5:4096/`) or the `--opencode:BaseUrl=…` command-line switch. The order of precedence is:
+You can also override via environment variables (`OpenCode__BaseUrl=http://10.0.0.5:4096/`, `OpenCode__HttpTimeout=00:30:00`) or the `--opencode:BaseUrl=…` / `--opencode:HttpTimeout=…` command-line switches. The order of precedence is:
 
 1. Command-line (`AddCommandLine` — highest)
 2. Environment variables (`AddEnvironmentVariables`)
@@ -68,6 +74,8 @@ You can also override via environment variables (`OpenCode__BaseUrl=http://10.0.
 DevStack.Agent — OpenCode hello-prompt driver
   baseUrl:   http://127.0.0.1:4096/
   userAgent: DevStack.Agent/0.1
+  timeout:   00:10:00
+  graphQL:   http://localhost:8087/graphql
 
 Available providers (1 connected):
   anthropic  [source=env]  default: claude-3-5-sonnet  (3 models)
@@ -79,17 +87,23 @@ Available providers (1 connected):
 [20:38:09 INF] No --model specified; auto-selected opencode/north-mini-code-free (first *free* model on a connected provider). Use --model provider/model to override.
 [20:38:09 INF] Sending prompt to opencode/north-mini-code-free…
 
---- assistant reply (assistant) ---
-  [step start]
-  [thinking] The user has simply said "Hello" with a message ID m0001…
-Hello!
-  [step finish] reason=stop cost=$0
+--- session transcript (2 message(s)) ---
 
+── msg 1/2 (role=user agent=build model=opencode/north-mini-code-free) ──
+Hello
+
+── msg 2/2 (role=assistant model=opencode/north-mini-code-free) ──
+  ── step start ──
+  💭 The user has simply said "Hello" with a message ID m0001…
+Hello!
+  ── step finish reason=stop tokens=in:24195 out:0 reasoning:118 ──
+
+--- run summary ---
 model:    opencode/north-mini-code-free
 tokens:   in=24195 out=0 reasoning=118 cache.read=0 cache.write=0
 cost:     $0.0000
 finish:   stop
---- end ---
+--- end of session ---
 
 Done. sessionId=ses_abc123
 ```
@@ -101,6 +115,66 @@ you know where the inventory went. The raw response is still kept so
 the explicit `--model` warning can distinguish "provider not connected"
 from "provider not configured" from "model not on this provider".
 
+## Session transcript
+
+The agent subscribes to the OpenCode server's `GET /global/event` SSE
+stream before sending the prompt and prints every relevant event
+**live** as the model emits them. The consumer filters to the current
+session id, ignores bookkeeping events (`server.heartbeat`, `sync`,
+`session.created`, `session.updated`, `session.status`,
+`session.diff`), and returns on `session.idle` / `session.error` / a
+3-second drain timeout after `PromptAsync` returns.
+
+**Why no character-by-character streaming.** A previous iteration
+tried to render text and reasoning deltas in place with `\r` overwrite
+("watch the model type") but it produced hundreds of identical
+truncated lines in any non-TTY capture (pipe, file, screen reader,
+copy-paste buffer — all common ways operators review run output). The
+current approach prints a single placeholder per streaming part so the
+operator has visibility while the model works, then prints the full
+canonical text on a new line when the server's final `part.updated`
+arrives:
+
+```text
+  ── step start ──
+  💭 …                  ← placeholder, dropped on commit
+  💭 The full reasoning text comes here, with internal newlines preserved.
+  …                     ← placeholder for the text reply
+Here's the assistant's actual answer.
+  ── step finish reason=stop … ──
+```
+
+| Icon | Part kind | What you see |
+|------|-----------|--------------|
+| _(none)_ | `text` | The assistant's plain-text reply. `…` placeholder while streaming, full text on commit. |
+| 💭 | `reasoning` | The model's thinking. `💭 …` placeholder while streaming, `💭 [full text]` on commit. Internal newlines preserved. |
+| 🔧 | `tool` | Tool name, status (`completed` / `running` / `pending` / `error`), and the truncated input + output from `state.raw`. A fresh block per state change. |
+| ✓ / ✗ / ⏳ / … / • | (status glyph on the tool line) | `completed` / `error` / `running` / `pending` / other. |
+| 📄 | `file` | MIME type plus filename or URL. |
+| 🗜 | `compaction` | Auto- vs. manual context compaction. |
+| 👥 | `subtask` | Delegated sub-agent prompt (truncated to 160 chars). |
+| 👤 | `agent` | The agent that owns the part. |
+| 📸 | `snapshot` | Filesystem snapshot id. |
+| 🔁 | `retry` | Retry attempt number + the error payload that triggered it. |
+| ── step start ── | `step-start` | Implicit — a marker so you can grep for it. |
+| ── step finish … ── | `step-finish` | `reason=…`, optional `cost=$…`, and per-step tokens. |
+
+Tools (and other structural parts) still render every state change as
+a fresh block because each transition is genuinely new information
+(running → completed) and the count is small (typically 2-3 lines per
+tool call). The 30s heartbeat stays in place as a fallback in case
+the SSE stream stalls between events.
+
+If the SSE stream fails (server unreachable, network blip, etc.) the
+agent logs a warning and falls back to printing only the final message
+plus the run summary — the prompt still completes. Long inputs/outputs
+are truncated so a 5k-character tool argument doesn't blow up the
+console; the full content is always available via the OpenCode
+server's web UI (the session id is printed at the end of every run).
+The final `─── run summary ───` block prints the assistant message's
+model id, token usage, cost, and finish reason after the prompt
+returns.
+
 ## Building
 
 ```bash
@@ -109,6 +183,63 @@ dotnet run --project src/Server/DevStack.Agent
 ```
 
 The project is added to `DevStack.slnx` and depends on `DevStack.OpenCode`.
+
+## Plan mode
+
+`--run-plan` is the same discovery as `--show-plan`, then for every
+`PLAN`-status deliverable it reads the prompt template, substitutes
+the `{{DeliverableId}}` token with the deliverable's id, and
+executes the rendered prompt through the OpenCode SDK. One OpenCode
+session is created per deliverable; failures in one deliverable are
+logged and the run continues with the next one.
+
+```bash
+# Discover the worktree from the running OpenCode SDK, then plan
+# every PLAN deliverable in the matching DevStack project.
+dotnet run --project src/Server/DevStack.Agent -- --run-plan
+
+# Use a custom template (relative or absolute), pin the model.
+dotnet run --project src/Server/DevStack.Agent -- \
+  --run-plan \
+  --repositoryRoot /path/to/checkout \
+  --plan-prompt /absolute/path/to/plan.prompt \
+  --model anthropic/claude-3-5-sonnet-20241022
+```
+
+Sample output (truncated for the README):
+
+```text
+Repository: C:\src\my-project
+  remote:   https://github.com/owner/my-project.git
+  github:   owner/my-project
+
+DevStack project: my-project (c33c8df4-…)
+Prompt template: prompts/plan.prompt (resolved against the binary directory)
+Executing plan for 3 deliverable(s)…
+
+→ Planning Agent Session as a Regular Tab (e6df3c45-…)
+  type:     Feature
+  status:   Plan
+…(reply from the model)…
+✓ Done. sessionId=ses_…
+
+→ Planning Batch jobs uses a persisted queue (a44497f8-…)
+…
+```
+
+The final summary line is always printed:
+
+```text
+Plan summary: N succeeded, M failed.
+```
+
+Exit codes:
+
+| Code | Meaning |
+|------|---------|
+| 0 | All deliverables planned. |
+| 2 | Could not discover the repository, no DevStack project matches, or the prompt template was not found. |
+| 3 | At least one deliverable failed mid-execution. |
 
 ## GraphQL via StrawberryShake
 
@@ -184,4 +315,67 @@ dotnet run --project src/Server/DevStack.Api --urls http://localhost:8087
 #    starting an OpenCode server.
 dotnet run --project src/Server/DevStack.Agent -- --list-projects
 dotnet run --project src/Server/DevStack.Agent -- --get-project c33c8df4-b40c-41dc-b92f-c691197210c0
+```
+
+## Repository-aware plan listing
+
+`--show-plan` ties the three libraries together to give the agent
+context about what it can do right now:
+
+1. **Resolve the worktree.** `RepositoryLocator` first asks the
+   OpenCode SDK for `project/current` and uses the server's
+   `worktree` field. If the SDK is unreachable (or `--repositoryRoot`
+   is supplied) the locator falls back to the override.
+2. **Read the git remote.** `RepositoryContextResolver` opens the
+   worktree with `LibGit2Sharp`, reads the `origin` remote URL, and
+   normalizes it (SSH → HTTPS) to a canonical URL that matches the
+   `Project.repository` field on the DevStack side. The original
+   `.git` suffix is preserved because that's what existing projects
+   store.
+3. **Verify on GitHub (best-effort).** When the remote is a GitHub
+   URL, the resolver asks `Octokit` for the repository's
+   default-branch / visibility metadata. Set `GITHUB_TOKEN` to
+   raise the rate limit; failure is logged and the listing
+   continues with the locally-known owner/name.
+4. **Find the DevStack project.** `DevStackProjectClient
+   .FindProjectByRepositoryAsync` calls the new
+   `GetProjectByRepository` GraphQL operation (added to
+   `GraphQLs/`) to resolve the canonical URL to a project.
+5. **List `PLAN` deliverables.** `PlanDeliverableLister` calls
+   `DevStackProjectClient.ListPlanDeliverablesAsync`, backed by
+   the new `GetPlanDeliverables` GraphQL operation, and prints
+   every match.
+
+```text
+Repository: C:\Users\mkuhn\src\devstack
+  remote:   https://github.com/MartinKuhne/devstack.git
+  github:   MartinKuhne/devstack
+
+DevStack project: personal-productivity-ai (c33c8df4-b40c-41dc-b92f-c691197210c0)
+PLAN deliverables (10):
+
+  [Feature    ] Agent Session as a Regular Tab
+      id:      …
+      describe: …
+  …
+```
+
+Failure modes are surfaced as `error: …` on stderr with exit code 2
+(missing repository, no DevStack project registered for the URL,
+unsupported path). The OpenCode prompt flow is not affected.
+
+### Smoke test without the OpenCode server
+
+The `--repositoryRoot` override is the way to exercise the listing
+without a running OpenCode server — useful in CI or local
+debugging:
+
+```bash
+# Use a throwaway git repo whose origin points at an existing
+# DevStack project to prove the full chain.
+tmp=$(mktemp -d) && cd "$tmp" && git init -q && \
+  git remote add origin https://github.com/MartinKuhne/personal-productivity-ai.git
+
+dotnet run --project src/Server/DevStack.Agent -- \
+  --show-plan --repositoryRoot "$tmp"
 ```

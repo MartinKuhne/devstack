@@ -1,0 +1,19 @@
+"""Look up the DevStack project whose `repository` field matches the given URL.
+
+Used by the --show-plan flow: after the agent discovers its git remote
+(through the OpenCode SDK's project context or the --repositoryRoot
+fallback), we normalize the URL to the canonical
+`https://host/owner/repo` form and resolve it to a DevStack project.
+The query is bounded to a single result so a typo can't quietly
+return every project on the server.
+"""
+query GetProjectByRepository($repository: String!) {
+  projects(where: { repository: { eq: $repository } }, first: 1) {
+    nodes {
+      id
+      name
+      description
+      repository
+    }
+  }
+}

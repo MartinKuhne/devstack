@@ -1,0 +1,810 @@
+// @ts-nocheck
+/* eslint-disable */
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+/** Internal type. DO NOT USE DIRECTLY. */
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+import { GraphQLClient, type RequestOptions } from 'graphql-request';
+import gql from 'graphql-tag';
+export type Maybe<T> = T | null;
+export type InputMaybe<T> = Maybe<T>;
+type GraphQLClientRequestHeaders = RequestOptions['requestHeaders'];
+/** All built-in and custom scalars, mapped to their actual values */
+export type Scalars = {
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
+  UUID: { input: string; output: string; }
+};
+
+export type AgentTask = {
+  __typename?: 'AgentTask';
+  agent?: Maybe<Scalars['String']['output']>;
+  commitHash?: Maybe<Scalars['String']['output']>;
+  completionTokens?: Maybe<Scalars['Int']['output']>;
+  complexityRating: Scalars['Int']['output'];
+  deliverable?: Maybe<Deliverable>;
+  deliverableId: Scalars['UUID']['output'];
+  dependsOnAgentTask?: Maybe<AgentTask>;
+  dependsOnAgentTaskId?: Maybe<Scalars['UUID']['output']>;
+  description: Scalars['String']['output'];
+  errors?: Maybe<Scalars['String']['output']>;
+  executionDurationInSeconds?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['UUID']['output'];
+  project?: Maybe<Project>;
+  projectId: Scalars['UUID']['output'];
+  promptTokens?: Maybe<Scalars['Int']['output']>;
+  result?: Maybe<Scalars['String']['output']>;
+  status: AgentTaskStatus;
+  title: Scalars['String']['output'];
+};
+
+export type AgentTaskFilterInput = {
+  agent?: InputMaybe<StringOperationFilterInput>;
+  and?: InputMaybe<Array<AgentTaskFilterInput>>;
+  commitHash?: InputMaybe<StringOperationFilterInput>;
+  completionTokens?: InputMaybe<IntOperationFilterInput>;
+  complexityRating?: InputMaybe<IntOperationFilterInput>;
+  deliverable?: InputMaybe<DeliverableFilterInput>;
+  deliverableId?: InputMaybe<UuidOperationFilterInput>;
+  dependsOnAgentTask?: InputMaybe<AgentTaskFilterInput>;
+  dependsOnAgentTaskId?: InputMaybe<UuidOperationFilterInput>;
+  description?: InputMaybe<StringOperationFilterInput>;
+  errors?: InputMaybe<StringOperationFilterInput>;
+  executionDurationInSeconds?: InputMaybe<IntOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
+  or?: InputMaybe<Array<AgentTaskFilterInput>>;
+  project?: InputMaybe<ProjectFilterInput>;
+  projectId?: InputMaybe<UuidOperationFilterInput>;
+  promptTokens?: InputMaybe<IntOperationFilterInput>;
+  result?: InputMaybe<StringOperationFilterInput>;
+  status?: InputMaybe<AgentTaskStatusOperationFilterInput>;
+  title?: InputMaybe<StringOperationFilterInput>;
+};
+
+export type AgentTaskSortInput = {
+  agent?: InputMaybe<SortEnumType>;
+  commitHash?: InputMaybe<SortEnumType>;
+  completionTokens?: InputMaybe<SortEnumType>;
+  complexityRating?: InputMaybe<SortEnumType>;
+  deliverable?: InputMaybe<DeliverableSortInput>;
+  deliverableId?: InputMaybe<SortEnumType>;
+  dependsOnAgentTask?: InputMaybe<AgentTaskSortInput>;
+  dependsOnAgentTaskId?: InputMaybe<SortEnumType>;
+  description?: InputMaybe<SortEnumType>;
+  errors?: InputMaybe<SortEnumType>;
+  executionDurationInSeconds?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  project?: InputMaybe<ProjectSortInput>;
+  projectId?: InputMaybe<SortEnumType>;
+  promptTokens?: InputMaybe<SortEnumType>;
+  result?: InputMaybe<SortEnumType>;
+  status?: InputMaybe<SortEnumType>;
+  title?: InputMaybe<SortEnumType>;
+};
+
+export type AgentTaskStatus =
+  | 'DONE'
+  | 'FAILED'
+  | 'IN_PROGRESS'
+  | 'NEEDS_REVIEW'
+  | 'READY'
+  | 'REJECTED';
+
+export type AgentTaskStatusOperationFilterInput = {
+  eq?: InputMaybe<AgentTaskStatus>;
+  in?: InputMaybe<Array<AgentTaskStatus>>;
+  neq?: InputMaybe<AgentTaskStatus>;
+  nin?: InputMaybe<Array<AgentTaskStatus>>;
+};
+
+/** A connection to a list of items. */
+export type AgentTasksConnection = {
+  __typename?: 'AgentTasksConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<AgentTasksEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<AgentTask>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type AgentTasksEdge = {
+  __typename?: 'AgentTasksEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: AgentTask;
+};
+
+export type CreateAgentTaskInput = {
+  complexityRating?: Scalars['Int']['input'];
+  deliverableId: Scalars['UUID']['input'];
+  dependsOnAgentTaskId?: InputMaybe<Scalars['UUID']['input']>;
+  description: Scalars['String']['input'];
+  projectId: Scalars['UUID']['input'];
+  title: Scalars['String']['input'];
+};
+
+export type CreateDeliverableInput = {
+  acceptanceCriteria?: InputMaybe<Scalars['String']['input']>;
+  deploymentPlan?: InputMaybe<Scalars['String']['input']>;
+  description: Scalars['String']['input'];
+  design?: InputMaybe<Scalars['String']['input']>;
+  executionPlan?: InputMaybe<Scalars['String']['input']>;
+  initialStatus: DeliverableStatus;
+  performanceImpact?: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['UUID']['input'];
+  securityImpact?: InputMaybe<Scalars['String']['input']>;
+  testPlan?: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
+  type: Scalars['String']['input'];
+};
+
+export type CreateLargeLanguageModelInput = {
+  apiKey?: InputMaybe<Scalars['String']['input']>;
+  cost?: Scalars['Int']['input'];
+  maxComplexity?: Scalars['Int']['input'];
+  maxConcurrency?: Scalars['Int']['input'];
+  model: Scalars['String']['input'];
+  modelAlias?: InputMaybe<Scalars['String']['input']>;
+  url: Scalars['String']['input'];
+};
+
+export type CreateProjectInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  repository: Scalars['String']['input'];
+};
+
+export type DeleteTestDataPayload = {
+  __typename?: 'DeleteTestDataPayload';
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type Deliverable = {
+  __typename?: 'Deliverable';
+  acceptanceCriteria?: Maybe<Scalars['String']['output']>;
+  agentFeedback?: Maybe<Scalars['String']['output']>;
+  agentTasks: Array<AgentTask>;
+  blocking?: Maybe<Scalars['String']['output']>;
+  deploymentPlan?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  design?: Maybe<Scalars['String']['output']>;
+  executionPlan?: Maybe<Scalars['String']['output']>;
+  id: Scalars['UUID']['output'];
+  performanceImpact?: Maybe<Scalars['String']['output']>;
+  project?: Maybe<Project>;
+  projectId: Scalars['UUID']['output'];
+  securityImpact?: Maybe<Scalars['String']['output']>;
+  status: DeliverableStatus;
+  testPlan?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  type: DeliverableType;
+};
+
+export type DeliverableFilterInput = {
+  acceptanceCriteria?: InputMaybe<StringOperationFilterInput>;
+  agentFeedback?: InputMaybe<StringOperationFilterInput>;
+  agentTasks?: InputMaybe<ListFilterInputTypeOfAgentTaskFilterInput>;
+  and?: InputMaybe<Array<DeliverableFilterInput>>;
+  blocking?: InputMaybe<StringOperationFilterInput>;
+  deploymentPlan?: InputMaybe<StringOperationFilterInput>;
+  description?: InputMaybe<StringOperationFilterInput>;
+  design?: InputMaybe<StringOperationFilterInput>;
+  executionPlan?: InputMaybe<StringOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
+  or?: InputMaybe<Array<DeliverableFilterInput>>;
+  performanceImpact?: InputMaybe<StringOperationFilterInput>;
+  project?: InputMaybe<ProjectFilterInput>;
+  projectId?: InputMaybe<UuidOperationFilterInput>;
+  securityImpact?: InputMaybe<StringOperationFilterInput>;
+  status?: InputMaybe<DeliverableStatusOperationFilterInput>;
+  testPlan?: InputMaybe<StringOperationFilterInput>;
+  title?: InputMaybe<StringOperationFilterInput>;
+  type?: InputMaybe<DeliverableTypeOperationFilterInput>;
+};
+
+export type DeliverableSortInput = {
+  acceptanceCriteria?: InputMaybe<SortEnumType>;
+  agentFeedback?: InputMaybe<SortEnumType>;
+  blocking?: InputMaybe<SortEnumType>;
+  deploymentPlan?: InputMaybe<SortEnumType>;
+  description?: InputMaybe<SortEnumType>;
+  design?: InputMaybe<SortEnumType>;
+  executionPlan?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  performanceImpact?: InputMaybe<SortEnumType>;
+  project?: InputMaybe<ProjectSortInput>;
+  projectId?: InputMaybe<SortEnumType>;
+  securityImpact?: InputMaybe<SortEnumType>;
+  status?: InputMaybe<SortEnumType>;
+  testPlan?: InputMaybe<SortEnumType>;
+  title?: InputMaybe<SortEnumType>;
+  type?: InputMaybe<SortEnumType>;
+};
+
+export type DeliverableStatus =
+  | 'DEPLOY'
+  | 'DESIGN'
+  | 'DONE'
+  | 'DRAFT'
+  | 'FAILED'
+  | 'IMPLEMENT'
+  | 'MERGE'
+  | 'NEEDS_REVIEW'
+  | 'PLAN'
+  | 'REJECTED'
+  | 'TEST';
+
+export type DeliverableStatusOperationFilterInput = {
+  eq?: InputMaybe<DeliverableStatus>;
+  in?: InputMaybe<Array<DeliverableStatus>>;
+  neq?: InputMaybe<DeliverableStatus>;
+  nin?: InputMaybe<Array<DeliverableStatus>>;
+};
+
+export type DeliverableType =
+  | 'DEFECT'
+  | 'FEATURE'
+  | 'MAINTENANCE'
+  | 'SPIKE';
+
+export type DeliverableTypeOperationFilterInput = {
+  eq?: InputMaybe<DeliverableType>;
+  in?: InputMaybe<Array<DeliverableType>>;
+  neq?: InputMaybe<DeliverableType>;
+  nin?: InputMaybe<Array<DeliverableType>>;
+};
+
+/** A connection to a list of items. */
+export type DeliverablesConnection = {
+  __typename?: 'DeliverablesConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<DeliverablesEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<Deliverable>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type DeliverablesEdge = {
+  __typename?: 'DeliverablesEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: Deliverable;
+};
+
+export type IntOperationFilterInput = {
+  eq?: InputMaybe<Scalars['Int']['input']>;
+  gt?: InputMaybe<Scalars['Int']['input']>;
+  gte?: InputMaybe<Scalars['Int']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  lt?: InputMaybe<Scalars['Int']['input']>;
+  lte?: InputMaybe<Scalars['Int']['input']>;
+  neq?: InputMaybe<Scalars['Int']['input']>;
+  ngt?: InputMaybe<Scalars['Int']['input']>;
+  ngte?: InputMaybe<Scalars['Int']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  nlt?: InputMaybe<Scalars['Int']['input']>;
+  nlte?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type LargeLanguageModel = {
+  __typename?: 'LargeLanguageModel';
+  apiKey: Scalars['String']['output'];
+  cost: Scalars['Int']['output'];
+  id: Scalars['UUID']['output'];
+  maxComplexity: Scalars['Int']['output'];
+  maxConcurrency: Scalars['Int']['output'];
+  model: Scalars['String']['output'];
+  modelAlias: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type LargeLanguageModelFilterInput = {
+  and?: InputMaybe<Array<LargeLanguageModelFilterInput>>;
+  apiKey?: InputMaybe<StringOperationFilterInput>;
+  cost?: InputMaybe<IntOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
+  maxComplexity?: InputMaybe<IntOperationFilterInput>;
+  maxConcurrency?: InputMaybe<IntOperationFilterInput>;
+  model?: InputMaybe<StringOperationFilterInput>;
+  modelAlias?: InputMaybe<StringOperationFilterInput>;
+  or?: InputMaybe<Array<LargeLanguageModelFilterInput>>;
+  url?: InputMaybe<StringOperationFilterInput>;
+};
+
+export type LargeLanguageModelSortInput = {
+  apiKey?: InputMaybe<SortEnumType>;
+  cost?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  maxComplexity?: InputMaybe<SortEnumType>;
+  maxConcurrency?: InputMaybe<SortEnumType>;
+  model?: InputMaybe<SortEnumType>;
+  modelAlias?: InputMaybe<SortEnumType>;
+  url?: InputMaybe<SortEnumType>;
+};
+
+/** A connection to a list of items. */
+export type LargeLanguageModelsConnection = {
+  __typename?: 'LargeLanguageModelsConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<LargeLanguageModelsEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<LargeLanguageModel>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type LargeLanguageModelsEdge = {
+  __typename?: 'LargeLanguageModelsEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: LargeLanguageModel;
+};
+
+export type ListFilterInputTypeOfAgentTaskFilterInput = {
+  all?: InputMaybe<AgentTaskFilterInput>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
+  none?: InputMaybe<AgentTaskFilterInput>;
+  some?: InputMaybe<AgentTaskFilterInput>;
+};
+
+export type ListFilterInputTypeOfDeliverableFilterInput = {
+  all?: InputMaybe<DeliverableFilterInput>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
+  none?: InputMaybe<DeliverableFilterInput>;
+  some?: InputMaybe<DeliverableFilterInput>;
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  checkAndMarkDeliverableDone: Scalars['Boolean']['output'];
+  createAgentTask: AgentTask;
+  createDeliverable?: Maybe<Deliverable>;
+  createLargeLanguageModel?: Maybe<LargeLanguageModel>;
+  createProject?: Maybe<Project>;
+  deleteAgentTask: Scalars['Boolean']['output'];
+  deleteDeliverable: Scalars['Boolean']['output'];
+  deleteLargeLanguageModel: Scalars['Boolean']['output'];
+  deleteProject: Scalars['Boolean']['output'];
+  deleteTestData: DeleteTestDataPayload;
+  updateAgentTask: AgentTask;
+  updateAgentTaskStatus: AgentTaskStatus;
+  updateDeliverable: Deliverable;
+  updateDeliverableStatus: DeliverableStatus;
+  updateLargeLanguageModel?: Maybe<LargeLanguageModel>;
+  updateProject?: Maybe<Project>;
+};
+
+
+export type MutationCheckAndMarkDeliverableDoneArgs = {
+  deliverableId: Scalars['UUID']['input'];
+};
+
+
+export type MutationCreateAgentTaskArgs = {
+  input: CreateAgentTaskInput;
+};
+
+
+export type MutationCreateDeliverableArgs = {
+  input: CreateDeliverableInput;
+};
+
+
+export type MutationCreateLargeLanguageModelArgs = {
+  input: CreateLargeLanguageModelInput;
+};
+
+
+export type MutationCreateProjectArgs = {
+  input: CreateProjectInput;
+};
+
+
+export type MutationDeleteAgentTaskArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteDeliverableArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteLargeLanguageModelArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteProjectArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateAgentTaskArgs = {
+  input: UpdateAgentTaskInput;
+};
+
+
+export type MutationUpdateAgentTaskStatusArgs = {
+  actor?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  targetStatus: AgentTaskStatus;
+};
+
+
+export type MutationUpdateDeliverableArgs = {
+  input: UpdateDeliverableInput;
+};
+
+
+export type MutationUpdateDeliverableStatusArgs = {
+  actor?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  targetStatus: DeliverableStatus;
+};
+
+
+export type MutationUpdateLargeLanguageModelArgs = {
+  input: UpdateLargeLanguageModelInput;
+};
+
+
+export type MutationUpdateProjectArgs = {
+  input: UpdateProjectInput;
+};
+
+/** Information about pagination in a connection. */
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  /** When paginating forwards, the cursor to continue. */
+  endCursor?: Maybe<Scalars['String']['output']>;
+  /** Indicates whether more edges exist following the set defined by the clients arguments. */
+  hasNextPage: Scalars['Boolean']['output'];
+  /** Indicates whether more edges exist prior the set defined by the clients arguments. */
+  hasPreviousPage: Scalars['Boolean']['output'];
+  /** When paginating backwards, the cursor to continue. */
+  startCursor?: Maybe<Scalars['String']['output']>;
+};
+
+export type Project = {
+  __typename?: 'Project';
+  deliverables: Array<Deliverable>;
+  description: Scalars['String']['output'];
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  repository: Scalars['String']['output'];
+};
+
+export type ProjectFilterInput = {
+  and?: InputMaybe<Array<ProjectFilterInput>>;
+  deliverables?: InputMaybe<ListFilterInputTypeOfDeliverableFilterInput>;
+  description?: InputMaybe<StringOperationFilterInput>;
+  id?: InputMaybe<UuidOperationFilterInput>;
+  name?: InputMaybe<StringOperationFilterInput>;
+  or?: InputMaybe<Array<ProjectFilterInput>>;
+  repository?: InputMaybe<StringOperationFilterInput>;
+};
+
+export type ProjectSortInput = {
+  description?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  name?: InputMaybe<SortEnumType>;
+  repository?: InputMaybe<SortEnumType>;
+};
+
+/** A connection to a list of items. */
+export type ProjectsConnection = {
+  __typename?: 'ProjectsConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<ProjectsEdge>>;
+  /** A flattened list of the nodes. */
+  nodes?: Maybe<Array<Project>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type ProjectsEdge = {
+  __typename?: 'ProjectsEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge. */
+  node: Project;
+};
+
+export type Query = {
+  __typename?: 'Query';
+  agentTask?: Maybe<AgentTask>;
+  agentTasks?: Maybe<AgentTasksConnection>;
+  deliverable?: Maybe<Deliverable>;
+  deliverables?: Maybe<DeliverablesConnection>;
+  largeLanguageModel?: Maybe<LargeLanguageModel>;
+  largeLanguageModels?: Maybe<LargeLanguageModelsConnection>;
+  project?: Maybe<Project>;
+  projects?: Maybe<ProjectsConnection>;
+};
+
+
+export type QueryAgentTaskArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryAgentTasksArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Array<AgentTaskSortInput>>;
+  where?: InputMaybe<AgentTaskFilterInput>;
+};
+
+
+export type QueryDeliverableArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryDeliverablesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Array<DeliverableSortInput>>;
+  where?: InputMaybe<DeliverableFilterInput>;
+};
+
+
+export type QueryLargeLanguageModelArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryLargeLanguageModelsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Array<LargeLanguageModelSortInput>>;
+  where?: InputMaybe<LargeLanguageModelFilterInput>;
+};
+
+
+export type QueryProjectArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryProjectsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Array<ProjectSortInput>>;
+  where?: InputMaybe<ProjectFilterInput>;
+};
+
+export type SortEnumType =
+  | 'ASC'
+  | 'DESC';
+
+export type StringOperationFilterInput = {
+  and?: InputMaybe<Array<StringOperationFilterInput>>;
+  contains?: InputMaybe<Scalars['String']['input']>;
+  endsWith?: InputMaybe<Scalars['String']['input']>;
+  eq?: InputMaybe<Scalars['String']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  ncontains?: InputMaybe<Scalars['String']['input']>;
+  nendsWith?: InputMaybe<Scalars['String']['input']>;
+  neq?: InputMaybe<Scalars['String']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  nstartsWith?: InputMaybe<Scalars['String']['input']>;
+  or?: InputMaybe<Array<StringOperationFilterInput>>;
+  startsWith?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateAgentTaskInput = {
+  agent?: InputMaybe<Scalars['String']['input']>;
+  commitHash?: InputMaybe<Scalars['String']['input']>;
+  completionTokens?: InputMaybe<Scalars['Int']['input']>;
+  complexityRating?: InputMaybe<Scalars['Int']['input']>;
+  dependsOnAgentTaskId?: InputMaybe<Scalars['UUID']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  errors?: InputMaybe<Scalars['String']['input']>;
+  executionDurationInSeconds?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['UUID']['input'];
+  promptTokens?: InputMaybe<Scalars['Int']['input']>;
+  result?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateDeliverableInput = {
+  acceptanceCriteria?: InputMaybe<Scalars['String']['input']>;
+  agentFeedback?: InputMaybe<Scalars['String']['input']>;
+  blocking?: InputMaybe<Scalars['String']['input']>;
+  deploymentPlan?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  design?: InputMaybe<Scalars['String']['input']>;
+  executionPlan?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  performanceImpact?: InputMaybe<Scalars['String']['input']>;
+  securityImpact?: InputMaybe<Scalars['String']['input']>;
+  testPlan?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateLargeLanguageModelInput = {
+  apiKey?: InputMaybe<Scalars['String']['input']>;
+  cost?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['UUID']['input'];
+  maxComplexity?: InputMaybe<Scalars['Int']['input']>;
+  maxConcurrency?: InputMaybe<Scalars['Int']['input']>;
+  model?: InputMaybe<Scalars['String']['input']>;
+  modelAlias?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateProjectInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  repository?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UuidOperationFilterInput = {
+  eq?: InputMaybe<Scalars['UUID']['input']>;
+  gt?: InputMaybe<Scalars['UUID']['input']>;
+  gte?: InputMaybe<Scalars['UUID']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['UUID']['input']>>>;
+  lt?: InputMaybe<Scalars['UUID']['input']>;
+  lte?: InputMaybe<Scalars['UUID']['input']>;
+  neq?: InputMaybe<Scalars['UUID']['input']>;
+  ngt?: InputMaybe<Scalars['UUID']['input']>;
+  ngte?: InputMaybe<Scalars['UUID']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['UUID']['input']>>>;
+  nlt?: InputMaybe<Scalars['UUID']['input']>;
+  nlte?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+export type DeliverableStatus =
+  | 'DEPLOY'
+  | 'DESIGN'
+  | 'DONE'
+  | 'DRAFT'
+  | 'FAILED'
+  | 'IMPLEMENT'
+  | 'MERGE'
+  | 'NEEDS_REVIEW'
+  | 'PLAN'
+  | 'REJECTED'
+  | 'TEST';
+
+export type DeliverableType =
+  | 'DEFECT'
+  | 'FEATURE'
+  | 'MAINTENANCE'
+  | 'SPIKE';
+
+export type GetProjectsQueryVariables = Exact<{
+  first?: number | null | undefined;
+}>;
+
+
+export type GetProjectsQuery = { projects: { nodes: Array<{ id: string, name: string, description: string, repository: string }> | null } | null };
+
+export type GetProjectByIdQueryVariables = Exact<{
+  id: string;
+}>;
+
+
+export type GetProjectByIdQuery = { project: { id: string, name: string, description: string, repository: string, deliverables: Array<{ id: string, title: string, type: DeliverableType, status: DeliverableStatus, description: string | null }> } | null };
+
+export type GetProjectsForResolverQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetProjectsForResolverQuery = { projects: { nodes: Array<{ id: string, name: string, description: string, repository: string, deliverables: Array<{ id: string, title: string, type: DeliverableType, status: DeliverableStatus, description: string | null }> }> | null } | null };
+
+export type GetPlanDeliverablesForProjectQueryVariables = Exact<{
+  projectId: string;
+}>;
+
+
+export type GetPlanDeliverablesForProjectQuery = { deliverables: { nodes: Array<{ id: string, title: string, type: DeliverableType, status: DeliverableStatus, description: string | null }> | null } | null };
+
+
+export const GetProjectsDocument = gql`
+    query GetProjects($first: Int) {
+  projects(first: $first) {
+    nodes {
+      id
+      name
+      description
+      repository
+    }
+  }
+}
+    `;
+export const GetProjectByIdDocument = gql`
+    query GetProjectById($id: UUID!) {
+  project(id: $id) {
+    id
+    name
+    description
+    repository
+    deliverables {
+      id
+      title
+      type
+      status
+      description
+    }
+  }
+}
+    `;
+export const GetProjectsForResolverDocument = gql`
+    query GetProjectsForResolver {
+  projects {
+    nodes {
+      id
+      name
+      description
+      repository
+      deliverables {
+        id
+        title
+        type
+        status
+        description
+      }
+    }
+  }
+}
+    `;
+export const GetPlanDeliverablesForProjectDocument = gql`
+    query GetPlanDeliverablesForProject($projectId: UUID!) {
+  deliverables(where: {projectId: {eq: $projectId}, status: {eq: PLAN}}) {
+    nodes {
+      id
+      title
+      type
+      status
+      description
+    }
+  }
+}
+    `;
+
+export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
+
+
+const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType, _variables) => action();
+
+export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
+  return {
+    GetProjects(variables?: GetProjectsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetProjectsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetProjectsQuery>({ document: GetProjectsDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'GetProjects', 'query', variables);
+    },
+    GetProjectById(variables: GetProjectByIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetProjectByIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetProjectByIdQuery>({ document: GetProjectByIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'GetProjectById', 'query', variables);
+    },
+    GetProjectsForResolver(variables?: GetProjectsForResolverQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetProjectsForResolverQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetProjectsForResolverQuery>({ document: GetProjectsForResolverDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'GetProjectsForResolver', 'query', variables);
+    },
+    GetPlanDeliverablesForProject(variables: GetPlanDeliverablesForProjectQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetPlanDeliverablesForProjectQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetPlanDeliverablesForProjectQuery>({ document: GetPlanDeliverablesForProjectDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'GetPlanDeliverablesForProject', 'query', variables);
+    }
+  };
+}
+export type Sdk = ReturnType<typeof getSdk>;

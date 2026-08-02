@@ -1,0 +1,43 @@
+{
+  "name": "@devstack/agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "tsx src/index.ts",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.1.1",
+    "@opencode-ai/sdk": "^1.18.11",
+    "graphql": "^16.10.0",
+    "graphql-request": "^7.1.2",
+    "pino": "^9.6.0",
+    "simple-git": "^3.27.0",
+    "undici": "^8.9.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@graphql-codegen/add": "^7.1.0",
+    "@graphql-codegen/cli": "^6.0.1",
+    "@graphql-codegen/client-preset": "^4.7.0",
+    "@graphql-codegen/typescript": "^6.1.0",
+    "@graphql-codegen/typescript-graphql-request": "^7.1.0",
+    "@graphql-codegen/typescript-operations": "^6.1.2",
+    "@types/node": "^22.13.0",
+    "eslint": "^9.20.0",
+    "pino-pretty": "^13.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.0",
+    "vitest": "^3.0.5"
+  }
+}

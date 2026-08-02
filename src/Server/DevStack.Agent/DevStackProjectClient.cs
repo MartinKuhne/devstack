@@ -71,4 +71,58 @@ public sealed class DevStackProjectClient
             ? null
             : new ProjectSummary(project.Id, project.Name, project.Description, project.Repository);
     }
+
+    /// <summary>
+    /// Resolves a project by its canonical repository URL (e.g.
+    /// <c>https://github.com/owner/repo</c>). Returns <c>null</c> when no
+    /// project has that repository registered; throws on GraphQL errors.
+    /// </summary>
+    public async Task<ProjectSummary?> FindProjectByRepositoryAsync(
+        string repository,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(repository))
+        {
+            throw new ArgumentException("repository must be non-empty", nameof(repository));
+        }
+
+        _logger.LogInformation("Looking up the DevStack project with repository '{Repository}'…", repository);
+        var result = await _client.GetProjectByRepository.ExecuteAsync(repository, cancellationToken).ConfigureAwait(false);
+        result.EnsureNoErrors();
+
+        var node = result.Data?.Projects?.Nodes is { Count: > 0 } nodes ? nodes[0] : null;
+        return node is null
+            ? null
+            : new ProjectSummary(node.Id, node.Name, node.Description, node.Repository);
+    }
+
+    /// <summary>
+    /// Lists the deliverables in <c>PLAN</c> status for the given project.
+    /// Sorted by title server-side; throws on GraphQL errors. The status
+    /// filter is hard-coded to <c>PLAN</c> because the only caller is the
+    /// <c>--show-plan</c> flow — adding a status parameter would just
+    /// invite mistakes.
+    /// </summary>
+    public async Task<IReadOnlyList<DeliverableSummary>> ListPlanDeliverablesAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default)
+    {
+        if (projectId == Guid.Empty)
+        {
+            throw new ArgumentException("projectId must be non-empty", nameof(projectId));
+        }
+
+        _logger.LogInformation("Listing PLAN-status deliverables for project {ProjectId}…", projectId);
+        var result = await _client.GetPlanDeliverables.ExecuteAsync(projectId, cancellationToken).ConfigureAwait(false);
+        result.EnsureNoErrors();
+
+        var nodes = result.Data?.Deliverables?.Nodes ?? (IReadOnlyList<IGetPlanDeliverables_Deliverables_Nodes>)Array.Empty<IGetPlanDeliverables_Deliverables_Nodes>();
+        return nodes.Select(n => new DeliverableSummary(
+            n.Id,
+            n.ProjectId,
+            n.Type.ToString(),
+            n.Title,
+            n.Status.ToString(),
+            n.Description)).ToList();
+    }
 }
