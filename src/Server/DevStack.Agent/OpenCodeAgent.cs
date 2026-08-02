@@ -86,10 +86,16 @@ public sealed class OpenCodeAgent
         }
 
         _logger.LogInformation(
-            "Prompt response received for session {SessionId}: {PartCount} part(s), info kind={Kind}.",
+            "Prompt response received for session {SessionId}: {PartCount} part(s) in the final message, info kind={Kind}.",
             session.Id, result.Parts.Count, result.Info.Kind);
 
-        PrintReply(result);
+        // The PromptAsync response is just the FINAL message; the model
+        // may have already produced many intermediate thinking + tool-call
+        // messages before the final answer. Fetch the full transcript so
+        // the operator can see what the LLM did end-to-end (reasoning,
+        // tool invocations and their results, step markers).
+        await PrintRunTranscriptAsync(session.Id, cancellationToken).ConfigureAwait(false);
+
         return session.Id;
     }
 
@@ -139,6 +145,9 @@ public sealed class OpenCodeAgent
 
     private void PrintReply(SessionMessageView result)
     {
+        // Kept for callers that only have the final message. The full
+        // transcript (with thinking + tool calls) is printed by
+        // PrintRunTranscriptAsync, which is what RunAsync calls now.
         Console.WriteLine();
         Console.WriteLine($"--- assistant reply ({result.Info.Kind}) ---");
 
@@ -200,6 +209,309 @@ public sealed class OpenCodeAgent
         }
 
         Console.WriteLine("--- end ---");
+    }
+
+    /// <summary>
+    /// Fetches every message in <paramref name="sessionId"/> and prints a
+    /// human-readable transcript: per-message header, then every part in
+    /// order (reasoning, tool invocations with input/output, step markers,
+    /// file attachments, plain text). A final summary block prints the
+    /// assistant's token usage and cost from the last assistant message.
+    /// </summary>
+    private async Task PrintRunTranscriptAsync(string sessionId, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<SessionMessageView> messages;
+        try
+        {
+            // Cap at 200 messages — protects against runaway sessions.
+            // In practice the model produces <50 per run.
+            messages = await _client.Session
+                .GetMessagesAsync(sessionId, limit: 200, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex,
+                "Failed to fetch the full transcript for session {SessionId}; " +
+                "the final-message summary will still be shown below.",
+                sessionId);
+            return;
+        }
+
+        if (messages.Count == 0)
+        {
+            Console.WriteLine();
+            Console.WriteLine("--- session transcript (empty) ---");
+            return;
+        }
+
+        Console.WriteLine();
+        Console.WriteLine($"--- session transcript ({messages.Count} message(s)) ---");
+
+        var msgNum = 0;
+        foreach (var message in messages)
+        {
+            msgNum++;
+            var role = message.Info.Kind ?? "unknown";
+
+            // Model and agent metadata live on the assistant/user sub-types,
+            // not on the base Message. Gate on the discriminator so a user
+            // message shows the user-pinned model and agent (e.g. "build"),
+            // and an assistant message shows the model that actually replied.
+            var headerExtras = BuildMessageHeaderExtras(message.Info);
+            Console.WriteLine();
+            Console.WriteLine($"── msg {msgNum}/{messages.Count} (role={role}{headerExtras}) ──");
+
+            foreach (var part in message.Parts)
+            {
+                PrintPart(part);
+            }
+        }
+
+        // Final summary from the last assistant message that has
+        // token/cost info. The run summary in --run-plan prints a tally
+        // across all deliverables; this one is per-session.
+        var lastAssistant = messages.LastOrDefault(m => m.Info.IsAssistant);
+        if (lastAssistant is not null)
+        {
+            var assistant = lastAssistant.Info.AsAssistant();
+            Console.WriteLine();
+            Console.WriteLine("--- run summary ---");
+            Console.WriteLine($"model:    {assistant.ProviderId}/{assistant.ModelId}");
+            Console.WriteLine($"tokens:   in={assistant.Tokens.Input} out={assistant.Tokens.Output} " +
+                              $"reasoning={assistant.Tokens.Reasoning} cache.read={assistant.Tokens.Cache.Read} cache.write={assistant.Tokens.Cache.Write}");
+            Console.WriteLine($"cost:     ${assistant.Cost:F4}");
+            if (assistant.Finish is { Length: > 0 } finish)
+            {
+                Console.WriteLine($"finish:   {finish}");
+            }
+        }
+
+        Console.WriteLine("--- end of session ---");
+    }
+
+    /// <summary>
+    /// Prints a single part of the transcript. Reasoning and tool parts
+    /// are previews (truncated) so a single tool call with a 5k-character
+    /// input doesn't blow up the console; the user can read the full
+    /// message via the OpenCode server UI.
+    /// </summary>
+    private static void PrintPart(Part part)
+    {
+        switch (part.Kind)
+        {
+            case "text":
+            {
+                var text = part.AsText().Text;
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    Console.WriteLine(text);
+                }
+                break;
+            }
+
+            case "reasoning":
+            {
+                var reasoning = part.AsReasoning().Text;
+                if (!string.IsNullOrWhiteSpace(reasoning))
+                {
+                    var preview = Truncate(reasoning, 500);
+                    Console.WriteLine($"  💭 {preview}");
+                }
+                break;
+            }
+
+            case "tool":
+            {
+                var tool = part.AsTool();
+                var status = tool.State?.Status ?? "unknown";
+                var icon = status switch
+                {
+                    "completed" => "✓",
+                    "error" => "✗",
+                    "running" => "⏳",
+                    "pending" => "…",
+                    _ => "•",
+                };
+
+                var inputPreview = ReadJsonField(tool.State?.Raw, "input");
+                var inputLine = Truncate(inputPreview, 240);
+
+                Console.WriteLine($"  {icon} 🔧 {tool.Tool} ({status})");
+                if (!string.IsNullOrWhiteSpace(inputLine))
+                {
+                    Console.WriteLine($"     in:  {inputLine}");
+                }
+
+                var outputPreview = ReadJsonField(tool.State?.Raw, "output");
+                var outputLine = Truncate(outputPreview, 240);
+                if (!string.IsNullOrWhiteSpace(outputLine) && outputLine != "null")
+                {
+                    Console.WriteLine($"     out: {outputLine}");
+                }
+                break;
+            }
+
+            case "file":
+            {
+                var file = part.AsFile();
+                var name = file.Filename ?? file.Url;
+                Console.WriteLine($"  📄 {file.Mime} {name}");
+                break;
+            }
+
+            case "patch":
+            {
+                var patch = part.AsPatch();
+                var files = patch.Files.Count == 0
+                    ? "<no files>"
+                    : string.Join(", ", patch.Files);
+                Console.WriteLine($"  🔧 patch ({patch.Files.Count} file(s)): {files}");
+                break;
+            }
+
+            case "step-start":
+            {
+                // Implicit — the message header already shows the turn number.
+                // Still emit a marker so users can grep for "step-start" if needed.
+                Console.WriteLine("  ── step start ──");
+                break;
+            }
+
+            case "step-finish":
+            {
+                var finish = part.AsStepFinish();
+                var detailParts = new List<string>();
+                if (!string.IsNullOrEmpty(finish.Reason))
+                {
+                    detailParts.Add($"reason={finish.Reason}");
+                }
+                if (finish.Cost > 0)
+                {
+                    detailParts.Add($"cost=${finish.Cost:F4}");
+                }
+                var tokens = finish.Tokens;
+                if ((tokens.Input + tokens.Output + tokens.Reasoning) > 0)
+                {
+                    detailParts.Add($"tokens=in:{tokens.Input} out:{tokens.Output} reasoning:{tokens.Reasoning}");
+                }
+                var detail = detailParts.Count == 0
+                    ? string.Empty
+                    : " " + string.Join(" ", detailParts);
+                Console.WriteLine($"  ── step finish{detail} ──");
+                break;
+            }
+
+            case "subtask":
+            {
+                var subtask = part.AsSubtask();
+                Console.WriteLine($"  👥 subtask → agent={subtask.Agent}: {Truncate(subtask.Prompt, 160)}");
+                break;
+            }
+
+            case "agent":
+            {
+                var agent = part.AsAgent();
+                Console.WriteLine($"  👤 agent: {agent.Name}");
+                break;
+            }
+
+            case "snapshot":
+            {
+                var snap = part.AsSnapshot();
+                Console.WriteLine($"  📸 snapshot {snap.Snapshot}");
+                break;
+            }
+
+            case "retry":
+            {
+                var retry = part.AsRetry();
+                var errText = retry.Error.ValueKind == System.Text.Json.JsonValueKind.String
+                    ? retry.Error.GetString() ?? "<error>"
+                    : retry.Error.ToString();
+                Console.WriteLine($"  🔁 retry attempt={retry.Attempt}: {Truncate(errText, 160)}");
+                break;
+            }
+
+            case "compaction":
+            {
+                var comp = part.AsCompaction();
+                var kind = comp.Auto ? "auto" : "manual";
+                Console.WriteLine($"  🗜  compaction ({kind})");
+                break;
+            }
+
+            default:
+                Console.WriteLine($"  [{part.Kind}] <unhandled>");
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Builds the optional <c>agent=…</c> and <c>model=…</c> suffix shown
+    /// after the per-message role. The model and agent fields live on the
+    /// assistant/user sub-types rather than on <see cref="Message"/> itself,
+    /// so we dispatch on the discriminator instead of failing the cast.
+    /// Empty string is returned when no useful extras are available.
+    /// </summary>
+    private static string BuildMessageHeaderExtras(Message info)
+    {
+        if (info.IsAssistant)
+        {
+            var assistant = info.AsAssistant();
+            return (string.IsNullOrEmpty(assistant.ProviderId) && string.IsNullOrEmpty(assistant.ModelId))
+                ? string.Empty
+                : $" model={assistant.ProviderId}/{assistant.ModelId}";
+        }
+
+        if (info.IsUser)
+        {
+            var user = info.AsUser();
+            var agentPart = string.IsNullOrEmpty(user.Agent) ? string.Empty : $" agent={user.Agent}";
+            var modelPart = (string.IsNullOrEmpty(user.Model.ProviderId) && string.IsNullOrEmpty(user.Model.ModelId))
+                ? string.Empty
+                : $" model={user.Model.ProviderId}/{user.Model.ModelId}";
+            return $"{agentPart}{modelPart}";
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Reads a top-level field from a <see cref="System.Text.Json.JsonElement"/>
+    /// and returns it as a string. Handles strings, numbers, objects, and
+    /// arrays by re-serializing non-string values so the output is
+    /// always readable on the console.
+    /// </summary>
+    private static string ReadJsonField(System.Text.Json.JsonElement? element, string fieldName)
+    {
+        if (!element.HasValue || element.Value.ValueKind != System.Text.Json.JsonValueKind.Object)
+        {
+            return string.Empty;
+        }
+        if (!element.Value.TryGetProperty(fieldName, out var field))
+        {
+            return string.Empty;
+        }
+        return field.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.String => field.GetString() ?? string.Empty,
+            System.Text.Json.JsonValueKind.Null => string.Empty,
+            System.Text.Json.JsonValueKind.Number or
+            System.Text.Json.JsonValueKind.True or
+            System.Text.Json.JsonValueKind.False => field.ToString(),
+            _ => System.Text.Json.JsonSerializer.Serialize(field, new System.Text.Json.JsonSerializerOptions { WriteIndented = false }),
+        };
+    }
+
+    /// <summary>Truncates a string to <paramref name="maxLength"/> characters with an ellipsis if cut.</summary>
+    private static string Truncate(string? s, int maxLength)
+    {
+        if (string.IsNullOrEmpty(s))
+        {
+            return string.Empty;
+        }
+        return s.Length <= maxLength ? s : s.Substring(0, maxLength) + "…";
     }
 
     /// <summary>

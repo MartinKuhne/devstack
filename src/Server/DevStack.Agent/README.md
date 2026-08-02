@@ -8,8 +8,9 @@ A tiny .NET 10 CLI that drives the **Hello** prompt against a running `opencode 
 2. Fetches the provider/model inventory via `GET /provider` and pretty-prints it. Warns early if the requested `--model` is not in the server's list (so a 500 from the server doesn't come as a surprise).
 3. Creates a fresh session via `POST /session`.
 4. Sends a single `Hello` (or any other) prompt via `POST /session/{id}/message`.
-5. Prints every `text` / `reasoning` / `tool` / `file` / `step-*` part of the assistant's reply, plus the model id, token usage, and cost.
-6. Emits the session id on the way out so the caller can continue the conversation later.
+5. Sends a single `Hello` (or any other) prompt via `POST /session/{id}/message`. Long calls are heart-beated every 30s so the operator can see progress.
+6. After the LLM call returns, fetches the full session transcript (every user + assistant message, including intermediate thinking and tool invocations) and prints it as a single human-readable block, then a final run summary (model, tokens, cost, finish).
+7. Emits the session id on the way out so the caller can continue the conversation later.
 
 In addition, the agent can talk to the DevStack GraphQL API through a
 StrawberryShake-generated client (see [GraphQL via StrawberryShake](#graphql-via-strawberryshake) below) for smoke-testing the codegen pipeline.
@@ -73,6 +74,8 @@ You can also override via environment variables (`OpenCode__BaseUrl=http://10.0.
 DevStack.Agent — OpenCode hello-prompt driver
   baseUrl:   http://127.0.0.1:4096/
   userAgent: DevStack.Agent/0.1
+  timeout:   00:10:00
+  graphQL:   http://localhost:8087/graphql
 
 Available providers (1 connected):
   anthropic  [source=env]  default: claude-3-5-sonnet  (3 models)
@@ -84,17 +87,23 @@ Available providers (1 connected):
 [20:38:09 INF] No --model specified; auto-selected opencode/north-mini-code-free (first *free* model on a connected provider). Use --model provider/model to override.
 [20:38:09 INF] Sending prompt to opencode/north-mini-code-free…
 
---- assistant reply (assistant) ---
-  [step start]
-  [thinking] The user has simply said "Hello" with a message ID m0001…
-Hello!
-  [step finish] reason=stop cost=$0
+--- session transcript (2 message(s)) ---
 
+── msg 1/2 (role=user agent=build model=opencode/north-mini-code-free) ──
+Hello
+
+── msg 2/2 (role=assistant model=opencode/north-mini-code-free) ──
+  ── step start ──
+  💭 The user has simply said "Hello" with a message ID m0001…
+Hello!
+  ── step finish reason=stop tokens=in:24195 out:0 reasoning:118 ──
+
+--- run summary ---
 model:    opencode/north-mini-code-free
 tokens:   in=24195 out=0 reasoning=118 cache.read=0 cache.write=0
 cost:     $0.0000
 finish:   stop
---- end ---
+--- end of session ---
 
 Done. sessionId=ses_abc123
 ```
@@ -105,6 +114,37 @@ header notes it (`(11 connected; 176 more not connected, hidden)`) so
 you know where the inventory went. The raw response is still kept so
 the explicit `--model` warning can distinguish "provider not connected"
 from "provider not configured" from "model not on this provider".
+
+## Session transcript
+
+After `POST /session/{id}/message` returns, the agent re-fetches the
+session via `GET /session/{id}/message` (capped at 200 messages — in
+practice a single run produces <50) and walks the full conversation in
+order. Every message gets a `── msg N/TOTAL (role=… agent=… model=…) ──`
+header, then every part is rendered with a one-line icon so a 30-line
+session still fits on one screen.
+
+| Icon | Part kind | What you see |
+|------|-----------|--------------|
+| _(none)_ | `text` | The assistant's plain-text reply, verbatim. |
+| 💭 | `reasoning` | The model's thinking, truncated to 500 chars. |
+| 🔧 | `tool` | Tool name, status (`completed` / `running` / `pending` / `error`), and the truncated input + output from `state.raw`. |
+| ✓ / ✗ / ⏳ / … / • | (status glyph on the tool line) | `completed` / `error` / `running` / `pending` / other. |
+| 📄 | `file` | MIME type plus filename or URL. |
+| 🗜 | `compaction` | Auto- vs. manual context compaction. |
+| 👥 | `subtask` | Delegated sub-agent prompt (truncated to 160 chars). |
+| 👤 | `agent` | The agent that owns the part. |
+| 📸 | `snapshot` | Filesystem snapshot id. |
+| 🔁 | `retry` | Retry attempt number + the error payload that triggered it. |
+| ── step start ── | `step-start` | Implicit — a marker so you can grep on it. |
+| ── step finish … ── | `step-finish` | `reason=…`, optional `cost=$…`, and per-step tokens. |
+
+Long inputs/outputs are truncated so a 5k-character tool argument
+doesn't blow up the console; the full content is always available via
+the OpenCode server's web UI (the session id is printed at the end of
+every run). The final `─── run summary ───` block repeats the last
+assistant message's model id, token usage, cost, and finish reason
+so the operator has a single place to look for the cost of the run.
 
 ## Building
 
