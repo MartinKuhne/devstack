@@ -58,17 +58,83 @@ public sealed class OpenCodeAgent
         _logger.LogInformation("Session created: {SessionId}", session.Id);
 
         _logger.LogInformation("Sending prompt to {Provider}/{Model}…", resolvedModel.ProviderId, resolvedModel.ModelId);
-        var result = await _client.Session.PromptAsync(
-            session.Id,
-            new SessionPromptRequest
-            {
-                Model = resolvedModel,
-                Parts = new[] { PartInput.Text(prompt) },
-            },
-            cancellationToken).ConfigureAwait(false);
+
+        // A long-running LLM call leaves the user staring at a single
+        // "Sending prompt to…" line for minutes. Start a heartbeat so
+        // we visibly make progress; cancel it as soon as the response
+        // arrives. The cadence is intentionally conservative (30s)
+        // so we don't drown the log when the model is fast.
+        using var heartbeatCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var heartbeat = HeartbeatAsync(heartbeatCts.Token, resolvedModel, session.Id);
+
+        SessionMessageView result;
+        try
+        {
+            result = await _client.Session.PromptAsync(
+                session.Id,
+                new SessionPromptRequest
+                {
+                    Model = resolvedModel,
+                    Parts = new[] { PartInput.Text(prompt) },
+                },
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            heartbeatCts.Cancel();
+            try { await heartbeat.ConfigureAwait(false); } catch { /* swallow on shutdown */ }
+        }
+
+        _logger.LogInformation(
+            "Prompt response received for session {SessionId}: {PartCount} part(s), info kind={Kind}.",
+            session.Id, result.Parts.Count, result.Info.Kind);
 
         PrintReply(result);
         return session.Id;
+    }
+
+    /// <summary>
+    /// Logs a "still waiting" line every 30 seconds while a long-running
+    /// OpenCode call is in flight, so the operator can see the agent is
+    /// alive instead of wondering whether the LLM is hung. The cadence is
+    /// hard-coded for now; if we ever need to make it configurable the
+    /// right place is the OpenCode section of appsettings.
+    /// </summary>
+    private async Task HeartbeatAsync(CancellationToken cancellationToken, ModelRef model, string sessionId)
+    {
+        var startedAt = DateTimeOffset.UtcNow;
+        var nextBeatAt = startedAt + TimeSpan.FromSeconds(30);
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    await Task.Delay(nextBeatAt - DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
+                var elapsed = DateTimeOffset.UtcNow - startedAt;
+                _logger.LogInformation(
+                    "Still waiting on {Provider}/{Model} for session {SessionId}… ({ElapsedSeconds:F0}s elapsed)",
+                    model.ProviderId, model.ModelId, sessionId, elapsed.TotalSeconds);
+
+                nextBeatAt += TimeSpan.FromSeconds(30);
+            }
+        }
+        finally
+        {
+            // Tell the operator the wait is over (e.g. response received or
+            // cancelled). Keeps the log trail clear when the call returned
+            // within a few hundred ms and the user only saw "Sending…".
+            var elapsed = DateTimeOffset.UtcNow - startedAt;
+            _logger.LogDebug(
+                "Heartbeat stopped for session {SessionId} after {ElapsedSeconds:F1}s.",
+                sessionId, elapsed.TotalSeconds);
+        }
     }
 
     private void PrintReply(SessionMessageView result)
