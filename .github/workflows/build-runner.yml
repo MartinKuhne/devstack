@@ -5,15 +5,11 @@ on:
     branches: [ "main" ]
     paths:
       - 'src/Agent/**'
-      - 'src/AdminUi/**'
-      - 'src/Server/**'
       - '.github/workflows/build-runner.yml'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'src/Agent/**'
-      - 'src/AdminUi/**'
-      - 'src/Server/**'
       - '.github/workflows/build-runner.yml'
 
 jobs:
