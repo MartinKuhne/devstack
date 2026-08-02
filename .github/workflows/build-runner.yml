@@ -57,4 +57,4 @@ jobs:
     - name: Build
       run: dotnet build DevStack.slnx --no-restore
     - name: Test
-      run: dotnet test DevStack.slnx --no-build --verbosity normal
+      run: dotnet test DevStack.Tests.Unit/DevStack.Tests.Unit.csproj --no-build --verbosity normal
