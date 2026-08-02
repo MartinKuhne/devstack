@@ -11,11 +11,6 @@ name: Integration Tests
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, dev ]
-    paths:
-      - 'src/Server/**'
-      - '.github/workflows/integration-tests.yml'
 
 env:
   DOTNET_VERSION: '10.0.x'
