@@ -119,10 +119,6 @@ public class Deliverable
 
     public void TransitionStatus(DeliverableStatus targetStatus)
     {
-        if (!StatusTransitionService.CanTransition(Status, targetStatus))
-        {
-            throw new InvalidOperationException($"Invalid status transition from {Status} to {targetStatus}.");
-        }
         Status = targetStatus;
     }
 }

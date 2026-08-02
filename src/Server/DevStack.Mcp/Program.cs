@@ -7,7 +7,6 @@ using DevStack.Application.LargeLanguageModels.Commands;
 using DevStack.Application.Projects.Commands;
 using DevStack.Application.Projects.Queries;
 using DevStack.Infrastructure;
-using Npgsql;
 using DevStack.Infrastructure.AgentTasks;
 using DevStack.Infrastructure.Deliverables;
 using DevStack.Infrastructure.ModelConfigurations;
@@ -17,6 +16,8 @@ using DevStack.Mcp.Logging;
 using DevStack.Mcp.Tools;
 
 using ModelContextProtocol.Server;
+
+using Npgsql;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -74,7 +75,9 @@ try
         .WithResources<ResourceType>()
         .WithRequestFilters(filters =>
         {
-            filters.AddCallToolFilter(McpToolLoggingFilter.Create(builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()));
+            var loggerFactory = builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+            filters.AddCallToolFilter(McpArgumentNormalizationFilter.Create(loggerFactory));
+            filters.AddCallToolFilter(McpToolLoggingFilter.Create(loggerFactory));
         });
 
     builder.Services.AddDbContext<DevStackDbContext>(options =>

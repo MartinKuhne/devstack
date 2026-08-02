@@ -1423,7 +1423,7 @@ export type GetAgentTaskSuspenseQueryHookResult = ReturnType<typeof useGetAgentT
 export type GetAgentTaskQueryResult = Apollo.QueryResult<GetAgentTaskQuery, GetAgentTaskQueryVariables>;
 export const GetAgentTasksDocument = gql`
     query GetAgentTasks($deliverableId: UUID!) {
-  agentTasks(where: {deliverableId: {eq: $deliverableId}}) {
+  agentTasks(where: {deliverableId: {eq: $deliverableId}}, first: 100) {
     nodes {
       id
       projectId
@@ -1678,7 +1678,7 @@ export type GetDeliverableSuspenseQueryHookResult = ReturnType<typeof useGetDeli
 export type GetDeliverableQueryResult = Apollo.QueryResult<GetDeliverableQuery, GetDeliverableQueryVariables>;
 export const ModelConfigurationsDocument = gql`
     query ModelConfigurations {
-  largeLanguageModels {
+  largeLanguageModels(first: 100) {
     nodes {
       id
       url
@@ -1775,7 +1775,7 @@ export type GetProjectSuspenseQueryHookResult = ReturnType<typeof useGetProjectS
 export type GetProjectQueryResult = Apollo.QueryResult<GetProjectQuery, GetProjectQueryVariables>;
 export const GetProjectsDocument = gql`
     query GetProjects {
-  projects {
+  projects(first: 100) {
     nodes {
       id
       name
