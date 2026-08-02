@@ -1,0 +1,21 @@
+{
+  "schema": "schema.graphql",
+  "documents": "GraphQLs/**/*.graphql",
+  "extensions": {
+    "strawberryShake": {
+      "name": "DevStackClient",
+      "namespace": "DevStack.Agent.GraphQL",
+      "url": "http://localhost:8087/graphql/",
+      "records": {
+        "inputs": false,
+        "entities": false
+      },
+      "transportProfiles": [
+        {
+          "default": "Http",
+          "subscription": "WebSocket"
+        }
+      ]
+    }
+  }
+}

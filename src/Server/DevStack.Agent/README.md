@@ -11,6 +11,9 @@ A tiny .NET 10 CLI that drives the **Hello** prompt against a running `opencode 
 5. Prints every `text` / `reasoning` / `tool` / `file` / `step-*` part of the assistant's reply, plus the model id, token usage, and cost.
 6. Emits the session id on the way out so the caller can continue the conversation later.
 
+In addition, the agent can talk to the DevStack GraphQL API through a
+StrawberryShake-generated client (see [GraphQL via StrawberryShake](#graphql-via-strawberryshake) below) for smoke-testing the codegen pipeline.
+
 ## Usage
 
 ```bash
@@ -35,6 +38,9 @@ dotnet run --project src/Server/DevStack.Agent -- \
 | `--model <provider/model>` | auto — first connected provider's model matching `*free*` (case-insensitive), then the first connected provider's default, then `anthropic/claude-3-5-sonnet` | Model to address. The startup listing will warn if the chosen model isn't in the server's inventory. |
 | `--title <text>` | `DevStack.Agent @ <UTC timestamp>` | Title for the created session. |
 | `--opencode:BaseUrl <url>` | `http://127.0.0.1:4096/` | Override the OpenCode base URL (passed through `IConfiguration.AddCommandLine`). |
+| `--list-projects` *(GraphQL)* | _off_ | List projects from the DevStack GraphQL API instead of running the OpenCode prompt. Pair with `--list-projects-first <n>` to cap the page size (default 50). |
+| `--get-project <uuid>` *(GraphQL)* | _off_ | Look up a single project by id via the DevStack GraphQL API. |
+| `--devstack:graphql:base-url <url>` | `http://localhost:8087/graphql` | Override the DevStack GraphQL endpoint. |
 
 ### Configuration
 
@@ -102,4 +108,80 @@ dotnet build src/Server/DevStack.slnx
 dotnet run --project src/Server/DevStack.Agent
 ```
 
-The project is added to `DevStack.slnx` and depends only on `DevStack.OpenCode`.
+The project is added to `DevStack.slnx` and depends on `DevStack.OpenCode`.
+
+## GraphQL via StrawberryShake
+
+The agent has a thin StrawberryShake client (`IDevStackClient`,
+namespace `DevStack.Agent.GraphQL`) that talks to the DevStack GraphQL
+API. It exists to smoke-test the codegen pipeline end-to-end and to
+give the agent a way to enumerate the work it can do.
+
+### What's wired up
+
+- **Local tool manifest** (`dotnet-tools.json`) pins
+  `StrawberryShake.Tools` v16.5.1 — the codegen entry point.
+- **Package** `StrawberryShake.Server` v16.5.1 supplies the runtime
+  and the MSBuild targets that drive build-time codegen.
+- **Config** (`.graphqlrc.json`) names the schema file
+  (`schema.graphql`, downloaded from the live server), the documents
+  glob (`GraphQLs/**/*.graphql`), the client name (`DevStackClient`),
+  the C# namespace (`DevStack.Agent.GraphQL`), and the transport URL
+  (`http://localhost:8087/graphql/`).
+- **Query documents** live in `GraphQLs/`. The build's
+  `<GraphQL Include="GraphQLs/**/*.graphql" />` item group feeds them
+  to the StrawberryShake MSBuild target, which writes generated C# to
+  `obj/.../berry/DevStackClient.Client.cs` and auto-includes the file
+  in the compilation.
+- **`DevStackProjectClient`** is a one-class wrapper over
+  `IDevStackClient` that returns consumer-shaped
+  `ProjectSummary` records so the rest of the agent never depends on
+  the generated wire types.
+- **DI wiring** in `Program.cs`:
+  ```csharp
+  builder.Services
+      .AddDevStackClient()
+      .ConfigureHttpClient(client => client.BaseAddress = new Uri(graphQLBaseUrl));
+  ```
+  The base URL is resolved (in order) from `--devstack:graphql:base-url`,
+  `DevStack__GraphQL__BaseUrl`, `appsettings.json`, and finally the
+  local `http://localhost:8087/graphql` default.
+
+### Refreshing the schema
+
+When the upstream DevStack API changes, refresh the local snapshot:
+
+```bash
+dotnet graphql download                  # uses url from .graphqlrc.json
+# or pin a specific endpoint:
+dotnet graphql download http://localhost:8087/graphql/
+```
+
+Then rebuild — the MSBuild target will pick up the new
+`schema.graphql`, the next `dotnet build` regenerates
+`DevStackClient.Client.cs`, and any schema drift surfaces as a build
+error in the call sites that consume `IDevStackClient`.
+
+### Adding a new query
+
+1. Drop a `GraphQLs/<Name>.graphql` document next to the existing
+   ones (any operation name → operation class on the generated
+   client).
+2. `dotnet build` — the new `<GraphQL>` item is picked up, the client
+   gains the corresponding `I…Query` operation, and the result
+   interface lands in `DevStack.Agent.GraphQL`.
+3. Expose it through `DevStackProjectClient` (or a sibling wrapper) so
+   `Program.cs` and other callers depend on a small consumer-shaped
+   surface, not on the generated types directly.
+
+### Quick smoke test
+
+```bash
+# 1. Make sure DevStack.Api is up on :8087.
+dotnet run --project src/Server/DevStack.Api --urls http://localhost:8087
+
+# 2. From a second terminal, hit the GraphQL client without
+#    starting an OpenCode server.
+dotnet run --project src/Server/DevStack.Agent -- --list-projects
+dotnet run --project src/Server/DevStack.Agent -- --get-project c33c8df4-b40c-41dc-b92f-c691197210c0
+```
