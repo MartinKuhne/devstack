@@ -32,9 +32,9 @@ static class Descriptions
 
     internal static class ProjectTools
     {
-        internal const string GetProjects = "Read all projects from DevStack. Returns project name, id, and repository. Usage hint: Call this first to get a list of available projects before performing other operations.";
-        internal const string GetProject = "Read a project by its ID. Returns project name and repository. Usage hint: Provide a valid project ID obtained from get_projects.";
-        internal const string CreateProject = "Create a new project in DevStack. Usage hint: Name and repository are required fields. Use 'git remote get-url origin' from the repository directory to find the repository URL.";
+        internal const string GetProjects = "Read all projects from DevStack. The tool returns project name, ID, and repository URL. Usage hint: Call this tool first to list available projects before performing other operations.";
+        internal const string GetProject = "Read a project by its ID. The tool returns project name and repository URL. Usage hint: Provide a valid project ID from get_projects.";
+        internal const string CreateProject = "Create a project in DevStack. Name and repository are required parameters. Usage hint: Run 'git remote get-url origin' in the repository directory to get the repository URL.";
 
         internal const string Id = "The project ID";
         internal const string Name = "The project name";
@@ -46,11 +46,11 @@ static class Descriptions
 
     internal static class DeliverableTools
     {
-        internal const string GetDeliverable = "Read a deliverable by its ID. Returns all fields including title, description, acceptance criteria, and status. Usage hint: Provide a valid deliverable ID.";
-        internal const string GetNextDeliverable = "Find the next deliverable in the specified status for a project. Provide the ProjectId and Status parameters. Do NOT use this tool if the user has already provided a deliverable ID.";
-        internal const string CreateDeliverable = "Create a new deliverable (Feature) in DevStack. New deliverables are created in Ready state. Usage hint: ProjectId must reference an existing project. Title and description are required fields.";
-        internal const string UpdateDeliverable = "Modify an existing deliverable in DevStack. Only non-null fields are updated. Usage hint: Provide the deliverable ID and only the fields you want to change.";
-        internal const string UpdateDeliverableStatus = "Change the state of a deliverable in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.";
+        internal const string GetDeliverable = "Read a deliverable by its ID. The tool returns all fields including title, description, acceptance criteria, and status. Usage hint: Provide a valid deliverable ID.";
+        internal const string GetNextDeliverable = "Find the next deliverable in a specified status for a project. Provide the ProjectId and Status parameters. Do not use this tool if the user provided a deliverable ID.";
+        internal const string CreateDeliverable = "Create a deliverable in DevStack. The tool sets new deliverables to Ready state. Usage hint: Specify an existing project ID in ProjectId. Provide Title and Description.";
+        internal const string UpdateDeliverable = "Modify a deliverable in DevStack. The tool updates specified fields only. Usage hint: Provide the deliverable ID and only the fields you want to change.";
+        internal const string UpdateDeliverableStatus = "Change the status of a deliverable in DevStack. The state machine enforces valid transitions. Usage hint: Provide a valid target status (InProgress, Done, Failed, Rejected, or NeedsReview).";
 
         internal const string Id = "The deliverable ID";
         internal const string ProjectId = "The project ID";
@@ -125,11 +125,11 @@ static class Descriptions
 
     internal static class TaskTools
     {
-        internal const string GetTask = "Read an agent task by its ID. Returns all fields including title, status, description, result, and errors. Usage hint: Provide a valid task ID obtained from create_task or other operations.";
-        internal const string GetNextTask = "Find the next task to work on for a project. Looks at deliverables in Implement status and prioritizes those with partial progress. Provide either a repository URL or project ID. Do NOT use this tool if the user has already provided a deliverable ID or task ID.";
-        internal const string CreateTask = "Create a new agent task in DevStack. New tasks are created in Ready state. Usage hint: DeliverableId must reference an existing entity. ProjectId is inferred from the deliverable.";
-        internal const string UpdateTask = "Modify an existing agent task in DevStack. Only non-null fields are updated. Usage hint: Provide the task ID and only the fields you want to change.";
-        internal const string UpdateTaskStatus = "Change the state of an agent task in DevStack. Valid transitions are enforced by the state machine. Usage hint: Provide valid target status such as InProgress, Done, Failed, Rejected, or NeedsReview.";
+        internal const string GetTask = "Read an agent task by its ID. The tool returns all fields including title, status, description, result, and errors. Usage hint: Provide a valid task ID from create_task or other operations.";
+        internal const string GetNextTask = "Find the next task to work on for a project. The tool inspects deliverables in Implement status and prioritizes partial progress. Provide a repository URL or project ID. Do not use this tool if the user provided a deliverable ID or task ID.";
+        internal const string CreateTask = "Create an agent task in DevStack. The tool sets new tasks to Ready state and infers ProjectId from the deliverable. Usage hint: Specify an existing deliverable ID in DeliverableId.";
+        internal const string UpdateTask = "Modify an agent task in DevStack. The tool updates specified fields only. Usage hint: Provide the task ID and only the fields you want to change.";
+        internal const string UpdateTaskStatus = "Change the status of an agent task in DevStack. The state machine enforces valid transitions. Usage hint: Provide a valid target status (InProgress, Done, Failed, Rejected, or NeedsReview).";
 
         internal const string Id = "The agent task ID";
         internal const string ProjectId = "The project ID";

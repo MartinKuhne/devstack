@@ -1,0 +1,111 @@
+name: Integration Tests
+
+# Testcontainers-based integration tests. They spin up a Docker network with
+# PostgreSQL plus the DevStack.Api and DevStack.Mcp app images, so they are
+# slow, require a Docker daemon, and are deliberately excluded from the
+# default `build-api` workflow.
+#
+# This workflow is partitioned: each job only runs when the slice of code it
+# covers changes (using dorny/paths-filter). It is also runnable on demand via
+# workflow_dispatch.
+
+on:
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      graphql: ${{ steps.filter.outputs.graphql }}
+      mcp: ${{ steps.filter.outputs.mcp }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Filter changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          predicate-quantifier: 'any'
+          # "any" = match if any listed path changed. The sets intentionally
+          # overlap on shared infrastructure so a Shared/Api/Mcp change still
+          # triggers the relevant integration test job.
+          filters: |
+            graphql:
+              - 'src/Server/DevStack.Tests.Integration.GraphQL/**'
+              - 'src/Server/DevStack.Tests.Integration.Shared/**'
+              - 'src/Server/DevStack.Api/**'
+              - 'src/Server/DevStack.Application/**'
+              - 'src/Server/DevStack.Domain/**'
+              - 'src/Server/DevStack.Infrastructure/**'
+              - 'src/Server/DevStack.Persistence/**'
+              - 'src/Server/DevStack.Contracts/**'
+            mcp:
+              - 'src/Server/DevStack.Tests.Integration.MCP/**'
+              - 'src/Server/DevStack.Tests.Integration.Shared/**'
+              - 'src/Server/DevStack.Mcp/**'
+              - 'src/Server/DevStack.Api/**'
+              - 'src/Server/DevStack.Application/**'
+              - 'src/Server/DevStack.Domain/**'
+              - 'src/Server/DevStack.Infrastructure/**'
+              - 'src/Server/DevStack.Persistence/**'
+              - 'src/Server/DevStack.Contracts/**'
+
+  graphql-tests:
+    name: GraphQL Integration Tests
+    needs: changes
+    # Run on manual trigger, or when the GraphQL slice changed.
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.graphql == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore src/Server/DevStack.slnx
+
+      - name: Build
+        run: dotnet build src/Server/DevStack.Tests.Integration.GraphQL/DevStack.Tests.Integration.GraphQL.csproj --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test src/Server/DevStack.Tests.Integration.GraphQL/DevStack.Tests.Integration.GraphQL.csproj --configuration Release --no-build --verbosity normal
+
+  mcp-tests:
+    name: MCP Integration Tests
+    needs: changes
+    # Run on manual trigger, or when the MCP slice changed.
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.mcp == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore src/Server/DevStack.slnx
+
+      - name: Build
+        run: dotnet build src/Server/DevStack.Tests.Integration.MCP/DevStack.Tests.Integration.MCP.csproj --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test src/Server/DevStack.Tests.Integration.MCP/DevStack.Tests.Integration.MCP.csproj --configuration Release --no-build --verbosity normal
