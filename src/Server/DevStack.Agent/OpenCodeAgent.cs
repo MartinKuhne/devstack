@@ -1,5 +1,6 @@
 using DevStack.OpenCode.Client;
 using DevStack.OpenCode.Models;
+using DevStack.OpenCode.Serialization;
 
 using Microsoft.Extensions.Logging;
 
@@ -59,11 +60,19 @@ public sealed class OpenCodeAgent
 
         _logger.LogInformation("Sending prompt to {Provider}/{Model}…", resolvedModel.ProviderId, resolvedModel.ModelId);
 
-        // A long-running LLM call leaves the user staring at a single
-        // "Sending prompt to…" line for minutes. Start a heartbeat so
-        // we visibly make progress; cancel it as soon as the response
-        // arrives. The cadence is intentionally conservative (30s)
-        // so we don't drown the log when the model is fast.
+        // Stream the live transcript from the global SSE channel so the
+        // operator sees each message and part as the model emits them —
+        // not just the final reply. The subscription starts before
+        // PromptAsync so we don't miss the opening message.updated /
+        // part.updated events, and ends on session.idle (which the server
+        // emits just after the assistant message is finalised).
+        using var streamCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var streamTask = StreamSessionAsync(session.Id, streamCts.Token);
+
+        // Heartbeat is now a safety net: live streaming already shows the
+        // model working, but if the SSE stream stalls (e.g. a server hiccup
+        // during a long tool call) the 30s heartbeat gives the operator a
+        // "still alive" signal.
         using var heartbeatCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var heartbeat = HeartbeatAsync(heartbeatCts.Token, resolvedModel, session.Id);
 
@@ -85,16 +94,30 @@ public sealed class OpenCodeAgent
             try { await heartbeat.ConfigureAwait(false); } catch { /* swallow on shutdown */ }
         }
 
+        // PromptAsync returns when the assistant message is finalised, but
+        // the server-side session goes idle slightly after. Wait briefly
+        // for the stream consumer to drain the closing events
+        // (session.idle + the final part.updated), then force-cancel if
+        // it's still running.
+        using var drainCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        using var reg = drainCts.Token.Register(() => streamCts.Cancel());
+        try
+        {
+            await streamTask.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) { /* expected on shutdown */ }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Live transcript stream ended with an exception.");
+        }
+
         _logger.LogInformation(
             "Prompt response received for session {SessionId}: {PartCount} part(s) in the final message, info kind={Kind}.",
             session.Id, result.Parts.Count, result.Info.Kind);
 
-        // The PromptAsync response is just the FINAL message; the model
-        // may have already produced many intermediate thinking + tool-call
-        // messages before the final answer. Fetch the full transcript so
-        // the operator can see what the LLM did end-to-end (reasoning,
-        // tool invocations and their results, step markers).
-        await PrintRunTranscriptAsync(session.Id, cancellationToken).ConfigureAwait(false);
+        // The stream consumer has already printed every message and part
+        // live. The only thing left is the per-run summary block.
+        PrintRunSummary(result);
 
         return session.Id;
     }
@@ -212,82 +235,240 @@ public sealed class OpenCodeAgent
     }
 
     /// <summary>
-    /// Fetches every message in <paramref name="sessionId"/> and prints a
-    /// human-readable transcript: per-message header, then every part in
-    /// order (reasoning, tool invocations with input/output, step markers,
-    /// file attachments, plain text). A final summary block prints the
-    /// assistant's token usage and cost from the last assistant message.
+    /// Prints just the per-run summary block (model, tokens, cost, finish)
+    /// from the final assistant message returned by <c>PromptAsync</c>. The
+    /// streaming consumer prints every message and part live; this is the
+    /// one piece that's only available after the prompt returns.
     /// </summary>
-    private async Task PrintRunTranscriptAsync(string sessionId, CancellationToken cancellationToken)
+    private void PrintRunSummary(SessionMessageView result)
     {
-        IReadOnlyList<SessionMessageView> messages;
+        if (!result.Info.IsAssistant)
+        {
+            return;
+        }
+
+        var assistant = result.Info.AsAssistant();
+        Console.WriteLine();
+        Console.WriteLine("--- run summary ---");
+        Console.WriteLine($"model:    {assistant.ProviderId}/{assistant.ModelId}");
+        Console.WriteLine($"tokens:   in={assistant.Tokens.Input} out={assistant.Tokens.Output} " +
+                          $"reasoning={assistant.Tokens.Reasoning} cache.read={assistant.Tokens.Cache.Read} cache.write={assistant.Tokens.Cache.Write}");
+        Console.WriteLine($"cost:     ${assistant.Cost:F4}");
+        if (assistant.Finish is { Length: > 0 } finish)
+        {
+            Console.WriteLine($"finish:   {finish}");
+        }
+        Console.WriteLine("--- end of session ---");
+    }
+
+    /// <summary>
+    /// Subscribes to the global <c>/global/event</c> SSE stream and prints
+    /// every event related to <paramref name="sessionId"/> as it arrives:
+    /// per-message header, then each part with the same icon legend used
+    /// by the post-hoc transcript (reasoning, tool, file, step-*, etc.).
+    /// Text and reasoning parts stream in via <c>message.part.delta</c>
+    /// events and are rendered in place using a <c>\r</c>-based live-line
+    /// update so the operator can watch the model type.
+    /// </summary>
+    /// <remarks>
+    /// The consumer returns when the server emits <c>session.idle</c> (the
+    /// run is done), <c>session.error</c>, or when the cancellation token
+    /// fires (PromptAsync returned and the drain timeout elapsed).
+    /// </remarks>
+    private async Task StreamSessionAsync(string sessionId, CancellationToken cancellationToken)
+    {
+        var liveLine = new LiveLine();
+        var seenMessageIds = new HashSet<string>(StringComparer.Ordinal);
+        var partKinds = new Dictionary<string, string>(StringComparer.Ordinal);
+        var partTextBuf = new Dictionary<string, string>(StringComparer.Ordinal);
+        var partUpdateCount = new Dictionary<string, int>(StringComparer.Ordinal);
+
         try
         {
-            // Cap at 200 messages — protects against runaway sessions.
-            // In practice the model produces <50 per run.
-            messages = await _client.Session
-                .GetMessagesAsync(sessionId, limit: 200, cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+            await foreach (var globalEvent in _client.Global.SubscribeAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var payload = globalEvent.Payload;
+                if (payload?.Properties is not { } props)
+                {
+                    continue;
+                }
+
+                // The global stream carries events for every active session,
+                // not just ours. Filter on sessionID so we only react to
+                // events for the run we kicked off.
+                if (!props.TryGetProperty("sessionID", out var sidEl)
+                    || sidEl.GetString() != sessionId)
+                {
+                    continue;
+                }
+
+                switch (payload.Type)
+                {
+                    case "server.connected":
+                    case "server.heartbeat":
+                    case "sync":
+                    case "session.created":
+                    case "session.updated":
+                    case "session.diff":
+                    case "session.status":
+                        // Bookkeeping only — no per-line output.
+                        break;
+
+                    case "message.updated":
+                        if (props.TryGetProperty("info", out var infoEl))
+                        {
+                            var info = DeserializeFromJson<Message>(infoEl);
+                            OnMessageUpdated(info, seenMessageIds, liveLine);
+                        }
+                        break;
+
+                    case "message.part.updated":
+                        if (props.TryGetProperty("part", out var partEl))
+                        {
+                            var part = DeserializeFromJson<Part>(partEl);
+                            OnPartUpdated(part, partKinds, partTextBuf, partUpdateCount, liveLine);
+                        }
+                        break;
+
+                    case "message.part.delta":
+                        if (props.TryGetProperty("partID", out var partIdEl)
+                            && partIdEl.GetString() is { Length: > 0 } partId
+                            && props.TryGetProperty("field", out var fieldEl)
+                            && fieldEl.GetString() == "text"
+                            && props.TryGetProperty("delta", out var deltaEl))
+                        {
+                            var delta = deltaEl.GetString() ?? string.Empty;
+                            OnTextDelta(partId, delta, partKinds, partTextBuf, liveLine);
+                        }
+                        break;
+
+                    case "session.idle":
+                        liveLine.Commit();
+                        return;
+
+                    case "session.error":
+                        liveLine.Commit();
+                        if (props.TryGetProperty("error", out var errEl))
+                        {
+                            _logger.LogError(
+                                "OpenCode session {SessionId} reported an error event: {Error}",
+                                sessionId, errEl.ToString());
+                        }
+                        else
+                        {
+                            _logger.LogError(
+                                "OpenCode session {SessionId} reported an error event.", sessionId);
+                        }
+                        return;
+                }
+            }
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException)
+        {
+            // Expected when PromptAsync returns and the drain timeout elapses.
+        }
+        catch (Exception ex)
         {
             _logger.LogWarning(ex,
-                "Failed to fetch the full transcript for session {SessionId}; " +
-                "the final-message summary will still be shown below.",
+                "Live transcript stream for session {SessionId} ended unexpectedly; " +
+                "the run summary will still be printed below.",
                 sessionId);
-            return;
         }
 
-        if (messages.Count == 0)
+        liveLine.Commit();
+    }
+
+    private void OnMessageUpdated(
+        Message info,
+        HashSet<string> seenMessageIds,
+        LiveLine liveLine)
+    {
+        // Base Message doesn't expose Id (it lives on UserMessage /
+        // AssistantMessage). Read the raw id field — always present on the
+        // wire — and use it to dedupe across the many message.updated
+        // events the server emits for the same message.
+        var id = info.Raw.ValueKind == System.Text.Json.JsonValueKind.Object
+                 && info.Raw.TryGetProperty("id", out var idEl)
+                 && idEl.ValueKind == System.Text.Json.JsonValueKind.String
+            ? idEl.GetString() ?? string.Empty
+            : string.Empty;
+
+        if (string.IsNullOrEmpty(id) || !seenMessageIds.Add(id))
         {
-            Console.WriteLine();
-            Console.WriteLine("--- session transcript (empty) ---");
             return;
         }
 
+        liveLine.Commit();
+        var headerExtras = BuildMessageHeaderExtras(info);
         Console.WriteLine();
-        Console.WriteLine($"--- session transcript ({messages.Count} message(s)) ---");
+        Console.WriteLine($"── msg {seenMessageIds.Count} (role={info.Kind}{headerExtras}) ──");
+    }
 
-        var msgNum = 0;
-        foreach (var message in messages)
+    private void OnPartUpdated(
+        Part part,
+        Dictionary<string, string> partKinds,
+        Dictionary<string, string> partTextBuf,
+        Dictionary<string, int> partUpdateCount,
+        LiveLine liveLine)
+    {
+        var partId = part.Id;
+        if (string.IsNullOrEmpty(partId))
         {
-            msgNum++;
-            var role = message.Info.Kind ?? "unknown";
-
-            // Model and agent metadata live on the assistant/user sub-types,
-            // not on the base Message. Gate on the discriminator so a user
-            // message shows the user-pinned model and agent (e.g. "build"),
-            // and an assistant message shows the model that actually replied.
-            var headerExtras = BuildMessageHeaderExtras(message.Info);
-            Console.WriteLine();
-            Console.WriteLine($"── msg {msgNum}/{messages.Count} (role={role}{headerExtras}) ──");
-
-            foreach (var part in message.Parts)
-            {
-                PrintPart(part);
-            }
+            return;
         }
 
-        // Final summary from the last assistant message that has
-        // token/cost info. The run summary in --run-plan prints a tally
-        // across all deliverables; this one is per-session.
-        var lastAssistant = messages.LastOrDefault(m => m.Info.IsAssistant);
-        if (lastAssistant is not null)
+        partKinds[partId] = part.Kind;
+        partUpdateCount[partId] = partUpdateCount.GetValueOrDefault(partId) + 1;
+
+        if (part.Kind is "text" or "reasoning")
         {
-            var assistant = lastAssistant.Info.AsAssistant();
-            Console.WriteLine();
-            Console.WriteLine("--- run summary ---");
-            Console.WriteLine($"model:    {assistant.ProviderId}/{assistant.ModelId}");
-            Console.WriteLine($"tokens:   in={assistant.Tokens.Input} out={assistant.Tokens.Output} " +
-                              $"reasoning={assistant.Tokens.Reasoning} cache.read={assistant.Tokens.Cache.Read} cache.write={assistant.Tokens.Cache.Write}");
-            Console.WriteLine($"cost:     ${assistant.Cost:F4}");
-            if (assistant.Finish is { Length: > 0 } finish)
+            // Text/reasoning parts come in three phases:
+            //   1. first part.updated with empty/initial text,
+            //   2. many message.part.delta events streaming the chunks,
+            //   3. a final part.updated carrying the canonical text.
+            // We ignore phase 1 (the live line is already showing the
+            // streaming deltas), and use phase 3 to commit the live line
+            // and replace the buffer with the server's canonical version.
+            if (partUpdateCount[partId] >= 2)
             {
-                Console.WriteLine($"finish:   {finish}");
+                var text = part.Kind == "text" ? part.AsText().Text : part.AsReasoning().Text;
+                partTextBuf[partId] = text;
+                liveLine.Commit();
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    var prefix = part.Kind == "reasoning" ? "  💭 " : string.Empty;
+                    Console.WriteLine(prefix + text);
+                }
             }
         }
+        else
+        {
+            // Structural parts (tool, file, step-*, patch, subtask, …) get
+            // a fresh render on every update so the operator sees status
+            // changes (e.g. tool: running → completed).
+            liveLine.Commit();
+            PrintPart(part);
+        }
+    }
 
-        Console.WriteLine("--- end of session ---");
+    private void OnTextDelta(
+        string partId,
+        string delta,
+        Dictionary<string, string> partKinds,
+        Dictionary<string, string> partTextBuf,
+        LiveLine liveLine)
+    {
+        if (string.IsNullOrEmpty(delta))
+        {
+            return;
+        }
+
+        var current = (partTextBuf.TryGetValue(partId, out var existing) ? existing : string.Empty) + delta;
+        partTextBuf[partId] = current;
+
+        var kind = partKinds.TryGetValue(partId, out var k) ? k : "text";
+        var prefix = kind == "reasoning" ? "  💭 " : "  ";
+        liveLine.Render(prefix + current);
     }
 
     /// <summary>
@@ -444,6 +625,65 @@ public sealed class OpenCodeAgent
             default:
                 Console.WriteLine($"  [{part.Kind}] <unhandled>");
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Deserializes a strongly-typed <typeparamref name="T"/> from a
+    /// <see cref="System.Text.Json.JsonElement"/> using the OpenCode SDK's
+    /// shared serializer options. The type-level
+    /// <c>[JsonConverter(typeof(MessageConverter))]</c> and
+    /// <c>[JsonConverter(typeof(PartConverter))]</c> attributes on
+    /// <see cref="Message"/> and <see cref="Part"/> make the discriminated
+    /// unions round-trip without a global converter registration.
+    /// </summary>
+    private static T DeserializeFromJson<T>(System.Text.Json.JsonElement element)
+    {
+        return System.Text.Json.JsonSerializer.Deserialize<T>(element.GetRawText(), OpenCodeJson.Compact)
+            ?? throw new InvalidOperationException(
+                $"Failed to deserialize {typeof(T).Name} from SSE event payload.");
+    }
+
+    /// <summary>
+    /// Renders text to the console with in-place updates: each call writes
+    /// <c>\r</c> + the new text + enough spaces to overwrite any leftover
+    /// characters from a longer previous render. Used by the live transcript
+    /// to stream text and reasoning deltas character-by-character instead of
+    /// flooding the console with a new line per chunk. The display is
+    /// capped at <see cref="MaxWidth"/> characters and newlines are
+    /// squashed to spaces so the live line never wraps unpredictably.
+    /// </summary>
+    private sealed class LiveLine
+    {
+        private const int MaxWidth = 200;
+        private int _lastLen;
+
+        public void Render(string text)
+        {
+            var display = text.Length > MaxWidth ? text[..MaxWidth] + "…" : text;
+            display = display.Replace('\n', ' ').Replace('\r', ' ');
+
+            if (_lastLen > 0)
+            {
+                Console.Write('\r');
+            }
+            Console.Write(display);
+            if (_lastLen > display.Length)
+            {
+                Console.Write(new string(' ', _lastLen - display.Length));
+                Console.Write('\r');
+                Console.Write(display);
+            }
+            _lastLen = display.Length;
+        }
+
+        public void Commit()
+        {
+            if (_lastLen > 0)
+            {
+                Console.WriteLine();
+                _lastLen = 0;
+            }
         }
     }
 

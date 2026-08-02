@@ -8,8 +8,8 @@ A tiny .NET 10 CLI that drives the **Hello** prompt against a running `opencode 
 2. Fetches the provider/model inventory via `GET /provider` and pretty-prints it. Warns early if the requested `--model` is not in the server's list (so a 500 from the server doesn't come as a surprise).
 3. Creates a fresh session via `POST /session`.
 4. Sends a single `Hello` (or any other) prompt via `POST /session/{id}/message`.
-5. Sends a single `Hello` (or any other) prompt via `POST /session/{id}/message`. Long calls are heart-beated every 30s so the operator can see progress.
-6. After the LLM call returns, fetches the full session transcript (every user + assistant message, including intermediate thinking and tool invocations) and prints it as a single human-readable block, then a final run summary (model, tokens, cost, finish).
+5. Sends a single `Hello` (or any other) prompt via `POST /session/{id}/message`. While the LLM is running, subscribes to the server's SSE event stream and prints every message and part **live** as the model emits them — reasoning, tool calls, step markers, the assistant's final text. Long calls are also heart-beated every 30s as a fallback in case the SSE stream stalls.
+6. After the assistant's final message is returned, prints a run summary (model, tokens, cost, finish reason).
 7. Emits the session id on the way out so the caller can continue the conversation later.
 
 In addition, the agent can talk to the DevStack GraphQL API through a
@@ -117,18 +117,25 @@ from "provider not configured" from "model not on this provider".
 
 ## Session transcript
 
-After `POST /session/{id}/message` returns, the agent re-fetches the
-session via `GET /session/{id}/message` (capped at 200 messages — in
-practice a single run produces <50) and walks the full conversation in
-order. Every message gets a `── msg N/TOTAL (role=… agent=… model=…) ──`
-header, then every part is rendered with a one-line icon so a 30-line
-session still fits on one screen.
+The agent subscribes to the OpenCode server's `GET /global/event` SSE
+stream before sending the prompt and prints every relevant event
+**live** as the model emits them. Text and reasoning parts stream in
+character-by-character via `message.part.delta` events and are rendered
+in place with `\r` overwrites (capped at 200 chars) so the operator
+sees the model "typing". Structural parts (file, step-*, tool, patch,
+subtask, agent, snapshot, retry, compaction) render as a fresh block
+on every update so status changes (e.g. tool: running → completed) are
+visible. The consumer filters to the current session id, ignores
+bookkeeping events (`server.heartbeat`, `sync`, `session.created`,
+`session.updated`, `session.status`, `session.diff`), and returns on
+`session.idle` / `session.error` / a 3-second drain timeout after
+`PromptAsync` returns.
 
 | Icon | Part kind | What you see |
 |------|-----------|--------------|
-| _(none)_ | `text` | The assistant's plain-text reply, verbatim. |
-| 💭 | `reasoning` | The model's thinking, truncated to 500 chars. |
-| 🔧 | `tool` | Tool name, status (`completed` / `running` / `pending` / `error`), and the truncated input + output from `state.raw`. |
+| _(none)_ | `text` | The assistant's plain-text reply. Streams in place while the model is generating; final version is committed when the server's `part.updated` carries the canonical text. |
+| 💭 | `reasoning` | The model's thinking. Streams in place like text, but with the `💭` prefix. The committed version preserves internal newlines. |
+| 🔧 | `tool` | Tool name, status (`completed` / `running` / `pending` / `error`), and the truncated input + output from `state.raw`. A fresh block per state change. |
 | ✓ / ✗ / ⏳ / … / • | (status glyph on the tool line) | `completed` / `error` / `running` / `pending` / other. |
 | 📄 | `file` | MIME type plus filename or URL. |
 | 🗜 | `compaction` | Auto- vs. manual context compaction. |
@@ -136,15 +143,18 @@ session still fits on one screen.
 | 👤 | `agent` | The agent that owns the part. |
 | 📸 | `snapshot` | Filesystem snapshot id. |
 | 🔁 | `retry` | Retry attempt number + the error payload that triggered it. |
-| ── step start ── | `step-start` | Implicit — a marker so you can grep on it. |
+| ── step start ── | `step-start` | Implicit — a marker so you can grep for it. |
 | ── step finish … ── | `step-finish` | `reason=…`, optional `cost=$…`, and per-step tokens. |
 
-Long inputs/outputs are truncated so a 5k-character tool argument
-doesn't blow up the console; the full content is always available via
-the OpenCode server's web UI (the session id is printed at the end of
-every run). The final `─── run summary ───` block repeats the last
-assistant message's model id, token usage, cost, and finish reason
-so the operator has a single place to look for the cost of the run.
+If the SSE stream fails (server unreachable, network blip, etc.) the
+agent logs a warning and falls back to printing only the final message
+plus the run summary — the prompt still completes. Long inputs/outputs
+are truncated so a 5k-character tool argument doesn't blow up the
+console; the full content is always available via the OpenCode
+server's web UI (the session id is printed at the end of every run).
+The final `─── run summary ───` block prints the assistant message's
+model id, token usage, cost, and finish reason after the prompt
+returns.
 
 ## Building
 
