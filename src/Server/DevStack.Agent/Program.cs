@@ -319,14 +319,10 @@ static async Task<int> RunShowPlanAsync(IServiceProvider services, string? repos
         return 0;
     }
 
+    Console.WriteLine($"  {"TYPE",-10}  {"ID",-36}  {"STATUS",-6}  TITLE");
     foreach (var d in report.PlanDeliverables)
     {
-        Console.WriteLine($"  [{d.Type,-11}] {d.Title}");
-        Console.WriteLine($"      id:      {d.Id}");
-        if (!string.IsNullOrWhiteSpace(d.Description))
-        {
-            Console.WriteLine($"      describe: {d.Description}");
-        }
+        Console.WriteLine($"  {d.Type,-10}  {d.Id,-36}  {d.Status,-6}  {d.Title}");
     }
     return 0;
 }
