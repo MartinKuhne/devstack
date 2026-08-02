@@ -170,7 +170,7 @@ export function EditDeliverableDialog({
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Deliverable</DialogTitle>
                     <DialogDescription>Update the deliverable details.</DialogDescription>
@@ -187,26 +187,26 @@ export function EditDeliverableDialog({
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="description">Description</Label>
-                            <Textarea id="description" {...register('description')} rows={3} />
+                            <Textarea id="description" {...register('description')} minRows={3} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label>
                             <Textarea
                                 id="acceptanceCriteria"
                                 {...register('acceptanceCriteria')}
-                                rows={3}
+                                minRows={3}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="executionPlan">Execution Plan</Label>
-                            <Textarea id="executionPlan" {...register('executionPlan')} rows={3} />
+                            <Textarea id="executionPlan" {...register('executionPlan')} minRows={3} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="securityImpact">Security Impact</Label>
                             <Textarea
                                 id="securityImpact"
                                 {...register('securityImpact')}
-                                rows={2}
+                                minRows={2}
                             />
                         </div>
                         <div className="grid gap-2">
@@ -214,28 +214,28 @@ export function EditDeliverableDialog({
                             <Textarea
                                 id="performanceImpact"
                                 {...register('performanceImpact')}
-                                rows={2}
+                                minRows={2}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="testPlan">Test Plan</Label>
-                            <Textarea id="testPlan" {...register('testPlan')} rows={3} />
+                            <Textarea id="testPlan" {...register('testPlan')} minRows={3} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="deploymentPlan">Deployment Plan</Label>
                             <Textarea
                                 id="deploymentPlan"
                                 {...register('deploymentPlan')}
-                                rows={3}
+                                minRows={3}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="blocking">Blocking</Label>
-                            <Textarea id="blocking" {...register('blocking')} rows={2} />
+                            <Textarea id="blocking" {...register('blocking')} minRows={2} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="design">Design</Label>
-                            <Textarea id="design" {...register('design')} rows={3} />
+                            <Textarea id="design" {...register('design')} minRows={3} />
                         </div>
                     </div>
                     <DialogFooter>
