@@ -800,10 +800,14 @@ export type GetAgentTasksQueryVariables = Exact<{
 
 export type GetAgentTasksQuery = { __typename?: 'Query', agentTasks?: { __typename?: 'AgentTasksConnection', nodes?: Array<{ __typename?: 'AgentTask', id: any, projectId: any, deliverableId: any, title: string, status: AgentTaskStatus, description: string, result?: string | null, errors?: string | null, commitHash?: string | null, complexityRating: number, dependsOnAgentTaskId?: any | null, promptTokens?: number | null, completionTokens?: number | null, executionDurationInSeconds?: number | null, agent?: string | null, deliverable?: { __typename?: 'Deliverable', id: any, title: string } | null, project?: { __typename?: 'Project', id: any, name: string } | null }> | null } | null };
 
-export type GetAllDeliverablesQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetAllDeliverablesQueryVariables = Exact<{
+  first?: InputMaybe<Scalars['Int']['input']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  where?: InputMaybe<DeliverableFilterInput>;
+}>;
 
 
-export type GetAllDeliverablesQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null }> | null } | null };
+export type GetAllDeliverablesQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null }> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } | null };
 
 export type GetDeliverablesByProjectQueryVariables = Exact<{
   projectId: Scalars['UUID']['input'];
@@ -1485,8 +1489,8 @@ export type GetAgentTasksLazyQueryHookResult = ReturnType<typeof useGetAgentTask
 export type GetAgentTasksSuspenseQueryHookResult = ReturnType<typeof useGetAgentTasksSuspenseQuery>;
 export type GetAgentTasksQueryResult = Apollo.QueryResult<GetAgentTasksQuery, GetAgentTasksQueryVariables>;
 export const GetAllDeliverablesDocument = gql`
-    query GetAllDeliverables {
-  deliverables(first: 100) {
+    query GetAllDeliverables($first: Int, $after: String, $where: DeliverableFilterInput) {
+  deliverables(first: $first, after: $after, where: $where) {
     nodes {
       id
       title
@@ -1504,6 +1508,10 @@ export const GetAllDeliverablesDocument = gql`
       blocking
       design
     }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
   }
 }
     `;
@@ -1520,6 +1528,9 @@ export const GetAllDeliverablesDocument = gql`
  * @example
  * const { data, loading, error } = useGetAllDeliverablesQuery({
  *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      where: // value for 'where'
  *   },
  * });
  */

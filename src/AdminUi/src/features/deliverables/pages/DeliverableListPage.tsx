@@ -78,10 +78,10 @@ export function DeliverableListPage() {
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const pageSize = 25;
 
-    const { deliverables, loading, error, refetch } = useAllDeliverables(
-        statusFilter ? [statusFilter] : undefined,
-        typeFilter ? [typeFilter] : undefined
-    );
+    const { deliverables, loading, error, refetch } = useAllDeliverables({
+        statusFilter,
+        typeFilter,
+    });
 
     const handleDelete = async () => {
         if (!deleteTargetId) return;
