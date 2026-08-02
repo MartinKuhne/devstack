@@ -140,6 +140,7 @@ export async function executeRunPlan(
   if (!fs.existsSync(resolvedPromptPath)) {
     process.stderr.write(`error: Plan prompt template file '${resolvedPromptPath}' does not exist.\n`);
     process.exit(2);
+    return;
   }
 
   const templateContent = fs.readFileSync(resolvedPromptPath, 'utf-8');
@@ -150,6 +151,7 @@ export async function executeRunPlan(
       `error: Plan prompt template '${resolvedPromptPath}' does not contain required placeholder '{{DeliverableId}}'.\n`
     );
     process.exit(2);
+    return;
   }
 
   const { planDeliverables } = discovery;
