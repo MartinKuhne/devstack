@@ -130,11 +130,9 @@ export class DeliverableDetailPage extends BasePage {
         this.backToListLink = page.getByRole('link', { name: /Back to List|Deliverables/ }).first();
         this.statusBadge = page.locator('[class*="badge"], [class*="Badge"]');
         this.changeStatusSelect =
-            page.getByPlaceholder('Select new status') ||
-            page.locator('[role="combobox"]').filter({ has: page.getByText(/status/i) });
-        this.updateStatusButton =
-            page.getByRole('button', { name: /Update Status|Change Status/ }) ||
-            page.getByRole('button', { name: 'Update Status' });
+            page.getByRole('combobox').filter({ hasText: /Change Status/i }) ||
+            page.locator('[role="combobox"]').filter({ hasText: /Change Status/i }).first();
+        this.updateStatusButton = page.locator('hidden-button-not-used-anymore');
         this.descriptionBlock = page.getByRole('heading', { name: 'Description' }).locator('..');
         this.acceptanceCriteriaBlock = page
             .getByRole('heading', { name: 'Acceptance Criteria' })
@@ -194,15 +192,9 @@ export class DeliverableDetailPage extends BasePage {
     async changeStatus(newStatus: string): Promise<void> {
         try {
             await this.changeStatusSelect.click();
-            await this.page.getByText(newStatus).click();
-            if (await this.updateStatusButton.isVisible()) {
-                await this.updateStatusButton.click();
-            } else {
-                // Status might auto-update on select
-                await this.page.waitForTimeout(1000);
-            }
+            await this.page.getByRole('option', { name: newStatus, exact: true }).or(this.page.getByText(newStatus, { exact: true })).first().click();
+            await this.page.waitForTimeout(1000);
         } catch {
-            // Try alternative approach using the status dropdown in sidebar
             const statusOption = this.page.getByRole('option', { name: newStatus }).first();
             if (await statusOption.isVisible()) {
                 await statusOption.click();

@@ -38,7 +38,6 @@ export function DeliverableDetailPage() {
     const [updateDeliverableStatus, { loading: transitionLoading }] =
         useUpdateDeliverableStatusMutation();
     const { deleteDeliverable, loading: deleteLoading } = useDeleteDeliverable();
-    const [selectedStatus, setSelectedStatus] = useState('');
     const [createAgentTaskDialogOpen, setCreateAgentTaskDialogOpen] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
@@ -97,20 +96,19 @@ export function DeliverableDetailPage() {
     const allStatuses = Object.values(DeliverableStatus);
     const filteredStatuses = allStatuses.filter((s) => s !== deliverable.status);
 
-    const handleStatusChange = async () => {
-        if (!selectedStatus || !deliverable.id) return;
+    const handleStatusChange = async (newStatus: string) => {
+        if (!newStatus || !deliverable.id) return;
 
         try {
             await updateDeliverableStatus({
                 variables: {
                     id: deliverable.id,
-                    targetStatus: selectedStatus as DeliverableStatus,
+                    targetStatus: newStatus as DeliverableStatus,
                 },
             });
 
             toast.success('Status updated successfully');
             refetch();
-            setSelectedStatus('');
         } catch {
             toast.error('Failed to update status');
         }
@@ -136,6 +134,18 @@ export function DeliverableDetailPage() {
                     <Button variant="outline" onClick={() => navigate('/deliverables')}>
                         Back to List
                     </Button>
+                    <Select value="" onValueChange={handleStatusChange} disabled={transitionLoading}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Change Status..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {filteredStatuses.map((status) => (
+                                <SelectItem key={status} value={status}>
+                                    {status.replace(/_/g, ' ')}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <Button onClick={() => setUpdateDialogOpen(true)}>Edit</Button>
                     <Button variant="destructive" onClick={() => setConfirmDeleteOpen(true)} disabled={deleteLoading}>
                         Delete
@@ -143,36 +153,6 @@ export function DeliverableDetailPage() {
                 </>
             }
         >
-            <Card>
-                <CardHeader>
-                    <CardTitle>Change Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex gap-2 items-end">
-                        <div className="flex-1">
-                            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select new status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {filteredStatuses.map((status) => (
-                                        <SelectItem key={status} value={status}>
-                                            {status.replace(/_/g, ' ')}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <Button
-                            onClick={handleStatusChange}
-                            disabled={!selectedStatus || transitionLoading}
-                        >
-                            {transitionLoading ? 'Updating...' : 'Update Status'}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
                     {([
