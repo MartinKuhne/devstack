@@ -267,8 +267,14 @@ public sealed class OpenCodeAgent
     /// per-message header, then each part with the same icon legend used
     /// by the post-hoc transcript (reasoning, tool, file, step-*, etc.).
     /// Text and reasoning parts stream in via <c>message.part.delta</c>
-    /// events and are rendered in place using a <c>\r</c>-based live-line
-    /// update so the operator can watch the model type.
+    /// events; on the first delta of a part we print a single
+    /// <c>💭 …</c> placeholder so the operator knows the model is still
+    /// working, and on the canonical <c>message.part.updated</c> that
+    /// follows the deltas we print the full text on a new line. We do
+    /// not render the deltas themselves — emitting hundreds of
+    /// truncated partial lines is far worse than a single placeholder,
+    /// and <c>\r</c>-based overwriting is fragile in any non-TTY
+    /// capture (pipe, file, screen reader, copy-paste buffer).
     /// </summary>
     /// <remarks>
     /// The consumer returns when the server emits <c>session.idle</c> (the
@@ -277,11 +283,10 @@ public sealed class OpenCodeAgent
     /// </remarks>
     private async Task StreamSessionAsync(string sessionId, CancellationToken cancellationToken)
     {
-        var liveLine = new LiveLine();
         var seenMessageIds = new HashSet<string>(StringComparer.Ordinal);
         var partKinds = new Dictionary<string, string>(StringComparer.Ordinal);
-        var partTextBuf = new Dictionary<string, string>(StringComparer.Ordinal);
-        var partUpdateCount = new Dictionary<string, int>(StringComparer.Ordinal);
+        var streamingPartIds = new HashSet<string>(StringComparer.Ordinal);
+        var printedTextParts = new HashSet<string>(StringComparer.Ordinal);
 
         try
         {
@@ -318,7 +323,7 @@ public sealed class OpenCodeAgent
                         if (props.TryGetProperty("info", out var infoEl))
                         {
                             var info = DeserializeFromJson<Message>(infoEl);
-                            OnMessageUpdated(info, seenMessageIds, liveLine);
+                            OnMessageUpdated(info, seenMessageIds);
                         }
                         break;
 
@@ -326,7 +331,7 @@ public sealed class OpenCodeAgent
                         if (props.TryGetProperty("part", out var partEl))
                         {
                             var part = DeserializeFromJson<Part>(partEl);
-                            OnPartUpdated(part, partKinds, partTextBuf, partUpdateCount, liveLine);
+                            OnPartUpdated(part, partKinds, streamingPartIds, printedTextParts);
                         }
                         break;
 
@@ -338,16 +343,14 @@ public sealed class OpenCodeAgent
                             && props.TryGetProperty("delta", out var deltaEl))
                         {
                             var delta = deltaEl.GetString() ?? string.Empty;
-                            OnTextDelta(partId, delta, partKinds, partTextBuf, liveLine);
+                            OnTextDelta(partId, delta, partKinds, streamingPartIds);
                         }
                         break;
 
                     case "session.idle":
-                        liveLine.Commit();
                         return;
 
                     case "session.error":
-                        liveLine.Commit();
                         if (props.TryGetProperty("error", out var errEl))
                         {
                             _logger.LogError(
@@ -374,14 +377,11 @@ public sealed class OpenCodeAgent
                 "the run summary will still be printed below.",
                 sessionId);
         }
-
-        liveLine.Commit();
     }
 
     private void OnMessageUpdated(
         Message info,
-        HashSet<string> seenMessageIds,
-        LiveLine liveLine)
+        HashSet<string> seenMessageIds)
     {
         // Base Message doesn't expose Id (it lives on UserMessage /
         // AssistantMessage). Read the raw id field — always present on the
@@ -398,7 +398,6 @@ public sealed class OpenCodeAgent
             return;
         }
 
-        liveLine.Commit();
         var headerExtras = BuildMessageHeaderExtras(info);
         Console.WriteLine();
         Console.WriteLine($"── msg {seenMessageIds.Count} (role={info.Kind}{headerExtras}) ──");
@@ -407,9 +406,8 @@ public sealed class OpenCodeAgent
     private void OnPartUpdated(
         Part part,
         Dictionary<string, string> partKinds,
-        Dictionary<string, string> partTextBuf,
-        Dictionary<string, int> partUpdateCount,
-        LiveLine liveLine)
+        HashSet<string> streamingPartIds,
+        HashSet<string> printedTextParts)
     {
         var partId = part.Id;
         if (string.IsNullOrEmpty(partId))
@@ -418,7 +416,6 @@ public sealed class OpenCodeAgent
         }
 
         partKinds[partId] = part.Kind;
-        partUpdateCount[partId] = partUpdateCount.GetValueOrDefault(partId) + 1;
 
         if (part.Kind is "text" or "reasoning")
         {
@@ -426,14 +423,15 @@ public sealed class OpenCodeAgent
             //   1. first part.updated with empty/initial text,
             //   2. many message.part.delta events streaming the chunks,
             //   3. a final part.updated carrying the canonical text.
-            // We ignore phase 1 (the live line is already showing the
-            // streaming deltas), and use phase 3 to commit the live line
-            // and replace the buffer with the server's canonical version.
-            if (partUpdateCount[partId] >= 2)
+            // We wait for phase 3 (signalled by at least one delta
+            // having been seen) and then print the full text exactly
+            // once. The placeholder emitted by OnTextDelta gives the
+            // operator visibility during phase 2; we never render the
+            // deltas themselves, so a 200-char thinking line doesn't
+            // produce 200 partial lines in the output.
+            if (streamingPartIds.Contains(partId) && printedTextParts.Add(partId))
             {
                 var text = part.Kind == "text" ? part.AsText().Text : part.AsReasoning().Text;
-                partTextBuf[partId] = text;
-                liveLine.Commit();
                 if (!string.IsNullOrWhiteSpace(text))
                 {
                     var prefix = part.Kind == "reasoning" ? "  💭 " : string.Empty;
@@ -446,7 +444,6 @@ public sealed class OpenCodeAgent
             // Structural parts (tool, file, step-*, patch, subtask, …) get
             // a fresh render on every update so the operator sees status
             // changes (e.g. tool: running → completed).
-            liveLine.Commit();
             PrintPart(part);
         }
     }
@@ -455,20 +452,26 @@ public sealed class OpenCodeAgent
         string partId,
         string delta,
         Dictionary<string, string> partKinds,
-        Dictionary<string, string> partTextBuf,
-        LiveLine liveLine)
+        HashSet<string> streamingPartIds)
     {
         if (string.IsNullOrEmpty(delta))
         {
             return;
         }
 
-        var current = (partTextBuf.TryGetValue(partId, out var existing) ? existing : string.Empty) + delta;
-        partTextBuf[partId] = current;
-
-        var kind = partKinds.TryGetValue(partId, out var k) ? k : "text";
-        var prefix = kind == "reasoning" ? "  💭 " : "  ";
-        liveLine.Render(prefix + current);
+        // On the first delta for a part, print a single placeholder
+        // (💭 … for reasoning, … for text) so the operator knows the
+        // model is still working. Subsequent deltas are dropped — the
+        // canonical text is printed by OnPartUpdated when the server's
+        // final part.updated arrives, and we don't want to flood the
+        // console with hundreds of partial lines (especially because
+        // \r-based in-place overwriting is fragile in any non-TTY
+        // capture — pipes, files, screen readers, copy-paste buffers).
+        if (streamingPartIds.Add(partId))
+        {
+            var kind = partKinds.TryGetValue(partId, out var k) ? k : "text";
+            Console.WriteLine(kind == "reasoning" ? "  💭 …" : "  …");
+        }
     }
 
     /// <summary>
@@ -642,49 +645,6 @@ public sealed class OpenCodeAgent
         return System.Text.Json.JsonSerializer.Deserialize<T>(element.GetRawText(), OpenCodeJson.Compact)
             ?? throw new InvalidOperationException(
                 $"Failed to deserialize {typeof(T).Name} from SSE event payload.");
-    }
-
-    /// <summary>
-    /// Renders text to the console with in-place updates: each call writes
-    /// <c>\r</c> + the new text + enough spaces to overwrite any leftover
-    /// characters from a longer previous render. Used by the live transcript
-    /// to stream text and reasoning deltas character-by-character instead of
-    /// flooding the console with a new line per chunk. The display is
-    /// capped at <see cref="MaxWidth"/> characters and newlines are
-    /// squashed to spaces so the live line never wraps unpredictably.
-    /// </summary>
-    private sealed class LiveLine
-    {
-        private const int MaxWidth = 200;
-        private int _lastLen;
-
-        public void Render(string text)
-        {
-            var display = text.Length > MaxWidth ? text[..MaxWidth] + "…" : text;
-            display = display.Replace('\n', ' ').Replace('\r', ' ');
-
-            if (_lastLen > 0)
-            {
-                Console.Write('\r');
-            }
-            Console.Write(display);
-            if (_lastLen > display.Length)
-            {
-                Console.Write(new string(' ', _lastLen - display.Length));
-                Console.Write('\r');
-                Console.Write(display);
-            }
-            _lastLen = display.Length;
-        }
-
-        public void Commit()
-        {
-            if (_lastLen > 0)
-            {
-                Console.WriteLine();
-                _lastLen = 0;
-            }
-        }
     }
 
     /// <summary>

@@ -119,22 +119,35 @@ from "provider not configured" from "model not on this provider".
 
 The agent subscribes to the OpenCode server's `GET /global/event` SSE
 stream before sending the prompt and prints every relevant event
-**live** as the model emits them. Text and reasoning parts stream in
-character-by-character via `message.part.delta` events and are rendered
-in place with `\r` overwrites (capped at 200 chars) so the operator
-sees the model "typing". Structural parts (file, step-*, tool, patch,
-subtask, agent, snapshot, retry, compaction) render as a fresh block
-on every update so status changes (e.g. tool: running → completed) are
-visible. The consumer filters to the current session id, ignores
-bookkeeping events (`server.heartbeat`, `sync`, `session.created`,
-`session.updated`, `session.status`, `session.diff`), and returns on
-`session.idle` / `session.error` / a 3-second drain timeout after
-`PromptAsync` returns.
+**live** as the model emits them. The consumer filters to the current
+session id, ignores bookkeeping events (`server.heartbeat`, `sync`,
+`session.created`, `session.updated`, `session.status`,
+`session.diff`), and returns on `session.idle` / `session.error` / a
+3-second drain timeout after `PromptAsync` returns.
+
+**Why no character-by-character streaming.** A previous iteration
+tried to render text and reasoning deltas in place with `\r` overwrite
+("watch the model type") but it produced hundreds of identical
+truncated lines in any non-TTY capture (pipe, file, screen reader,
+copy-paste buffer — all common ways operators review run output). The
+current approach prints a single placeholder per streaming part so the
+operator has visibility while the model works, then prints the full
+canonical text on a new line when the server's final `part.updated`
+arrives:
+
+```text
+  ── step start ──
+  💭 …                  ← placeholder, dropped on commit
+  💭 The full reasoning text comes here, with internal newlines preserved.
+  …                     ← placeholder for the text reply
+Here's the assistant's actual answer.
+  ── step finish reason=stop … ──
+```
 
 | Icon | Part kind | What you see |
 |------|-----------|--------------|
-| _(none)_ | `text` | The assistant's plain-text reply. Streams in place while the model is generating; final version is committed when the server's `part.updated` carries the canonical text. |
-| 💭 | `reasoning` | The model's thinking. Streams in place like text, but with the `💭` prefix. The committed version preserves internal newlines. |
+| _(none)_ | `text` | The assistant's plain-text reply. `…` placeholder while streaming, full text on commit. |
+| 💭 | `reasoning` | The model's thinking. `💭 …` placeholder while streaming, `💭 [full text]` on commit. Internal newlines preserved. |
 | 🔧 | `tool` | Tool name, status (`completed` / `running` / `pending` / `error`), and the truncated input + output from `state.raw`. A fresh block per state change. |
 | ✓ / ✗ / ⏳ / … / • | (status glyph on the tool line) | `completed` / `error` / `running` / `pending` / other. |
 | 📄 | `file` | MIME type plus filename or URL. |
@@ -145,6 +158,12 @@ bookkeeping events (`server.heartbeat`, `sync`, `session.created`,
 | 🔁 | `retry` | Retry attempt number + the error payload that triggered it. |
 | ── step start ── | `step-start` | Implicit — a marker so you can grep for it. |
 | ── step finish … ── | `step-finish` | `reason=…`, optional `cost=$…`, and per-step tokens. |
+
+Tools (and other structural parts) still render every state change as
+a fresh block because each transition is genuinely new information
+(running → completed) and the count is small (typically 2-3 lines per
+tool call). The 30s heartbeat stays in place as a fallback in case
+the SSE stream stalls between events.
 
 If the SSE stream fails (server unreachable, network blip, etc.) the
 agent logs a warning and falls back to printing only the final message
