@@ -1,0 +1,13 @@
+"""Look up a single project by its UUID.
+
+Used to prove that scalar-argument queries (UUID) and the singular
+`project(id:)` field work end-to-end through the generated client.
+"""
+query GetProjectById($id: UUID!) {
+  project(id: $id) {
+    id
+    name
+    description
+    repository
+  }
+}

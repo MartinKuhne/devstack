@@ -1,4 +1,5 @@
 using DevStack.Agent;
+using DevStack.Agent.GraphQL;
 using DevStack.OpenCode.DependencyInjection;
 using DevStack.OpenCode.Models;
 
@@ -48,8 +49,19 @@ try
     // appsettings.json flow through to the SDK.
     builder.AddOpenCode();
 
+    // Register the StrawberryShake-generated DevStack GraphQL client. The
+    // base URL is read from the DevStack:GraphQL:BaseUrl config key (or the
+    // --devstack:graphql:base-url command-line switch) and defaults to the
+    // local DevStack.Api on :8087. The AddDevStackClient() extension is
+    // produced by StrawberryShake.Server's MSBuild codegen.
+    var graphQLBaseUrl = ResolveGraphQLBaseUrl(builder.Configuration, args);
+    builder.Services
+        .AddDevStackClient()
+        .ConfigureHttpClient(client => client.BaseAddress = new Uri(graphQLBaseUrl));
+
     // Register the CLI itself.
     builder.Services.AddSingleton<OpenCodeAgent>();
+    builder.Services.AddSingleton<DevStackProjectClient>();
 
     using var host = builder.Build();
 
@@ -58,7 +70,28 @@ try
     var options = host.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<DevStack.OpenCode.Options.OpenCodeOptions>>().Value;
     Console.WriteLine($"  baseUrl:   {options.BaseUrl}");
     Console.WriteLine($"  userAgent: {options.UserAgent}");
+    Console.WriteLine($"  graphQL:   {graphQLBaseUrl}");
     Console.WriteLine();
+
+    // Side-quests: --list-projects / --get-project <id> short-circuit the
+    // OpenCode prompt flow so the StrawberryShake client can be smoke-tested
+    // without a running OpenCode server.
+    if (HasFlag(args, "--list-projects"))
+    {
+        var first = ParseIntFlag(args, "--list-projects-first", 50);
+        return await RunListProjectsAsync(host.Services, first);
+    }
+
+    if (HasFlag(args, "--get-project"))
+    {
+        var raw = ParseFlag(args, "--get-project");
+        if (string.IsNullOrWhiteSpace(raw) || !Guid.TryParse(raw, out var id))
+        {
+            Console.Error.WriteLine("--get-project requires a UUID argument, e.g. --get-project 00000000-0000-0000-0000-000000000000");
+            return 2;
+        }
+        return await RunGetProjectAsync(host.Services, id);
+    }
 
     var prompt = ParsePrompt(args, host.Services.GetRequiredService<ILogger<OpenCodeAgent>>());
     var model = ParseModel(args, host.Services.GetRequiredService<ILogger<OpenCodeAgent>>());
@@ -127,4 +160,94 @@ static string? ParseFlag(string[] argv, string name)
     }
 
     return null;
+}
+
+static int ParseIntFlag(string[] argv, string name, int defaultValue)
+{
+    var raw = ParseFlag(argv, name);
+    if (string.IsNullOrWhiteSpace(raw))
+    {
+        return defaultValue;
+    }
+    return int.TryParse(raw, out var parsed) ? parsed : defaultValue;
+}
+
+static bool HasFlag(string[] argv, string name)
+{
+    foreach (var a in argv)
+    {
+        if (string.Equals(a, name, StringComparison.Ordinal))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+/// <summary>
+/// Resolves the GraphQL endpoint, honouring (highest precedence first):
+/// the command line (<c>--devstack:graphql:base-url</c>), the environment
+/// (<c>DevStack__GraphQL__BaseUrl</c>), and <c>appsettings.json</c>.
+/// Falls back to the local DevStack.Api on :8087 when nothing is set.
+/// </summary>
+static string ResolveGraphQLBaseUrl(IConfiguration configuration, string[] argv)
+{
+    const string Key = "DevStack:GraphQL:BaseUrl";
+    const string CliKey = "--devstack:graphql:base-url";
+
+    var fromCli = ParseFlag(argv, CliKey);
+    if (!string.IsNullOrWhiteSpace(fromCli))
+    {
+        return fromCli;
+    }
+
+    var fromConfig = configuration[Key];
+    return string.IsNullOrWhiteSpace(fromConfig) ? "http://localhost:8087/graphql" : fromConfig;
+}
+
+static async Task<int> RunListProjectsAsync(IServiceProvider services, int first)
+{
+    var lister = services.GetRequiredService<DevStackProjectClient>();
+    var projects = await lister.ListProjectsAsync(first);
+
+    Console.WriteLine();
+    if (projects.Count == 0)
+    {
+        Console.WriteLine("No projects returned by the DevStack GraphQL API.");
+        return 0;
+    }
+
+    Console.WriteLine($"DevStack projects ({projects.Count}):");
+    Console.WriteLine();
+    foreach (var p in projects)
+    {
+        Console.WriteLine($"  {p.Id}  {p.Name}");
+        Console.WriteLine($"      repo:     {p.Repository}");
+        if (!string.IsNullOrWhiteSpace(p.Description))
+        {
+            Console.WriteLine($"      describe: {p.Description}");
+        }
+    }
+    return 0;
+}
+
+static async Task<int> RunGetProjectAsync(IServiceProvider services, Guid id)
+{
+    var lister = services.GetRequiredService<DevStackProjectClient>();
+    var project = await lister.GetProjectByIdAsync(id);
+
+    Console.WriteLine();
+    if (project is null)
+    {
+        Console.WriteLine($"Project {id} not found.");
+        return 0;
+    }
+
+    Console.WriteLine($"Project {project.Id}: {project.Name}");
+    Console.WriteLine($"  repo:      {project.Repository}");
+    if (!string.IsNullOrWhiteSpace(project.Description))
+    {
+        Console.WriteLine($"  describe:  {project.Description}");
+    }
+    return 0;
 }

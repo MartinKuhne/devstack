@@ -1,0 +1,19 @@
+"""List projects from the DevStack GraphQL API.
+
+`$first` is required by the upstream `projects` connection; we cap the
+result at 50 so the smoke run stays bounded.
+"""
+query GetProjects($first: Int! = 50) {
+  projects(first: $first) {
+    nodes {
+      id
+      name
+      description
+      repository
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
