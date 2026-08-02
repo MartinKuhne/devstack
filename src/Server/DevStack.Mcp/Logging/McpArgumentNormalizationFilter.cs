@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 using Microsoft.Extensions.Logging;
 
@@ -29,7 +28,7 @@ public static class McpArgumentNormalizationFilter
         };
     }
 
-    private static void NormalizeArguments(IDictionary<string, JsonElement> arguments, string toolName, Microsoft.Extensions.Logging.ILogger logger)
+    internal static void NormalizeArguments(IDictionary<string, JsonElement> arguments, string toolName, Microsoft.Extensions.Logging.ILogger logger)
     {
         var keys = arguments.Keys.ToList();
 
@@ -58,8 +57,8 @@ public static class McpArgumentNormalizationFilter
                 }
 
                 var joined = string.Join("\n", elements);
-                var normalizedValue = JsonNode.Parse($"\"{EscapeJsonString(joined)}\"");
-                arguments[key] = normalizedValue.GetValue<JsonElement>();
+                var normalizedElement = JsonSerializer.SerializeToElement(joined);
+                arguments[key] = normalizedElement;
 
                 logger.LogWarning(
                     "Tool {ToolName}: Coerced array argument for parameter '{Parameter}' to string",
@@ -67,15 +66,5 @@ public static class McpArgumentNormalizationFilter
                     key);
             }
         }
-    }
-
-    private static string EscapeJsonString(string value)
-    {
-        return value
-            .Replace("\\", "\\\\")
-            .Replace("\"", "\\\"")
-            .Replace("\n", "\\n")
-            .Replace("\r", "\\r")
-            .Replace("\t", "\\t");
     }
 }

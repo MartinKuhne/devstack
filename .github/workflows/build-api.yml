@@ -36,8 +36,13 @@ jobs:
     - name: Build
       run: dotnet build src/Server/DevStack.slnx --configuration Release --no-restore
 
-    - name: Test
-      run: dotnet test src/Server/DevStack.slnx --configuration Release --no-build --verbosity normal
+    - name: Test (unit)
+      # Testcontainers-based integration tests (DevStack.Tests.Integration.GraphQL,
+      # DevStack.Tests.Integration.MCP) are NOT run here. They require a Docker
+      # daemon, are slow, and are partitioned into a dedicated workflow that only
+      # runs when the relevant slice of code changes. See
+      # .github/workflows/integration-tests.yml.
+      run: dotnet test src/Server/DevStack.Tests.Unit/DevStack.Tests.Unit.csproj --configuration Release --no-build --verbosity normal
 
     - name: Docker Build
       run: docker build -t devstack-api:${{ github.sha }} -f src/Server/DevStack.Api/Dockerfile src/Server

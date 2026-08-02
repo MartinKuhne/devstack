@@ -194,7 +194,7 @@ public sealed class DevStackToolsSteps
         _result.Should().NotBeNull();
         _result!.IsError.Should().NotBeTrue();
         var resultJson = GetResultJson(_result!);
-        resultJson.ToLowerInvariant().Should().Contain("updated");
+        resultJson.Should().ContainEquivalentOf("updated");
     }
 
     [Then(@"the response should contain the deliverable with new status")]
@@ -333,7 +333,7 @@ public sealed class DevStackToolsSteps
         _result.Should().NotBeNull();
         _result!.IsError.Should().NotBeTrue();
         var resultJson = GetResultJson(_result!);
-        resultJson.ToLowerInvariant().Should().Contain("updated");
+        resultJson.Should().ContainEquivalentOf("updated");
     }
 
     [Then(@"the response should contain the task with new status")]
@@ -438,7 +438,8 @@ public sealed class DevStackToolsSteps
         try
         {
             var jsonDoc = JsonDocument.Parse(result);
-            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) || jsonDoc.RootElement.TryGetProperty("Id", out idElement))
+            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) ||
+                jsonDoc.RootElement.TryGetProperty("Id", out idElement))
             {
                 return idElement.GetString() ?? "";
             }
@@ -492,7 +493,8 @@ public sealed class DevStackToolsSteps
         try
         {
             var jsonDoc = JsonDocument.Parse(result);
-            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) || jsonDoc.RootElement.TryGetProperty("Id", out idElement))
+            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) ||
+                jsonDoc.RootElement.TryGetProperty("Id", out idElement))
             {
                 return idElement.GetString() ?? "";
             }
