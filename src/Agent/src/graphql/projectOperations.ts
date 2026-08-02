@@ -48,5 +48,15 @@ export async function executeGetProject(
     console.log(`describe: ${project.description.trim()}`);
   }
 
+  const deliverables = project.deliverables || [];
+  console.log(`deliverables (${deliverables.length}):`);
+  if (deliverables.length === 0) {
+    console.log('  (none)');
+  } else {
+    for (const d of deliverables) {
+      console.log(`  - [${d.status}] ${d.title} (${d.id}) - type: ${d.type}`);
+    }
+  }
+
   process.exit(0);
 }

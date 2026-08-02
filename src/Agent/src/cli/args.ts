@@ -6,6 +6,7 @@ export interface CliOptions {
   modelName?: string;
   listProjects?: boolean;
   listProjectsCount?: number;
+  listProviders?: boolean;
   getProjectUuid?: string;
   showPlan?: boolean;
   runPlan?: boolean;
@@ -37,6 +38,8 @@ export function parseCliArgs(args: string[]): CliOptions {
         options.listProjectsCount = parseInt(next, 10);
         i++;
       }
+    } else if (arg === '--list-providers') {
+      options.listProviders = true;
     } else if (arg === '--get-project') {
       const value = args[i + 1];
       if (!value || value.startsWith('--') || !UUID_REGEX.test(value)) {

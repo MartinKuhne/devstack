@@ -34,6 +34,12 @@ export async function main(): Promise<void> {
     return;
   }
 
+  // 1b. --list-providers
+  if (options.listProviders) {
+    await engine.listProviders();
+    return;
+  }
+
   // 2. --get-project
   if (options.getProjectUuid) {
     await executeGetProject(graphqlClient, options.getProjectUuid);

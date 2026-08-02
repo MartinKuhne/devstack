@@ -15,6 +15,7 @@ export interface RunPromptOptions {
 
 interface ProviderInfo {
   id: string;
+  name?: string;
   models?: Record<string, { id: string; name?: string }> | Array<{ id: string; name?: string }>;
 }
 
@@ -213,8 +214,36 @@ export class OpenCodeAgentEngine {
   }
 
   /**
-   * [AG-040 - AG-041] Health check. Exits if unhealthy.
+   * Lists connected OpenCode providers and available models.
    */
+  public async listProviders(): Promise<void> {
+    await this.ensureHealthy();
+    let res: { data?: ProvidersResponseData } | null = null;
+    try {
+      res = (await this.client.config.providers()) as { data?: ProvidersResponseData };
+    } catch (err: unknown) {
+      const error = err as Error;
+      process.stderr.write(`error: Failed to fetch providers: ${error.message}\n`);
+      process.exit(1);
+    }
+
+    const data = res?.data || {};
+    const providers: ProviderInfo[] = data.providers || [];
+    const connected = new Set<string>(data.connected || []);
+
+    const connectedProviders = providers.filter((p) => connected.size === 0 || connected.has(p.id));
+    const notConnectedCount = providers.length - connectedProviders.length;
+
+    console.log(`OpenCode Providers (${connectedProviders.length} connected${notConnectedCount > 0 ? `, ${notConnectedCount} not connected` : ''}):`);
+    for (const p of connectedProviders) {
+      const modelsDict = p.models || {};
+      const models = Array.isArray(modelsDict) ? modelsDict : Object.values(modelsDict);
+      console.log(`  Provider: ${p.id} (${p.name || ''})`);
+      for (const m of models) {
+        console.log(`    - ${m.id} (${m.name || m.id})`);
+      }
+    }
+  }
   public async ensureHealthy(): Promise<void> {
     try {
       const res = await this.client.config.get();
