@@ -48,7 +48,6 @@ export function AgentTaskDetailPage() {
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
     const [updateAgentTaskStatus, { loading: transitionLoading }] =
         useUpdateAgentTaskStatusMutation();
-    const [selectedStatus, setSelectedStatus] = useState('');
     const [deleteAgentTask, { loading: deleting }] = useDeleteAgentTaskMutation();
     const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
     const [rejectFeedback, setRejectFeedback] = useState('');
@@ -82,20 +81,19 @@ export function AgentTaskDetailPage() {
         setConfirmDeleteOpen(false);
     };
 
-    const handleStatusChange = async () => {
-        if (!selectedStatus || !agentTask?.id) return;
+    const handleStatusChange = async (newStatus: string) => {
+        if (!newStatus || !agentTask?.id) return;
 
         try {
             await updateAgentTaskStatus({
                 variables: {
                     id: agentTask.id,
-                    targetStatus: selectedStatus as AgentTaskStatus,
+                    targetStatus: newStatus as AgentTaskStatus,
                 },
             });
 
             toast.success('Status updated successfully');
             refetch();
-            setSelectedStatus('');
         } catch {
             toast.error('Failed to update status');
         }
@@ -233,6 +231,21 @@ export function AgentTaskDetailPage() {
                     <Button variant="outline" onClick={() => navigate('/agent-tasks')}>
                         Back to List
                     </Button>
+                    <Select value="" onValueChange={handleStatusChange} disabled={transitionLoading}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Change Status..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {Object.values(AgentTaskStatus).map((status) => (
+                                <SelectItem
+                                    key={status}
+                                    value={status}
+                                >
+                                    {status.replace(/_/g, ' ')}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <Button onClick={() => setUpdateDialogOpen(true)}>Edit</Button>
                     <Button variant="destructive" onClick={() => setConfirmDeleteOpen(true)} disabled={deleting}>
                         Delete
@@ -240,43 +253,7 @@ export function AgentTaskDetailPage() {
                 </>
             }
         >
-            <Card>
-                <CardHeader>
-                    <CardTitle>Change Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex gap-2 items-end">
-                        <div className="flex-1">
-                            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select new status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.values(AgentTaskStatus).map((status) => {
-                                        return (
-                                            <SelectItem
-                                                key={status}
-                                                value={status}
-                                            >
-                                                {status.replace(/_/g, ' ')}
-                                            </SelectItem>
-                                        );
-                                    })}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <Button
-                            onClick={handleStatusChange}
-                            disabled={
-                                !selectedStatus ||
-                                transitionLoading
-                            }
-                        >
-                            {transitionLoading ? 'Updating...' : 'Update Status'}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+
 
             {agentTask.status === 'IN_PROGRESS' && (
                 <Card>
