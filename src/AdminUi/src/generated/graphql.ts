@@ -807,14 +807,14 @@ export type GetAllDeliverablesQueryVariables = Exact<{
 }>;
 
 
-export type GetAllDeliverablesQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null }> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } | null };
+export type GetAllDeliverablesQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any }> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } | null };
 
 export type GetDeliverablesByProjectQueryVariables = Exact<{
   projectId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetDeliverablesByProjectQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any, acceptanceCriteria?: string | null, executionPlan?: string | null, agentFeedback?: string | null, securityImpact?: string | null, performanceImpact?: string | null, testPlan?: string | null, deploymentPlan?: string | null, blocking?: string | null, design?: string | null }> | null } | null };
+export type GetDeliverablesByProjectQuery = { __typename?: 'Query', deliverables?: { __typename?: 'DeliverablesConnection', nodes?: Array<{ __typename?: 'Deliverable', id: any, title: string, description?: string | null, status: DeliverableStatus, type: DeliverableType, projectId: any }> | null } | null };
 
 export type GetDeliverableQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1498,15 +1498,6 @@ export const GetAllDeliverablesDocument = gql`
       status
       type
       projectId
-      acceptanceCriteria
-      executionPlan
-      agentFeedback
-      securityImpact
-      performanceImpact
-      testPlan
-      deploymentPlan
-      blocking
-      design
     }
     pageInfo {
       hasNextPage
@@ -1563,15 +1554,6 @@ export const GetDeliverablesByProjectDocument = gql`
       status
       type
       projectId
-      acceptanceCriteria
-      executionPlan
-      agentFeedback
-      securityImpact
-      performanceImpact
-      testPlan
-      deploymentPlan
-      blocking
-      design
     }
   }
 }

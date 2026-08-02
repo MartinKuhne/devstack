@@ -7,15 +7,6 @@ query GetAllDeliverables($first: Int, $after: String, $where: DeliverableFilterI
             status
             type
             projectId
-            acceptanceCriteria
-            executionPlan
-            agentFeedback
-            securityImpact
-            performanceImpact
-            testPlan
-            deploymentPlan
-            blocking
-            design
         }
         pageInfo {
             hasNextPage
@@ -33,15 +24,6 @@ query GetDeliverablesByProject($projectId: UUID!) {
             status
             type
             projectId
-            acceptanceCriteria
-            executionPlan
-            agentFeedback
-            securityImpact
-            performanceImpact
-            testPlan
-            deploymentPlan
-            blocking
-            design
         }
     }
 }

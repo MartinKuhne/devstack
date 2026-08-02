@@ -91,82 +91,15 @@ const LargeLanguageModelsPage = lazy(() => {
     });
 });
 
-function DashboardPageWithErrorBoundary() {
-    return (
-        <ErrorBoundary name="Dashboard">
-            <Suspense fallback={<LoadingFallback />}>
-                <DashboardPage />
-            </Suspense>
-        </ErrorBoundary>
-    );
+interface LazyRouteProps {
+    name: string;
+    children: React.ReactNode;
 }
 
-function ProjectListPageWithErrorBoundary() {
+function LazyRoute({ name, children }: LazyRouteProps) {
     return (
-        <ErrorBoundary name="Projects">
-            <Suspense fallback={<LoadingFallback />}>
-                <ProjectListPage />
-            </Suspense>
-        </ErrorBoundary>
-    );
-}
-
-function ProjectDetailPageWithErrorBoundary() {
-    return (
-        <ErrorBoundary name="Project Detail">
-            <Suspense fallback={<LoadingFallback />}>
-                <ProjectDetailPage />
-            </Suspense>
-        </ErrorBoundary>
-    );
-}
-
-function DeliverableListPageWithErrorBoundary() {
-    return (
-        <ErrorBoundary name="Deliverables">
-            <Suspense fallback={<LoadingFallback />}>
-                <DeliverableListPage />
-            </Suspense>
-        </ErrorBoundary>
-    );
-}
-
-function DeliverableDetailPageWithErrorBoundary() {
-    return (
-        <ErrorBoundary name="Deliverable Detail">
-            <Suspense fallback={<LoadingFallback />}>
-                <DeliverableDetailPage />
-            </Suspense>
-        </ErrorBoundary>
-    );
-}
-
-function AgentTaskListPageWithErrorBoundary() {
-    return (
-        <ErrorBoundary name="Agent Tasks">
-            <Suspense fallback={<LoadingFallback />}>
-                <AgentTaskListPage />
-            </Suspense>
-        </ErrorBoundary>
-    );
-}
-
-function AgentTaskDetailPageWithErrorBoundary() {
-    return (
-        <ErrorBoundary name="Agent Task Detail">
-            <Suspense fallback={<LoadingFallback />}>
-                <AgentTaskDetailPage />
-            </Suspense>
-        </ErrorBoundary>
-    );
-}
-
-function LargeLanguageModelsPageWithErrorBoundary() {
-    return (
-        <ErrorBoundary name="Large Language Models">
-            <Suspense fallback={<LoadingFallback />}>
-                <LargeLanguageModelsPage />
-            </Suspense>
+        <ErrorBoundary name={name}>
+            <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
         </ErrorBoundary>
     );
 }
@@ -177,31 +110,69 @@ function App() {
             <ErrorBoundary>
                 <Routes>
                     <Route path="/" element={<AppShell />}>
-                        <Route index element={<DashboardPageWithErrorBoundary />} />
-                        <Route path="projects" element={<ProjectListPageWithErrorBoundary />} />
+                        <Route
+                            index
+                            element={
+                                <LazyRoute name="Dashboard">
+                                    <DashboardPage />
+                                </LazyRoute>
+                            }
+                        />
+                        <Route
+                            path="projects"
+                            element={
+                                <LazyRoute name="Projects">
+                                    <ProjectListPage />
+                                </LazyRoute>
+                            }
+                        />
                         <Route
                             path="projects/:id"
-                            element={<ProjectDetailPageWithErrorBoundary />}
+                            element={
+                                <LazyRoute name="Project Detail">
+                                    <ProjectDetailPage />
+                                </LazyRoute>
+                            }
                         />
                         <Route
                             path="deliverables"
-                            element={<DeliverableListPageWithErrorBoundary />}
+                            element={
+                                <LazyRoute name="Deliverables">
+                                    <DeliverableListPage />
+                                </LazyRoute>
+                            }
                         />
                         <Route
                             path="deliverables/:id"
-                            element={<DeliverableDetailPageWithErrorBoundary />}
+                            element={
+                                <LazyRoute name="Deliverable Detail">
+                                    <DeliverableDetailPage />
+                                </LazyRoute>
+                            }
                         />
                         <Route
                             path="agent-tasks"
-                            element={<AgentTaskListPageWithErrorBoundary />}
+                            element={
+                                <LazyRoute name="Agent Tasks">
+                                    <AgentTaskListPage />
+                                </LazyRoute>
+                            }
                         />
                         <Route
                             path="agent-tasks/:id"
-                            element={<AgentTaskDetailPageWithErrorBoundary />}
+                            element={
+                                <LazyRoute name="Agent Task Detail">
+                                    <AgentTaskDetailPage />
+                                </LazyRoute>
+                            }
                         />
                         <Route
                             path="models"
-                            element={<LargeLanguageModelsPageWithErrorBoundary />}
+                            element={
+                                <LazyRoute name="Large Language Models">
+                                    <LargeLanguageModelsPage />
+                                </LazyRoute>
+                            }
                         />
                         <Route path="*" element={<NotFoundPage />} />
                     </Route>

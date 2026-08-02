@@ -93,7 +93,8 @@ builder.Services.AddGraphQLServer()
     .DisableIntrospection(false)
     .AddErrorFilter<GraphQLErrorFilter>()
         .AddFiltering()
-        .AddSorting();
+        .AddSorting()
+        .ModifyCostOptions(options => options.MaxFieldCost = 10000);
 
 builder.Services.AddFeatureManagement();
 
