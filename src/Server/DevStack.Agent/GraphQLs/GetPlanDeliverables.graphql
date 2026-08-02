@@ -1,0 +1,22 @@
+"""List the deliverables in `PLAN` status for a given DevStack project.
+
+The agent's --show-plan flow runs this after resolving the current
+project from the git remote, so the agent can see what work is queued
+up to be planned. Results are sorted by title so the listing is
+stable across runs.
+"""
+query GetPlanDeliverables($projectId: UUID!) {
+  deliverables(
+    where: { projectId: { eq: $projectId }, status: { eq: PLAN } }
+    order: [{ title: ASC }]
+  ) {
+    nodes {
+      id
+      projectId
+      type
+      title
+      status
+      description
+    }
+  }
+}

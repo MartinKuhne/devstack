@@ -62,6 +62,9 @@ try
     // Register the CLI itself.
     builder.Services.AddSingleton<OpenCodeAgent>();
     builder.Services.AddSingleton<DevStackProjectClient>();
+    builder.Services.AddSingleton<RepositoryLocator>();
+    builder.Services.AddSingleton<RepositoryContextResolver>();
+    builder.Services.AddSingleton<PlanDeliverableLister>();
 
     using var host = builder.Build();
 
@@ -91,6 +94,12 @@ try
             return 2;
         }
         return await RunGetProjectAsync(host.Services, id);
+    }
+
+    if (HasFlag(args, "--show-plan"))
+    {
+        var repositoryRoot = ParseFlag(args, "--repositoryRoot");
+        return await RunShowPlanAsync(host.Services, repositoryRoot);
     }
 
     var prompt = ParsePrompt(args, host.Services.GetRequiredService<ILogger<OpenCodeAgent>>());
@@ -248,6 +257,76 @@ static async Task<int> RunGetProjectAsync(IServiceProvider services, Guid id)
     if (!string.IsNullOrWhiteSpace(project.Description))
     {
         Console.WriteLine($"  describe:  {project.Description}");
+    }
+    return 0;
+}
+
+static async Task<int> RunShowPlanAsync(IServiceProvider services, string? repositoryRoot)
+{
+    var locator = services.GetRequiredService<RepositoryLocator>();
+    var resolver = services.GetRequiredService<RepositoryContextResolver>();
+    var lister = services.GetRequiredService<PlanDeliverableLister>();
+    var openCode = services.GetService<DevStack.OpenCode.Client.IOpenCodeClient>();
+
+    // The RepositoryLocator's IOpenCodeClient dependency is optional:
+    // --show-plan without an OpenCode server running must still work
+    // when --repositoryRoot is supplied. The singleton resolver we
+    // registered always has a non-null IOpenCodeClient because DI
+    // built it; use a fresh locator that bypasses the SDK for the
+    // override path.
+    var locatorForShowPlan = openCode is null ? locator : new RepositoryLocator(openCode, services.GetRequiredService<ILogger<RepositoryLocator>>());
+
+    RepositoryContext context;
+    try
+    {
+        var worktree = await locatorForShowPlan.LocateAsync(repositoryRoot);
+        context = await resolver.ResolveAsync(worktree);
+    }
+    catch (Exception ex) when (ex is InvalidOperationException or DirectoryNotFoundException or LibGit2Sharp.NotFoundException or LibGit2Sharp.RepositoryNotFoundException)
+    {
+        Console.Error.WriteLine($"error: {ex.Message}");
+        return 2;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Repository: {context.Worktree}");
+    Console.WriteLine($"  remote:   {context.CanonicalRemoteUrl}");
+    if (context.GitHub is { } gh)
+    {
+        Console.WriteLine($"  github:   {gh.Owner}/{gh.Name}");
+    }
+
+    PlanDeliverableReport report;
+    try
+    {
+        report = await lister.ListAsync(context);
+    }
+    catch (InvalidOperationException ex)
+    {
+        // "No DevStack project is registered for repository '...'" —
+        // surface as a friendly error rather than a fatal stack trace.
+        Console.Error.WriteLine($"error: {ex.Message}");
+        return 2;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"DevStack project: {report.Project.Name} ({report.Project.Id})");
+    Console.WriteLine($"PLAN deliverables ({report.PlanDeliverables.Count}):");
+    Console.WriteLine();
+    if (report.PlanDeliverables.Count == 0)
+    {
+        Console.WriteLine("  (none)");
+        return 0;
+    }
+
+    foreach (var d in report.PlanDeliverables)
+    {
+        Console.WriteLine($"  [{d.Type,-11}] {d.Title}");
+        Console.WriteLine($"      id:      {d.Id}");
+        if (!string.IsNullOrWhiteSpace(d.Description))
+        {
+            Console.WriteLine($"      describe: {d.Description}");
+        }
     }
     return 0;
 }

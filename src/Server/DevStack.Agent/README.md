@@ -41,6 +41,8 @@ dotnet run --project src/Server/DevStack.Agent -- \
 | `--list-projects` *(GraphQL)* | _off_ | List projects from the DevStack GraphQL API instead of running the OpenCode prompt. Pair with `--list-projects-first <n>` to cap the page size (default 50). |
 | `--get-project <uuid>` *(GraphQL)* | _off_ | Look up a single project by id via the DevStack GraphQL API. |
 | `--devstack:graphql:base-url <url>` | `http://localhost:8087/graphql` | Override the DevStack GraphQL endpoint. |
+| `--show-plan` *(GraphQL + Git + GitHub)* | _off_ | Resolve the current git repository, look up the matching DevStack project, and list its `PLAN`-status deliverables. See [Repository-aware plan listing](#repository-aware-plan-listing) below. |
+| `--repositoryRoot <path>` | _unset — falls back to the OpenCode server's worktree_ | Override the worktree path used by `--show-plan`. Useful when the OpenCode server is not running. |
 
 ### Configuration
 
@@ -184,4 +186,67 @@ dotnet run --project src/Server/DevStack.Api --urls http://localhost:8087
 #    starting an OpenCode server.
 dotnet run --project src/Server/DevStack.Agent -- --list-projects
 dotnet run --project src/Server/DevStack.Agent -- --get-project c33c8df4-b40c-41dc-b92f-c691197210c0
+```
+
+## Repository-aware plan listing
+
+`--show-plan` ties the three libraries together to give the agent
+context about what it can do right now:
+
+1. **Resolve the worktree.** `RepositoryLocator` first asks the
+   OpenCode SDK for `project/current` and uses the server's
+   `worktree` field. If the SDK is unreachable (or `--repositoryRoot`
+   is supplied) the locator falls back to the override.
+2. **Read the git remote.** `RepositoryContextResolver` opens the
+   worktree with `LibGit2Sharp`, reads the `origin` remote URL, and
+   normalizes it (SSH → HTTPS) to a canonical URL that matches the
+   `Project.repository` field on the DevStack side. The original
+   `.git` suffix is preserved because that's what existing projects
+   store.
+3. **Verify on GitHub (best-effort).** When the remote is a GitHub
+   URL, the resolver asks `Octokit` for the repository's
+   default-branch / visibility metadata. Set `GITHUB_TOKEN` to
+   raise the rate limit; failure is logged and the listing
+   continues with the locally-known owner/name.
+4. **Find the DevStack project.** `DevStackProjectClient
+   .FindProjectByRepositoryAsync` calls the new
+   `GetProjectByRepository` GraphQL operation (added to
+   `GraphQLs/`) to resolve the canonical URL to a project.
+5. **List `PLAN` deliverables.** `PlanDeliverableLister` calls
+   `DevStackProjectClient.ListPlanDeliverablesAsync`, backed by
+   the new `GetPlanDeliverables` GraphQL operation, and prints
+   every match.
+
+```text
+Repository: C:\Users\mkuhn\src\devstack
+  remote:   https://github.com/MartinKuhne/devstack.git
+  github:   MartinKuhne/devstack
+
+DevStack project: personal-productivity-ai (c33c8df4-b40c-41dc-b92f-c691197210c0)
+PLAN deliverables (10):
+
+  [Feature    ] Agent Session as a Regular Tab
+      id:      …
+      describe: …
+  …
+```
+
+Failure modes are surfaced as `error: …` on stderr with exit code 2
+(missing repository, no DevStack project registered for the URL,
+unsupported path). The OpenCode prompt flow is not affected.
+
+### Smoke test without the OpenCode server
+
+The `--repositoryRoot` override is the way to exercise the listing
+without a running OpenCode server — useful in CI or local
+debugging:
+
+```bash
+# Use a throwaway git repo whose origin points at an existing
+# DevStack project to prove the full chain.
+tmp=$(mktemp -d) && cd "$tmp" && git init -q && \
+  git remote add origin https://github.com/MartinKuhne/personal-productivity-ai.git
+
+dotnet run --project src/Server/DevStack.Agent -- \
+  --show-plan --repositoryRoot "$tmp"
 ```
