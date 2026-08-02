@@ -14,30 +14,7 @@ on:
   push:
     branches: [ main, dev ]
     paths:
-      - 'src/Server/DevStack.Tests.Integration.GraphQL/**'
-      - 'src/Server/DevStack.Tests.Integration.MCP/**'
-      - 'src/Server/DevStack.Tests.Integration.Shared/**'
-      - 'src/Server/DevStack.Api/**'
-      - 'src/Server/DevStack.Mcp/**'
-      - 'src/Server/DevStack.Application/**'
-      - 'src/Server/DevStack.Domain/**'
-      - 'src/Server/DevStack.Infrastructure/**'
-      - 'src/Server/DevStack.Persistence/**'
-      - 'src/Server/DevStack.Contracts/**'
-      - '.github/workflows/integration-tests.yml'
-  pull_request:
-    branches: [ main, dev ]
-    paths:
-      - 'src/Server/DevStack.Tests.Integration.GraphQL/**'
-      - 'src/Server/DevStack.Tests.Integration.MCP/**'
-      - 'src/Server/DevStack.Tests.Integration.Shared/**'
-      - 'src/Server/DevStack.Api/**'
-      - 'src/Server/DevStack.Mcp/**'
-      - 'src/Server/DevStack.Application/**'
-      - 'src/Server/DevStack.Domain/**'
-      - 'src/Server/DevStack.Infrastructure/**'
-      - 'src/Server/DevStack.Persistence/**'
-      - 'src/Server/DevStack.Contracts/**'
+      - 'src/Server/**'
       - '.github/workflows/integration-tests.yml'
 
 env:
