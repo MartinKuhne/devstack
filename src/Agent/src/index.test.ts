@@ -3,7 +3,7 @@ import { logger } from './logger.js';
 import { DevStackGraphQLClient } from './graphql/client.js';
 import { GitService } from './git/gitService.js';
 import { GitHubService } from './github/githubService.js';
-import { OpenCodeService } from './opencode/opencodeService.js';
+import { OpenCodeAgentEngine } from './opencode/opencodeEngine.js';
 
 describe('DevStack Agent Module', () => {
   it('should initialize pino logger', () => {
@@ -19,7 +19,7 @@ describe('DevStack Agent Module', () => {
   it('should instantiate GitService', () => {
     const gitService = new GitService();
     expect(gitService).toBeDefined();
-    expect(typeof gitService.getStatus).toBe('function');
+    expect(typeof gitService.getOriginRemoteUrl).toBe('function');
   });
 
   it('should instantiate GitHubService', () => {
@@ -27,8 +27,8 @@ describe('DevStack Agent Module', () => {
     expect(githubService).toBeDefined();
   });
 
-  it('should instantiate OpenCodeService', () => {
-    const opencodeService = new OpenCodeService();
-    expect(opencodeService.getClient()).toBeDefined();
+  it('should instantiate OpenCodeAgentEngine', () => {
+    const engine = new OpenCodeAgentEngine();
+    expect(engine.getClient()).toBeDefined();
   });
 });

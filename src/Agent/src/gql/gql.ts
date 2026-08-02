@@ -15,9 +15,13 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  */
 type Documents = {
     "\n  query GetProjects($first: Int) {\n    projects(first: $first) {\n      nodes {\n        id\n        name\n        description\n        repository\n      }\n    }\n  }\n": typeof types.GetProjectsDocument,
+    "\n  query GetProjectById($id: UUID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      repository\n      deliverables {\n        id\n        title\n        type\n        status\n        description\n      }\n    }\n  }\n": typeof types.GetProjectByIdDocument,
+    "\n  query GetProjectsForResolver {\n    projects {\n      nodes {\n        id\n        name\n        description\n        repository\n        deliverables {\n          id\n          title\n          type\n          status\n          description\n        }\n      }\n    }\n  }\n": typeof types.GetProjectsForResolverDocument,
 };
 const documents: Documents = {
     "\n  query GetProjects($first: Int) {\n    projects(first: $first) {\n      nodes {\n        id\n        name\n        description\n        repository\n      }\n    }\n  }\n": types.GetProjectsDocument,
+    "\n  query GetProjectById($id: UUID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      repository\n      deliverables {\n        id\n        title\n        type\n        status\n        description\n      }\n    }\n  }\n": types.GetProjectByIdDocument,
+    "\n  query GetProjectsForResolver {\n    projects {\n      nodes {\n        id\n        name\n        description\n        repository\n        deliverables {\n          id\n          title\n          type\n          status\n          description\n        }\n      }\n    }\n  }\n": types.GetProjectsForResolverDocument,
 };
 
 /**
@@ -38,6 +42,14 @@ export function gql(source: string): unknown;
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  query GetProjects($first: Int) {\n    projects(first: $first) {\n      nodes {\n        id\n        name\n        description\n        repository\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetProjects($first: Int) {\n    projects(first: $first) {\n      nodes {\n        id\n        name\n        description\n        repository\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetProjectById($id: UUID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      repository\n      deliverables {\n        id\n        title\n        type\n        status\n        description\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetProjectById($id: UUID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      repository\n      deliverables {\n        id\n        title\n        type\n        status\n        description\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetProjectsForResolver {\n    projects {\n      nodes {\n        id\n        name\n        description\n        repository\n        deliverables {\n          id\n          title\n          type\n          status\n          description\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetProjectsForResolver {\n    projects {\n      nodes {\n        id\n        name\n        description\n        repository\n        deliverables {\n          id\n          title\n          type\n          status\n          description\n        }\n      }\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};
