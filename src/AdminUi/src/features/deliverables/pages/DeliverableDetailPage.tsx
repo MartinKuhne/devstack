@@ -175,114 +175,29 @@ export function DeliverableDetailPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
-                    {deliverable.description && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Description</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.description} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.acceptanceCriteria && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Acceptance Criteria</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.acceptanceCriteria} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.executionPlan && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Execution Plan</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.executionPlan} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.securityImpact && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Security Impact</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.securityImpact} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.performanceImpact && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Performance Impact</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.performanceImpact} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.testPlan && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Test Plan</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.testPlan} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.deploymentPlan && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Deployment Plan</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.deploymentPlan} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.agentFeedback && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Agent Feedback</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.agentFeedback} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.blocking && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Blocking</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.blocking} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {deliverable.design && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Design</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MarkdownViewer content={deliverable.design} />
-                            </CardContent>
-                        </Card>
+                    {([
+                        { key: 'description', title: 'Description' },
+                        { key: 'acceptanceCriteria', title: 'Acceptance Criteria' },
+                        { key: 'executionPlan', title: 'Execution Plan' },
+                        { key: 'securityImpact', title: 'Security Impact' },
+                        { key: 'performanceImpact', title: 'Performance Impact' },
+                        { key: 'testPlan', title: 'Test Plan' },
+                        { key: 'deploymentPlan', title: 'Deployment Plan' },
+                        { key: 'agentFeedback', title: 'Agent Feedback' },
+                        { key: 'blocking', title: 'Blocking' },
+                        { key: 'design', title: 'Design' },
+                    ] as const).map(
+                        ({ key, title }) =>
+                            deliverable[key] ? (
+                                <Card key={key}>
+                                    <CardHeader>
+                                        <CardTitle>{title}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <MarkdownViewer content={deliverable[key]!} />
+                                    </CardContent>
+                                </Card>
+                            ) : null
                     )}
                 </div>
 
