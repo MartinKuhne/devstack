@@ -5,6 +5,7 @@
   <Project Path="DevStack.Domain/DevStack.Domain.csproj" />
   <Project Path="DevStack.Infrastructure/DevStack.Infrastructure.csproj" />
   <Project Path="DevStack.Mcp/DevStack.Mcp.csproj" />
+  <Project Path="DevStack.OpenCode/DevStack.OpenCode.csproj" />
   <Project Path="DevStack.Persistence/DevStack.Persistence.csproj" />
   <Project Path="DevStack.Tests.Integration.GraphQL/DevStack.Tests.Integration.GraphQL.csproj" />
   <Project Path="DevStack.Tests.Integration.MCP/DevStack.Tests.Integration.MCP.csproj" />
