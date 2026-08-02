@@ -38,6 +38,7 @@ dotnet run --project src/Server/DevStack.Agent -- \
 | `--model <provider/model>` | auto — first connected provider's model matching `*free*` (case-insensitive), then the first connected provider's default, then `anthropic/claude-3-5-sonnet` | Model to address. The startup listing will warn if the chosen model isn't in the server's inventory. |
 | `--title <text>` | `DevStack.Agent @ <UTC timestamp>` | Title for the created session. |
 | `--opencode:BaseUrl <url>` | `http://127.0.0.1:4096/` | Override the OpenCode base URL (passed through `IConfiguration.AddCommandLine`). |
+| `--opencode:HttpTimeout <timespan>` | `00:10:00` | Override the per-HTTP-call timeout used by the OpenCode SDK. The default is 10 minutes because `--run-plan` and other LLM-driven flows can take several minutes per call; bump it higher (e.g. `00:30:00`) for very long plan generations or drop it for tighter failure detection. |
 | `--list-projects` *(GraphQL)* | _off_ | List projects from the DevStack GraphQL API instead of running the OpenCode prompt. Pair with `--list-projects-first <n>` to cap the page size (default 50). |
 | `--get-project <uuid>` *(GraphQL)* | _off_ | Look up a single project by id via the DevStack GraphQL API. |
 | `--devstack:graphql:base-url <url>` | `http://localhost:8087/graphql` | Override the DevStack GraphQL endpoint. |
@@ -54,13 +55,13 @@ dotnet run --project src/Server/DevStack.Agent -- \
 {
   "OpenCode": {
     "BaseUrl": "http://127.0.0.1:4096/",
-    "HttpTimeout": "00:01:00",
+    "HttpTimeout": "00:10:00",
     "UserAgent": "DevStack.Agent/0.1"
   }
 }
 ```
 
-You can also override via environment variables (`OpenCode__BaseUrl=http://10.0.0.5:4096/`) or the `--opencode:BaseUrl=…` command-line switch. The order of precedence is:
+You can also override via environment variables (`OpenCode__BaseUrl=http://10.0.0.5:4096/`, `OpenCode__HttpTimeout=00:30:00`) or the `--opencode:BaseUrl=…` / `--opencode:HttpTimeout=…` command-line switches. The order of precedence is:
 
 1. Command-line (`AddCommandLine` — highest)
 2. Environment variables (`AddEnvironmentVariables`)

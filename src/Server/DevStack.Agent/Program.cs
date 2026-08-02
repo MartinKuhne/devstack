@@ -74,6 +74,7 @@ try
     var options = host.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<DevStack.OpenCode.Options.OpenCodeOptions>>().Value;
     Console.WriteLine($"  baseUrl:   {options.BaseUrl}");
     Console.WriteLine($"  userAgent: {options.UserAgent}");
+    Console.WriteLine($"  timeout:   {options.HttpTimeout}");
     Console.WriteLine($"  graphQL:   {graphQLBaseUrl}");
     Console.WriteLine();
 
