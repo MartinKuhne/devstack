@@ -65,6 +65,7 @@ try
     builder.Services.AddSingleton<RepositoryLocator>();
     builder.Services.AddSingleton<RepositoryContextResolver>();
     builder.Services.AddSingleton<PlanDeliverableLister>();
+    builder.Services.AddSingleton<PlanExecutor>();
 
     using var host = builder.Build();
 
@@ -100,6 +101,14 @@ try
     {
         var repositoryRoot = ParseFlag(args, "--repositoryRoot");
         return await RunShowPlanAsync(host.Services, repositoryRoot);
+    }
+
+    if (HasFlag(args, "--run-plan"))
+    {
+        var repositoryRoot = ParseFlag(args, "--repositoryRoot");
+        var promptPath = ResolvePlanPromptPath(builder.Configuration, args);
+        var requestedModel = ParseModel(args, host.Services.GetRequiredService<ILogger<OpenCodeAgent>>());
+        return await RunRunPlanAsync(host.Services, repositoryRoot, promptPath, requestedModel);
     }
 
     var prompt = ParsePrompt(args, host.Services.GetRequiredService<ILogger<OpenCodeAgent>>());
@@ -169,6 +178,30 @@ static string? ParseFlag(string[] argv, string name)
     }
 
     return null;
+}
+
+/// <summary>
+/// Resolves the plan prompt template path, honouring (highest
+/// precedence first): <c>--plan-prompt &lt;path&gt;</c>, the
+/// <c>DevStack__Plan__PromptPath</c> environment variable, the
+/// <c>DevStack:Plan:PromptPath</c> appsettings key, and finally the
+/// repo-relative default <c>scripts/prompts/plan.prompt</c>. Relative
+/// paths are resolved against the worktree by
+/// <see cref="PlanExecutor.ResolvePromptPath"/> at execution time.
+/// </summary>
+static string ResolvePlanPromptPath(IConfiguration configuration, string[] argv)
+{
+    const string Key = "DevStack:Plan:PromptPath";
+    const string CliKey = "--plan-prompt";
+
+    var fromCli = ParseFlag(argv, CliKey);
+    if (!string.IsNullOrWhiteSpace(fromCli))
+    {
+        return fromCli;
+    }
+
+    var fromConfig = configuration[Key];
+    return string.IsNullOrWhiteSpace(fromConfig) ? "scripts/prompts/plan.prompt" : fromConfig;
 }
 
 static int ParseIntFlag(string[] argv, string name, int defaultValue)
@@ -263,29 +296,9 @@ static async Task<int> RunGetProjectAsync(IServiceProvider services, Guid id)
 
 static async Task<int> RunShowPlanAsync(IServiceProvider services, string? repositoryRoot)
 {
-    var locator = services.GetRequiredService<RepositoryLocator>();
-    var resolver = services.GetRequiredService<RepositoryContextResolver>();
-    var lister = services.GetRequiredService<PlanDeliverableLister>();
-    var openCode = services.GetService<DevStack.OpenCode.Client.IOpenCodeClient>();
-
-    // The RepositoryLocator's IOpenCodeClient dependency is optional:
-    // --show-plan without an OpenCode server running must still work
-    // when --repositoryRoot is supplied. The singleton resolver we
-    // registered always has a non-null IOpenCodeClient because DI
-    // built it; use a fresh locator that bypasses the SDK for the
-    // override path.
-    var locatorForShowPlan = openCode is null ? locator : new RepositoryLocator(openCode, services.GetRequiredService<ILogger<RepositoryLocator>>());
-
-    RepositoryContext context;
-    try
+    if (!TryResolvePlanContext(services, repositoryRoot, out var context, out var report, out var exitCode))
     {
-        var worktree = await locatorForShowPlan.LocateAsync(repositoryRoot);
-        context = await resolver.ResolveAsync(worktree);
-    }
-    catch (Exception ex) when (ex is InvalidOperationException or DirectoryNotFoundException or LibGit2Sharp.NotFoundException or LibGit2Sharp.RepositoryNotFoundException)
-    {
-        Console.Error.WriteLine($"error: {ex.Message}");
-        return 2;
+        return exitCode;
     }
 
     Console.WriteLine();
@@ -295,20 +308,6 @@ static async Task<int> RunShowPlanAsync(IServiceProvider services, string? repos
     {
         Console.WriteLine($"  github:   {gh.Owner}/{gh.Name}");
     }
-
-    PlanDeliverableReport report;
-    try
-    {
-        report = await lister.ListAsync(context);
-    }
-    catch (InvalidOperationException ex)
-    {
-        // "No DevStack project is registered for repository '...'" —
-        // surface as a friendly error rather than a fatal stack trace.
-        Console.Error.WriteLine($"error: {ex.Message}");
-        return 2;
-    }
-
     Console.WriteLine();
     Console.WriteLine($"DevStack project: {report.Project.Name} ({report.Project.Id})");
     Console.WriteLine($"PLAN deliverables ({report.PlanDeliverables.Count}):");
@@ -325,4 +324,106 @@ static async Task<int> RunShowPlanAsync(IServiceProvider services, string? repos
         Console.WriteLine($"  {d.Type,-10}  {d.Id,-36}  {d.Status,-6}  {d.Title}");
     }
     return 0;
+}
+
+static async Task<int> RunRunPlanAsync(IServiceProvider services, string? repositoryRoot, string promptPath, DevStack.OpenCode.Models.ModelRef? model)
+{
+    if (!TryResolvePlanContext(services, repositoryRoot, out var context, out var report, out var exitCode))
+    {
+        return exitCode;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Repository: {context.Worktree}");
+    Console.WriteLine($"  remote:   {context.CanonicalRemoteUrl}");
+    if (context.GitHub is { } gh)
+    {
+        Console.WriteLine($"  github:   {gh.Owner}/{gh.Name}");
+    }
+    Console.WriteLine();
+    Console.WriteLine($"DevStack project: {report.Project.Name} ({report.Project.Id})");
+    Console.WriteLine($"Prompt template: {promptPath} (resolved against the worktree if relative)");
+    Console.WriteLine($"Executing plan for {report.PlanDeliverables.Count} deliverable(s)…");
+
+    if (report.PlanDeliverables.Count == 0)
+    {
+        Console.WriteLine();
+        Console.WriteLine("  (nothing to plan)");
+        return 0;
+    }
+
+    var executor = services.GetRequiredService<PlanExecutor>();
+    PlanRunSummary summary;
+    try
+    {
+        summary = await executor.ExecuteAsync(report, context, promptPath, model: model);
+    }
+    catch (FileNotFoundException ex)
+    {
+        Console.Error.WriteLine($"error: {ex.Message}");
+        return 2;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Plan summary: {summary.Processed.Count} succeeded, {summary.Failures.Count} failed.");
+    return summary.AllSucceeded ? 0 : 3;
+}
+
+/// <summary>
+/// Shared "resolve the worktree, parse the git remote, find the
+/// DevStack project, and list PLAN deliverables" helper for
+/// <c>--show-plan</c> and <c>--run-plan</c>. Returns <c>true</c> on
+/// success and writes the exit code to <paramref name="exitCode"/>
+/// on failure (always prints a friendly <c>error: …</c> on stderr
+/// for failures, matching the existing CLI conventions).
+/// </summary>
+static bool TryResolvePlanContext(
+    IServiceProvider services,
+    string? repositoryRoot,
+    out RepositoryContext context,
+    out PlanDeliverableReport report,
+    out int exitCode)
+{
+    context = null!;
+    report = null!;
+    exitCode = 0;
+
+    var resolver = services.GetRequiredService<RepositoryContextResolver>();
+    var lister = services.GetRequiredService<PlanDeliverableLister>();
+    var openCode = services.GetService<DevStack.OpenCode.Client.IOpenCodeClient>();
+
+    // Build a locator that uses the OpenCode SDK when it is
+    // available, or a no-SDK locator when it isn't (so --show-plan
+    // and --run-plan both work without an OpenCode server as long
+    // as --repositoryRoot is supplied).
+    var locator = openCode is null
+        ? new RepositoryLocator(null, services.GetRequiredService<ILogger<RepositoryLocator>>())
+        : new RepositoryLocator(openCode, services.GetRequiredService<ILogger<RepositoryLocator>>());
+
+    try
+    {
+        var worktree = locator.LocateAsync(repositoryRoot).GetAwaiter().GetResult();
+        context = resolver.ResolveAsync(worktree).GetAwaiter().GetResult();
+    }
+    catch (Exception ex) when (ex is InvalidOperationException or DirectoryNotFoundException or LibGit2Sharp.NotFoundException or LibGit2Sharp.RepositoryNotFoundException)
+    {
+        Console.Error.WriteLine($"error: {ex.Message}");
+        exitCode = 2;
+        return false;
+    }
+
+    try
+    {
+        report = lister.ListAsync(context).GetAwaiter().GetResult();
+    }
+    catch (InvalidOperationException ex)
+    {
+        // "No DevStack project is registered for repository '...'" —
+        // surface as a friendly error rather than a fatal stack trace.
+        Console.Error.WriteLine($"error: {ex.Message}");
+        exitCode = 2;
+        return false;
+    }
+
+    return true;
 }

@@ -42,7 +42,9 @@ dotnet run --project src/Server/DevStack.Agent -- \
 | `--get-project <uuid>` *(GraphQL)* | _off_ | Look up a single project by id via the DevStack GraphQL API. |
 | `--devstack:graphql:base-url <url>` | `http://localhost:8087/graphql` | Override the DevStack GraphQL endpoint. |
 | `--show-plan` *(GraphQL + Git + GitHub)* | _off_ | Resolve the current git repository, look up the matching DevStack project, and list its `PLAN`-status deliverables. See [Repository-aware plan listing](#repository-aware-plan-listing) below. |
-| `--repositoryRoot <path>` | _unset — falls back to the OpenCode server's worktree_ | Override the worktree path used by `--show-plan`. Useful when the OpenCode server is not running. |
+| `--run-plan` *(GraphQL + Git + GitHub + LLM)* | _off_ | Same discovery as `--show-plan`, then for every `PLAN`-status deliverable, render the plan prompt and execute it through the OpenCode SDK. See [Plan mode](#plan-mode) below. |
+| `--repositoryRoot <path>` | _unset — falls back to the OpenCode server's worktree_ | Override the worktree path used by `--show-plan` / `--run-plan`. Useful when the OpenCode server is not running. |
+| `--plan-prompt <path>` | `scripts/prompts/plan.prompt` (relative to the worktree) | Path to the prompt template used by `--run-plan`. Relative paths resolve against the worktree; absolute paths are used as-is. |
 
 ### Configuration
 
@@ -111,6 +113,63 @@ dotnet run --project src/Server/DevStack.Agent
 ```
 
 The project is added to `DevStack.slnx` and depends on `DevStack.OpenCode`.
+
+## Plan mode
+
+`--run-plan` is the same discovery as `--show-plan`, then for every
+`PLAN`-status deliverable it reads the prompt template, substitutes
+the `{{DeliverableId}}` token with the deliverable's id, and
+executes the rendered prompt through the OpenCode SDK. One OpenCode
+session is created per deliverable; failures in one deliverable are
+logged and the run continues with the next one.
+
+```bash
+# Discover the worktree from the running OpenCode SDK, then plan
+# every PLAN deliverable in the matching DevStack project.
+dotnet run --project src/Server/DevStack.Agent -- --run-plan
+
+# Use a custom template (relative or absolute), pin the model.
+dotnet run --project src/Server/DevStack.Agent -- \
+  --run-plan \
+  --repositoryRoot /path/to/checkout \
+  --plan-prompt /absolute/path/to/plan.prompt \
+  --model anthropic/claude-3-5-sonnet-20241022
+```
+
+Sample output (truncated for the README):
+
+```text
+Repository: C:\src\my-project
+  remote:   https://github.com/owner/my-project.git
+  github:   owner/my-project
+
+DevStack project: my-project (c33c8df4-…)
+Prompt template: scripts/prompts/plan.prompt (resolved against the worktree if relative)
+Executing plan for 3 deliverable(s)…
+
+→ Planning Agent Session as a Regular Tab (e6df3c45-…)
+  type:     Feature
+  status:   Plan
+…(reply from the model)…
+✓ Done. sessionId=ses_…
+
+→ Planning Batch jobs uses a persisted queue (a44497f8-…)
+…
+```
+
+The final summary line is always printed:
+
+```text
+Plan summary: N succeeded, M failed.
+```
+
+Exit codes:
+
+| Code | Meaning |
+|------|---------|
+| 0 | All deliverables planned. |
+| 2 | Could not discover the repository, no DevStack project matches, or the prompt template was not found. |
+| 3 | At least one deliverable failed mid-execution. |
 
 ## GraphQL via StrawberryShake
 
