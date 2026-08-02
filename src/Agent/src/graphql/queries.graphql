@@ -1,0 +1,56 @@
+query GetProjects($first: Int) {
+  projects(first: $first) {
+    nodes {
+      id
+      name
+      description
+      repository
+    }
+  }
+}
+
+query GetProjectById($id: UUID!) {
+  project(id: $id) {
+    id
+    name
+    description
+    repository
+    deliverables {
+      id
+      title
+      type
+      status
+      description
+    }
+  }
+}
+
+query GetProjectsForResolver {
+  projects {
+    nodes {
+      id
+      name
+      description
+      repository
+      deliverables {
+        id
+        title
+        type
+        status
+        description
+      }
+    }
+  }
+}
+
+query GetPlanDeliverablesForProject($projectId: UUID!) {
+  deliverables(where: { projectId: { eq: $projectId }, status: { eq: PLAN } }) {
+    nodes {
+      id
+      title
+      type
+      status
+      description
+    }
+  }
+}

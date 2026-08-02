@@ -1,4 +1,5 @@
 import { DevStackGraphQLClient } from './client.js';
+import { printMessage, exitProcess, EXIT_CODE_SUCCESS } from '../cli/output.js';
 
 /**
  * [AG-180 - AG-182] Handles --list-projects execution.
@@ -10,22 +11,22 @@ export async function executeListProjects(
   const projects = await client.getProjects(count);
 
   if (projects.length === 0) {
-    console.log('No projects returned by the DevStack GraphQL API.');
-    process.exit(0);
+    printMessage('No projects returned by the DevStack GraphQL API.');
+    exitProcess(EXIT_CODE_SUCCESS);
   }
 
-  console.log(`DevStack projects (${projects.length}):`);
+  printMessage(`DevStack projects (${projects.length}):`);
   for (const p of projects) {
-    console.log(`  id: ${p.id}`);
-    console.log(`  name: ${p.name}`);
-    console.log(`  repo: ${p.repository}`);
+    printMessage(`  id: ${p.id}`);
+    printMessage(`  name: ${p.name}`);
+    printMessage(`  repo: ${p.repository}`);
     if (p.description && p.description.trim()) {
-      console.log(`  describe: ${p.description.trim()}`);
+      printMessage(`  describe: ${p.description.trim()}`);
     }
-    console.log('');
+    printMessage('');
   }
 
-  process.exit(0);
+  exitProcess(EXIT_CODE_SUCCESS);
 }
 
 /**
@@ -38,25 +39,25 @@ export async function executeGetProject(
   const project = await client.getProjectById(uuid);
 
   if (!project) {
-    console.log(`Project ${uuid} not found.`);
-    process.exit(0);
+    printMessage(`Project ${uuid} not found.`);
+    exitProcess(EXIT_CODE_SUCCESS);
   }
 
-  console.log(`Project ${project.id}: ${project.name}`);
-  console.log(`repo: ${project.repository}`);
+  printMessage(`Project ${project.id}: ${project.name}`);
+  printMessage(`repo: ${project.repository}`);
   if (project.description && project.description.trim()) {
-    console.log(`describe: ${project.description.trim()}`);
+    printMessage(`describe: ${project.description.trim()}`);
   }
 
   const deliverables = project.deliverables || [];
-  console.log(`deliverables (${deliverables.length}):`);
+  printMessage(`deliverables (${deliverables.length}):`);
   if (deliverables.length === 0) {
-    console.log('  (none)');
+    printMessage('  (none)');
   } else {
     for (const d of deliverables) {
-      console.log(`  - [${d.status}] ${d.title} (${d.id}) - type: ${d.type}`);
+      printMessage(`  - [${d.status}] ${d.title} (${d.id}) - type: ${d.type}`);
     }
   }
 
-  process.exit(0);
+  exitProcess(EXIT_CODE_SUCCESS);
 }

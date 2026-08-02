@@ -1,6 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
 import { logger } from '../logger.js';
-import { GET_PROJECTS, GET_PROJECT_BY_ID, GET_PROJECTS_FOR_RESOLVER } from './queries.js';
+import { getSdk, Sdk } from '../gql/generated.js';
 
 export interface DevStackGraphQLClientOptions {
   endpoint: string;
@@ -28,11 +28,13 @@ export interface DeliverableDto {
  */
 export class DevStackGraphQLClient {
   private client: GraphQLClient;
+  private sdk: Sdk;
 
   constructor(options: DevStackGraphQLClientOptions) {
     this.client = new GraphQLClient(options.endpoint, {
       headers: options.headers,
     });
+    this.sdk = getSdk(this.client);
     logger.debug({ endpoint: options.endpoint }, 'Initialized GraphQL Client');
   }
 
@@ -44,7 +46,7 @@ export class DevStackGraphQLClient {
    * [AG-180] Queries projects list with specified first limit (default 50).
    */
   public async getProjects(first = 50): Promise<ProjectDto[]> {
-    const data = await this.client.request(GET_PROJECTS, { first });
+    const data = await this.sdk.GetProjects({ first });
     const nodes = data.projects?.nodes || [];
     return nodes.map((node) => ({
       id: node.id,
@@ -58,7 +60,7 @@ export class DevStackGraphQLClient {
    * [AG-184] Queries a single project by UUID.
    */
   public async getProjectById(id: string): Promise<ProjectDto | null> {
-    const data = await this.client.request(GET_PROJECT_BY_ID, { id });
+    const data = await this.sdk.GetProjectById({ id });
     if (!data.project) return null;
     return {
       id: data.project.id,
@@ -79,7 +81,7 @@ export class DevStackGraphQLClient {
    * Matches a DevStack project by normalized remote git URL.
    */
   public async findProjectByRepository(normalizedUrl: string): Promise<ProjectDto | null> {
-    const data = await this.client.request(GET_PROJECTS_FOR_RESOLVER);
+    const data = await this.sdk.GetProjectsForResolver();
     const nodes = data.projects?.nodes || [];
     const match = nodes.find(
       (p) => p.repository.toLowerCase() === normalizedUrl.toLowerCase()
@@ -98,5 +100,20 @@ export class DevStackGraphQLClient {
         description: d.description,
       })),
     };
+  }
+
+  /**
+   * [AG-145] Queries deliverables for a project in PLAN status directly.
+   */
+  public async getPlanDeliverables(projectId: string): Promise<DeliverableDto[]> {
+    const data = await this.sdk.GetPlanDeliverablesForProject({ projectId });
+    const nodes = data.deliverables?.nodes || [];
+    return nodes.map((d) => ({
+      id: d.id,
+      title: d.title,
+      type: String(d.type),
+      status: String(d.status),
+      description: d.description,
+    }));
   }
 }

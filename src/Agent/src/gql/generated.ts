@@ -1,12 +1,14 @@
+// @ts-nocheck
 /* eslint-disable */
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+/** Internal type. DO NOT USE DIRECTLY. */
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+import { GraphQLClient, type RequestOptions } from 'graphql-request';
+import gql from 'graphql-tag';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+type GraphQLClientRequestHeaders = RequestOptions['requestHeaders'];
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string; }
@@ -14,7 +16,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  UUID: { input: any; output: any; }
+  UUID: { input: string; output: string; }
 };
 
 export type AgentTask = {
@@ -83,14 +85,13 @@ export type AgentTaskSortInput = {
   title?: InputMaybe<SortEnumType>;
 };
 
-export enum AgentTaskStatus {
-  Done = 'DONE',
-  Failed = 'FAILED',
-  InProgress = 'IN_PROGRESS',
-  NeedsReview = 'NEEDS_REVIEW',
-  Ready = 'READY',
-  Rejected = 'REJECTED'
-}
+export type AgentTaskStatus =
+  | 'DONE'
+  | 'FAILED'
+  | 'IN_PROGRESS'
+  | 'NEEDS_REVIEW'
+  | 'READY'
+  | 'REJECTED';
 
 export type AgentTaskStatusOperationFilterInput = {
   eq?: InputMaybe<AgentTaskStatus>;
@@ -227,19 +228,18 @@ export type DeliverableSortInput = {
   type?: InputMaybe<SortEnumType>;
 };
 
-export enum DeliverableStatus {
-  Deploy = 'DEPLOY',
-  Design = 'DESIGN',
-  Done = 'DONE',
-  Draft = 'DRAFT',
-  Failed = 'FAILED',
-  Implement = 'IMPLEMENT',
-  Merge = 'MERGE',
-  NeedsReview = 'NEEDS_REVIEW',
-  Plan = 'PLAN',
-  Rejected = 'REJECTED',
-  Test = 'TEST'
-}
+export type DeliverableStatus =
+  | 'DEPLOY'
+  | 'DESIGN'
+  | 'DONE'
+  | 'DRAFT'
+  | 'FAILED'
+  | 'IMPLEMENT'
+  | 'MERGE'
+  | 'NEEDS_REVIEW'
+  | 'PLAN'
+  | 'REJECTED'
+  | 'TEST';
 
 export type DeliverableStatusOperationFilterInput = {
   eq?: InputMaybe<DeliverableStatus>;
@@ -248,12 +248,11 @@ export type DeliverableStatusOperationFilterInput = {
   nin?: InputMaybe<Array<DeliverableStatus>>;
 };
 
-export enum DeliverableType {
-  Defect = 'DEFECT',
-  Feature = 'FEATURE',
-  Maintenance = 'MAINTENANCE',
-  Spike = 'SPIKE'
-}
+export type DeliverableType =
+  | 'DEFECT'
+  | 'FEATURE'
+  | 'MAINTENANCE'
+  | 'SPIKE';
 
 export type DeliverableTypeOperationFilterInput = {
   eq?: InputMaybe<DeliverableType>;
@@ -597,10 +596,9 @@ export type QueryProjectsArgs = {
   where?: InputMaybe<ProjectFilterInput>;
 };
 
-export enum SortEnumType {
-  Asc = 'ASC',
-  Desc = 'DESC'
-}
+export type SortEnumType =
+  | 'ASC'
+  | 'DESC';
 
 export type StringOperationFilterInput = {
   and?: InputMaybe<Array<StringOperationFilterInput>>;
@@ -680,26 +678,133 @@ export type UuidOperationFilterInput = {
   nlte?: InputMaybe<Scalars['UUID']['input']>;
 };
 
+export type DeliverableStatus =
+  | 'DEPLOY'
+  | 'DESIGN'
+  | 'DONE'
+  | 'DRAFT'
+  | 'FAILED'
+  | 'IMPLEMENT'
+  | 'MERGE'
+  | 'NEEDS_REVIEW'
+  | 'PLAN'
+  | 'REJECTED'
+  | 'TEST';
+
+export type DeliverableType =
+  | 'DEFECT'
+  | 'FEATURE'
+  | 'MAINTENANCE'
+  | 'SPIKE';
+
 export type GetProjectsQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
+  first?: number | null | undefined;
 }>;
 
 
-export type GetProjectsQuery = { __typename?: 'Query', projects?: { __typename?: 'ProjectsConnection', nodes?: Array<{ __typename?: 'Project', id: any, name: string, description: string, repository: string }> | null } | null };
+export type GetProjectsQuery = { projects: { nodes: Array<{ id: string, name: string, description: string, repository: string }> | null } | null };
 
 export type GetProjectByIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: string;
 }>;
 
 
-export type GetProjectByIdQuery = { __typename?: 'Query', project?: { __typename?: 'Project', id: any, name: string, description: string, repository: string, deliverables: Array<{ __typename?: 'Deliverable', id: any, title: string, type: DeliverableType, status: DeliverableStatus, description?: string | null }> } | null };
+export type GetProjectByIdQuery = { project: { id: string, name: string, description: string, repository: string, deliverables: Array<{ id: string, title: string, type: DeliverableType, status: DeliverableStatus, description: string | null }> } | null };
 
 export type GetProjectsForResolverQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetProjectsForResolverQuery = { __typename?: 'Query', projects?: { __typename?: 'ProjectsConnection', nodes?: Array<{ __typename?: 'Project', id: any, name: string, description: string, repository: string, deliverables: Array<{ __typename?: 'Deliverable', id: any, title: string, type: DeliverableType, status: DeliverableStatus, description?: string | null }> }> | null } | null };
+export type GetProjectsForResolverQuery = { projects: { nodes: Array<{ id: string, name: string, description: string, repository: string, deliverables: Array<{ id: string, title: string, type: DeliverableType, status: DeliverableStatus, description: string | null }> }> | null } | null };
+
+export type GetPlanDeliverablesForProjectQueryVariables = Exact<{
+  projectId: string;
+}>;
 
 
-export const GetProjectsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetProjects"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"projects"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"repository"}}]}}]}}]}}]} as unknown as DocumentNode<GetProjectsQuery, GetProjectsQueryVariables>;
-export const GetProjectByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetProjectById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"project"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"repository"}},{"kind":"Field","name":{"kind":"Name","value":"deliverables"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]} as unknown as DocumentNode<GetProjectByIdQuery, GetProjectByIdQueryVariables>;
-export const GetProjectsForResolverDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetProjectsForResolver"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"projects"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"repository"}},{"kind":"Field","name":{"kind":"Name","value":"deliverables"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetProjectsForResolverQuery, GetProjectsForResolverQueryVariables>;
+export type GetPlanDeliverablesForProjectQuery = { deliverables: { nodes: Array<{ id: string, title: string, type: DeliverableType, status: DeliverableStatus, description: string | null }> | null } | null };
+
+
+export const GetProjectsDocument = gql`
+    query GetProjects($first: Int) {
+  projects(first: $first) {
+    nodes {
+      id
+      name
+      description
+      repository
+    }
+  }
+}
+    `;
+export const GetProjectByIdDocument = gql`
+    query GetProjectById($id: UUID!) {
+  project(id: $id) {
+    id
+    name
+    description
+    repository
+    deliverables {
+      id
+      title
+      type
+      status
+      description
+    }
+  }
+}
+    `;
+export const GetProjectsForResolverDocument = gql`
+    query GetProjectsForResolver {
+  projects {
+    nodes {
+      id
+      name
+      description
+      repository
+      deliverables {
+        id
+        title
+        type
+        status
+        description
+      }
+    }
+  }
+}
+    `;
+export const GetPlanDeliverablesForProjectDocument = gql`
+    query GetPlanDeliverablesForProject($projectId: UUID!) {
+  deliverables(where: {projectId: {eq: $projectId}, status: {eq: PLAN}}) {
+    nodes {
+      id
+      title
+      type
+      status
+      description
+    }
+  }
+}
+    `;
+
+export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
+
+
+const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType, _variables) => action();
+
+export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
+  return {
+    GetProjects(variables?: GetProjectsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetProjectsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetProjectsQuery>({ document: GetProjectsDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'GetProjects', 'query', variables);
+    },
+    GetProjectById(variables: GetProjectByIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetProjectByIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetProjectByIdQuery>({ document: GetProjectByIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'GetProjectById', 'query', variables);
+    },
+    GetProjectsForResolver(variables?: GetProjectsForResolverQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetProjectsForResolverQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetProjectsForResolverQuery>({ document: GetProjectsForResolverDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'GetProjectsForResolver', 'query', variables);
+    },
+    GetPlanDeliverablesForProject(variables: GetPlanDeliverablesForProjectQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GetPlanDeliverablesForProjectQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetPlanDeliverablesForProjectQuery>({ document: GetPlanDeliverablesForProjectDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'GetPlanDeliverablesForProject', 'query', variables);
+    }
+  };
+}
+export type Sdk = ReturnType<typeof getSdk>;

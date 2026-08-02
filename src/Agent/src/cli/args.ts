@@ -1,4 +1,5 @@
 import { logger } from '../logger.js';
+import { printError, exitProcess, EXIT_CODE_ERROR } from './output.js';
 
 export interface CliOptions {
   prompt: string;
@@ -43,9 +44,9 @@ export function parseCliArgs(args: string[]): CliOptions {
     } else if (arg === '--get-project') {
       const value = args[i + 1];
       if (!value || value.startsWith('--') || !UUID_REGEX.test(value)) {
-        process.stderr.write(`error: --get-project requires a valid UUID, got '${value || ''}'\n`);
-        process.stderr.write(`Usage: DevStack.Agent --get-project <UUID>\n`);
-        process.exit(2);
+        printError(`--get-project requires a valid UUID, got '${value || ''}'`);
+        printError(`Usage: DevStack.Agent --get-project <UUID>`);
+        exitProcess(EXIT_CODE_ERROR);
       }
       options.getProjectUuid = value;
       i++;

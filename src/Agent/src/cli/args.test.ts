@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { parseCliArgs } from './args.js';
+import * as output from './output.js';
 
 describe('CLI Argument Parsing', () => {
   it('defaults prompt to Hello when no positional prompt provided', () => {
@@ -41,8 +42,8 @@ describe('CLI Argument Parsing', () => {
   });
 
   it('exits with code 2 on invalid --get-project UUID', () => {
-    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((_code?: string | number | null) => undefined as never);
-    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const exitSpy = vi.spyOn(output, 'exitProcess').mockImplementation((_code?: number) => undefined as never);
+    const stderrSpy = vi.spyOn(output, 'printError').mockImplementation(() => {});
 
     parseCliArgs(['--get-project', 'invalid-uuid']);
 

@@ -1,5 +1,6 @@
 import { logger } from './logger.js';
 import { parseCliArgs } from './cli/args.js';
+import { printError, exitProcess, EXIT_CODE_SUCCESS, EXIT_CODE_ERROR } from './cli/output.js';
 import { DevStackGraphQLClient } from './graphql/client.js';
 import { executeListProjects, executeGetProject } from './graphql/projectOperations.js';
 import { executeShowPlan, executeRunPlan } from './plan/planExecutor.js';
@@ -46,23 +47,39 @@ export async function main(): Promise<void> {
     return;
   }
 
+  // [AG-212] OpenCode SDK Project.GetCurrent() worktree
+  let opencodeWorktree: string | undefined = undefined;
+  if (!options.repositoryRoot) {
+    try {
+      const projRes = await engine.getClient().project.current();
+      const projData = projRes.data as { worktree?: string } | undefined;
+      opencodeWorktree = projData?.worktree;
+      if (!opencodeWorktree || !opencodeWorktree.trim()) {
+        // [AG-213] Empty worktree warning
+        logger.warn(`OpenCode SDK at ${opencodeBaseUrl} reported an empty worktree.`);
+      }
+    } catch {
+      logger.debug('Failed to get current project from OpenCode SDK');
+    }
+  }
+
   // 3. --show-plan
   if (options.showPlan) {
-    await executeShowPlan(graphqlClient, options.repositoryRoot);
+    await executeShowPlan(graphqlClient, options.repositoryRoot, opencodeWorktree);
     return;
   }
 
   // 4. --run-plan
   if (options.runPlan) {
-    await executeRunPlan(
+    await executeRunPlan({
       graphqlClient,
       engine,
-      options.planPrompt || 'prompts/plan.prompt',
-      options.repositoryRoot,
-      undefined,
-      options.modelProvider,
-      options.modelName
-    );
+      planPromptPath: options.planPrompt || 'prompts/plan.prompt',
+      repositoryRootOverride: options.repositoryRoot,
+      opencodeWorktree,
+      userModelProvider: options.modelProvider,
+      userModelName: options.modelName
+    });
     return;
   }
 
@@ -73,7 +90,7 @@ export async function main(): Promise<void> {
     modelName: options.modelName,
   });
 
-  process.exit(0);
+  exitProcess(EXIT_CODE_SUCCESS);
 }
 
 if (process.env.NODE_ENV !== 'test') {
@@ -81,7 +98,7 @@ if (process.env.NODE_ENV !== 'test') {
     // [AG-012] Top-level unhandled exception handler
     const error = err as Error;
     logger.error(error, 'Fatal unhandled exception in DevStack Agent');
-    process.stderr.write(`fatal error: ${error.message || String(err)}\n`);
-    process.exit(1);
+    printError(error.message || String(err));
+    exitProcess(EXIT_CODE_ERROR);
   });
 }

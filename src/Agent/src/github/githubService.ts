@@ -30,4 +30,16 @@ export class GitHubService {
     const { data } = await this.octokit.rest.users.getAuthenticated();
     return data;
   }
+
+  /**
+   * Verifies that a repository exists and is accessible.
+   */
+  public async verifyRepository(owner: string, name: string): Promise<boolean> {
+    try {
+      await this.octokit.rest.repos.get({ owner, repo: name });
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
