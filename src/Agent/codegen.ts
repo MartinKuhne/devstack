@@ -5,19 +5,10 @@ const config: CodegenConfig = {
   schema: process.env.GRAPHQL_ENDPOINT || 'http://localhost:8087/graphql',
   documents: ['src/graphql/**/*.graphql'],
   generates: {
-    './src/gql/generated.ts': {
-      plugins: [
-        {
-          add: {
-            content: '// @ts-nocheck\n/* eslint-disable */'
-          }
-        },
-        'typescript',
-        'typescript-operations',
-        'typescript-graphql-request'
-      ],
+    // Schema types only (Scalars, object types, input types, enums, filter inputs).
+    './src/gql/graphql.ts': {
+      plugins: ['typescript'],
       config: {
-        rawRequest: false,
         enumsAsTypes: true,
         defaultScalarType: 'unknown',
         scalars: {
@@ -27,7 +18,24 @@ const config: CodegenConfig = {
         }
       }
     },
-  },
+    // Operation result types + typed document constants. `importSchemaTypesFrom`
+    // tells `typescript-operations` to import (not re-emit) schema types from
+    // `./graphql.js`, which is what eliminates the duplicate `export type
+    // DeliverableStatus` / `DeliverableType` declarations that the legacy
+    // `typescript-graphql-request` chain produced. The `typed-document-node`
+    // plugin then annotates each document constant with
+    // `TypedDocumentNode<Query, Variables>`, so `client.request(GetProjectsDocument, { first })`
+    // infers the response and variables types automatically.
+    './src/gql/operations.ts': {
+      plugins: ['typescript-operations', 'typed-document-node'],
+      config: {
+        importSchemaTypesFrom: './graphql.js',
+        nonOptionalTypename: false,
+        skipTypename: true,
+        useTypeImports: true
+      }
+    }
+  }
 };
 
 export default config;
