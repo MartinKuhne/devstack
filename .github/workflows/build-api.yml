@@ -42,7 +42,7 @@ jobs:
       # daemon, are slow, and are partitioned into a dedicated workflow that only
       # runs when the relevant slice of code changes. See
       # .github/workflows/integration-tests.yml.
-      run: dotnet test src/Server/DevStack.Tests.Unit/DevStack.Tests.Unit.csproj --configuration Release --no-build --verbosity normal
+      run: dotnet test src/Server/DevStack.slnx --filter "FullyQualifiedName!~Integration" --configuration Release --no-build --verbosity normal
 
     - name: Docker Build
       run: docker build -t devstack-api:${{ github.sha }} -f src/Server/DevStack.Api/Dockerfile src/Server
