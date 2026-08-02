@@ -14,6 +14,16 @@ export interface PlanDiscoveryResult {
 }
 
 /**
+ * [AG-151] Summary returned by plan execution batch.
+ */
+export interface PlanRunSummary {
+  processedIds: string[];
+  failedDeliverables: Record<string, string>;
+  succeededCount: number;
+  failedCount: number;
+}
+
+/**
  * Resolves project and deliverables for --show-plan and --run-plan commands.
  */
 export async function discoverPlanContext(
@@ -115,15 +125,16 @@ export async function executeRunPlan(
   opencodeWorktree?: string,
   userModelProvider?: string,
   userModelName?: string
-): Promise<void> {
+): Promise<PlanRunSummary> {
   let discovery: PlanDiscoveryResult;
   try {
+    // [AG-140] Discovery (shared with --show-plan)
     discovery = await discoverPlanContext(graphqlClient, repositoryRootOverride, opencodeWorktree);
   } catch (err: unknown) {
     const error = err as Error;
     process.stderr.write(`error: ${error.message}\n`);
     process.exit(2);
-    return;
+    return { processedIds: [], failedDeliverables: {}, succeededCount: 0, failedCount: 0 };
   }
 
   // [AG-141 - AG-142] Template resolution
@@ -140,7 +151,7 @@ export async function executeRunPlan(
   if (!fs.existsSync(resolvedPromptPath)) {
     process.stderr.write(`error: Plan prompt template file '${resolvedPromptPath}' does not exist.\n`);
     process.exit(2);
-    return;
+    return { processedIds: [], failedDeliverables: {}, succeededCount: 0, failedCount: 0 };
   }
 
   const templateContent = fs.readFileSync(resolvedPromptPath, 'utf-8');
@@ -151,20 +162,25 @@ export async function executeRunPlan(
       `error: Plan prompt template '${resolvedPromptPath}' does not contain required placeholder '{{DeliverableId}}'.\n`
     );
     process.exit(2);
-    return;
+    return { processedIds: [], failedDeliverables: {}, succeededCount: 0, failedCount: 0 };
   }
 
   const { planDeliverables } = discovery;
   if (planDeliverables.length === 0) {
     console.log('Plan summary: 0 succeeded, 0 failed.');
     process.exit(0);
+    return { processedIds: [], failedDeliverables: {}, succeededCount: 0, failedCount: 0 };
   }
 
+  const processedIds: string[] = [];
+  const failedDeliverables: Record<string, string> = {};
   let succeeded = 0;
   let failed = 0;
 
-  // [AG-145] Per-deliverable execution
+  // [AG-145] Per-deliverable execution in order returned
   for (const d of planDeliverables) {
+    processedIds.push(d.id);
+
     // [AG-146] Header output
     console.log(`→ Planning ${d.title} (${d.id})`);
     console.log(`  type: ${d.type}`);
@@ -173,7 +189,7 @@ export async function executeRunPlan(
     const promptText = templateContent.replace(/\{\{DeliverableId\}\}/g, d.id);
 
     try {
-      // [AG-147] Session title
+      // [AG-147] Session title: Plan: <title>
       const sessionId = await engine.runPrompt({
         prompt: promptText,
         title: `Plan: ${d.title}`,
@@ -185,19 +201,29 @@ export async function executeRunPlan(
       // [AG-149] Success indicator
       console.log(`✓ Done. sessionId=${sessionId}`);
     } catch (err: unknown) {
-      // [AG-148] Batch error handling
+      // [AG-148] Exception handling (one bad deliverable does not sink batch)
       failed++;
       const error = err as Error;
+      failedDeliverables[d.id] = error.message;
       logger.error(error, `Planning deliverable ${d.id} failed`);
       process.stderr.write(`error: planning ${d.id} failed: ${error.message}\n`);
     }
   }
 
-  // [AG-152] Final summary and exit code
+  const summary: PlanRunSummary = {
+    processedIds,
+    failedDeliverables,
+    succeededCount: succeeded,
+    failedCount: failed,
+  };
+
+  // [AG-152] Final summary output and exit code
   console.log(`Plan summary: ${succeeded} succeeded, ${failed} failed.`);
   if (failed > 0) {
     process.exit(3);
   } else {
     process.exit(0);
   }
+
+  return summary;
 }
