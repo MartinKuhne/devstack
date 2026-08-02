@@ -1,0 +1,130 @@
+using DevStack.Agent;
+using DevStack.OpenCode.DependencyInjection;
+using DevStack.OpenCode.Models;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+using Serilog;
+using Serilog.Events;
+
+// Serilog is the application's primary logger. The static `Log.Logger` is
+// configured first so anything that runs before the host builds (including
+// configuration-load failures) goes through the same pipeline. `AddSerilog`
+// then bridges Microsoft.Extensions.Logging into Serilog and removes the
+// default MEL console provider so the two formatters don't fight.
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+    .MinimumLevel.Override("System", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "DevStack.Agent")
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
+try
+{
+    var builder = Host.CreateApplicationBuilder(args);
+
+    builder.Logging.ClearProviders();
+    builder.Services.AddSerilog();
+
+    // Configuration sources (in order of increasing precedence):
+    //   1. appsettings.json shipped next to the binary (AppContext.BaseDirectory)
+    //   2. OpenCode__BaseUrl / OpenCode__UserAgent / … environment variables
+    //   3. Command-line overrides via --opencode:BaseUrl=... syntax
+    var appsettingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+    builder.Configuration
+        .AddJsonFile(appsettingsPath, optional: true, reloadOnChange: false)
+        .AddEnvironmentVariables()
+        .AddCommandLine(args);
+
+    // Register the OpenCode SDK against the host's IConfiguration. The
+    // IHostApplicationBuilder overload binds options from builder.Configuration
+    // automatically, so OpenCode:BaseUrl / OpenCode:UserAgent / … in
+    // appsettings.json flow through to the SDK.
+    builder.AddOpenCode();
+
+    // Register the CLI itself.
+    builder.Services.AddSingleton<OpenCodeAgent>();
+
+    using var host = builder.Build();
+
+    // Pretty banner so the run is easy to spot in a log.
+    Console.WriteLine("DevStack.Agent — OpenCode hello-prompt driver");
+    var options = host.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<DevStack.OpenCode.Options.OpenCodeOptions>>().Value;
+    Console.WriteLine($"  baseUrl:   {options.BaseUrl}");
+    Console.WriteLine($"  userAgent: {options.UserAgent}");
+    Console.WriteLine();
+
+    var prompt = ParsePrompt(args, host.Services.GetRequiredService<ILogger<OpenCodeAgent>>());
+    var model = ParseModel(args, host.Services.GetRequiredService<ILogger<OpenCodeAgent>>());
+    var title = ParseFlag(args, "--title");
+
+    var agent = host.Services.GetRequiredService<OpenCodeAgent>();
+    var sessionId = await agent.RunAsync(prompt, model, title);
+
+    Console.WriteLine();
+    Console.WriteLine($"Done. sessionId={sessionId}");
+    return 0;
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "DevStack.Agent terminated unexpectedly");
+    return 1;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+
+static string ParsePrompt(string[] argv, ILogger<OpenCodeAgent> logger)
+{
+    if (argv.Length == 0)
+    {
+        logger.LogInformation("No prompt provided on the command line, defaulting to \"Hello\".");
+        return "Hello";
+    }
+
+    if (argv[0].StartsWith("--", StringComparison.Ordinal))
+    {
+        logger.LogInformation("No prompt provided before flags, defaulting to \"Hello\".");
+        return "Hello";
+    }
+
+    return argv[0];
+}
+
+static ModelRef? ParseModel(string[] argv, ILogger<OpenCodeAgent> logger)
+{
+    var spec = ParseFlag(argv, "--model");
+    if (string.IsNullOrWhiteSpace(spec))
+    {
+        return null;
+    }
+
+    var slash = spec.IndexOf('/');
+    if (slash <= 0 || slash == spec.Length - 1)
+    {
+        logger.LogWarning("--model value '{Spec}' is missing the required 'provider/model' shape; ignoring.", spec);
+        return null;
+    }
+
+    return new ModelRef { ProviderId = spec[..slash], ModelId = spec[(slash + 1)..] };
+}
+
+static string? ParseFlag(string[] argv, string name)
+{
+    for (var i = 0; i < argv.Length - 1; i++)
+    {
+        if (string.Equals(argv[i], name, StringComparison.Ordinal))
+        {
+            return argv[i + 1];
+        }
+    }
+
+    return null;
+}
