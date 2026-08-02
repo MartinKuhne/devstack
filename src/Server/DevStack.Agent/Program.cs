@@ -185,9 +185,10 @@ static string? ParseFlag(string[] argv, string name)
 /// precedence first): <c>--plan-prompt &lt;path&gt;</c>, the
 /// <c>DevStack__Plan__PromptPath</c> environment variable, the
 /// <c>DevStack:Plan:PromptPath</c> appsettings key, and finally the
-/// repo-relative default <c>scripts/prompts/plan.prompt</c>. Relative
-/// paths are resolved against the worktree by
-/// <see cref="PlanExecutor.ResolvePromptPath"/> at execution time.
+/// binary-relative default <c>prompts/plan.prompt</c>. Relative
+/// paths are resolved against <c>AppContext.BaseDirectory</c> by
+/// <see cref="PlanExecutor.ResolvePromptPath"/> at execution time so
+/// the prompts travel with the agent binary.
 /// </summary>
 static string ResolvePlanPromptPath(IConfiguration configuration, string[] argv)
 {
@@ -201,7 +202,7 @@ static string ResolvePlanPromptPath(IConfiguration configuration, string[] argv)
     }
 
     var fromConfig = configuration[Key];
-    return string.IsNullOrWhiteSpace(fromConfig) ? "scripts/prompts/plan.prompt" : fromConfig;
+    return string.IsNullOrWhiteSpace(fromConfig) ? "prompts/plan.prompt" : fromConfig;
 }
 
 static int ParseIntFlag(string[] argv, string name, int defaultValue)
@@ -356,7 +357,10 @@ static async Task<int> RunRunPlanAsync(IServiceProvider services, string? reposi
     PlanRunSummary summary;
     try
     {
-        summary = await executor.ExecuteAsync(report, context, promptPath, model: model);
+        // Prompts are co-located with the binary (AppContext.BaseDirectory),
+        // not the worktree, so a relative --plan-prompt resolves there
+        // instead of next to a different git repository.
+        summary = await executor.ExecuteAsync(report, context, promptPath, model: model, baseDirectory: AppContext.BaseDirectory);
     }
     catch (FileNotFoundException ex)
     {

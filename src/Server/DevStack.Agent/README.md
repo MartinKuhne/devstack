@@ -44,7 +44,7 @@ dotnet run --project src/Server/DevStack.Agent -- \
 | `--show-plan` *(GraphQL + Git + GitHub)* | _off_ | Resolve the current git repository, look up the matching DevStack project, and list its `PLAN`-status deliverables. See [Repository-aware plan listing](#repository-aware-plan-listing) below. |
 | `--run-plan` *(GraphQL + Git + GitHub + LLM)* | _off_ | Same discovery as `--show-plan`, then for every `PLAN`-status deliverable, render the plan prompt and execute it through the OpenCode SDK. See [Plan mode](#plan-mode) below. |
 | `--repositoryRoot <path>` | _unset — falls back to the OpenCode server's worktree_ | Override the worktree path used by `--show-plan` / `--run-plan`. Useful when the OpenCode server is not running. |
-| `--plan-prompt <path>` | `scripts/prompts/plan.prompt` (relative to the worktree) | Path to the prompt template used by `--run-plan`. Relative paths resolve against the worktree; absolute paths are used as-is. |
+| `--plan-prompt <path>` | `prompts/plan.prompt` (relative to the binary's `AppContext.BaseDirectory`) | Path to the prompt template used by `--run-plan`. Relative paths resolve next to the agent binary; absolute paths are used as-is. The default `prompts/plan.prompt` is one of the files bundled with the agent under `src/Server/DevStack.Agent/prompts/`. |
 
 ### Configuration
 
@@ -144,7 +144,7 @@ Repository: C:\src\my-project
   github:   owner/my-project
 
 DevStack project: my-project (c33c8df4-…)
-Prompt template: scripts/prompts/plan.prompt (resolved against the worktree if relative)
+Prompt template: prompts/plan.prompt (resolved against the binary directory)
 Executing plan for 3 deliverable(s)…
 
 → Planning Agent Session as a Regular Tab (e6df3c45-…)

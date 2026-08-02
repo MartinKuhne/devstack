@@ -38,8 +38,10 @@ public sealed class PlanExecutor
     /// Executes the plan for every deliverable in
     /// <paramref name="report"/>. The prompt template is loaded from
     /// <paramref name="promptPath"/>; relative paths are resolved
-    /// against <see cref="RepositoryContext.Worktree"/>. Returns a
-    /// summary of which deliverables were processed and which
+    /// against <paramref name="baseDirectory"/> (typically
+    /// <c>AppContext.BaseDirectory</c>) so the prompts travel with
+    /// the binary instead of being hardcoded to a worktree. Returns
+    /// a summary of which deliverables were processed and which
     /// failed.
     /// </summary>
     public async Task<PlanRunSummary> ExecuteAsync(
@@ -47,6 +49,7 @@ public sealed class PlanExecutor
         RepositoryContext context,
         string promptPath,
         ModelRef? model = null,
+        string? baseDirectory = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(report);
@@ -56,7 +59,8 @@ public sealed class PlanExecutor
             throw new ArgumentException("promptPath must be non-empty", nameof(promptPath));
         }
 
-        var resolvedPath = ResolvePromptPath(promptPath, context.Worktree);
+        var anchor = string.IsNullOrWhiteSpace(baseDirectory) ? AppContext.BaseDirectory : baseDirectory;
+        var resolvedPath = ResolvePromptPath(promptPath, anchor);
         if (!File.Exists(resolvedPath))
         {
             throw new FileNotFoundException(
@@ -117,18 +121,20 @@ public sealed class PlanExecutor
     }
 
     /// <summary>
-    /// Resolves a possibly-relative prompt path against the worktree.
-    /// Absolute paths (and rooted paths like <c>C:\foo</c>) are
-    /// returned as-is; relative paths are interpreted relative to
-    /// <paramref name="worktreeRoot"/>.
+    /// Resolves a possibly-relative prompt path against the agent
+    /// binary directory (<c>AppContext.BaseDirectory</c>). Absolute
+    /// paths (and rooted paths like <c>C:\foo</c>) are returned
+    /// as-is; relative paths are interpreted relative to
+    /// <paramref name="binaryDirectory"/> so the prompts travel
+    /// with the binary instead of being hardcoded to a worktree.
     /// </summary>
-    internal static string ResolvePromptPath(string promptPath, string worktreeRoot)
+    internal static string ResolvePromptPath(string promptPath, string binaryDirectory)
     {
         if (Path.IsPathRooted(promptPath))
         {
             return Path.GetFullPath(promptPath);
         }
-        return Path.GetFullPath(Path.Combine(worktreeRoot, promptPath));
+        return Path.GetFullPath(Path.Combine(binaryDirectory, promptPath));
     }
 }
 

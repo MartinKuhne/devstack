@@ -28,6 +28,24 @@
   </ItemGroup>
 
   <!--
+    Prompt templates are co-located with the agent project so they
+    travel with the binary (resolved against AppContext.BaseDirectory
+    at runtime). One entry per file because the StrawberryShake /
+    .NET MSBuild item globs handle CopyToOutputDirectory inconsistently
+    across SDK versions; keeping the list explicit is safer.
+  -->
+  <ItemGroup>
+    <None Include="prompts\design.prompt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="prompts\implement.prompt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="prompts\merge.prompt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="prompts\plan.prompt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="prompts\pull-request.prompt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="prompts\research.prompt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="prompts\root-cause.prompt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="prompts\spec-analysis.prompt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
     StrawberryShake console codegen: feeds GraphQL query/mutation documents
     from GraphQLs/ into the MSBuild pipeline that ships with
     StrawberryShake.Server. Generated C# lands in obj/.../berry/ and is
