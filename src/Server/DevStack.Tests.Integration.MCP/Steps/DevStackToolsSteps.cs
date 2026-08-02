@@ -164,7 +164,7 @@ public sealed class DevStackToolsSteps
     {
         var resultJson = GetResultJson(_result!);
         var jsonDoc = JsonDocument.Parse(resultJson);
-        if (jsonDoc.RootElement.TryGetProperty("id", out var idElement))
+        if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) || jsonDoc.RootElement.TryGetProperty("Id", out idElement))
         {
             _createdDeliverableId = idElement.GetString();
             _createdDeliverableId.Should().NotBeNullOrEmpty();
@@ -177,7 +177,7 @@ public sealed class DevStackToolsSteps
     {
         var resultJson = GetResultJson(_result!);
         var jsonDoc = JsonDocument.Parse(resultJson);
-        if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement))
+        if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement) || jsonDoc.RootElement.TryGetProperty("Status", out statusElement))
         {
             statusElement.GetString().Should().Contain(expectedStatus);
         }
@@ -194,7 +194,7 @@ public sealed class DevStackToolsSteps
         _result.Should().NotBeNull();
         _result!.IsError.Should().NotBeTrue();
         var resultJson = GetResultJson(_result!);
-        resultJson.Should().Contain("updated");
+        resultJson.ToLowerInvariant().Should().Contain("updated");
     }
 
     [Then(@"the response should contain the deliverable with new status")]
@@ -303,7 +303,7 @@ public sealed class DevStackToolsSteps
     {
         var resultJson = GetResultJson(_result!);
         var jsonDoc = JsonDocument.Parse(resultJson);
-        if (jsonDoc.RootElement.TryGetProperty("id", out var idElement))
+        if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) || jsonDoc.RootElement.TryGetProperty("Id", out idElement))
         {
             _createdTaskId = idElement.GetString();
             _createdTaskId.Should().NotBeNullOrEmpty();
@@ -316,7 +316,7 @@ public sealed class DevStackToolsSteps
     {
         var resultJson = GetResultJson(_result!);
         var jsonDoc = JsonDocument.Parse(resultJson);
-        if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement))
+        if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement) || jsonDoc.RootElement.TryGetProperty("Status", out statusElement))
         {
             statusElement.GetString().Should().Contain(expectedStatus);
         }
@@ -333,7 +333,7 @@ public sealed class DevStackToolsSteps
         _result.Should().NotBeNull();
         _result!.IsError.Should().NotBeTrue();
         var resultJson = GetResultJson(_result!);
-        resultJson.Should().Contain("updated");
+        resultJson.ToLowerInvariant().Should().Contain("updated");
     }
 
     [Then(@"the response should contain the task with new status")]
@@ -360,7 +360,7 @@ public sealed class DevStackToolsSteps
         try
         {
             var jsonDoc = JsonDocument.Parse(resultJson);
-            if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement))
+            if (jsonDoc.RootElement.TryGetProperty("status", out var statusElement) || jsonDoc.RootElement.TryGetProperty("Status", out statusElement))
             {
                 statusElement.GetString().Should().Contain(expectedStatus);
             }
@@ -438,7 +438,7 @@ public sealed class DevStackToolsSteps
         try
         {
             var jsonDoc = JsonDocument.Parse(result);
-            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement))
+            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) || jsonDoc.RootElement.TryGetProperty("Id", out idElement))
             {
                 return idElement.GetString() ?? "";
             }
@@ -492,7 +492,7 @@ public sealed class DevStackToolsSteps
         try
         {
             var jsonDoc = JsonDocument.Parse(result);
-            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement))
+            if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) || jsonDoc.RootElement.TryGetProperty("Id", out idElement))
             {
                 return idElement.GetString() ?? "";
             }
