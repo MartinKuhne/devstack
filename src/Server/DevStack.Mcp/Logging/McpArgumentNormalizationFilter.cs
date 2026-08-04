@@ -11,11 +11,13 @@ namespace DevStack.Mcp.Logging;
 public static class McpArgumentNormalizationFilter
 {
     public static McpRequestFilter<CallToolRequestParams, CallToolResult> Create(ILoggerFactory loggerFactory)
-    {
-        var logger = loggerFactory.CreateLogger("DevStack.Mcp.ArgumentNormalization");
+        => Create(() => loggerFactory);
 
+    public static McpRequestFilter<CallToolRequestParams, CallToolResult> Create(Func<ILoggerFactory> loggerFactoryResolver)
+    {
         return next => async (request, ct) =>
         {
+            var logger = loggerFactoryResolver().CreateLogger("DevStack.Mcp.ArgumentNormalization");
             var toolName = LogSanitizer.Sanitize(request.Params?.Name ?? "unknown");
             var arguments = request.Params?.Arguments;
 

@@ -98,6 +98,8 @@ builder.Services.AddGraphQLServer()
 
 builder.Services.AddFeatureManagement();
 
+WebApplication app = null!;
+
 var mcpBuilder = builder.Services.AddMcpServer()
     .WithHttpTransport(options =>
     {
@@ -117,10 +119,10 @@ mcpBuilder
     .WithResources<ResourceType>()
     .WithRequestFilters(filters =>
     {
-        filters.AddCallToolFilter(McpToolLoggingFilter.Create(builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()));
+        filters.AddCallToolFilter(McpToolLoggingFilter.Create(() => app.Services.GetRequiredService<ILoggerFactory>()));
     });
 
-var app = builder.Build();
+app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {

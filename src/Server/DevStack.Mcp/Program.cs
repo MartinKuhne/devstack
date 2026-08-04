@@ -56,6 +56,8 @@ try
 
     builder.Services.AddFeatureManagement();
 
+    WebApplication app = null!;
+
     var mcpBuilder = builder.Services.AddMcpServer()
         .WithHttpTransport(options =>
         {
@@ -75,9 +77,8 @@ try
         .WithResources<ResourceType>()
         .WithRequestFilters(filters =>
         {
-            var loggerFactory = builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-            filters.AddCallToolFilter(McpArgumentNormalizationFilter.Create(loggerFactory));
-            filters.AddCallToolFilter(McpToolLoggingFilter.Create(loggerFactory));
+            filters.AddCallToolFilter(McpArgumentNormalizationFilter.Create(() => app.Services.GetRequiredService<ILoggerFactory>()));
+            filters.AddCallToolFilter(McpToolLoggingFilter.Create(() => app.Services.GetRequiredService<ILoggerFactory>()));
         });
 
     builder.Services.AddDbContext<DevStackDbContext>(options =>
@@ -119,7 +120,7 @@ try
 
     builder.Services.AddProblemDetails();
 
-    var app = builder.Build();
+    app = builder.Build();
 
     app.UseMiddleware<McpExceptionHandlingMiddleware>();
     app.UseExceptionHandler();

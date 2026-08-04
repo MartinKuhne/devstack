@@ -15,11 +15,13 @@ public static class McpToolLoggingFilter
     };
 
     public static McpRequestFilter<CallToolRequestParams, CallToolResult> Create(ILoggerFactory loggerFactory)
-    {
-        var logger = loggerFactory.CreateLogger("DevStack.Mcp.Tools");
+        => Create(() => loggerFactory);
 
+    public static McpRequestFilter<CallToolRequestParams, CallToolResult> Create(Func<ILoggerFactory> loggerFactoryResolver)
+    {
         return next => async (request, ct) =>
         {
+            var logger = loggerFactoryResolver().CreateLogger("DevStack.Mcp.Tools");
             // OWASP CWE-117: Sanitize user-provided MCP tool name before logging or adding to structured scope
             var toolName = LogSanitizer.Sanitize(request.Params?.Name ?? "unknown");
             var arguments = request.Params?.Arguments;
@@ -49,7 +51,7 @@ public static class McpToolLoggingFilter
                         stopwatch.ElapsedMilliseconds,
                         isError);
 
-                    return result;
+                    return result!;
                 }
                 catch (Exception ex)
                 {
