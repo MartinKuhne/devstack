@@ -16,6 +16,7 @@ using Xunit;
 
 namespace DevStack.Tests.Unit.OpenCode;
 
+[Collection("Non-Parallel Collection")]
 public class ServiceCollectionExtensionsTests
 {
     [Fact]

@@ -247,7 +247,7 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.CreateProject(null!, null, null));
+            () => tools.CreateProject(null!, null!, null));
 
         exception.Message.Should().Be("Project name is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
@@ -264,7 +264,7 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.CreateProject("", null, null));
+            () => tools.CreateProject("", null!, null));
 
         exception.Message.Should().Be("Project name is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
@@ -281,7 +281,7 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.CreateProject("   ", null, null));
+            () => tools.CreateProject("   ", null!, null));
 
         exception.Message.Should().Be("Project name is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
