@@ -51,7 +51,7 @@
         "@tailwindcss/typography": "^0.5.20",
         "@types/dompurify": "^3.0.5",
         "cmdk": "^1.1.1",
-        "dompurify": "^3.4.12",
+        "dompurify": "^3.4.13",
         "graphql": "^16.14.2",
         "loglevel": "^1.9.2",
         "react": "^19.2.8",
