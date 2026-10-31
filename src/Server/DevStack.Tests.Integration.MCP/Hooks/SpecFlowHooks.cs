@@ -32,9 +32,10 @@ public sealed class SpecFlowHooks
     [BeforeTestRun]
     public static async Task BeforeTestRunAsync()
     {
+        // No explicit image name: the builder honours the DEVSTACK_TEST_MCP_IMAGE override
+        // so concurrent runs can each build a private tag instead of retagging one image.
         _env = DevStackTestEnvFactory.CreateBuilder()
             .WithMode(DevStackTestEnvMode.Mcp)
-            .WithMcpImageName("devstack-mcp:test")
             .WithEnvironmentName("Development")
             .WithSecretKey("test-secret-key-for-mcp-integration-tests")
             .Build();
