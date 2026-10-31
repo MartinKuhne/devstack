@@ -31,6 +31,7 @@ Feature: Agent Task Mutations
     When I create an agent task with title "Full Task" complexity 5 result "Success" errors null commit hash "abc123" model "gpt-4"
     Then the agent task should be created successfully
     And the agent task should exist in the database
+    And the agent task should persist the result, errors, commit hash and agent that were sent
 
   @create
   Scenario: Create an agent task with dependency

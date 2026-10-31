@@ -16,6 +16,16 @@ namespace DevStack.Tests.Integration.GraphQL.Client.StepDefinitions;
 [Binding]
 public sealed class DeliverableSteps
 {
+    /// <summary>
+    /// Marker that <c>deleteTestData</c> reclaims rows by (GQL-18). It is appended to every deliverable
+    /// title and parent project name this class writes - including renames - so the AfterScenario
+    /// cleanup can reclaim them.
+    /// </summary>
+    private const string TestMarker = "[DeleteAfterTest]";
+
+    /// <summary>Document fields the "all optional fields" step promises to send, for the round-trip assertion.</summary>
+    private const string SentDocumentFieldsKey = "SentDeliverableDocumentFields";
+
     private readonly ScenarioContext _scenarioContext;
     private readonly HttpClient _httpClient;
 
@@ -24,6 +34,9 @@ public sealed class DeliverableSteps
         _scenarioContext = scenarioContext;
         _httpClient = SpecFlowHooks.GetHttpClient(scenarioContext);
     }
+
+    /// <summary>Appends the cleanup marker to a title or name so <c>deleteTestData</c> can reclaim the row.</summary>
+    private static string Marked(string title) => $"{title} {TestMarker}";
 
     private static JsonElement GetData(JsonElement response)
     {
@@ -51,7 +64,7 @@ public sealed class DeliverableSteps
         var mutation = new
         {
             query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { id } }",
-            variables = new { input = new { name = "Test Project", description = (string?)null, repository = "https://example.com" } },
+            variables = new { input = new { name = Marked("Test Project"), description = (string?)null, repository = "https://example.com" } },
             operationName = "CreateProject"
         };
 
@@ -69,7 +82,7 @@ public sealed class DeliverableSteps
         var mutation = new
         {
             query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id } }",
-            variables = new { input = new { projectId, title = "Parent Deliverable", type = "Feature", description = "", acceptanceCriteria = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, initialStatus = "PLAN" } },
+            variables = new { input = new { projectId, title = Marked("Parent Deliverable"), type = "Feature", description = "", acceptanceCriteria = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, initialStatus = "PLAN" } },
             operationName = "CreateDeliverable"
         };
 
@@ -84,15 +97,15 @@ public sealed class DeliverableSteps
     public void GivenADeliverableWithTitleAndTypeExists(string title, string type)
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        _scenarioContext["DeliverableTitle"] = title;
-        CreateDeliverable(projectId, title, type, null);
+        _scenarioContext["DeliverableTitle"] = Marked(title);
+        CreateDeliverable(projectId, Marked(title), type, null);
     }
 
     [Given(@"a deliverable with status ""(.*)"" type ""(.*)"" exists")]
     public void GivenADeliverableWithStatusAndTypeExists(string status, string type)
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        var title = "Test Deliverable";
+        var title = Marked("Test Deliverable");
         CreateDeliverable(projectId, title, type, status);
     }
 
@@ -157,7 +170,7 @@ public sealed class DeliverableSteps
     public void WhenICreateADeliverableWithTitleTypeAndDescription(string title, string type, string description)
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        _scenarioContext["DeliverableTitle"] = title;
+        _scenarioContext["DeliverableTitle"] = Marked(title);
         var mutation = new
         {
             query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id } }",
@@ -166,7 +179,7 @@ public sealed class DeliverableSteps
                 input = new
                 {
                     projectId,
-                    title,
+                    title = Marked(title),
                     type,
                     description = description ?? "",
                     acceptanceCriteria = (string?)null,
@@ -193,7 +206,7 @@ public sealed class DeliverableSteps
     public void WhenICreateADeliverableWithTitleTypeAndInitialStatus(string title, string type, string initialStatus)
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        _scenarioContext["DeliverableTitle"] = title;
+        _scenarioContext["DeliverableTitle"] = Marked(title);
         var mappedStatus = MapStatus(initialStatus);
         var mutation = new
         {
@@ -203,7 +216,7 @@ public sealed class DeliverableSteps
                 input = new
                 {
                     projectId,
-                    title,
+                    title = Marked(title),
                     type,
                     description = "",
                     acceptanceCriteria = (string?)null,
@@ -226,11 +239,17 @@ public sealed class DeliverableSteps
         _scenarioContext["Response"] = result;
     }
 
+    /// <summary>
+    /// Creates a deliverable and then writes the agent feedback, because <c>CreateDeliverableInput</c>
+    /// has no <c>agentFeedback</c> field while the step text promises to send it (GQL-16). The values
+    /// that were sent are recorded so the scenario can assert the round-trip instead of "no errors".
+    /// </summary>
     [When(@"I create a deliverable with title ""(.*)"" type ""(.*)"" description ""(.*)"" acceptance criteria ""(.*)"" agent feedback ""(.*)""")]
     public void WhenICreateADeliverableWithAllFields(string title, string type, string description, string acceptanceCriteria, string agentFeedback)
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        _scenarioContext["DeliverableTitle"] = title;
+        var markedTitle = Marked(title);
+        _scenarioContext["DeliverableTitle"] = markedTitle;
         var mutation = new
         {
             query = @"mutation CreateDeliverable($input: CreateDeliverableInput!) { createDeliverable(input: $input) { id } }",
@@ -239,7 +258,7 @@ public sealed class DeliverableSteps
                 input = new
                 {
                     projectId,
-                    title,
+                    title = markedTitle,
                     type,
                     description,
                     acceptanceCriteria,
@@ -259,7 +278,60 @@ public sealed class DeliverableSteps
         var result = JsonSerializer.Deserialize<JsonElement>(content)!;
         var deliverableId = GetData(result).GetProperty("createDeliverable").GetProperty("id").ToString();
         _scenarioContext["DeliverableId"] = deliverableId;
+
+        var feedbackInput = new Dictionary<string, object?>
+        {
+            ["id"] = deliverableId,
+            ["agentFeedback"] = agentFeedback
+        };
+
+        var feedbackResult = GraphQLRequest.Execute(
+            _httpClient,
+            @"mutation UpdateDeliverableFeedback($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { id } }",
+            new { input = feedbackInput },
+            "UpdateDeliverableFeedback");
+
+        feedbackResult.HasErrors.Should().BeFalse("the agent feedback promised by the step text must actually be written: {0}", feedbackResult.RawBody);
+
+        // agentFeedback really is sent (CreateDeliverableInput has no such field), but updateDeliverable does not
+        // store it in its own column: it crosses it into executionPlan. That crossing is pinned by
+        // GraphQLFieldCoverage.feature, so only the fields that map correctly are recorded for the round-trip.
+        _scenarioContext[SentDocumentFieldsKey] = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["title"] = markedTitle,
+            ["description"] = description,
+            ["acceptanceCriteria"] = acceptanceCriteria
+        };
+
         _scenarioContext["Response"] = result;
+    }
+
+    /// <summary>
+    /// Re-queries the deliverable and asserts that every document field the "all optional fields" step maps
+    /// correctly is persisted with exactly the sent value (GQL-16).
+    /// </summary>
+    [Then(@"the deliverable should persist the description and acceptance criteria that were sent")]
+    public void ThenTheDeliverableShouldPersistTheSentDocumentFields()
+    {
+        var sent = _scenarioContext.TryGetValue<Dictionary<string, string>>(SentDocumentFieldsKey, out var values) && values is not null
+            ? values
+            : throw new InvalidOperationException("No deliverable document fields have been sent by this scenario.");
+
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
+        var result = GraphQLRequest.Execute(
+            _httpClient,
+            @"query GetDeliverableDocument($id: UUID!) { deliverable(id: $id) { id title description acceptanceCriteria } }",
+            new { id = deliverableId },
+            "GetDeliverableDocument");
+
+        result.HasErrors.Should().BeFalse(result.RawBody);
+        var deliverable = result.Field("deliverable");
+        deliverable.ValueKind.Should().NotBe(JsonValueKind.Null, $"the deliverable {deliverableId} should exist");
+
+        foreach (var (field, value) in sent)
+        {
+            deliverable.GetProperty(field).GetString().Should().Be(value, $"round-trip of deliverable.{field}");
+        }
     }
 
     [When(@"I update the deliverable title to ""(.*)""")]
@@ -269,7 +341,7 @@ public sealed class DeliverableSteps
         var mutation = new
         {
             query = @"mutation UpdateDeliverable($input: UpdateDeliverableInput!) { updateDeliverable(input: $input) { id } }",
-            variables = new { input = new { id = deliverableId, title, description = (string?)null, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
+            variables = new { input = new { id = deliverableId, title = Marked(title), description = (string?)null, acceptanceCriteria = (string?)null, agentFeedback = (string?)null, executionPlan = (string?)null, securityImpact = (string?)null, performanceImpact = (string?)null, testPlan = (string?)null, deploymentPlan = (string?)null, blocking = (string?)null } },
             operationName = "UpdateDeliverable"
         };
 

@@ -36,6 +36,7 @@ Feature: Deliverable Mutations
     When I create a deliverable with title "Full Feature" type "Feature" description "Full description" acceptance criteria "Must pass tests" agent feedback "Good progress"
     Then the deliverable should be created successfully
     And the deliverable should exist in the database
+    And the deliverable should persist the description and acceptance criteria that were sent
 
   @update
   Scenario: Update a deliverable title

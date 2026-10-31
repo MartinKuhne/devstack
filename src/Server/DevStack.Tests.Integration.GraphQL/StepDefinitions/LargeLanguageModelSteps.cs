@@ -24,6 +24,18 @@ public sealed class LargeLanguageModelSteps
         _httpClient = SpecFlowHooks.GetHttpClient(scenarioContext);
     }
 
+    /// <summary>
+    /// Marker that <c>deleteTestData</c> looks for in the <c>url</c> of a large language model. It is appended to
+    /// every url this class writes - including updates - so the created rows can be reclaimed after the scenario.
+    /// </summary>
+    private const string TestMarker = "[DeleteAfterTest]";
+
+    /// <summary>Appends the cleanup marker to a url so <c>deleteTestData</c> can reclaim the row.</summary>
+    private static string Marked(string url) => $"{url}{TestMarker}";
+
+    /// <summary>Builds a marked url for a seed model that is created without a url from the feature file.</summary>
+    private static string SeededUrl(string suffix) => Marked($"https://api.example.com/{suffix}");
+
     private static JsonElement GetData(JsonElement response)
     {
         if (response.TryGetProperty("errors", out var errors) && errors.ValueKind != JsonValueKind.Undefined && errors.GetArrayLength() > 0)
@@ -55,7 +67,7 @@ public sealed class LargeLanguageModelSteps
         var mutation = new
         {
             query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { id } }",
-            variables = new { input = new { url = "https://api.example.com", model = "gpt-4", modelAlias = (string?)null, apiKey = "test-key-123", maxComplexity = 10 } },
+            variables = new { input = new { url = SeededUrl("seed"), model = "gpt-4", modelAlias = (string?)null, apiKey = "test-key-123", maxComplexity = 10 } },
             operationName = "CreateLargeLanguageModel"
         };
 
@@ -84,7 +96,7 @@ public sealed class LargeLanguageModelSteps
         var mutation1 = new
         {
             query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { id } }",
-            variables = new { input = new { url = "https://api.example.com/1", model = "gpt-4", modelAlias = (string?)null, apiKey = "test-key-1", maxComplexity = 10 } },
+            variables = new { input = new { url = SeededUrl("1"), model = "gpt-4", modelAlias = (string?)null, apiKey = "test-key-1", maxComplexity = 10 } },
             operationName = "CreateLargeLanguageModel"
         };
 
@@ -96,7 +108,7 @@ public sealed class LargeLanguageModelSteps
         var mutation2 = new
         {
             query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { id } }",
-            variables = new { input = new { url = "https://api.example.com/2", model = "claude-3", modelAlias = (string?)null, apiKey = "test-key-2", maxComplexity = 8 } },
+            variables = new { input = new { url = SeededUrl("2"), model = "claude-3", modelAlias = (string?)null, apiKey = "test-key-2", maxComplexity = 8 } },
             operationName = "CreateLargeLanguageModel"
         };
 
@@ -115,7 +127,7 @@ public sealed class LargeLanguageModelSteps
         var mutation = new
         {
             query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { id } }",
-            variables = new { input = new { url, model, modelAlias = (string?)null, apiKey, maxComplexity } },
+            variables = new { input = new { url = Marked(url), model, modelAlias = (string?)null, apiKey, maxComplexity } },
             operationName = "CreateLargeLanguageModel"
         };
 
@@ -135,7 +147,7 @@ public sealed class LargeLanguageModelSteps
         var mutation = new
         {
             query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { id } }",
-            variables = new { input = new { url, model, modelAlias = alias, apiKey, maxComplexity } },
+            variables = new { input = new { url = Marked(url), model, modelAlias = alias, apiKey, maxComplexity } },
             operationName = "CreateLargeLanguageModel"
         };
 
@@ -155,7 +167,7 @@ public sealed class LargeLanguageModelSteps
         var mutation = new
         {
             query = @"mutation CreateLargeLanguageModel($input: CreateLargeLanguageModelInput!) { createLargeLanguageModel(input: $input) { id } }",
-            variables = new { input = new { url, model, modelAlias = (string?)null, apiKey, maxComplexity, maxConcurrency } },
+            variables = new { input = new { url = Marked(url), model, modelAlias = (string?)null, apiKey, maxComplexity, maxConcurrency } },
             operationName = "CreateLargeLanguageModel"
         };
 
@@ -193,7 +205,7 @@ public sealed class LargeLanguageModelSteps
         var mutation = new
         {
             query = @"mutation UpdateLargeLanguageModel($input: UpdateLargeLanguageModelInput!) { updateLargeLanguageModel(input: $input) { id } }",
-            variables = new { input = new { id = llmId, url } },
+            variables = new { input = new { id = llmId, url = Marked(url) } },
             operationName = "UpdateLargeLanguageModel"
         };
 
