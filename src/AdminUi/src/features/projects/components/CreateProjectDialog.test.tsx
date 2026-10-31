@@ -33,7 +33,7 @@ describe('CreateProjectDialog - Zod Schema Validation', () => {
         if (!result.success) {
             const issues = result.error.issues;
             expect(issues.length).toBeGreaterThan(0);
-            expect(issues[0].message).toBe('Name is required');
+            expect(issues[0]?.message).toBe('Name is required');
         }
     });
 
@@ -48,7 +48,7 @@ describe('CreateProjectDialog - Zod Schema Validation', () => {
         if (!result.success) {
             const issues = result.error.issues;
             expect(issues.length).toBeGreaterThan(0);
-            expect(issues[0].message).toBe('Name must be 200 characters or less');
+            expect(issues[0]?.message).toBe('Name must be 200 characters or less');
         }
     });
 

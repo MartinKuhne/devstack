@@ -20,6 +20,7 @@
         "codegen": "graphql-codegen --config codegen.ts",
         "codegen:check": "graphql-codegen --config codegen.ts && git diff --exit-code src/generated/graphql.ts",
         "typecheck": "tsc -b",
+        "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:e2e": "playwright test",

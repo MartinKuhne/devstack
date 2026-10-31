@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 vi.mock('@/generated/graphql', () => ({
     useCreateAgentTaskMutation: vi.fn(),
@@ -17,6 +17,7 @@ describe('CreateAgentTaskDialog', () => {
     const mockOnOpenChange = vi.fn();
     const mockOnSuccess = vi.fn();
     const mockDeliverableId = 'del-123';
+    const mockProjectId = 'proj-123';
 
     beforeEach(async () => {
         vi.clearAllMocks();
@@ -31,6 +32,7 @@ describe('CreateAgentTaskDialog', () => {
                 open={true}
                 onOpenChange={mockOnOpenChange}
                 deliverableId={mockDeliverableId}
+                projectId={mockProjectId}
                 onSuccess={mockOnSuccess}
             />
         );
@@ -48,6 +50,7 @@ describe('CreateAgentTaskDialog', () => {
                 open={true}
                 onOpenChange={mockOnOpenChange}
                 deliverableId={mockDeliverableId}
+                projectId={mockProjectId}
                 onSuccess={mockOnSuccess}
             />
         );
@@ -62,6 +65,7 @@ describe('CreateAgentTaskDialog', () => {
                 open={true}
                 onOpenChange={mockOnOpenChange}
                 deliverableId={mockDeliverableId}
+                projectId={mockProjectId}
                 onSuccess={mockOnSuccess}
             />
         );
@@ -78,6 +82,7 @@ describe('CreateAgentTaskDialog', () => {
                 open={true}
                 onOpenChange={mockOnOpenChange}
                 deliverableId={mockDeliverableId}
+                projectId={mockProjectId}
                 onSuccess={mockOnSuccess}
             />
         );
@@ -93,6 +98,7 @@ describe('CreateAgentTaskDialog', () => {
                 open={true}
                 onOpenChange={mockOnOpenChange}
                 deliverableId={mockDeliverableId}
+                projectId={mockProjectId}
                 onSuccess={mockOnSuccess}
             />
         );
@@ -101,5 +107,48 @@ describe('CreateAgentTaskDialog', () => {
         expect(complexityInput.type).toBe('number');
         expect(complexityInput).toHaveAttribute('min', '1');
         expect(complexityInput).toHaveAttribute('max', '10');
+    });
+
+    it('sends the projectId prop in the CreateAgentTaskInput', async () => {
+        const createTaskMock = vi
+            .fn()
+            .mockResolvedValue({ data: { createAgentTask: { id: 'task-1' } } });
+        const hooks = await getMockedHooks();
+        hooks.useCreateAgentTaskMutation.mockReturnValue([createTaskMock, { loading: false }]);
+
+        const { CreateAgentTaskDialog } = await import('./CreateAgentTaskDialog');
+        render(
+            <CreateAgentTaskDialog
+                open={true}
+                onOpenChange={mockOnOpenChange}
+                deliverableId={mockDeliverableId}
+                projectId={mockProjectId}
+                onSuccess={mockOnSuccess}
+            />
+        );
+
+        fireEvent.change(screen.getByLabelText(/title \*/i), {
+            target: { value: 'Implement the feature' },
+        });
+
+        const submitButton = screen.getByRole('button', { name: /create agent task/i });
+        await waitFor(() => expect(submitButton).toBeEnabled());
+        fireEvent.click(submitButton);
+
+        await waitFor(() =>
+            expect(createTaskMock).toHaveBeenCalledWith({
+                variables: {
+                    input: {
+                        projectId: mockProjectId,
+                        deliverableId: mockDeliverableId,
+                        title: 'Implement the feature',
+                        description: '',
+                        complexityRating: 5,
+                        dependsOnAgentTaskId: null,
+                    },
+                },
+            })
+        );
+        expect(mockOnSuccess).toHaveBeenCalledWith('task-1');
     });
 });
