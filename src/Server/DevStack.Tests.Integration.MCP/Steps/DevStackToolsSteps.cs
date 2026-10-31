@@ -113,6 +113,7 @@ public sealed class DevStackToolsSteps
             ["description"] = "Test deliverable description"
         };
         _result = await Client.CallToolAsync("create_deliverable", args);
+        RegisterCreatedRow(_result);
         _scenarioContext["Result"] = _result;
     }
 
@@ -261,6 +262,7 @@ public sealed class DevStackToolsSteps
             ["title"] = title,
         };
         _result = await Client.CallToolAsync("create_task", args);
+        RegisterCreatedRow(_result);
         _scenarioContext["Result"] = _result;
     }
 
@@ -381,6 +383,20 @@ public sealed class DevStackToolsSteps
 
     #region Helper Methods
 
+    /// <summary>
+    /// Registers the id reported by a successful <c>create_*</c> call so that the scenario cleanup hook
+    /// (MCP-10) deletes exactly that row.
+    /// </summary>
+    private void RegisterCreatedRow(CallToolResult callResult)
+    {
+        if (callResult.IsError is true)
+        {
+            return;
+        }
+
+        CreatedRowRegistry.RegisterFromPayload(_scenarioContext, GetResultJson(callResult));
+    }
+
     private async Task<string> GetOrCreateTestProjectIdAsync()
     {
         var projectId = _scenarioContext.GetString("ProjectId");
@@ -441,7 +457,9 @@ public sealed class DevStackToolsSteps
             if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) ||
                 jsonDoc.RootElement.TryGetProperty("Id", out idElement))
             {
-                return idElement.GetString() ?? "";
+                var createdId = idElement.GetString() ?? "";
+                CreatedRowRegistry.Register(_scenarioContext, createdId);
+                return createdId;
             }
 
             throw new InvalidOperationException($"Result does not contain 'id' property: {result}");
@@ -496,7 +514,9 @@ public sealed class DevStackToolsSteps
             if (jsonDoc.RootElement.TryGetProperty("id", out var idElement) ||
                 jsonDoc.RootElement.TryGetProperty("Id", out idElement))
             {
-                return idElement.GetString() ?? "";
+                var createdId = idElement.GetString() ?? "";
+                CreatedRowRegistry.Register(_scenarioContext, createdId);
+                return createdId;
             }
 
             throw new InvalidOperationException($"Result does not contain 'id' property: {result}");

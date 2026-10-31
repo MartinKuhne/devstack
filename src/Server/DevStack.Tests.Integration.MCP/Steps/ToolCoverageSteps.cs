@@ -70,7 +70,7 @@ public sealed class ToolCoverageSteps
         return McpToolResult.Data(outcome.SuccessResult);
     }
 
-    /// <summary>Creates a uniquely named project that the cleanup predicate can reclaim.</summary>
+    /// <summary>Creates a uniquely named project that the cleanup predicate can reclaim and registers it for scenario cleanup.</summary>
     private async Task<string> CreateProjectAsync(string label)
     {
         _createdProjectName = $"[DeleteAfterTest] MCP {label} {_suffix}";
@@ -85,10 +85,13 @@ public sealed class ToolCoverageSteps
 
         outcome.Error.Should().BeNull($"create_project should succeed: {outcome.Error?.Message}");
         outcome.SuccessResult.IsError.Should().NotBeTrue("create_project should not report a tool error");
-        return McpToolResult.RequiredStringProperty(McpToolResult.Data(outcome.SuccessResult), "Id");
+
+        var id = McpToolResult.RequiredStringProperty(McpToolResult.Data(outcome.SuccessResult), "Id");
+        CreatedRowRegistry.Register(_scenarioContext, id);
+        return id;
     }
 
-    /// <summary>Creates a deliverable in the scenario project, optionally filling every documentation field.</summary>
+    /// <summary>Creates a deliverable in the scenario project, optionally filling every documentation field, and registers it for scenario cleanup.</summary>
     private async Task<string> CreateDeliverableAsync(bool allFields)
     {
         var arguments = new Dictionary<string, object?>
@@ -112,6 +115,7 @@ public sealed class ToolCoverageSteps
         var data = await CallForDataAsync("create_deliverable", arguments);
         var id = McpToolResult.RequiredStringProperty(data, "Id");
         _scenarioContext[DeliverableKey] = id;
+        CreatedRowRegistry.Register(_scenarioContext, id);
         return id;
     }
 
@@ -246,7 +250,9 @@ public sealed class ToolCoverageSteps
             ["description"] = $"task-description-{_suffix}",
         });
 
-        _scenarioContext[TaskKey] = McpToolResult.RequiredStringProperty(payload, "Id");
+        var taskId = McpToolResult.RequiredStringProperty(payload, "Id");
+        _scenarioContext[TaskKey] = taskId;
+        CreatedRowRegistry.Register(_scenarioContext, taskId);
     }
 
     [Then(@"get_task returns the coverage task")]

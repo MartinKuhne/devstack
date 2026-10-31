@@ -81,6 +81,22 @@ public sealed class ToolErrorPathSteps
     {
         _tool = tool;
         _outcome = await CallAsync(tool, ParseArguments(argumentsJson));
+        RegisterCreatedRowIfAny();
+    }
+
+    /// <summary>
+    /// Registers the id of a row that a successful <c>create_*</c> call produced, so that the scenario
+    /// cleanup hook (MCP-10) removes it as well.
+    /// </summary>
+    private void RegisterCreatedRowIfAny()
+    {
+        var result = _outcome?.Result;
+        if (!_tool.StartsWith("create_", StringComparison.Ordinal) || result is null || result.IsError is true)
+        {
+            return;
+        }
+
+        CreatedRowRegistry.RegisterFromPayload(_scenarioContext, McpToolResult.Json(result));
     }
 
     [When(@"I call get_next_deliverable for the empty coverage project with status ""(.*)""")]
@@ -142,6 +158,7 @@ public sealed class ToolErrorPathSteps
         outcome.Error.Should().BeNull($"create_project should succeed: {outcome.Error?.Message}");
         outcome.SuccessResult.IsError.Should().NotBeTrue("create_project should not report a tool error");
         _scenarioContext[EmptyProjectKey] = McpToolResult.RequiredStringProperty(McpToolResult.Data(outcome.SuccessResult), "Id");
+        CreatedRowRegistry.Register(_scenarioContext, _scenarioContext.GetString(EmptyProjectKey));
     }
 
     [Given(@"a deliverable in the empty coverage project")]
@@ -156,5 +173,6 @@ public sealed class ToolErrorPathSteps
         outcome.Error.Should().BeNull($"create_deliverable should succeed: {outcome.Error?.Message}");
         outcome.SuccessResult.IsError.Should().NotBeTrue("create_deliverable should not report a tool error");
         _scenarioContext[EmptyDeliverableKey] = McpToolResult.RequiredStringProperty(McpToolResult.Data(outcome.SuccessResult), "Id");
+        CreatedRowRegistry.Register(_scenarioContext, _scenarioContext.GetString(EmptyDeliverableKey));
     }
 }
