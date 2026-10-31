@@ -24,7 +24,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
         
-        private string[] _featureTags = ((string[])(null));
+        private static string[] featureTags = ((string[])(null));
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -42,7 +42,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
             TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Deliverable Auto-Completion", "  As a DevStack system\r\n  I want deliverables to automatically transition to DONE" +
                     " when all agent tasks are DONE\r\n  So that the workflow progresses without manual" +
-                    " intervention", ProgrammingLanguage.CSharp, ((string[])(null)));
+                    " intervention", ProgrammingLanguage.CSharp, featureTags);
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -52,27 +52,27 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             testRunner = null;
         }
         
-        public virtual void TestInitialize()
+        public void TestInitialize()
         {
         }
         
-        public virtual void TestTearDown()
+        public void TestTearDown()
         {
             testRunner.OnScenarioEnd();
         }
         
-        public virtual void ScenarioInitialize(TechTalk.SpecFlow.ScenarioInfo scenarioInfo)
+        public void ScenarioInitialize(TechTalk.SpecFlow.ScenarioInfo scenarioInfo)
         {
             testRunner.OnScenarioInitialize(scenarioInfo);
             testRunner.ScenarioContext.ScenarioContainer.RegisterInstanceAs<Xunit.Abstractions.ITestOutputHelper>(_testOutputHelper);
         }
         
-        public virtual void ScenarioStart()
+        public void ScenarioStart()
         {
             testRunner.OnScenarioStart();
         }
         
-        public virtual void ScenarioCleanup()
+        public void ScenarioCleanup()
         {
             testRunner.CollectScenarioErrors();
         }
@@ -98,26 +98,16 @@ namespace DevStack.Tests.Integration.GraphQL.Features
         [Xunit.TraitAttribute("FeatureTitle", "Deliverable Auto-Completion")]
         [Xunit.TraitAttribute("Description", "Deliverable transitions to DONE when all agent tasks are DONE")]
         [Xunit.TraitAttribute("Category", "auto_completion")]
-        public virtual void DeliverableTransitionsToDONEWhenAllAgentTasksAreDONE()
+        public void DeliverableTransitionsToDONEWhenAllAgentTasksAreDONE()
         {
             string[] tagsOfScenario = new string[] {
                     "auto_completion"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Deliverable transitions to DONE when all agent tasks are DONE", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Deliverable transitions to DONE when all agent tasks are DONE", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 11
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
-            bool isScenarioIgnored = default(bool);
-            bool isFeatureIgnored = default(bool);
-            if ((tagsOfScenario != null))
-            {
-                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((this._featureTags != null))
-            {
-                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((isScenarioIgnored || isFeatureIgnored))
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
                 testRunner.SkipScenario();
             }
@@ -153,26 +143,16 @@ namespace DevStack.Tests.Integration.GraphQL.Features
         [Xunit.TraitAttribute("FeatureTitle", "Deliverable Auto-Completion")]
         [Xunit.TraitAttribute("Description", "Deliverable stays in current state when some tasks are not DONE")]
         [Xunit.TraitAttribute("Category", "auto_completion")]
-        public virtual void DeliverableStaysInCurrentStateWhenSomeTasksAreNotDONE()
+        public void DeliverableStaysInCurrentStateWhenSomeTasksAreNotDONE()
         {
             string[] tagsOfScenario = new string[] {
                     "auto_completion"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Deliverable stays in current state when some tasks are not DONE", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Deliverable stays in current state when some tasks are not DONE", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 20
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
-            bool isScenarioIgnored = default(bool);
-            bool isFeatureIgnored = default(bool);
-            if ((tagsOfScenario != null))
-            {
-                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((this._featureTags != null))
-            {
-                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((isScenarioIgnored || isFeatureIgnored))
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
                 testRunner.SkipScenario();
             }
@@ -208,26 +188,16 @@ namespace DevStack.Tests.Integration.GraphQL.Features
         [Xunit.TraitAttribute("FeatureTitle", "Deliverable Auto-Completion")]
         [Xunit.TraitAttribute("Description", "Deliverable transitions to DONE when it has no tasks")]
         [Xunit.TraitAttribute("Category", "auto_completion")]
-        public virtual void DeliverableTransitionsToDONEWhenItHasNoTasks()
+        public void DeliverableTransitionsToDONEWhenItHasNoTasks()
         {
             string[] tagsOfScenario = new string[] {
                     "auto_completion"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Deliverable transitions to DONE when it has no tasks", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Deliverable transitions to DONE when it has no tasks", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 29
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
-            bool isScenarioIgnored = default(bool);
-            bool isFeatureIgnored = default(bool);
-            if ((tagsOfScenario != null))
-            {
-                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((this._featureTags != null))
-            {
-                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((isScenarioIgnored || isFeatureIgnored))
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
                 testRunner.SkipScenario();
             }
@@ -254,26 +224,16 @@ namespace DevStack.Tests.Integration.GraphQL.Features
         [Xunit.TraitAttribute("FeatureTitle", "Deliverable Auto-Completion")]
         [Xunit.TraitAttribute("Description", "checkAndMarkDeliverableDone returns true when all tasks are DONE")]
         [Xunit.TraitAttribute("Category", "auto_completion")]
-        public virtual void CheckAndMarkDeliverableDoneReturnsTrueWhenAllTasksAreDONE()
+        public void CheckAndMarkDeliverableDoneReturnsTrueWhenAllTasksAreDONE()
         {
             string[] tagsOfScenario = new string[] {
                     "auto_completion"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("checkAndMarkDeliverableDone returns true when all tasks are DONE", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("checkAndMarkDeliverableDone returns true when all tasks are DONE", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 35
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
-            bool isScenarioIgnored = default(bool);
-            bool isFeatureIgnored = default(bool);
-            if ((tagsOfScenario != null))
-            {
-                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((this._featureTags != null))
-            {
-                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((isScenarioIgnored || isFeatureIgnored))
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
                 testRunner.SkipScenario();
             }
@@ -306,26 +266,16 @@ namespace DevStack.Tests.Integration.GraphQL.Features
         [Xunit.TraitAttribute("FeatureTitle", "Deliverable Auto-Completion")]
         [Xunit.TraitAttribute("Description", "checkAndMarkDeliverableDone returns false when some tasks are not DONE")]
         [Xunit.TraitAttribute("Category", "auto_completion")]
-        public virtual void CheckAndMarkDeliverableDoneReturnsFalseWhenSomeTasksAreNotDONE()
+        public void CheckAndMarkDeliverableDoneReturnsFalseWhenSomeTasksAreNotDONE()
         {
             string[] tagsOfScenario = new string[] {
                     "auto_completion"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("checkAndMarkDeliverableDone returns false when some tasks are not DONE", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("checkAndMarkDeliverableDone returns false when some tasks are not DONE", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 43
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
-            bool isScenarioIgnored = default(bool);
-            bool isFeatureIgnored = default(bool);
-            if ((tagsOfScenario != null))
-            {
-                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((this._featureTags != null))
-            {
-                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
-            }
-            if ((isScenarioIgnored || isFeatureIgnored))
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
                 testRunner.SkipScenario();
             }
