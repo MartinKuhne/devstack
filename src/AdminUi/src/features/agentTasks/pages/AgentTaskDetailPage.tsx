@@ -39,18 +39,7 @@ import { Progress } from '@/components/ui/progress';
 
 const logger = createModuleLogger('AgentTaskDetailPage');
 
-const VALID_TRANSITIONS: Record<string, AgentTaskStatus[]> = {
-    [AgentTaskStatus.READY]: [AgentTaskStatus.IN_PROGRESS, AgentTaskStatus.NEEDS_REVIEW],
-    [AgentTaskStatus.IN_PROGRESS]: [
-        AgentTaskStatus.NEEDS_REVIEW,
-        AgentTaskStatus.DONE,
-        AgentTaskStatus.FAILED,
-    ],
-    [AgentTaskStatus.NEEDS_REVIEW]: [AgentTaskStatus.DONE, AgentTaskStatus.REJECTED],
-    [AgentTaskStatus.FAILED]: [AgentTaskStatus.READY],
-    [AgentTaskStatus.DONE]: [AgentTaskStatus.READY],
-    [AgentTaskStatus.REJECTED]: [AgentTaskStatus.READY],
-};
+
 
 export function AgentTaskDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -165,7 +154,6 @@ export function AgentTaskDetailPage() {
     };
 
     const currentStatus = agentTask?.status ?? '';
-    const allowedTransitions = VALID_TRANSITIONS[currentStatus] ?? [];
     const canApprove = currentStatus === AgentTaskStatus.NEEDS_REVIEW;
     const canReject = currentStatus === AgentTaskStatus.NEEDS_REVIEW;
     const canRetry = currentStatus === AgentTaskStatus.FAILED;
@@ -248,22 +236,14 @@ export function AgentTaskDetailPage() {
                             <SelectValue placeholder="Change Status..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {Object.values(AgentTaskStatus).map((status) => {
-                                const isAllowed = allowedTransitions.includes(
-                                    status as AgentTaskStatus
-                                );
-                                return (
-                                    <SelectItem
-                                        key={status}
-                                        value={status}
-                                        disabled={!isAllowed}
-                                        className={!isAllowed ? 'opacity-50' : ''}
-                                    >
-                                        {status.replace(/_/g, ' ')}
-                                        {!isAllowed ? ' (not allowed)' : ''}
-                                    </SelectItem>
-                                );
-                            })}
+                            {Object.values(AgentTaskStatus).map((status) => (
+                                <SelectItem
+                                    key={status}
+                                    value={status}
+                                >
+                                    {status.replace(/_/g, ' ')}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                     <Button onClick={() => setUpdateDialogOpen(true)}>Edit</Button>
