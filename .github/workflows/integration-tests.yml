@@ -2,8 +2,8 @@ name: Integration Tests
 
 # Testcontainers-based integration tests. They spin up a Docker network with
 # PostgreSQL plus the DevStack.Api and DevStack.Mcp app images, so they are
-# slow, require a Docker daemon, and are deliberately excluded from the
-# default `build-api` workflow.
+# slow and require a Docker daemon. The `build-api` workflow also runs both
+# suites; this workflow provides partitioned, on-demand runs.
 #
 # This workflow is partitioned: each job only runs when the slice of code it
 # covers changes (using dorny/paths-filter). It is also runnable on demand via
