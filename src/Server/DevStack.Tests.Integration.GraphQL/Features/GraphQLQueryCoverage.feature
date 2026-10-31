@@ -359,3 +359,30 @@ Feature: GraphQL Query Coverage
     When I query agent tasks filtered by the dependency title of task 2
     Then the "agentTasks" connection should contain 1 nodes
     And the "agentTasks" connection nodes should be "@2"
+
+  # Relation objects as selected by src/AdminUi/src/graphql/queries/agentTask.graphql.
+  # These three scenarios pin the observed server behaviour: the objects are null (product defect,
+  # see the note in QueryCoverageSteps), only the foreign-key scalars are correct.
+  @gql-12
+  Scenario: GQL-12 agent task by id does not resolve its relation objects
+    Given I create query coverage projects "HOST"
+    And I create query coverage deliverables "DEL1:FEATURE:DRAFT"
+    And I create a query coverage agent task "TASK1:2:READY" in deliverable 1
+    And I create a query coverage agent task "TASK2:3:READY" in deliverable 1 depending on task 1
+    When I query the query coverage agent task 2 with its relation objects
+    Then the query coverage agent task 2 relation objects are not resolved but its foreign keys reference deliverable 1 project 1 and dependency task 1
+
+  @gql-12
+  Scenario: GQL-12 agent task connection does not resolve its relation objects
+    Given I create query coverage projects "HOST"
+    And I create query coverage deliverables "DEL1:FEATURE:DRAFT"
+    And I create query coverage agent tasks "TASK1:2:READY,TASK2:3:READY"
+    When I query agent tasks in deliverable 1 with their relation objects
+    Then the query coverage agent task relation objects in deliverable 1 are not resolved but reference its project 1
+
+  @gql-12
+  Scenario: GQL-12 deliverable by id does not resolve its project object
+    Given I create query coverage projects "HOST,GUEST"
+    And I create a query coverage deliverable "DEL1:FEATURE:DRAFT" in project 2
+    When I query the query coverage deliverable 1 with its project object
+    Then the query coverage deliverable 1 project object is not resolved but its projectId references project 2

@@ -1882,6 +1882,166 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             this.ScenarioCleanup();
         }
         
+        [Xunit.SkippableFactAttribute(DisplayName="GQL-12 agent task by id does not resolve its relation objects")]
+        [Xunit.TraitAttribute("FeatureTitle", "GraphQL Query Coverage")]
+        [Xunit.TraitAttribute("Description", "GQL-12 agent task by id does not resolve its relation objects")]
+        [Xunit.TraitAttribute("Category", "gql-12")]
+        public virtual void GQL_12AgentTaskByIdDoesNotResolveItsRelationObjects()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "gql-12"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-12 agent task by id does not resolve its relation objects", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 367
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 8
+  this.FeatureBackground();
+#line hidden
+#line 368
+    testRunner.Given("I create query coverage projects \"HOST\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 369
+    testRunner.And("I create query coverage deliverables \"DEL1:FEATURE:DRAFT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 370
+    testRunner.And("I create a query coverage agent task \"TASK1:2:READY\" in deliverable 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 371
+    testRunner.And("I create a query coverage agent task \"TASK2:3:READY\" in deliverable 1 depending o" +
+                        "n task 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 372
+    testRunner.When("I query the query coverage agent task 2 with its relation objects", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 373
+    testRunner.Then("the query coverage agent task 2 relation objects are not resolved but its foreign" +
+                        " keys reference deliverable 1 project 1 and dependency task 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="GQL-12 agent task connection does not resolve its relation objects")]
+        [Xunit.TraitAttribute("FeatureTitle", "GraphQL Query Coverage")]
+        [Xunit.TraitAttribute("Description", "GQL-12 agent task connection does not resolve its relation objects")]
+        [Xunit.TraitAttribute("Category", "gql-12")]
+        public virtual void GQL_12AgentTaskConnectionDoesNotResolveItsRelationObjects()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "gql-12"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-12 agent task connection does not resolve its relation objects", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 376
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 8
+  this.FeatureBackground();
+#line hidden
+#line 377
+    testRunner.Given("I create query coverage projects \"HOST\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 378
+    testRunner.And("I create query coverage deliverables \"DEL1:FEATURE:DRAFT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 379
+    testRunner.And("I create query coverage agent tasks \"TASK1:2:READY,TASK2:3:READY\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 380
+    testRunner.When("I query agent tasks in deliverable 1 with their relation objects", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 381
+    testRunner.Then("the query coverage agent task relation objects in deliverable 1 are not resolved " +
+                        "but reference its project 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="GQL-12 deliverable by id does not resolve its project object")]
+        [Xunit.TraitAttribute("FeatureTitle", "GraphQL Query Coverage")]
+        [Xunit.TraitAttribute("Description", "GQL-12 deliverable by id does not resolve its project object")]
+        [Xunit.TraitAttribute("Category", "gql-12")]
+        public virtual void GQL_12DeliverableByIdDoesNotResolveItsProjectObject()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "gql-12"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-12 deliverable by id does not resolve its project object", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 384
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 8
+  this.FeatureBackground();
+#line hidden
+#line 385
+    testRunner.Given("I create query coverage projects \"HOST,GUEST\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 386
+    testRunner.And("I create a query coverage deliverable \"DEL1:FEATURE:DRAFT\" in project 2", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 387
+    testRunner.When("I query the query coverage deliverable 1 with its project object", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 388
+    testRunner.Then("the query coverage deliverable 1 project object is not resolved but its projectId" +
+                        " references project 2", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : System.IDisposable

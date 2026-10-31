@@ -31,6 +31,9 @@ public sealed class QueryCoverageSteps
     private const string EndCursorKey = "QcEndCursor";
     private const string RelationNodesKey = "QcRelationNodes";
     private const string RelationKindKey = "QcRelationKind";
+    private const string TaskObjectsKey = "QcRelationTaskObjects";
+    private const string TaskPageNodesKey = "QcRelationTaskPageNodes";
+    private const string DeliverableObjectKey = "QcRelationDeliverableObject";
 
     private const string CreateProjectDocument = """
         mutation QcCreateProject($input: CreateProjectInput!) {
@@ -90,6 +93,52 @@ public sealed class QueryCoverageSteps
             deliverableId
             projectId
             dependsOnAgentTaskId
+          }
+        }
+        """;
+
+    // Mirrors src/AdminUi/src/graphql/queries/agentTask.graphql (GetAgentTask, lines 18-26):
+    // the UI selects the deliverable and project objects next to the foreign keys.
+    private const string AgentTaskRelationObjectsDocument = """
+        query QcAgentTaskRelationObjects($id: UUID!) {
+          agentTask(id: $id) {
+            id
+            title
+            deliverableId
+            projectId
+            dependsOnAgentTaskId
+            deliverable { id title }
+            project { id name }
+            dependsOnAgentTask { id title }
+          }
+        }
+        """;
+
+    // Mirrors src/AdminUi/src/graphql/queries/agentTask.graphql (GetAgentTasks, lines 48-55):
+    // the UI selects the same objects for every node of the deliverable's task list.
+    private const string AgentTaskPageRelationObjectsDocument = """
+        query QcAgentTaskPageRelationObjects($where: AgentTaskFilterInput, $first: Int) {
+          agentTasks(where: $where, first: $first) {
+            nodes {
+              id
+              title
+              deliverableId
+              projectId
+              deliverable { id title }
+              project { id name }
+            }
+          }
+        }
+        """;
+
+    // The deliverable-by-id query the AdminUi uses to render a deliverable's project.
+    private const string DeliverableRelationObjectDocument = """
+        query QcDeliverableRelationObject($id: UUID!) {
+          deliverable(id: $id) {
+            id
+            title
+            projectId
+            project { id name }
           }
         }
         """;
@@ -265,6 +314,9 @@ public sealed class QueryCoverageSteps
             var maxConcurrency = int.Parse(parts[2].Trim());
             var cost = int.Parse(parts[3].Trim());
 
+            // The url keeps the bare [DeleteAfterTest] anchor because deleteTestData reclaims
+            // large language models by url; the per-scenario marker goes into model / modelAlias /
+            // apiKey, which is what the connection queries filter on (see MarkerField).
             var url = $"https://example.com/{TestMarker}/{fixture.Slug}/{token}";
             var model = $"{fixture.Marker} model-{token}";
             var modelAlias = $"{fixture.Marker} alias-{token}";
@@ -767,6 +819,80 @@ public sealed class QueryCoverageSteps
         _scenarioContext["QcRelationTask"] = node;
     }
 
+    /// <summary>
+    /// Reads the n-th created agent task with its relation <em>objects</em> (deliverable, project,
+    /// dependsOnAgentTask) exactly as the AdminUi query does, and keeps the payload for assertion.
+    /// </summary>
+    [When(@"^I query the query coverage agent task (\d+) with its relation objects$")]
+    public async Task WhenIQueryTheQueryCoverageAgentTaskWithItsRelationObjects(int index)
+    {
+        var task = Entity("agentTasks", index);
+        var result = await ExecuteAsync(AgentTaskRelationObjectsDocument, new { id = task.Id }, "QcAgentTaskRelationObjects");
+
+        result.HasErrors.Should().BeFalse(result.RawBody);
+        var node = result.Field("agentTask");
+        node.ValueKind.Should().NotBe(JsonValueKind.Null, result.RawBody);
+        node.GetProperty("id").GetString().Should().Be(task.Id);
+
+        _scenarioContext[TaskObjectsKey] = node;
+    }
+
+    /// <summary>
+    /// Reads the agent tasks of the n-th created deliverable through the AdminUi connection query
+    /// (deliverableId filter plus relation objects) and keeps the nodes for assertion.
+    /// </summary>
+    [When(@"^I query agent tasks in deliverable (\d+) with their relation objects$")]
+    public async Task WhenIQueryAgentTasksInDeliverableWithTheirRelationObjects(int deliverableIndex)
+    {
+        var fixture = Fixture();
+        var deliverable = Entity("deliverables", deliverableIndex);
+
+        var where = new Dictionary<string, object?>
+        {
+            ["and"] = new List<object?>
+            {
+                new Dictionary<string, object?>
+                {
+                    ["deliverableId"] = new Dictionary<string, object?> { ["eq"] = deliverable.Id }
+                },
+                new Dictionary<string, object?>
+                {
+                    ["title"] = new Dictionary<string, object?> { ["contains"] = fixture.Marker }
+                }
+            }
+        };
+
+        var result = await ExecuteAsync(
+            AgentTaskPageRelationObjectsDocument,
+            new Dictionary<string, object?> { ["where"] = where, ["first"] = 10 },
+            "QcAgentTaskPageRelationObjects");
+
+        result.HasErrors.Should().BeFalse(result.RawBody);
+        result.IsFieldNull("agentTasks").Should().BeFalse(result.RawBody);
+
+        var nodes = result.Field("agentTasks").GetProperty("nodes");
+        nodes.ValueKind.Should().Be(JsonValueKind.Array, result.RawBody);
+
+        _scenarioContext[TaskPageNodesKey] = nodes.EnumerateArray().ToList();
+    }
+
+    /// <summary>
+    /// Reads the n-th created deliverable with its project object and keeps the payload for assertion.
+    /// </summary>
+    [When(@"^I query the query coverage deliverable (\d+) with its project object$")]
+    public async Task WhenIQueryTheQueryCoverageDeliverableWithItsProjectObject(int index)
+    {
+        var deliverable = Entity("deliverables", index);
+        var result = await ExecuteAsync(DeliverableRelationObjectDocument, new { id = deliverable.Id }, "QcDeliverableRelationObject");
+
+        result.HasErrors.Should().BeFalse(result.RawBody);
+        var node = result.Field("deliverable");
+        node.ValueKind.Should().NotBe(JsonValueKind.Null, result.RawBody);
+        node.GetProperty("id").GetString().Should().Be(deliverable.Id);
+
+        _scenarioContext[DeliverableObjectKey] = node;
+    }
+
     // ---------------------------------------------------------------- assertions
 
     /// <summary>Asserts the number of nodes returned by the last connection query.</summary>
@@ -907,6 +1033,87 @@ public sealed class QueryCoverageSteps
         FieldOf("deliverables", deliverableIndex, "projectId").Should().Be(FieldOf("agentTasks", taskIndex, "projectId"));
     }
 
+    // ---------------------------------------------------------------------------------------
+    // PRODUCT DEFECT pinned by the three relation-object assertions below.
+    //
+    // The relation OBJECT fields of agentTask and deliverable resolve to null, even though the
+    // foreign-key scalars are correct. Observed payloads (Release, docker image devstack-api):
+    //
+    //   agentTask(id:)  -> {"id":"...","title":"...","deliverableId":"27df7f72-...",
+    //                       "projectId":"d998b201-...","dependsOnAgentTaskId":"64e3dd9a-...",
+    //                       "deliverable":null,"project":null,"dependsOnAgentTask":null}
+    //   agentTasks(...) -> {"id":"...","deliverableId":"2004f5dc-...","projectId":"2e096c9d-...",
+    //                       "deliverable":null,"project":null}
+    //   deliverable(id:)-> {"id":"...","projectId":"5599fe0d-...","project":null}
+    //
+    // Cause: Query.cs loads only the root entity. GetAgentTask has no Include at all, GetDeliverable
+    // includes AgentTasks but not Project, and the connection resolvers carry
+    // [UsePaging][UseFiltering][UseSorting] without [UseProjection], so HotChocolate never projects
+    // the navigation and EF Core leaves the CLR navigation unloaded (lazy loading proxies are not
+    // enabled - Program.cs registers the context with a plain UseNpgsql). HotChocolate then serialises
+    // the unloaded navigation as null instead of loading it.
+    //
+    // AdminUi impact: src/AdminUi/src/graphql/queries/agentTask.graphql selects exactly these fields
+    //   GetAgentTask  (lines 18-26): deliverable { id title } project { id name repository }
+    //   GetAgentTasks (lines 48-55): deliverable { id title } project { id name }
+    // so the task detail view and the task list render empty deliverable / project columns although
+    // the relations exist in the database.
+    //
+    // Server-side fix: add [UseProjection] to the connection resolvers and Include the navigations in
+    // the by-id resolvers (or resolve them through dedicated field resolvers). Once fixed, flip these
+    // three assertions back to asserting the resolved objects' ids and labels.
+    // ---------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Asserts that the relation objects of an agent task-by-id query are NOT resolved while its
+    /// foreign keys reference the created rows (see the product-defect note above the step).
+    /// </summary>
+    [Then(@"^the query coverage agent task (\d+) relation objects are not resolved but its foreign keys reference deliverable (\d+) project (\d+) and dependency task (\d+)$")]
+    public void ThenAgentTaskRelationObjectsAreNotResolved(int taskIndex, int deliverableIndex, int projectIndex, int dependencyIndex)
+    {
+        var node = StoredObject(TaskObjectsKey);
+
+        node.GetProperty("id").GetString().Should().Be(Entity("agentTasks", taskIndex).Id);
+        AssertUnresolvedObject(node, "deliverable", "deliverableId", Entity("deliverables", deliverableIndex).Id);
+        AssertUnresolvedObject(node, "project", "projectId", Entity("projects", projectIndex).Id);
+        AssertUnresolvedObject(node, "dependsOnAgentTask", "dependsOnAgentTaskId", Entity("agentTasks", dependencyIndex).Id);
+    }
+
+    /// <summary>
+    /// Asserts that no node of the deliverable's agent task connection resolves its deliverable or
+    /// project object, while the foreign keys of every node reference the created rows.
+    /// </summary>
+    [Then(@"^the query coverage agent task relation objects in deliverable (\d+) are not resolved but reference its project (\d+)$")]
+    public void ThenAgentTaskRelationObjectsInDeliverableAreNotResolved(int deliverableIndex, int projectIndex)
+    {
+        var nodes = StoredNodes(TaskPageNodesKey);
+        var deliverable = Entity("deliverables", deliverableIndex);
+        var project = Entity("projects", projectIndex);
+
+        nodes.Should().HaveCount(KindList("agentTasks").Count, $"the connection returned {nodes.Count} nodes");
+        nodes.Select(n => n.GetProperty("id").GetString()).Should()
+            .BeEquivalentTo(KindList("agentTasks").Select(t => t.Id), $"the connection returned {nodes.Count} nodes");
+
+        foreach (var node in nodes)
+        {
+            AssertUnresolvedObject(node, "deliverable", "deliverableId", deliverable.Id);
+            AssertUnresolvedObject(node, "project", "projectId", project.Id);
+        }
+    }
+
+    /// <summary>
+    /// Asserts that the project object of a deliverable-by-id query is not resolved while its
+    /// projectId references the created project.
+    /// </summary>
+    [Then(@"^the query coverage deliverable (\d+) project object is not resolved but its projectId references project (\d+)$")]
+    public void ThenDeliverableProjectObjectIsNotResolved(int deliverableIndex, int projectIndex)
+    {
+        var node = StoredObject(DeliverableObjectKey);
+
+        AssertUnresolvedObject(node, "project", "projectId", Entity("projects", projectIndex).Id);
+        node.GetProperty("projectId").GetString().Should().Be(FieldOf("deliverables", deliverableIndex, "projectId"));
+    }
+
     // ------------------------------------------------------------------ internals
 
     /// <summary>Creates one deliverable from a TOKEN:TYPE:STATUS spec.</summary>
@@ -1025,7 +1232,7 @@ public sealed class QueryCoverageSteps
 
         var markerFilter = new Dictionary<string, object?>
         {
-            [LabelField(kind)] = new Dictionary<string, object?> { ["contains"] = fixture.Marker }
+            [MarkerField(kind)] = new Dictionary<string, object?> { ["contains"] = fixture.Marker }
         };
 
         var combinedWhere = where.Count == 0
@@ -1169,6 +1376,15 @@ public sealed class QueryCoverageSteps
         _ => throw new ArgumentException($"Unknown connection '{kind}'.", nameof(kind))
     };
 
+    /// <summary>
+    /// The field the per-scenario marker filter is applied to. It is the label field for every
+    /// connection except <c>largeLanguageModels</c>: a model's url carries only the bare
+    /// <c>[DeleteAfterTest]</c> anchor that <c>deleteTestData</c> reclaims rows by, while the full
+    /// per-scenario marker is written into <c>model</c>. Filtering the url on the full marker
+    /// would therefore exclude the rows the scenario has just created.
+    /// </summary>
+    private static string MarkerField(string kind) => kind == "largeLanguageModels" ? "model" : LabelField(kind);
+
     /// <summary>The node selection set used for a connection.</summary>
     private static string NodeFields(string kind) => kind switch
     {
@@ -1305,6 +1521,33 @@ public sealed class QueryCoverageSteps
 
         entity = match;
         return true;
+    }
+
+    /// <summary>Reads a JSON payload stored by a relation-object query.</summary>
+    private JsonElement StoredObject(string key)
+        => _scenarioContext.TryGetValue<JsonElement>(key, out var stored) && stored.ValueKind != JsonValueKind.Undefined
+            ? stored
+            : throw new InvalidOperationException($"No relation-object query has been executed for '{key}'.");
+
+    /// <summary>Reads the node payloads stored by a relation-object connection query.</summary>
+    private List<JsonElement> StoredNodes(string key)
+        => _scenarioContext.TryGetValue<List<JsonElement>>(key, out var stored) && stored is not null
+            ? stored
+            : throw new InvalidOperationException("No relation-object connection query has been executed.");
+
+    /// <summary>
+    /// Asserts that a relation object field comes back as JSON null while its foreign key scalar
+    /// carries the expected id. This pins the CURRENT server behaviour, which is a product defect -
+    /// see the note on <see cref="ThenAgentTaskRelationObjectsAreNotResolved"/>.
+    /// </summary>
+    private static void AssertUnresolvedObject(JsonElement payload, string field, string foreignKeyField, string expectedId)
+    {
+        payload.GetProperty(foreignKeyField).GetString().Should().Be(expectedId, $"payload: {payload}");
+
+        payload.GetProperty(field).ValueKind.Should().Be(
+            JsonValueKind.Null,
+            $"{field} is currently resolved as null by the server (product defect, see " +
+            $"ThenAgentTaskRelationObjectsAreNotResolved); payload: {payload}");
     }
 
     /// <summary>Reads a tracked field of a created row and fails with a clear message when it is missing.</summary>
