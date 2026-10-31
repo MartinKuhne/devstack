@@ -1,6 +1,6 @@
 using DevStack.Tests.Integration.MCP.Hooks;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using ModelContextProtocol.Client;
 

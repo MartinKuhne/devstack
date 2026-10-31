@@ -2,7 +2,7 @@ using DevStack.OpenCode.Models;
 using DevStack.OpenCode.Options;
 using DevStack.OpenCode.Store;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Microsoft.Extensions.Options;
 

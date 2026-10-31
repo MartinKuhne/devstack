@@ -1,7 +1,7 @@
 using DevStack.Tests.Integration.MCP.Hooks;
 using DevStack.Tests.Integration.Shared;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Xunit;
 

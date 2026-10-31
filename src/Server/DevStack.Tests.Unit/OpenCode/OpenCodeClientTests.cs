@@ -6,7 +6,7 @@ using DevStack.OpenCode.Client;
 using DevStack.OpenCode.Models;
 using DevStack.OpenCode.Options;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Microsoft.Extensions.Options;
 

@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 
 using DevStack.Infrastructure.Services;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Xunit;
 

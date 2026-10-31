@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 using DevStack.Tests.Integration.MCP.Hooks;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;

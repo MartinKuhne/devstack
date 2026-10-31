@@ -1,6 +1,6 @@
 using DevStack.OpenCode.Options;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Xunit;
 

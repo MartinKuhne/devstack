@@ -4,7 +4,7 @@ using System.Text.Json;
 using DevStack.OpenCode.Models;
 using DevStack.OpenCode.Serialization;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Xunit;
 
@@ -549,6 +549,6 @@ public class OpenCodeConfigSerializationTests
         var json = JsonSerializer.Serialize(original, OpenCodeJson.Compact);
         var roundTrip = JsonSerializer.Deserialize<OpenCodeConfig>(json, OpenCodeJson.Compact);
 
-        roundTrip.Should().BeEquivalentTo(original, opts => opts.RespectingRuntimeTypes());
+        roundTrip.Should().BeEquivalentTo(original, opts => opts.PreferringRuntimeMemberTypes());
     }
 }

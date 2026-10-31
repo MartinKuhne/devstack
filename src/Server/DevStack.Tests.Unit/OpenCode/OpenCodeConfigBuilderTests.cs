@@ -1,7 +1,7 @@
 using DevStack.OpenCode;
 using DevStack.OpenCode.Models;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Xunit;
 

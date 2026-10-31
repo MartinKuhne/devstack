@@ -1,7 +1,7 @@
 using System;
 using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
-using FluentAssertions;
+using AwesomeAssertions;
 using Xunit;
 
 namespace DevStack.Tests.Unit.Entities;

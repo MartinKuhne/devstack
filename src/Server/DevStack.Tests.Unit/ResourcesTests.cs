@@ -1,6 +1,6 @@
 using DevStack.Mcp;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Xunit;
 

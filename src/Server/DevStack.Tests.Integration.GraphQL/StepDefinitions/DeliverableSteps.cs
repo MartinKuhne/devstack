@@ -5,7 +5,7 @@ using System.Text.Json;
 using DevStack.Domain.Enums;
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using TechTalk.SpecFlow;
 

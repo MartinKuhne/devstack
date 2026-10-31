@@ -4,7 +4,7 @@ using System.Text.Json;
 
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using TechTalk.SpecFlow;
 

@@ -12,7 +12,7 @@ using DevStack.Domain.Enums;
 using DevStack.Mcp.Tools;
 using DevStack.Persistence;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
