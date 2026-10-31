@@ -17,6 +17,7 @@ public class DevStackTestEnvBuilder
     private string _healthCheckPath = "/health";
     private string? _customApiImageName;
     private string? _customMcpImageName;
+    private readonly Dictionary<string, string> _extraEnvironmentVariables = new();
 
     public DevStackTestEnvBuilder WithSolutionDir(string solutionDir)
     {
@@ -74,6 +75,15 @@ public class DevStackTestEnvBuilder
         return this;
     }
 
+    /// <summary>
+    /// Adds an environment variable to the application container, e.g. to toggle feature flags.
+    /// </summary>
+    public DevStackTestEnvBuilder WithEnvironment(string name, string value)
+    {
+        _extraEnvironmentVariables[name] = value;
+        return this;
+    }
+
     public string? SolutionDir => _solutionDir;
     public DevStackTestEnvMode Mode => _mode;
     public string PostgresUsername => _postgresUsername;
@@ -84,6 +94,7 @@ public class DevStackTestEnvBuilder
     public int AppPort => _appPort;
     public string HealthCheckPath => _healthCheckPath;
     public IFutureDockerImage? AppImage => _appImage;
+    public IReadOnlyDictionary<string, string> ExtraEnvironmentVariables => _extraEnvironmentVariables;
 
     private IFutureDockerImage? _appImage;
 
@@ -104,12 +115,7 @@ public class DevStackTestEnvBuilder
                 $"Check that the Dockerfile exists at the expected location and that .dockerignore is not excluding it.");
         }
 
-        var imageName = _mode switch
-        {
-            DevStackTestEnvMode.Api => _customApiImageName ?? "devstack-api:test",
-            DevStackTestEnvMode.Mcp => _customMcpImageName ?? "devstack-mcp:test",
-            _ => throw new InvalidOperationException($"Unknown mode: {_mode}")
-        };
+        var imageName = ResolveImageName(ImageNameFromEnvironment());
 
         _appImage = new ImageFromDockerfileBuilder()
             .WithDockerfileDirectory(solutionDir)
@@ -118,6 +124,31 @@ public class DevStackTestEnvBuilder
             .WithImageBuildPolicy(_ => true)
             .Build();
     }
+
+    /// <summary>
+    /// Reads an image-name override from the environment so concurrent test runs
+    /// do not rebuild and retag the same image.
+    /// </summary>
+    private string? ImageNameFromEnvironment()
+    {
+        var variable = _mode == DevStackTestEnvMode.Api
+            ? "DEVSTACK_TEST_API_IMAGE"
+            : "DEVSTACK_TEST_MCP_IMAGE";
+
+        var value = Environment.GetEnvironmentVariable(variable);
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
+
+    /// <summary>
+    /// Resolves the effective image name: explicit builder name, then environment override, then default.
+    /// </summary>
+    private string ResolveImageName(string? environmentOverride)
+        => _mode switch
+        {
+            DevStackTestEnvMode.Api => _customApiImageName ?? environmentOverride ?? "devstack-api:test",
+            DevStackTestEnvMode.Mcp => _customMcpImageName ?? environmentOverride ?? "devstack-mcp:test",
+            _ => throw new InvalidOperationException($"Unknown mode: {_mode}")
+        };
 
     internal string GetAppUrl(int mappedPort)
     {

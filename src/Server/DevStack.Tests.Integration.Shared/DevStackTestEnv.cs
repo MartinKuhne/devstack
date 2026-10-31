@@ -50,7 +50,7 @@ public sealed class DevStackTestEnv : IDisposable
 
         _appImage.CreateAsync().GetAwaiter().GetResult();
 
-        _appContainer = new ContainerBuilder(_appImage)
+        var containerBuilder = new ContainerBuilder(_appImage)
             .WithNetwork(_network)
             .WithPortBinding((ushort)builder.AppPort, true)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.EnvironmentName)
@@ -59,8 +59,14 @@ public sealed class DevStackTestEnv : IDisposable
             .WithWaitStrategy(Wait.ForUnixContainer()
                 .UntilHttpRequestIsSucceeded(
                     f => f.ForPort((ushort)builder.AppPort).ForPath(builder.HealthCheckPath)))
-            .WithOutputConsumer(Consume.DoNotConsumeStdoutAndStderr())
-            .Build();
+            .WithOutputConsumer(Consume.DoNotConsumeStdoutAndStderr());
+
+        foreach (var variable in builder.ExtraEnvironmentVariables)
+        {
+            containerBuilder = containerBuilder.WithEnvironment(variable.Key, variable.Value);
+        }
+
+        _appContainer = containerBuilder.Build();
 
         _appContainer.StartAsync().GetAwaiter().GetResult();
 
