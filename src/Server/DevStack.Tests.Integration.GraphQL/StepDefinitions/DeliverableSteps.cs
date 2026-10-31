@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -6,6 +7,7 @@ using AwesomeAssertions;
 
 using DevStack.Domain.Enums;
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
+using DevStack.Tests.Integration.Shared;
 
 using Reqnroll;
 
@@ -32,9 +34,15 @@ public sealed class DeliverableSteps
         return data;
     }
 
+    /// <summary>
+    /// Reports whether the GraphQL payload carries a non-empty top-level errors array.
+    /// </summary>
+    /// <param name="response">Raw GraphQL response payload.</param>
+    /// <param name="mutationName">Mutation under test; retained for call-site readability.</param>
     private static bool HasErrors(JsonElement response, string mutationName)
     {
-        return false;
+        _ = mutationName;
+        return GraphQLResult.Parse(HttpStatusCode.OK, response.GetRawText()).HasErrors;
     }
 
     [Given(@"a parent project exists")]
