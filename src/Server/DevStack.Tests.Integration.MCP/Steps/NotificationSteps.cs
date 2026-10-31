@@ -26,7 +26,7 @@ public sealed class NotificationSteps
         Client.Should().NotBeNull();
     }
 
-    [When(@"I send the notifications/initialized notification")]
+    [When(@"^I send the notifications/initialized notification$")]
     public async Task WhenISendTheInitializedNotification()
     {
         await Client.SendNotificationAsync("notifications/initialized");

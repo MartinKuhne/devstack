@@ -1,6 +1,8 @@
 using System.Text.Json;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
@@ -10,12 +12,14 @@ namespace DevStack.Mcp.Logging;
 
 public static class McpArgumentNormalizationFilter
 {
-    public static McpRequestFilter<CallToolRequestParams, CallToolResult> Create(ILoggerFactory loggerFactory)
+    /// <summary>Creates a filter that normalizes tool arguments before invocation.</summary>
+    public static McpRequestFilter<CallToolRequestParams, CallToolResult> Create()
     {
-        var logger = loggerFactory.CreateLogger("DevStack.Mcp.ArgumentNormalization");
-
         return next => async (request, ct) =>
         {
+            var logger = request.Services?.GetService<ILoggerFactory>()
+                ?.CreateLogger("DevStack.Mcp.ArgumentNormalization") ?? NullLogger.Instance;
+
             var toolName = LogSanitizer.Sanitize(request.Params?.Name ?? "unknown");
             var arguments = request.Params?.Arguments;
 

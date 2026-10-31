@@ -1,6 +1,9 @@
 using System.Diagnostics;
 using System.Text.Json;
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -14,12 +17,14 @@ public static class McpToolLoggingFilter
         WriteIndented = false
     };
 
-    public static McpRequestFilter<CallToolRequestParams, CallToolResult> Create(ILoggerFactory loggerFactory)
+    /// <summary>Creates a call-tool filter that logs invocation outcomes.</summary>
+    public static McpRequestFilter<CallToolRequestParams, CallToolResult> Create()
     {
-        var logger = loggerFactory.CreateLogger("DevStack.Mcp.Tools");
-
         return next => async (request, ct) =>
         {
+            var logger = request.Services?.GetService<ILoggerFactory>()
+                ?.CreateLogger("DevStack.Mcp.Tools") ?? NullLogger.Instance;
+
             // OWASP CWE-117: Sanitize user-provided MCP tool name before logging or adding to structured scope
             var toolName = LogSanitizer.Sanitize(request.Params?.Name ?? "unknown");
             var arguments = request.Params?.Arguments;
@@ -38,9 +43,13 @@ public static class McpToolLoggingFilter
                 try
                 {
                     var result = await next(request, ct);
-                    stopwatch.Stop();
+                    if (result is null)
+                    {
+                        throw new InvalidOperationException("The MCP tool handler returned no result.");
+                    }
 
-                    var isError = result?.IsError == true;
+                    stopwatch.Stop();
+                    var isError = result.IsError == true;
                     var logLevel = isError ? LogLevel.Warning : LogLevel.Information;
 
                     logger.Log(logLevel,

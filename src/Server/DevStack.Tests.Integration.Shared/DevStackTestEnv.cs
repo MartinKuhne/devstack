@@ -32,8 +32,7 @@ public sealed class DevStackTestEnv : IDisposable
 
         _network.CreateAsync().GetAwaiter().GetResult();
 
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:17-alpine")
+        _postgresContainer = new PostgreSqlBuilder("postgres:17-alpine")
             .WithUsername(builder.PostgresUsername)
             .WithPassword(builder.PostgresPassword)
             .WithDatabase(builder.PostgresDatabase)
@@ -51,8 +50,7 @@ public sealed class DevStackTestEnv : IDisposable
 
         _appImage.CreateAsync().GetAwaiter().GetResult();
 
-        _appContainer = new ContainerBuilder()
-            .WithImage(_appImage)
+        _appContainer = new ContainerBuilder(_appImage)
             .WithNetwork(_network)
             .WithPortBinding((ushort)builder.AppPort, true)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.EnvironmentName)
