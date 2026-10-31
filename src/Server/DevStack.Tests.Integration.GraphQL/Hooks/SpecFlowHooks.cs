@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 using DevStack.Tests.Integration.Shared;
 
-using TechTalk.SpecFlow;
-using TechTalk.SpecFlow.Infrastructure;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.Hooks;
 

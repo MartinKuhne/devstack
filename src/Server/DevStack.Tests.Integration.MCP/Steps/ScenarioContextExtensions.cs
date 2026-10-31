@@ -1,4 +1,4 @@
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
 

@@ -1,8 +1,8 @@
+using AwesomeAssertions;
+
 using DevStack.OpenCode.Models;
 using DevStack.OpenCode.Options;
 using DevStack.OpenCode.Store;
-
-using AwesomeAssertions;
 
 using Microsoft.Extensions.Options;
 
@@ -44,7 +44,7 @@ public class OpenCodeConfigStoreTests : IDisposable
         var store = CreateStore();
         var path = Path.Combine(_tempDir, "missing.json");
 
-        var config = await store.LoadAsync(path);
+        var config = await store.LoadAsync(path, TestContext.Current.CancellationToken);
 
         config.Should().NotBeNull();
     }
@@ -70,10 +70,10 @@ public class OpenCodeConfigStoreTests : IDisposable
             LogLevel = LogLevel.Debug,
         };
 
-        await store.SaveAsync(path, config);
+        await store.SaveAsync(path, config, TestContext.Current.CancellationToken);
 
         File.Exists(path).Should().BeTrue();
-        var json = await File.ReadAllTextAsync(path);
+        var json = await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken);
         json.Should().Contain("\"model\": \"anthropic/claude-3-5-sonnet\"");
         json.Should().Contain("\"logLevel\": \"DEBUG\"");
     }
@@ -85,7 +85,7 @@ public class OpenCodeConfigStoreTests : IDisposable
         var nested = Path.Combine(_tempDir, "nested", "deep", "opencode.json");
         var config = new OpenCodeConfig { Model = "anthropic/claude" };
 
-        await store.SaveAsync(nested, config);
+        await store.SaveAsync(nested, config, TestContext.Current.CancellationToken);
 
         File.Exists(nested).Should().BeTrue();
     }
@@ -102,8 +102,8 @@ public class OpenCodeConfigStoreTests : IDisposable
             Permission = PermissionConfig.FromAction(PermissionAction.Deny),
         };
 
-        await store.SaveAsync(path, original);
-        var loaded = await store.LoadAsync(path);
+        await store.SaveAsync(path, original, TestContext.Current.CancellationToken);
+        var loaded = await store.LoadAsync(path, TestContext.Current.CancellationToken);
 
         loaded.Model.Should().Be(original.Model);
         loaded.LogLevel.Should().Be(original.LogLevel);
@@ -120,7 +120,7 @@ public class OpenCodeConfigStoreTests : IDisposable
         try
         {
             var store = CreateStore();
-            var result = await store.LoadDefaultAsync();
+            var result = await store.LoadDefaultAsync(TestContext.Current.CancellationToken);
 
             result.Config.Should().NotBeNull();
             result.Path.Should().EndWith("opencode.json");
@@ -135,10 +135,13 @@ public class OpenCodeConfigStoreTests : IDisposable
     public async Task LoadDefaultAsync_ExplicitPath_LoadsFromExplicitPath()
     {
         var explicitPath = Path.Combine(_tempDir, "custom-opencode.json");
-        await File.WriteAllTextAsync(explicitPath, """{ "model": "explicit-model" }""");
+        await File.WriteAllTextAsync(
+            explicitPath,
+            """{ "model": "explicit-model" }""",
+            TestContext.Current.CancellationToken);
         var store = CreateStore(explicitPath);
 
-        var result = await store.LoadDefaultAsync();
+        var result = await store.LoadDefaultAsync(TestContext.Current.CancellationToken);
 
         result.Path.Should().Be(explicitPath);
         result.Config.Model.Should().Be("explicit-model");

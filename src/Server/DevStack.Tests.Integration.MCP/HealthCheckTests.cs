@@ -1,7 +1,7 @@
+using AwesomeAssertions;
+
 using DevStack.Tests.Integration.MCP.Hooks;
 using DevStack.Tests.Integration.Shared;
-
-using AwesomeAssertions;
 
 using Xunit;
 
@@ -19,10 +19,10 @@ public class HealthCheckTests
             BaseAddress = new Uri(env.AppUrl)
         };
 
-        var response = await httpClient.GetAsync("/health");
+        var response = await httpClient.GetAsync("/health", TestContext.Current.CancellationToken);
 
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         content.Should().Contain("healthy");
     }
 }

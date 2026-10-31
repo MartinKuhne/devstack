@@ -2,11 +2,11 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 
-using DevStack.Tests.Integration.GraphQL.Client.Hooks;
-
 using AwesomeAssertions;
 
-using TechTalk.SpecFlow;
+using DevStack.Tests.Integration.GraphQL.Client.Hooks;
+
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.StepDefinitions;
 

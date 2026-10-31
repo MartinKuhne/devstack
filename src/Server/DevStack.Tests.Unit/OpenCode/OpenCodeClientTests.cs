@@ -2,11 +2,11 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 
+using AwesomeAssertions;
+
 using DevStack.OpenCode.Client;
 using DevStack.OpenCode.Models;
 using DevStack.OpenCode.Options;
-
-using AwesomeAssertions;
 
 using Microsoft.Extensions.Options;
 
@@ -34,7 +34,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var json = await client.GetSchemaJsonAsync();
+        var json = await client.GetSchemaJsonAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         json.Should().Be(SampleSchema);
         handler.LastRequest!.Method.Should().Be(HttpMethod.Get);
@@ -48,7 +48,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions { UserAgent = "Custom-Agent/9.9" }));
 
-        await client.GetSchemaJsonAsync();
+        await client.GetSchemaJsonAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         handler.LastRequest!.Headers.UserAgent.ToString().Should().Contain("Custom-Agent/9.9");
     }
@@ -60,7 +60,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var doc = await client.GetSchemaAsync();
+        var doc = await client.GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         doc.Schema.Should().Be("https://json-schema.org/draft/2020-12/schema");
         doc.Ref.Should().Be("#/$defs/Config");
@@ -73,7 +73,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var health = await client.GetHealthAsync();
+        var health = await client.GetHealthAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         health.Healthy.Should().BeTrue();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/global/health");
@@ -88,7 +88,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var config = await client.GetConfigAsync();
+        var config = await client.GetConfigAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         config.Model.Should().Be("anthropic/claude");
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/config");
@@ -101,7 +101,9 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        await client.ReplaceConfigAsync(new OpenCodeConfig { Model = "anthropic/claude" });
+        await client.ReplaceConfigAsync(
+            new OpenCodeConfig { Model = "anthropic/claude" },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         handler.LastRequest!.Method.Should().Be(HttpMethod.Put);
         handler.LastRequestBody.Should().Contain("anthropic/claude");
@@ -115,7 +117,7 @@ public class OpenCodeClientTests
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
         using var patch = JsonDocument.Parse("""{"model":"anthropic/claude"}""");
-        await client.PatchConfigAsync(patch);
+        await client.PatchConfigAsync(patch, cancellationToken: TestContext.Current.CancellationToken);
 
         handler.LastRequest!.Method.Should().Be(HttpMethod.Patch);
     }
@@ -129,7 +131,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var list = await client.Config.GetProvidersAsync();
+        var list = await client.Config.GetProvidersAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         list.Providers.Should().HaveCount(1);
         list.Default!["anthropic"].Should().Be("claude");
@@ -145,7 +147,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var sessions = await client.Session.ListAsync();
+        var sessions = await client.Session.ListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         sessions.Should().HaveCount(1);
         sessions[0].Id.Should().Be("s1");
@@ -159,7 +161,9 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var created = await client.Session.CreateAsync(new SessionCreateRequest { Title = "Created" });
+        var created = await client.Session.CreateAsync(
+            new SessionCreateRequest { Title = "Created" },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         created.Id.Should().Be("new");
         handler.LastRequest!.Method.Should().Be(HttpMethod.Post);
@@ -173,7 +177,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var deleted = await client.Session.DeleteAsync("missing");
+        var deleted = await client.Session.DeleteAsync("missing", cancellationToken: TestContext.Current.CancellationToken);
 
         deleted.Should().BeFalse();
         handler.LastRequest!.Method.Should().Be(HttpMethod.Delete);
@@ -191,7 +195,7 @@ public class OpenCodeClientTests
         var response = await client.Session.PromptAsync("s1", new SessionPromptRequest
         {
             Parts = new[] { PartInput.Text("Hello") },
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         response.Info.Kind.Should().Be("assistant");
         handler.LastRequest!.Method.Should().Be(HttpMethod.Post);
@@ -205,7 +209,11 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var ok = await client.Session.ReplyToPermissionAsync("s1", "p1", new PermissionReplyRequest { Response = PermissionResponse.Once });
+        var ok = await client.Session.ReplyToPermissionAsync(
+            "s1",
+            "p1",
+            new PermissionReplyRequest { Response = PermissionResponse.Once },
+            cancellationToken: TestContext.Current.CancellationToken);
 
         ok.Should().BeTrue();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/session/s1/permissions/p1");
@@ -218,7 +226,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        await client.Session.AbortAsync("s1");
+        await client.Session.AbortAsync("s1", cancellationToken: TestContext.Current.CancellationToken);
 
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/session/s1/abort");
     }
@@ -230,7 +238,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var messages = await client.Session.GetMessagesAsync("s1");
+        var messages = await client.Session.GetMessagesAsync("s1", cancellationToken: TestContext.Current.CancellationToken);
 
         messages.Should().BeEmpty();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/session/s1/message");
@@ -245,7 +253,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var projects = await client.Project.ListAsync();
+        var projects = await client.Project.ListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         projects.Should().BeEmpty();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/project");
@@ -258,7 +266,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var project = await client.Project.GetCurrentAsync();
+        var project = await client.Project.GetCurrentAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         project.Id.Should().Be("p1");
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/project/current");
@@ -271,7 +279,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var path = await client.Path.GetAsync();
+        var path = await client.Path.GetAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         path.Config.Should().Be("opencode.json");
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/path");
@@ -284,7 +292,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var vcs = await client.Vcs.GetAsync();
+        var vcs = await client.Vcs.GetAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         vcs.Branch.Should().Be("main");
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/vcs");
@@ -297,7 +305,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        await client.Instance.DisposeAsync();
+        await client.Instance.DisposeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/instance/dispose");
     }
@@ -311,7 +319,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var files = await client.Find.FindFilesAsync("*.ts");
+        var files = await client.Find.FindFilesAsync("*.ts", cancellationToken: TestContext.Current.CancellationToken);
 
         files.Should().BeEmpty();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/find/file");
@@ -324,7 +332,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var matches = await client.Find.FindTextAsync("opencode");
+        var matches = await client.Find.FindTextAsync("opencode", cancellationToken: TestContext.Current.CancellationToken);
 
         matches.Should().BeEmpty();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/find");
@@ -337,7 +345,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var content = await client.File.ReadAsync("src/index.ts");
+        var content = await client.File.ReadAsync("src/index.ts", cancellationToken: TestContext.Current.CancellationToken);
 
         content.Content.Should().Be("hello");
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/file/content");
@@ -350,7 +358,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var status = await client.File.GetStatusAsync();
+        var status = await client.File.GetStatusAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         status.Should().BeEmpty();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/file/status");
@@ -365,7 +373,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var list = await client.Provider.ListAsync();
+        var list = await client.Provider.ListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         list.Connected.Should().BeEmpty();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/provider");
@@ -378,7 +386,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var auth = await client.Provider.OAuth.AuthorizeAsync("anthropic", 0);
+        var auth = await client.Provider.OAuth.AuthorizeAsync("anthropic", 0, cancellationToken: TestContext.Current.CancellationToken);
 
         auth.Url.Should().Be("https://oauth");
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/provider/anthropic/oauth/authorize");
@@ -391,7 +399,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var status = await client.Mcp.GetStatusAsync();
+        var status = await client.Mcp.GetStatusAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         status.Should().BeEmpty();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/mcp");
@@ -404,7 +412,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var ok = await client.Mcp.ConnectAsync("devstack");
+        var ok = await client.Mcp.ConnectAsync("devstack", cancellationToken: TestContext.Current.CancellationToken);
 
         ok.Should().BeTrue();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/mcp/devstack/connect");
@@ -417,7 +425,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var agents = await client.App.ListAgentsAsync();
+        var agents = await client.App.ListAgentsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         agents.Should().BeEmpty();
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/agent");
@@ -432,7 +440,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        await client.Tui.AppendPromptAsync("hello");
+        await client.Tui.AppendPromptAsync("hello", cancellationToken: TestContext.Current.CancellationToken);
 
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/tui/append-prompt");
         handler.LastRequestBody.Should().Contain("hello");
@@ -450,7 +458,7 @@ public class OpenCodeClientTests
             Title = "Done",
             Message = "Task complete",
             Variant = "success",
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         handler.LastRequestBody.Should().Contain("Task complete");
     }
@@ -462,7 +470,10 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var ok = await client.Auth.SetAsync("anthropic", Auth.FromApiKey("sk-test"));
+        var ok = await client.Auth.SetAsync(
+            "anthropic",
+            Auth.FromApiKey("sk-test"),
+            cancellationToken: TestContext.Current.CancellationToken);
 
         ok.Should().BeTrue();
         handler.LastRequest!.Method.Should().Be(HttpMethod.Put);
@@ -478,7 +489,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var server = await client.GetServerAsync();
+        var server = await client.GetServerAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         server!.Port.Should().Be(4096);
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/config/server");
@@ -493,7 +504,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var names = await client.ListAgentsAsync();
+        var names = await client.ListAgentsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         names.Should().BeEquivalentTo(new[] { "build", "plan" });
     }
@@ -505,7 +516,7 @@ public class OpenCodeClientTests
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://opencode.ai/") };
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
-        var agent = await client.GetAgentAsync("build");
+        var agent = await client.GetAgentAsync("build", cancellationToken: TestContext.Current.CancellationToken);
 
         agent!.Model.Should().Be("anthropic/claude");
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Be("/config/agent/build");
@@ -524,7 +535,7 @@ public class OpenCodeClientTests
         var client = new OpenCodeClient(http, Options.Create(new OpenCodeOptions()));
 
         var events = new List<SdkEvent>();
-        await foreach (var evt in client.Event.SubscribeAsync())
+        await foreach (var evt in client.Event.SubscribeAsync(cancellationToken: TestContext.Current.CancellationToken))
         {
             events.Add(evt);
         }

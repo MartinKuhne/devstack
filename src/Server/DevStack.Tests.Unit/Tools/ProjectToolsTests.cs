@@ -4,13 +4,13 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
+using AwesomeAssertions;
+
 using DevStack.Application;
 using DevStack.Application.Projects.Commands;
 using DevStack.Domain.Entities;
 using DevStack.Mcp.Tools;
 using DevStack.Persistence;
-
-using AwesomeAssertions;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -58,7 +58,7 @@ public class ProjectToolsTests
         var tools = CreateTools();
 
         // Act
-        var result = await tools.GetProjects();
+        var result = await tools.GetProjects(TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("## Projects");
@@ -82,7 +82,7 @@ public class ProjectToolsTests
         var tools = CreateTools(dbContext);
 
         // Act
-        var result = await tools.GetProjects();
+        var result = await tools.GetProjects(TestContext.Current.CancellationToken);
 
         // Assert
         var projects = dbContext.Projects.ToList();
@@ -100,7 +100,7 @@ public class ProjectToolsTests
         var tools = CreateTools(dbContext);
 
         // Act
-        var result = await tools.GetProjects();
+        var result = await tools.GetProjects(TestContext.Current.CancellationToken);
 
         // Assert
         var projects = dbContext.Projects.ToList();
@@ -119,7 +119,7 @@ public class ProjectToolsTests
         var tools = CreateTools(dbContext);
 
         // Act
-        var result = await tools.GetProjects();
+        var result = await tools.GetProjects(TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("## Projects");
@@ -139,7 +139,7 @@ public class ProjectToolsTests
         var targetProject = dbContext.Projects.First();
 
         // Act
-        var result = await tools.GetProjectById(targetProject.Id);
+        var result = await tools.GetProjectById(targetProject.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("## Project");
@@ -157,7 +157,7 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.GetProjectById(nonExistentId));
+            () => tools.GetProjectById(nonExistentId, TestContext.Current.CancellationToken));
 
         exception.Message.Should().BeEquivalentTo($"Project with ID {nonExistentId} not found");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
@@ -171,7 +171,7 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.GetProjectById(Guid.Empty));
+            () => tools.GetProjectById(Guid.Empty, TestContext.Current.CancellationToken));
 
         exception.Message.Should().Be("Project ID is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
@@ -186,7 +186,7 @@ public class ProjectToolsTests
         var targetProject = dbContext.Projects.First();
 
         // Act
-        var result = await tools.GetProjectById(targetProject.Id);
+        var result = await tools.GetProjectById(targetProject.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("```json");
@@ -219,7 +219,7 @@ public class ProjectToolsTests
             .Returns(Task.FromResult(newId));
 
         // Act
-        var result = await tools.CreateProject(name, repository, description);
+        var result = await tools.CreateProject(name, repository, description, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Project Created");
@@ -247,7 +247,7 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.CreateProject(null!, null, null));
+            () => tools.CreateProject(null!, null!, null, TestContext.Current.CancellationToken));
 
         exception.Message.Should().Be("Project name is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
@@ -264,7 +264,7 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.CreateProject("", null, null));
+            () => tools.CreateProject("", null!, null, TestContext.Current.CancellationToken));
 
         exception.Message.Should().Be("Project name is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
@@ -281,7 +281,7 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.CreateProject("   ", null, null));
+            () => tools.CreateProject("   ", null!, null, TestContext.Current.CancellationToken));
 
         exception.Message.Should().Be("Project name is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
@@ -304,7 +304,7 @@ public class ProjectToolsTests
             .Returns(Task.FromResult(newId));
 
         // Act
-        var result = await tools.CreateProject(name, repository, description);
+        var result = await tools.CreateProject(name, repository, description, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Project Created");
@@ -332,7 +332,7 @@ public class ProjectToolsTests
             .Returns(Task.FromResult(newId));
 
         // Act
-        var result = await tools.CreateProject(name, repository, null);
+        var result = await tools.CreateProject(name, repository, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Project Created");
@@ -358,7 +358,7 @@ public class ProjectToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => tools.CreateProject("Project", null!, null));
+            () => tools.CreateProject("Project", null!, null, TestContext.Current.CancellationToken));
 
         exception.Message.Should().Be("Repository is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
