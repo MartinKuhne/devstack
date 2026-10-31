@@ -1,30 +1,31 @@
 import { type FullConfig } from '@playwright/test';
+import { deleteTestData } from './helpers/testDataOperations.js';
 
-async function cleanupTestData(graphqlUrl: string): Promise<boolean> {
-    try {
-        const response = await fetch(graphqlUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                query: 'mutation CleanupTestData { cleanupTestData { success message } }',
-            }),
-        });
-        const result = await response.json();
-        if (result?.data?.cleanupTestData?.success) {
-            console.log('Test data cleaned up after test suite');
-            return true;
-        }
-    } catch {
-        console.log('Backend not available for test data cleanup after suite');
-    }
-    return false;
-}
-
+/**
+ * Global Playwright teardown: removes every `[DeleteAfterTest]` row created by the
+ * suite so no test data leaks into the database.
+ */
 async function globalTeardown(config: FullConfig): Promise<void> {
     void config;
     const graphqlUrl =
         process.env.GRAPHQL_API_URL || 'http://localhost:8087/graphql';
-    await cleanupTestData(graphqlUrl);
+
+    const outcome = await deleteTestData(graphqlUrl);
+
+    if (!outcome.attempted) {
+        console.log(`Backend not available for test data cleanup after suite: ${outcome.message}`);
+        return;
+    }
+
+    if (outcome.success) {
+        console.log(`Test data cleaned up after test suite: ${outcome.message ?? 'ok'}`);
+    } else {
+        console.warn(
+            `Test data cleanup after test suite failed: ${
+                outcome.errors?.join('; ') ?? outcome.message ?? 'unknown error'
+            }`
+        );
+    }
 }
 
 export default globalTeardown;
