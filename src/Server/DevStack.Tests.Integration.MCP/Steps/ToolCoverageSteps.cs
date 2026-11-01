@@ -299,6 +299,11 @@ public sealed class ToolCoverageSteps
 
         var payload = McpToolResult.Data(outcome.SuccessResult);
         McpToolResult.RequiredStringProperty(payload, "Message").Should().Be("All tasks are completed for the selected deliverable");
+        // BUG-06 (ledger §6): this asserts the DEFECTIVE payload shape, not an intended contract. On the
+        // "all tasks completed" branch get_next_task returns the DELIVERABLE id under the key "Id", in the same
+        // shape a task payload uses, so a client following the usage hint would pass it to get_task. See the
+        // BUG-06 block in DevStack.Mcp/Tools/TaskTools.cs. Rename the key to DeliverableId and update this
+        // assertion in the same change.
         McpToolResult.RequiredStringProperty(payload, "Id").Should().Be(CoverageDeliverableId);
     }
 }

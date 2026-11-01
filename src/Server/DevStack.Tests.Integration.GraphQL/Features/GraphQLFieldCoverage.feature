@@ -44,7 +44,8 @@ Feature: GraphQL Field Coverage
     # round-trip them, it writes each of them into the other column (scenario below).
 
   @gql-13
-  # KNOWN DEFECT, pinned rather than fixed by this suite. Mutation.UpdateDeliverableAsync builds
+  # KNOWN DEFECT BUG-07 (doc/planning/integration-test-coverage-ledger.md §6), pinned rather than fixed by this
+  # suite. Mutation.UpdateDeliverableAsync builds
   # UpdateDeliverableCommand with positional arguments; UpdateDeliverableInput declares AgentFeedback before
   # ExecutionPlan, UpdateDeliverableCommand declares ExecutionPlan before AgentFeedback, so the two values are
   # swapped on the way to the entity. Both assertions fail once the API maps the fields correctly.
@@ -85,6 +86,9 @@ Feature: GraphQL Field Coverage
       | agent                      | agent-#7 / model-x         |
 
   @gql-13
+  # SEC-01 (ledger §6): this scenario pins the credential ECHO, not a contract we want. apiKey is published in
+  # src/schema.graphql and returned verbatim by both largeLanguageModel queries, so the test would have to be
+  # inverted (assert a masked value or an absent field) as part of fixing SEC-01.
   Scenario: GQL-13 updateLargeLanguageModel round-trips apiKey, cost and modelAlias
     Given a field coverage large language model
     When I update the field coverage large language model with apiKey "sk-test_abc123-XYZ #7 line1\nline2" cost 4242 and modelAlias "@MARKER alias-renamed"

@@ -235,7 +235,8 @@ public sealed class ApiHostedMcpSteps
     [Then(@"the API-hosted MCP host rejects the array name")]
     public void ThenTheApiHostedMcpHostRejectsTheArrayName()
     {
-        // Pinned from the observed response: without McpArgumentNormalizationFilter the JSON array cannot bind
+        // BUG-09 (ledger §6): pinned from the observed response: without McpArgumentNormalizationFilter the JSON
+        // array cannot bind
         // to the string parameter, so the invocation fails exactly like every other wrong-argument-type call,
         // i.e. as a tool result with IsError set and the generic invocation message. It is not a protocol
         // error and it does not leak a stack trace.

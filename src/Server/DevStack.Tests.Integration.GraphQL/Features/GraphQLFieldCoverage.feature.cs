@@ -233,7 +233,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
                     "gql-13"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-13 DEFECT updateDeliverable crosses agentFeedback and executionPlan", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 51
+#line 52
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -256,24 +256,24 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 11
   this.FeatureBackground();
 #line hidden
-#line 52
+#line 53
     testRunner.Given("a field coverage deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 53
+#line 54
     testRunner.When("I update the field coverage deliverable with agentFeedback \"the agent feedback\" a" +
                         "nd executionPlan \"the execution plan\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 54
+#line 55
     testRunner.Then("the field coverage mutation should report no errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 55
+#line 56
     testRunner.When("I query the field coverage deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 56
+#line 57
     testRunner.Then("the field coverage deliverable field \"executionPlan\" should hold the value that w" +
                         "as sent for \"agentFeedback\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 57
+#line 58
     testRunner.And("the field coverage deliverable field \"agentFeedback\" should hold the value that w" +
                         "as sent for \"executionPlan\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -291,7 +291,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
                     "gql-13"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-13 updateDeliverable round-trips every document field in a single call", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 63
+#line 64
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -314,19 +314,19 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 11
   this.FeatureBackground();
 #line hidden
-#line 64
+#line 65
     testRunner.Given("a field coverage deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 65
+#line 66
     testRunner.When("I update the field coverage deliverable with every document field", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 66
+#line 67
     testRunner.Then("the field coverage mutation should report no errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 67
+#line 68
     testRunner.When("I query the field coverage deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 68
+#line 69
     testRunner.Then("the field coverage deliverable should expose every document field that was sent", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
@@ -356,7 +356,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             argumentsOfScenario.Add("field", field);
             argumentsOfScenario.Add("value", value);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-13 updateAgentTask round-trips <field>", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 71
+#line 72
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -379,22 +379,22 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 11
   this.FeatureBackground();
 #line hidden
-#line 72
+#line 73
     testRunner.Given("a field coverage deliverable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 73
+#line 74
     testRunner.And("a field coverage agent task", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 74
+#line 75
     testRunner.When(string.Format("I update the field coverage agent task field \"{0}\" to \"{1}\"", field, value), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 75
+#line 76
     testRunner.Then("the field coverage mutation should report no errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 76
+#line 77
     testRunner.When("I query the field coverage agent task", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 77
+#line 78
     testRunner.Then(string.Format("the field coverage agent task field \"{0}\" should equal the value that was sent", field), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
@@ -411,7 +411,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
                     "gql-13"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-13 updateLargeLanguageModel round-trips apiKey, cost and modelAlias", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 88
+#line 92
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -434,20 +434,20 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 11
   this.FeatureBackground();
 #line hidden
-#line 89
+#line 93
     testRunner.Given("a field coverage large language model", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 90
+#line 94
     testRunner.When("I update the field coverage large language model with apiKey \"sk-test_abc123-XYZ " +
                         "#7 line1\\nline2\" cost 4242 and modelAlias \"@MARKER alias-renamed\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 91
+#line 95
     testRunner.Then("the field coverage mutation should report no errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 92
+#line 96
     testRunner.When("I query the field coverage large language model", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 93
+#line 97
     testRunner.Then("the field coverage large language model should return the sent apiKey, cost and m" +
                         "odelAlias verbatim", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
@@ -476,7 +476,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             argumentsOfScenario.Add("type", type);
             argumentsOfScenario.Add("persisted", persisted);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-14 a deliverable of <type> persists and is found by its type filter", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 97
+#line 101
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -499,22 +499,22 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 11
   this.FeatureBackground();
 #line hidden
-#line 98
+#line 102
     testRunner.When(string.Format("I create a field coverage deliverable of type \"{0}\"", type), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 99
+#line 103
     testRunner.Then("the field coverage mutation should report no errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 100
+#line 104
     testRunner.And(string.Format("the field coverage deliverable should have type \"{0}\"", persisted), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 101
+#line 105
     testRunner.When(string.Format("I query field coverage deliverables filtered by type \"{0}\"", persisted), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 102
+#line 106
     testRunner.Then("the field coverage deliverable connection should contain 1 nodes", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 103
+#line 107
     testRunner.And(string.Format("the field coverage deliverable connection should contain only the deliverable of " +
                             "type \"{0}\"", type), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -543,7 +543,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             argumentsOfScenario.Add("type", type);
             argumentsOfScenario.Add("persisted", persisted);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-14 the type string <type> is parsed case-insensitively", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 112
+#line 116
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -566,22 +566,22 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 11
   this.FeatureBackground();
 #line hidden
-#line 113
+#line 117
     testRunner.When(string.Format("I create a field coverage deliverable of type \"{0}\"", type), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 114
+#line 118
     testRunner.Then("the field coverage mutation should report no errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 115
+#line 119
     testRunner.And(string.Format("the field coverage deliverable should have type \"{0}\"", persisted), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 116
+#line 120
     testRunner.When(string.Format("I query field coverage deliverables filtered by type \"{0}\"", persisted), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 117
+#line 121
     testRunner.Then("the field coverage deliverable connection should contain 1 nodes", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 118
+#line 122
     testRunner.And(string.Format("the field coverage deliverable connection should contain only the deliverable of " +
                             "type \"{0}\"", type), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -602,7 +602,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-14 deliverables of every type coexist and each is found by its own type filte" +
                     "r", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 127
+#line 131
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -625,58 +625,58 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 11
   this.FeatureBackground();
 #line hidden
-#line 128
+#line 132
     testRunner.When("I create a field coverage deliverable of type \"FEATURE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 129
+#line 133
     testRunner.And("I create a field coverage deliverable of type \"DEFECT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 130
+#line 134
     testRunner.And("I create a field coverage deliverable of type \"MAINTENANCE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 131
+#line 135
     testRunner.And("I create a field coverage deliverable of type \"SPIKE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 132
+#line 136
     testRunner.Then("the field coverage mutation should report no errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 133
+#line 137
     testRunner.When("I query field coverage deliverables filtered by type \"FEATURE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 134
+#line 138
     testRunner.Then("the field coverage deliverable connection should contain 1 nodes", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 135
+#line 139
     testRunner.And("the field coverage deliverable connection should contain only the deliverable of " +
                         "type \"FEATURE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 136
+#line 140
     testRunner.When("I query field coverage deliverables filtered by type \"DEFECT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 137
+#line 141
     testRunner.Then("the field coverage deliverable connection should contain 1 nodes", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 138
+#line 142
     testRunner.And("the field coverage deliverable connection should contain only the deliverable of " +
                         "type \"DEFECT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 139
+#line 143
     testRunner.When("I query field coverage deliverables filtered by type \"MAINTENANCE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 140
+#line 144
     testRunner.Then("the field coverage deliverable connection should contain 1 nodes", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 141
+#line 145
     testRunner.And("the field coverage deliverable connection should contain only the deliverable of " +
                         "type \"MAINTENANCE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 142
+#line 146
     testRunner.When("I query field coverage deliverables filtered by type \"SPIKE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 143
+#line 147
     testRunner.Then("the field coverage deliverable connection should contain 1 nodes", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 144
+#line 148
     testRunner.And("the field coverage deliverable connection should contain only the deliverable of " +
                         "type \"SPIKE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden

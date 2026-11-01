@@ -1034,7 +1034,8 @@ public sealed class QueryCoverageSteps
     }
 
     // ---------------------------------------------------------------------------------------
-    // PRODUCT DEFECT pinned by the three relation-object assertions below.
+    // PRODUCT DEFECT BUG-01 (doc/planning/integration-test-coverage-ledger.md §6) pinned by the three
+    // relation-object assertions below.
     //
     // The relation OBJECT fields of agentTask and deliverable resolve to null, even though the
     // foreign-key scalars are correct. Observed payloads (Release, docker image devstack-api):
@@ -1537,7 +1538,8 @@ public sealed class QueryCoverageSteps
 
     /// <summary>
     /// Asserts that a relation object field comes back as JSON null while its foreign key scalar
-    /// carries the expected id. This pins the CURRENT server behaviour, which is a product defect -
+    /// carries the expected id. This pins the CURRENT server behaviour, which is product defect
+    /// BUG-01 (ledger §6) -
     /// see the note on <see cref="ThenAgentTaskRelationObjectsAreNotResolved"/>.
     /// </summary>
     private static void AssertUnresolvedObject(JsonElement payload, string field, string foreignKeyField, string expectedId)

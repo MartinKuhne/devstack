@@ -361,8 +361,9 @@ Feature: GraphQL Query Coverage
     And the "agentTasks" connection nodes should be "@2"
 
   # Relation objects as selected by src/AdminUi/src/graphql/queries/agentTask.graphql.
-  # These three scenarios pin the observed server behaviour: the objects are null (product defect,
-  # see the note in QueryCoverageSteps), only the foreign-key scalars are correct.
+  # These three scenarios pin the observed server behaviour: the objects are null (BUG-01, ledger §6;
+  # see the note in QueryCoverageSteps), only the foreign-key scalars are correct. Invert them once
+  # Query.cs projects the navigations.
   @gql-12
   Scenario: GQL-12 agent task by id does not resolve its relation objects
     Given I create query coverage projects "HOST"

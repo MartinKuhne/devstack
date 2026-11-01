@@ -22,6 +22,11 @@ Feature: Tool Error Paths
         | get_next_task         | {}                                                                     | Either repositoryUrl or projectId must be provided |
         | get_next_task         | {"projectId":"00000000-0000-0000-0000-000000000000"}                   | Either repositoryUrl or projectId must be provided |
 
+    # BUG-02 (ledger §6): get_task is in this outline because its McpProtocolException("AgentTask with ID ...
+    # not found") is unreachable - GetAgentTaskByIdHandler throws InvalidOperationException first - so an unknown
+    # id degrades into the generic invocation error. The sibling get_deliverable answers the same condition with
+    # a clean {"error":"Deliverable not found"} payload (see the soft-error outline below), which is the
+    # inconsistency this split documents rather than endorses. See the BUG-02 block in TaskTools.cs.
     Scenario Outline: Failed entity lookups inside a tool are surfaced as tool execution errors
         Given the MCP client is connected
         When I call the tool "<tool>" with arguments <arguments>

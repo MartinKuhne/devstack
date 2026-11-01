@@ -49,13 +49,13 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 
   Behaviour pinned here (observed, not assumed):
   * Project -> Deliverables and Deliverable -> AgentTasks are configured with DeleteBehavior.Cascade,
-    so deleting a parent silently deletes its children and returns `true`.
+    so deleting a parent silently deletes its children and returns `true`. (DRIFT-13, ledger §6)
   * AgentTask.DependsOnAgentTaskId is configured with DeleteBehavior.SetNull, so deleting a dependency
-    leaves the dependent row behind with a cleared foreign key.
+    leaves the dependent row behind with a cleared foreign key. (DRIFT-11, ledger §6)
   * CreateAgentTaskHandler ignores the `projectId` of the input and derives it from the deliverable,
-    so a contradicting - or non existing - projectId is accepted.
+    so a contradicting - or non existing - projectId is accepted. (DRIFT-12, ledger §6)
   * The dependency of a created task is only checked for existence, never for deliverable or project
-    membership, so cross-deliverable and cross-project dependencies are accepted.", ProgrammingLanguage.CSharp, new string[] {
+    membership, so cross-deliverable and cross-project dependencies are accepted. (DRIFT-11, ledger §6)", ProgrammingLanguage.CSharp, new string[] {
                         "gql-05"});
             testRunner.OnFeatureStart(featureInfo);
         }

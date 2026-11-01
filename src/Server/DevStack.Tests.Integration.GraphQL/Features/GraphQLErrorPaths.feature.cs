@@ -595,20 +595,20 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 14
   this.FeatureBackground();
 #line hidden
-#line 142
+#line 143
     testRunner.Given("a project, deliverable and agent task exist for error testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 143
+#line 144
     testRunner.When("I attempt the invalid input case \"update-agent-task-201-title\" on the existing en" +
                         "tities", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 144
+#line 145
     testRunner.Then("the response should have HTTP status 200", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 145
+#line 146
     testRunner.And("the response should report no errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 146
+#line 147
     testRunner.And("the response data field \"updateAgentTask\" should not be null", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -627,7 +627,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("case", @case);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Deliverable type parsing is case insensitive", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 148
+#line 149
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -650,19 +650,19 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 14
   this.FeatureBackground();
 #line hidden
-#line 149
+#line 150
     testRunner.Given("a project, deliverable and agent task exist for error testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 150
+#line 151
     testRunner.When(string.Format("I attempt the invalid input case \"{0}\" on the existing entities", @case), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 151
+#line 152
     testRunner.Then("the response should have HTTP status 200", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 152
+#line 153
     testRunner.And("the response should report no errors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 153
+#line 154
     testRunner.And("the response data field \"createDeliverable\" should not be null", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -677,7 +677,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("An unknown deliverable type string is rejected as a masked server error", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 160
+#line 161
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -700,14 +700,14 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 14
   this.FeatureBackground();
 #line hidden
-#line 161
+#line 162
     testRunner.Given("a project, deliverable and agent task exist for error testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 162
+#line 163
     testRunner.When("I attempt the invalid input case \"create-deliverable-type-bogus\" on the existing " +
                         "entities", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 163
+#line 164
     testRunner.Then("the response should report a masked server error for \"createDeliverable\" with \"nu" +
                         "ll-field\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
@@ -723,7 +723,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("A numeric deliverable type string slips past Enum.Parse and fails serialization", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 165
+#line 166
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -746,23 +746,23 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 14
   this.FeatureBackground();
 #line hidden
-#line 167
+#line 169
     testRunner.Given("a project, deliverable and agent task exist for error testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 168
+#line 170
     testRunner.When("I attempt the invalid input case \"create-deliverable-type-numeric\" on the existin" +
                         "g entities", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 169
+#line 171
     testRunner.Then("the response should have HTTP status 200", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 170
+#line 172
     testRunner.And("the response error message should contain \"cannot serialize the given value\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 171
+#line 173
     testRunner.And("the response error code should be \"EXEC_INVALID_LEAF_VALUE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 172
+#line 174
     testRunner.And("the response data field \"createDeliverable\" should be null", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -784,7 +784,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             argumentsOfScenario.Add("field", field);
             argumentsOfScenario.Add("data", data);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Server exceptions are masked and leak no internals", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 178
+#line 180
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -807,13 +807,13 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 14
   this.FeatureBackground();
 #line hidden
-#line 179
+#line 181
     testRunner.When(string.Format("I attempt \"{0}\" against a missing entity", mutation), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 180
+#line 182
     testRunner.Then(string.Format("the response should report a masked server error for \"{0}\" with \"{1}\"", field, data), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 181
+#line 183
     testRunner.And("the response should not leak exception details", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -828,7 +828,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Not-found mutations share one consistent error classification", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 189
+#line 191
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -851,10 +851,10 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 14
   this.FeatureBackground();
 #line hidden
-#line 190
+#line 192
     testRunner.When("I attempt three not-found mutations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 191
+#line 193
     testRunner.Then("the three responses should share the same error classification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
@@ -872,7 +872,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("mutation", mutation);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Masked execution errors carry no extensions code while validation guards do", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 193
+#line 195
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -895,10 +895,10 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 14
   this.FeatureBackground();
 #line hidden
-#line 194
+#line 196
     testRunner.When(string.Format("I attempt \"{0}\" against a missing entity", mutation), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 195
+#line 197
     testRunner.Then("the response error code should be absent", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }

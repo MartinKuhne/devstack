@@ -1892,7 +1892,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
                     "gql-12"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-12 agent task by id does not resolve its relation objects", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 367
+#line 368
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -1915,23 +1915,23 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 8
   this.FeatureBackground();
 #line hidden
-#line 368
+#line 369
     testRunner.Given("I create query coverage projects \"HOST\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 369
+#line 370
     testRunner.And("I create query coverage deliverables \"DEL1:FEATURE:DRAFT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 370
+#line 371
     testRunner.And("I create a query coverage agent task \"TASK1:2:READY\" in deliverable 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 371
+#line 372
     testRunner.And("I create a query coverage agent task \"TASK2:3:READY\" in deliverable 1 depending o" +
                         "n task 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 372
+#line 373
     testRunner.When("I query the query coverage agent task 2 with its relation objects", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 373
+#line 374
     testRunner.Then("the query coverage agent task 2 relation objects are not resolved but its foreign" +
                         " keys reference deliverable 1 project 1 and dependency task 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
@@ -1949,7 +1949,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
                     "gql-12"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-12 agent task connection does not resolve its relation objects", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 376
+#line 377
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -1972,19 +1972,19 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 8
   this.FeatureBackground();
 #line hidden
-#line 377
+#line 378
     testRunner.Given("I create query coverage projects \"HOST\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 378
+#line 379
     testRunner.And("I create query coverage deliverables \"DEL1:FEATURE:DRAFT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 379
+#line 380
     testRunner.And("I create query coverage agent tasks \"TASK1:2:READY,TASK2:3:READY\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 380
+#line 381
     testRunner.When("I query agent tasks in deliverable 1 with their relation objects", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 381
+#line 382
     testRunner.Then("the query coverage agent task relation objects in deliverable 1 are not resolved " +
                         "but reference its project 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
@@ -2002,7 +2002,7 @@ namespace DevStack.Tests.Integration.GraphQL.Features
                     "gql-12"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("GQL-12 deliverable by id does not resolve its project object", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 384
+#line 385
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -2025,16 +2025,16 @@ namespace DevStack.Tests.Integration.GraphQL.Features
 #line 8
   this.FeatureBackground();
 #line hidden
-#line 385
+#line 386
     testRunner.Given("I create query coverage projects \"HOST,GUEST\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 386
+#line 387
     testRunner.And("I create a query coverage deliverable \"DEL1:FEATURE:DRAFT\" in project 2", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 387
+#line 388
     testRunner.When("I query the query coverage deliverable 1 with its project object", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 388
+#line 389
     testRunner.Then("the query coverage deliverable 1 project object is not resolved but its projectId" +
                         " references project 2", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden

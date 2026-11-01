@@ -138,7 +138,8 @@ Feature: GraphQL Error Paths
       | update-agent-task-complexity-11 | updateAgentTask   | null-data  |
 
   Scenario: A 201 character task title is accepted on update although create rejects it
-    # Pins the asymmetry between CreateAgentTaskHandler (max 200) and AgentTask.UpdateMetadata (max 300).
+    # DRIFT-09 (ledger §6): pins the asymmetry between CreateAgentTaskHandler (max 200) and
+    # AgentTask.UpdateMetadata (max 300). The column allows 300, so the create-side limit is the outlier.
     Given a project, deliverable and agent task exist for error testing
     When I attempt the invalid input case "update-agent-task-201-title" on the existing entities
     Then the response should have HTTP status 200
@@ -163,7 +164,8 @@ Feature: GraphQL Error Paths
     Then the response should report a masked server error for "createDeliverable" with "null-field"
 
   Scenario: A numeric deliverable type string slips past Enum.Parse and fails serialization
-    # Enum.Parse accepts numeric strings, so the failure surfaces as a leaf-value error, not a masked one.
+    # DRIFT-10 (ledger §6): Enum.Parse accepts numeric strings, so the failure surfaces as a leaf-value error,
+    # not a masked one. Declare the input as the enum type and this scenario must be rewritten.
     Given a project, deliverable and agent task exist for error testing
     When I attempt the invalid input case "create-deliverable-type-numeric" on the existing entities
     Then the response should have HTTP status 200

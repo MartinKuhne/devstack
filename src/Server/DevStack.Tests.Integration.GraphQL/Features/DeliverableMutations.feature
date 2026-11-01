@@ -56,6 +56,10 @@ Feature: Deliverable Mutations
     When I update the deliverable acceptance criteria to "New acceptance criteria"
     Then the deliverable should be updated successfully
 
+  # DRIFT-01 (ledger §6): the write path assigns the status without consulting StatusTransitionService, so these
+  # scenarios pass for transitions the rule set rejects - Implement -> Done, Implement -> NeedsReview and
+  # NeedsReview -> Rejected are all absent from AllowedTransitions. They pin the permissive behaviour; adding a
+  # guard in Deliverable.TransitionStatus turns them red and they must be reconciled with the chosen rules.
   @transition_status
   Scenario: Transition deliverable status from Plan to Implement
     Given a deliverable with status "PLAN" type "Feature" exists

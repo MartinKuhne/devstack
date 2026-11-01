@@ -51,7 +51,8 @@ public sealed class FieldCoverageSteps
     private static readonly int DeliverableDocumentFieldCount = DeliverableDocumentFields.Length + 1;
 
     /// <summary>
-    /// KNOWN DEFECT of <c>updateDeliverable</c>, pinned here instead of fixed: <c>Mutation.UpdateDeliverableAsync</c>
+    /// KNOWN DEFECT BUG-07 (doc/planning/integration-test-coverage-ledger.md §6) of <c>updateDeliverable</c>,
+    /// pinned here instead of fixed: <c>Mutation.UpdateDeliverableAsync</c>
     /// builds <c>UpdateDeliverableCommand</c> with positional arguments, but <c>UpdateDeliverableInput</c> declares
     /// <c>AgentFeedback</c> before <c>ExecutionPlan</c> while <c>UpdateDeliverableCommand</c> declares them the other
     /// way round. The mutation therefore writes the value of one of these fields into the other. The map names, for
