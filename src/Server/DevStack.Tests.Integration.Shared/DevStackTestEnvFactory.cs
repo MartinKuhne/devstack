@@ -11,15 +11,6 @@ public static class DevStackTestEnvFactory
     {
         return CreateBuilder()
             .WithSolutionDir(solutionDir ?? FindSolutionDirectory())
-            .WithMode(DevStackTestEnvMode.Api)
-            .Build();
-    }
-
-    public static DevStackTestEnv CreateMcp(string? solutionDir = null)
-    {
-        return CreateBuilder()
-            .WithSolutionDir(solutionDir ?? FindSolutionDirectory())
-            .WithMode(DevStackTestEnvMode.Mcp)
             .Build();
     }
 

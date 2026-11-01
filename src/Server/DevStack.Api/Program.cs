@@ -128,11 +128,10 @@ if (builder.Configuration.GetValue<bool>("FeatureManagement:AgentTaskTools"))
 //                  the same prompt and resources), so clients reasonably treat them as interchangeable, yet the
 //                  same document produces success on one and a generic error on the other. The API host already
 //                  references the project that contains the filter, so the omission has no technical cause.
-// Why this is NOT a false positive: the difference is observable from a client - the integration suite drives
-//                  the API-hosted endpoint with the array argument and records IsError == true, while the
-//                  standalone MCP suite drives the same tool with the same argument and records a coerced,
-//                  accepted value. Both results were captured in the same test run, so this is not an assumption
-//                  about SDK behaviour.
+// Why this is NOT a false positive: the difference was observed from a client when the integration suite drove
+//                  both endpoints with the same array argument. The current integration gate intentionally runs
+//                  MCP scenarios against this API-hosted endpoint only, so the standalone comparison is no longer
+//                  part of the test coverage.
 // Concrete consequence: an agent that works against one host and is repointed at the other starts failing calls
 //                  it used to pass, with an error message that names nothing; and the generic message hides the
 //                  real cause (an argument-shape mismatch) from the operator.
@@ -140,8 +139,8 @@ if (builder.Configuration.GetValue<bool>("FeatureManagement:AgentTaskTools"))
 // Fix direction:   either add filters.AddCallToolFilter(McpArgumentNormalizationFilter.Create(...)) here so both
 //                  hosts behave alike, or decide that coercion is wrong and remove it from the standalone host -
 //                  then document which host is authoritative. Product-owner decision recorded as BUG-09.
-// Pinned by:       DevStack.Tests.Integration.MCP Features/ApiHostedMcp.feature (the array-argument scenario),
-//                  with the cause noted in Steps/ApiHostedMcpSteps.cs. That scenario expects IsError today.
+// Historical test: DevStack.Tests.Integration.MCP previously pinned the cross-host difference; the comparison was
+//                  removed when the integration suite moved to the API-hosted endpoint only.
 mcpBuilder
     .WithPrompts<DeliverableWorkflowPrompt>(null)
     .WithResources<ResourceType>()

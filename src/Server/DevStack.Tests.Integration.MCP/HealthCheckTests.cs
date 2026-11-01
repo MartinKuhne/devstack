@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using AwesomeAssertions;
 
 using DevStack.Tests.Integration.MCP.Hooks;
@@ -9,8 +11,11 @@ namespace DevStack.Tests.Integration.MCP;
 
 public class HealthCheckTests
 {
-    [Fact]
-    public async Task GetHealth_ReturnsHealthy()
+    /// <summary>Verifies the API health and readiness endpoints return a healthy status.</summary>
+    [Theory]
+    [InlineData("/health")]
+    [InlineData("/ready")]
+    public async Task GetHealthEndpoints_ReturnHealthy(string path)
     {
         var env = SpecFlowHooks.GetTestEnvironment();
 
@@ -19,10 +24,11 @@ public class HealthCheckTests
             BaseAddress = new Uri(env.AppUrl)
         };
 
-        var response = await httpClient.GetAsync("/health", TestContext.Current.CancellationToken);
+        var response = await httpClient.GetAsync(path, TestContext.Current.CancellationToken);
 
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        content.Should().Contain("healthy");
+        using var document = JsonDocument.Parse(content);
+        document.RootElement.GetProperty("status").GetString().Should().Be("Healthy");
     }
 }

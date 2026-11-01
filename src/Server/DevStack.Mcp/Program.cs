@@ -171,17 +171,17 @@ try
     //                  tool error gives the operator no hint that the schema is missing - it is indistinguishable
     //                  from a bug in the tool.
     // Why this is NOT a false positive: CanConnectAsync is a connectivity check only; it succeeds against an
-    //                  empty database with no DevStack tables. This is not theoretical - the integration
-    //                  environment for the feature-flag-off scenario had to run the migration explicitly before
-    //                  the standalone host could serve tools, which is how the gap was found.
+    //                  empty database with no DevStack tables. This was observed when the feature-flag-off
+    //                  integration environment used the standalone host and had to migrate explicitly. The
+    //                  current MCP integration suite uses the API host, which migrates on startup.
     // Concrete consequence: a deployment that points the standalone MCP host at a fresh database comes up
     //                  "healthy" and fails every call; the operator sees tool errors, not a schema problem.
     // Confidence:      Confirmed.
     // Fix direction:   either run MigrateAsync at startup like the API host (same scope pattern), or make the
     //                  probe actually verify the schema - e.g. query one mapped table - and return 503 when it is
     //                  missing. Decide which host owns migrations so they are not run twice from two services.
-    // Pinned by:       DevStack.Tests.Integration.MCP (the feature-flag-off environment migrates explicitly
-    //                  before starting the standalone host, which is the workaround this finding documents).
+    // Historical test evidence: the feature-flag-off environment previously migrated explicitly before starting
+    //                  the standalone host. The current API-only integration suite no longer covers this host.
     app.MapGet("/health", async (DevStackDbContext dbContext, CancellationToken ct) =>
     {
         try

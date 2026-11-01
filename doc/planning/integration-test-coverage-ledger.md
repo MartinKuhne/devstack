@@ -1,9 +1,9 @@
 # Integration Test Coverage Ledger — GraphQL & MCP
 
-Status: **coverage complete, decisions pending** · Created 2026-10-31 · Updated 2026-10-31 · Owner: code-quality supervision
+Status: **coverage complete, product decisions pending** · Created 2026-10-31 · Updated 2026-10-31 · Owner: code-quality supervision
 Goal: every happy, error and exception path reachable over GraphQL (as used by the AdminUi and in general) and over MCP has integration test coverage.
 
-**Headline:** GraphQL went from 57 scenarios with *vacuous* success assertions and **zero** error-path coverage to **206 passing scenarios** including a 63-case error matrix, full query-connection breadth, referential-integrity and field round-trip suites. MCP went from 13 scenarios (7 of 13 tools exercised, no error paths, no prompts/resources) to **65 passing scenarios** covering all 13 tools, both error styles, protocol errors, prompts, resources, **both** MCP hosts and the feature-flag-off host, with per-scenario database cleanup. AdminUi gained 21 error-surface tests, a Playwright harness that finally speaks the current schema, and a TypeScript gate over its own test files (**222 tests**). The coverage work surfaced **9 product defects**, **1 security observation** and **13 spec drifts** (§6) — including one that silently corrupts data on every `updateDeliverable` (BUG-07) and one that visibly breaks the UI (BUG-01).
+**Headline:** GraphQL went from 57 scenarios with *vacuous* success assertions and **zero** error-path coverage to **206 passing scenarios** including a 63-case error matrix, full query-connection breadth, referential-integrity and field round-trip suites. MCP went from 13 scenarios (7 of 13 tools exercised, no error paths, no prompts/resources) to **60 passing tests** covering all 13 tools, both error styles, protocol errors, prompts, resources, and feature-flag-off behavior, with per-scenario database cleanup. The CI gate runs MCP scenarios against the API-hosted `/mcp` endpoint only; the standalone-versus-API behavior comparison was intentionally dropped. AdminUi gained 21 error-surface tests, a Playwright harness that finally speaks the current schema, and a TypeScript gate over its own test files (**222 tests**). The coverage work surfaced **9 product defects**, **1 security observation** and **13 spec drifts** (§6) — including one that silently corrupts data on every `updateDeliverable` (BUG-07) and one that visibly breaks the UI (BUG-01).
 
 ---
 
@@ -13,7 +13,7 @@ Goal: every happy, error and exception path reachable over GraphQL (as used by t
 |---|---|
 | Server surface under test | `src/schema.graphql` (produced by `src/Server/DevStack.Api` + `DevStack.Domain`), MCP tools/prompts/resources in `src/Server/DevStack.Mcp` |
 | Consumers | AdminUi (Apollo Client 4, HTTP GraphQL only, no subscriptions), `DevStack.Agent` (raw GraphQL), MCP clients |
-| Existing integration harness | `DevStack.Tests.Integration.GraphQL`, `DevStack.Tests.Integration.MCP`, `DevStack.Tests.Integration.Shared` (Testcontainers: `postgres:17-alpine` + the real app Docker image; raw HTTP for GraphQL, `ModelContextProtocol` 1.14 client over Streamable HTTP for MCP) |
+| Existing integration harness | `DevStack.Tests.Integration.GraphQL`, `DevStack.Tests.Integration.MCP`, `DevStack.Tests.Integration.Shared` (Testcontainers: `postgres:17-alpine` + the `DevStack.Api` Docker image; raw HTTP for GraphQL, `ModelContextProtocol` client over Streamable HTTP for MCP) |
 | Method | Static inventory of schema/resolvers/tools/handlers vs. every `.feature` scenario and step definition, plus AdminUi GraphQL documents and error-handling code; then empirical confirmation by running the suites |
 | Baseline quality gates | `dotnet build src/Server/DevStack.slnx -c Release` → 0 errors. Unit tests 327/327. AdminUi `npm run test` 196 → 217 tests, `npx tsc` clean |
 
@@ -22,7 +22,7 @@ Goal: every happy, error and exception path reachable over GraphQL (as used by t
 - GraphQL tests POST raw JSON to `{AppUrl}/graphql`. No auth exists on either host.
 - **Use the shared helpers** (`DevStack.Tests.Integration.Shared`): `GraphQLRequest.ExecuteAsync/Execute(HttpClient, query, variables?, operationName?)` → `GraphQLResult` with `HasErrors`, `ErrorCount`, `HasData`, `DataIsNull`, `Data`, `FirstErrorMessage`, `FirstErrorCode`, `AnyErrorContains`, `Field`, `IsFieldNull`, `RawBody`.
 - MCP tests connect to `{AppUrl}/mcp` (Streamable HTTP, **stateless**). Reuse `Steps/McpToolResult.cs` (markdown → ```json``` payload) and `Steps/CallOutcome.cs` (result-or-exception).
-- **Image tags are parallel-safe** via `DEVSTACK_TEST_API_IMAGE` / `DEVSTACK_TEST_MCP_IMAGE`; `WithEnvironment(name, value)` injects container env vars (used for feature flags). Caveat: the builder always rebuilds (`WithImageBuildPolicy(_ => true)`), so a **new** tag means a real image build rather than a cache hit — set the variable to a tag that already exists when you only want to re-run scenarios, and budget several extra minutes when you do not.
+- **The API image tag is shared** via `DEVSTACK_TEST_API_IMAGE`; CI prebuilds it once and Testcontainers reuses that immutable tag for the GraphQL, MCP, and flag-off environments. `WithEnvironment(name, value)` injects container env vars (used for feature flags). Local runs without the override rebuild their explicit fallback tags to avoid stale source images.
 - `[UsePaging(MaxPageSize = 100)]` on all four list resolvers; introspection enabled. `MaxFieldCost = 10000` is configured but **never reached** (DRIFT-08).
 - **Data hygiene is manual**: `deleteTestData` only removes rows whose `Project.Name` / `Deliverable.Title` / `AgentTask.Title` / `LargeLanguageModel.Url` contains the literal `[DeleteAfterTest]`. Consequences:
   - Every created entity must carry that marker.
@@ -42,7 +42,7 @@ Goal: every happy, error and exception path reachable over GraphQL (as used by t
 | `first: 101` | 400 | paging error |
 | Over-cost query | 400 | `HC0047` (governed by HotChocolate default `MaxTypeCost = 1000`, not the configured 10000) |
 
-**MCP** (`ModelContextProtocol` SDK, both hosts):
+**MCP** (`ModelContextProtocol` SDK, API-hosted `/mcp` endpoint):
 
 | Case | Client-visible outcome |
 |---|---|
@@ -148,12 +148,12 @@ Both hosts register the same tools: `DevStack.Mcp/Program.cs:65-71` and `DevStac
 | Unknown tool, missing required arg, wrong arg type, invalid enum literal | ✅ |
 | `prompts/list` + `prompts/get deliverable_workflow` | ✅ |
 | `resources/list` + `resources/read` | ✅ |
-| MCP endpoint hosted by **DevStack.Api** (`/mcp` on the API image, incl. `/health` + `/ready` → 200) | ✅ `28e6f61` — same tool set, same hard-error contract; filter difference → BUG-09 |
-| `FeatureManagement:AgentTaskTools = false` hides task tools | ✅ 4 scenarios on an isolated second MCP host with its own Postgres |
+| MCP endpoint hosted by **DevStack.Api** (`/mcp` on the API image, incl. `/health` + `/ready` → 200) | ✅ `28e6f61`; the current MCP suite runs against this endpoint |
+| `FeatureManagement:AgentTaskTools = false` hides task tools | ✅ 4 scenarios on an isolated second API host with its own Postgres |
 | Per-scenario cleanup (SQL, tracked ids, seeded project preserved) | ✅ `CreatedRowRegistry` + `ScenarioDataCleaner`; verified `removed N of N` on every scenario that creates rows |
 | `McpExceptionHandlingMiddleware` visibility of tool errors | ❌ BUG-05 — SDK swallows tool errors before the middleware |
-| `McpArgumentNormalizationFilter` / `CoerciveStringJsonConverter` coercion | ✅ observable difference between the two hosts is now pinned (array → `"alpha\nbeta"` on the MCP host, generic error on the API host) |
-| Standalone MCP host bootstraps its own schema | ❌ BUG-08 — it does not; it starts "healthy" against an unmigrated DB and every tool then fails generically |
+| `McpArgumentNormalizationFilter` / `CoerciveStringJsonConverter` coercion | ⚠️ Cross-host behavior comparison intentionally dropped when the suite moved to API-only; BUG-09 remains documented |
+| Standalone MCP host bootstraps its own schema | ❌ BUG-08 — known historical behavior, no longer exercised by the API-only MCP integration suite |
 
 ---
 
@@ -231,7 +231,7 @@ Harness defects:
 |---|---|---|
 | INF-05 | `deleteTestData` in `AfterScenario` is global, so parallel feature classes wipe each other's fixtures. Mitigated by `TestParallelization.cs` (`DisableTestParallelization`), which costs wall-clock time. Proper fix: scoped cleanup (delete only the ids a scenario created), as Lane F implemented for MCP. | 🟡 mitigated |
 | INF-06 | `src/Server/.editorconfig` requires `end_of_line = lf` while `core.autocrlf=true` makes the working tree CRLF, so `dotnet format --verify-no-changes` flags every `.cs` file. New files are committed as LF. Repo-wide decision needed; do **not** mass-reformat. | ❌ open |
-| INF-07 | **Found by Lane F:** INF-01 was incomplete — the MCP `BeforeTestRun` hook hard-coded `WithMcpImageName("devstack-mcp:test")`, and the builder prefers an explicit name over the environment override, so `DEVSTACK_TEST_MCP_IMAGE` had **no effect** on the main MCP environment and concurrent runs still retagged one image. Fixed by dropping the hard-coded name so the override applies; feature-scoped hooks keep their explicit tags on purpose. | ✅ fixed in `Hooks/SpecFlowHooks.cs` |
+| INF-07 | **Found by Lane F:** INF-01 was incomplete — the MCP `BeforeTestRun` hook hard-coded `WithMcpImageName("devstack-mcp:test")`, so the MCP image override had **no effect** on the main MCP environment. Historically fixed by removing the hard-coded tag; later superseded when the MCP suite moved to the API image only. | ✅ superseded by API-only harness |
 | INF-08 | The assembly-seeded MCP project is named `[DeleteAfterTest] MCP Test Project` but is deliberately **never** deleted because every scenario reuses it. Any future `[DeleteAfterTest]` reaper, or exposing GraphQL on the MCP host, would delete the row the whole suite depends on. Rename it outside the predicate. | ❌ open |
 
 ---
@@ -240,7 +240,7 @@ Harness defects:
 
 | ID | Gap | P | Status |
 |---|---|---|---|
-| INF-01 | Parallel-safe image tags (`DEVSTACK_TEST_API_IMAGE` / `DEVSTACK_TEST_MCP_IMAGE`) | P1 | ✅ `b73c058` |
+| INF-01 | Parallel-safe image tags for the test application | P1 | ✅ `DEVSTACK_TEST_API_IMAGE` is shared across server integration environments |
 | INF-02 | `WithEnvironment()` for container env vars | P2 | ✅ `b73c058` |
 | INF-03 | Shared `GraphQLRequest` / `GraphQLResult` helpers | P1 | ✅ `b73c058` |
 | GQL-01 | Real `HasErrors` assertions | P0 | ✅ `bfe3032` |
@@ -259,15 +259,15 @@ Harness defects:
 | GQL-18 | Mark server-suite fixtures `[DeleteAfterTest]` so cleanup actually reclaims them | P1 | ✅ `47b8676` |
 | MCP-01..MCP-07, MCP-11 | All 13 tools, hard/soft errors, protocol errors, prompts, resources, `inputSchema`, honest tools/call error scenario | P0/P1 | ✅ `75b9a34` |
 | MCP-08 | Feature flag off hides task tools | P2 | ✅ `28e6f61` (4 scenarios) |
-| MCP-09 | MCP endpoint hosted by `DevStack.Api` | P1 | ✅ `28e6f61` (6 cases) — surfaced BUG-09 |
+| MCP-09 | MCP endpoint hosted by `DevStack.Api` | P1 | ✅ `28e6f61`; current MCP suite now uses this endpoint exclusively |
 | MCP-10 | Per-scenario cleanup for MCP | P2 | ✅ `28e6f61` |
 | MCP-12 | Assert notification round-trip rather than "no exception" | P3 | ❌ open |
-| MCP-13 | Integration coverage for `McpArgumentNormalizationFilter` / `CoerciveStringJsonConverter` array→newline-joined coercion | P2 | ✅ covered via MCP-09(e) — both hosts' behaviour pinned |
+| MCP-13 | Integration coverage for `McpArgumentNormalizationFilter` / `CoerciveStringJsonConverter` array→newline-joined coercion | P2 | ⚠️ standalone-versus-API behavior comparison intentionally dropped with API-only integration host |
 | UI-01..UI-03 | e2e schema drift, GraphQL error surfaces, network-error branch | P0/P1 | ✅ `4edd1b2`, `4037de4` |
 | UI-06 | Add `tsconfig.test.json` so test files are inside the type gate | P1 | ✅ `56f7699` (16 errors fixed) |
-| INF-04 | CI: integration suites are `workflow_dispatch`/path-filtered only → new coverage does not gate merges | P2 | 🟡 proposal written (`doc/planning/integration-test-ci-gating.md`), decision pending |
+| INF-04 | CI: integration suites are `workflow_dispatch`/path-filtered only → new coverage does not gate merges | P2 | ✅ single-job server workflow runs the full solution test gate |
 | INF-06 | `.editorconfig` LF vs `core.autocrlf` conflict | P3 | ❌ open (decision) |
-| INF-07 | `DEVSTACK_TEST_MCP_IMAGE` override was dead for the assembly-level MCP env | P1 | ✅ fixed (see §6 harness table) |
+| INF-07 | MCP-specific image override was dead for the assembly-level MCP env | P1 | ✅ superseded; no separate MCP image is built or selected |
 
 **Out of scope** (tracked as decisions, §6): enforcing the status machine (DRIFT-01), emitting typed domain errors (DRIFT-02/07), removing the dead REST problem+json path (DRIFT-06), fixing BUG-01..BUG-09 / SEC-01 in product code.
 
@@ -283,7 +283,6 @@ Harness defects:
 3. GQL-17 drop the unused `Mvc.Testing` reference and vestigial `GraphQL.Url` setting — P3
 4. INF-08 rename the assembly-seeded MCP project so it is not inside the `[DeleteAfterTest]` predicate — P2
 5. INF-05 give the GraphQL suite scoped cleanup (mirror `CreatedRowRegistry`/`ScenarioDataCleaner`) so `DisableTestParallelization` can be removed — P2, the main wall-clock lever
-6. INF-04 decide the CI gating option (see the proposal doc)
 
 **Deferred to product owners:** BUG-01..BUG-09, SEC-01, DRIFT-01/02/05/06/08/09/10/11/12/13.
 **Highest-value product fix:** BUG-07 (silent field swap on `updateDeliverable`) — one line, active data corruption.

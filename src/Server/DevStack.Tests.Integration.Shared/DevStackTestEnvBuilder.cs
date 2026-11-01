@@ -7,7 +7,6 @@ namespace DevStack.Tests.Integration.Shared;
 public class DevStackTestEnvBuilder
 {
     private string? _solutionDir;
-    private DevStackTestEnvMode _mode = DevStackTestEnvMode.Api;
     private string _postgresUsername = "devstack";
     private string _postgresPassword = "dd9656af-e039-48ef-ae1d-bab2ef79a836";
     private string _postgresDatabase = "devstack";
@@ -16,18 +15,11 @@ public class DevStackTestEnvBuilder
     private int _appPort = 8080;
     private string _healthCheckPath = "/health";
     private string? _customApiImageName;
-    private string? _customMcpImageName;
     private readonly Dictionary<string, string> _extraEnvironmentVariables = new();
 
     public DevStackTestEnvBuilder WithSolutionDir(string solutionDir)
     {
         _solutionDir = solutionDir;
-        return this;
-    }
-
-    public DevStackTestEnvBuilder WithMode(DevStackTestEnvMode mode)
-    {
-        _mode = mode;
         return this;
     }
 
@@ -69,12 +61,6 @@ public class DevStackTestEnvBuilder
         return this;
     }
 
-    public DevStackTestEnvBuilder WithMcpImageName(string imageName)
-    {
-        _customMcpImageName = imageName;
-        return this;
-    }
-
     /// <summary>
     /// Adds an environment variable to the application container, e.g. to toggle feature flags.
     /// </summary>
@@ -85,7 +71,6 @@ public class DevStackTestEnvBuilder
     }
 
     public string? SolutionDir => _solutionDir;
-    public DevStackTestEnvMode Mode => _mode;
     public string PostgresUsername => _postgresUsername;
     public string PostgresPassword => _postgresPassword;
     public string PostgresDatabase => _postgresDatabase;
@@ -100,9 +85,7 @@ public class DevStackTestEnvBuilder
 
     internal void BuildAppImage(string solutionDir)
     {
-        var dockerfilePath = Path.Combine(solutionDir,
-            _mode == DevStackTestEnvMode.Api ? "DevStack.Api" : "DevStack.Mcp",
-            "Dockerfile");
+        var dockerfilePath = Path.Combine(solutionDir, "DevStack.Api", "Dockerfile");
 
         Console.WriteLine($"[DevStackTestEnvBuilder] Dockerfile path: {Path.GetFullPath(dockerfilePath)}");
         Console.WriteLine($"[DevStackTestEnvBuilder] Docker build context: {Path.GetFullPath(solutionDir)}");
@@ -115,13 +98,17 @@ public class DevStackTestEnvBuilder
                 $"Check that the Dockerfile exists at the expected location and that .dockerignore is not excluding it.");
         }
 
-        var imageName = ResolveImageName(ImageNameFromEnvironment());
+        var environmentImageName = ImageNameFromEnvironment();
+        var imageName = environmentImageName ?? _customApiImageName ?? "devstack-api:test";
+        var reusePrebuiltImage = environmentImageName is not null;
 
         _appImage = new ImageFromDockerfileBuilder()
             .WithDockerfileDirectory(solutionDir)
-            .WithDockerfile(_mode == DevStackTestEnvMode.Api ? "DevStack.Api/Dockerfile" : "DevStack.Mcp/Dockerfile")
+            .WithDockerfile("DevStack.Api/Dockerfile")
             .WithName(imageName)
-            .WithImageBuildPolicy(_ => true)
+            // CI supplies immutable prebuilt tags; local runs rebuild to avoid reusing stale source images.
+            .WithImageBuildPolicy(cachedImage => !reusePrebuiltImage || cachedImage is null)
+            .WithCleanUp(!reusePrebuiltImage)
             .Build();
     }
 
@@ -131,24 +118,9 @@ public class DevStackTestEnvBuilder
     /// </summary>
     private string? ImageNameFromEnvironment()
     {
-        var variable = _mode == DevStackTestEnvMode.Api
-            ? "DEVSTACK_TEST_API_IMAGE"
-            : "DEVSTACK_TEST_MCP_IMAGE";
-
-        var value = Environment.GetEnvironmentVariable(variable);
+        var value = Environment.GetEnvironmentVariable("DEVSTACK_TEST_API_IMAGE");
         return string.IsNullOrWhiteSpace(value) ? null : value;
     }
-
-    /// <summary>
-    /// Resolves the effective image name: explicit builder name, then environment override, then default.
-    /// </summary>
-    private string ResolveImageName(string? environmentOverride)
-        => _mode switch
-        {
-            DevStackTestEnvMode.Api => _customApiImageName ?? environmentOverride ?? "devstack-api:test",
-            DevStackTestEnvMode.Mcp => _customMcpImageName ?? environmentOverride ?? "devstack-mcp:test",
-            _ => throw new InvalidOperationException($"Unknown mode: {_mode}")
-        };
 
     internal string GetAppUrl(int mappedPort)
     {

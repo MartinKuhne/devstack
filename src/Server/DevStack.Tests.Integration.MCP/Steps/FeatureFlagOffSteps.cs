@@ -11,7 +11,7 @@ using Reqnroll;
 namespace DevStack.Tests.Integration.MCP.Steps;
 
 /// <summary>
-/// Step definitions for the MCP environment started with <c>FeatureManagement:AgentTaskTools = false</c> (MCP-08).
+/// Step definitions for the API-hosted MCP environment started with <c>FeatureManagement:AgentTaskTools = false</c> (MCP-08).
 /// </summary>
 /// <remarks>
 /// Every step text is prefixed with "flag-off" so that it cannot be confused with the steps of the
@@ -50,7 +50,7 @@ public sealed class FeatureFlagOffSteps
     private CallOutcome Outcome => _outcome
         ?? throw new InvalidOperationException("No flag-off tool call has been made by this scenario.");
 
-    /// <summary>Connects a client to the isolated flag-off MCP host.</summary>
+    /// <summary>Connects a client to the isolated flag-off API-hosted MCP endpoint.</summary>
     [Given(@"the flag-off MCP client is connected")]
     public async Task GivenTheFlagOffMcpClientIsConnected()
     {
@@ -64,7 +64,7 @@ public sealed class FeatureFlagOffSteps
         _scenarioContext["FlagOffMcpClient"] = _client;
     }
 
-    /// <summary>Releases the flag-off client; the environment itself is disposed with the feature.</summary>
+    /// <summary>Releases the flag-off client; the API environment itself is disposed with the feature.</summary>
     [AfterScenario]
     public void AfterScenario()
     {

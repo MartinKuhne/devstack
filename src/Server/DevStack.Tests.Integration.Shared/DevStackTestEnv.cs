@@ -7,12 +7,6 @@ using Testcontainers.PostgreSql;
 
 namespace DevStack.Tests.Integration.Shared;
 
-public enum DevStackTestEnvMode
-{
-    Api,
-    Mcp
-}
-
 public sealed class DevStackTestEnv : IDisposable
 {
     private readonly INetwork _network;
@@ -73,8 +67,6 @@ public sealed class DevStackTestEnv : IDisposable
         PostgresConnectionString = _postgresContainer.GetConnectionString();
         PostgresConnectionStringForHost = _postgresContainer.GetConnectionString();
         SecretKey = builder.SecretKey;
-        Mode = builder.Mode;
-
         int mappedPort = _appContainer.GetMappedPublicPort((ushort)builder.AppPort);
         AppPort = mappedPort;
         AppUrl = builder.GetAppUrl(mappedPort);
@@ -85,8 +77,6 @@ public sealed class DevStackTestEnv : IDisposable
     public string PostgresConnectionStringForHost { get; }
     public string AppUrl { get; }
     public string SecretKey { get; }
-    public DevStackTestEnvMode Mode { get; }
-
     public void Dispose()
     {
         if (_disposed) return;

@@ -1,7 +1,7 @@
 @feature-flag-off
 Feature: Feature Flag Off Hides The Task Tools
-    DevStack.Mcp registers TaskTools only when FeatureManagement:AgentTaskTools is true.
-    A second, isolated MCP environment is booted with the flag switched off to prove that the
+    The API-hosted MCP endpoint registers TaskTools only when FeatureManagement:AgentTaskTools is true.
+    A second, isolated API environment is booted with the flag switched off to prove that the
     five task tools disappear from tools/list and that create_task is no longer a known tool,
     while the project and deliverable tools keep working.
 
