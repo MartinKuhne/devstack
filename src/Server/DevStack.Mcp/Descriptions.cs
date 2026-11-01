@@ -11,6 +11,41 @@ static class Descriptions
     internal static class Prompts
     {
         internal const string DeliverableWorkflow = "Guidance on tool use";
+        // BUG-04 — this prompt instructs the model to call tools that do not exist and to use a status the
+        // tools cannot accept.
+        // Category:        contract mismatch (prompt content vs. the advertised tool surface)
+        // Trigger path:    client calls prompts/get("deliverable_workflow") -> the MCP SDK returns this text as
+        //                  the prompt message verbatim -> the model follows it literally
+        //                  -> "change_deliverable_status" (below, in steps 1 and 2) is not a registered tool:
+        //                     the real name is "update_deliverable_status" (DeliverableTools.cs:166)
+        //                  -> "change_task_status" (step 2) is not a registered tool: the real name is
+        //                     "update_task_status" (TaskTools.cs:209)
+        //                  -> "All new tasks should have the 'IMPLEMENT' status" cannot be honoured: create_task
+        //                     (TaskTools.cs:147-152) accepts only deliverableId, title and description - it has
+        //                     no status parameter - and AgentTaskStatus (DeliverableStatus.cs:18-26) has no
+        //                     Implement member at all, so the value could not be bound even if it were accepted
+        // Why this is a real bug: the prompt is the documented operating procedure for the shipped MCP surface,
+        //                  and a model that follows it issues tools/call requests for unknown tool names. The
+        //                  server answers those with "Unknown tool" and the workflow stalls at the first
+        //                  status transition, which is the step the prompt exists to describe.
+        // Why this is NOT a false positive: the tool names were taken from the [McpServerTool(Name = ...)]
+        //                  attributes themselves, not from documentation, and create_task's parameter list was
+        //                  read in full. The only prompt name that does resolve is get_deliverable, which is
+        //                  exactly what the integration scenario asserts - so the working part is covered while
+        //                  the broken part is invisible to the suite.
+        // Concrete consequence: every agent that loads this prompt wastes calls on non-existent tools and never
+        //                  transitions the deliverable, leaving deliverables stuck in Implement with all tasks
+        //                  Done. The prompt also teaches the wrong vocabulary, which then leaks into the agent's
+        //                  own status updates.
+        // Confidence:      Confirmed.
+        // Fix direction:   rename the tools in the text to update_deliverable_status / update_task_status, drop
+        //                  the 'IMPLEMENT' task-status instruction (create_task decides the initial status), and
+        //                  keep the prompt in sync with the tool list - ideally by generating it from the
+        //                  registered tool names rather than repeating them by hand.
+        // Pinned by:       DevStack.Tests.Integration.MCP Features/Prompts.feature
+        //                  "The deliverable workflow prompt returns a user message containing get_deliverable".
+        //                  It only asserts the one valid tool name, so it does NOT catch the broken names; extend
+        //                  it to assert the corrected names when this is fixed.
         internal const string DeliverableWorkflowContent = """
             To help the user manage and implement deliverables, follow this workflow:
 
@@ -50,6 +85,12 @@ static class Descriptions
         internal const string GetNextDeliverable = "Find the next deliverable in a specified status for a project. Provide the ProjectId and Status parameters. Do not use this tool if the user provided a deliverable ID.";
         internal const string CreateDeliverable = "Create a deliverable in DevStack. The tool sets new deliverables to Ready state. Usage hint: Specify an existing project ID in ProjectId. Provide Title and Description.";
         internal const string UpdateDeliverable = "Modify a deliverable in DevStack. The tool updates specified fields only. Usage hint: Provide the deliverable ID and only the fields you want to change.";
+        // DRIFT-01 — the "state machine enforces valid transitions" claim below is false: the write path assigns
+        // the status unconditionally (Deliverable.cs:TransitionStatus), so every target status is accepted. The
+        // list is also incomplete: Draft, Design, Plan, Implement, Merge and Deploy are legal DeliverableStatus
+        // members that the hint never mentions. See the DRIFT-01 block on Deliverable.TransitionStatus and
+        // doc/planning/integration-test-coverage-ledger.md §6. Pinned by the GraphQL status-transition scenarios,
+        // which assert that an illegal transition is accepted today.
         internal const string UpdateDeliverableStatus = "Change the status of a deliverable in DevStack. The state machine enforces valid transitions. Usage hint: Provide a valid target status (InProgress, Done, Failed, Rejected, or NeedsReview).";
 
         internal const string Id = "The deliverable ID";
@@ -129,6 +170,9 @@ static class Descriptions
         internal const string GetNextTask = "Find the next task to work on for a project. The tool inspects deliverables in Implement status and prioritizes partial progress. Provide a repository URL or project ID. Do not use this tool if the user provided a deliverable ID or task ID.";
         internal const string CreateTask = "Create an agent task in DevStack. The tool sets new tasks to Ready state and infers ProjectId from the deliverable. Usage hint: Specify an existing deliverable ID in DeliverableId.";
         internal const string UpdateTask = "Modify an agent task in DevStack. The tool updates specified fields only. Usage hint: Provide the task ID and only the fields you want to change.";
+        // DRIFT-01 — same false claim as the deliverable tool: no transition is validated in the write path.
+        //                  See the DRIFT-01 block on AgentTask.TransitionStatus; the target-status list is also
+        //                  incomplete for AgentTaskStatus, which additionally has Ready as its initial state.
         internal const string UpdateTaskStatus = "Change the status of an agent task in DevStack. The state machine enforces valid transitions. Usage hint: Provide a valid target status (InProgress, Done, Failed, Rejected, or NeedsReview).";
 
         internal const string Id = "The agent task ID";

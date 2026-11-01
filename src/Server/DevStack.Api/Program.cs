@@ -114,6 +114,34 @@ if (builder.Configuration.GetValue<bool>("FeatureManagement:AgentTaskTools"))
     mcpBuilder.WithTools<TaskTools>(null);
 }
 
+// BUG-09 — this host registers the same MCP tools as DevStack.Mcp but without the argument-normalization filter,
+// so the two hosts answer the same request differently.
+// Category:        contract divergence between two deployments of the same tool surface
+// Trigger path:    a client sends tools/call with an array where the tool declares a string, e.g.
+//                  create_project(name: ["alpha","beta"])
+//                  -> DevStack.Mcp/Program.cs:76-81 registers McpArgumentNormalizationFilter before the logging
+//                     filter, so the array is coerced to "alpha\nbeta" and the call binds and SUCCEEDS
+//                  -> this pipeline (:118-121) registers only McpToolLoggingFilter, so argument binding fails
+//                  -> the MCP SDK returns a CallToolResult with IsError == true and the generic text
+//                     "An error occurred invoking '<tool>'."
+// Why this is a real bug: both hosts expose the identical tool list (ProjectTools, DeliverableTools, TaskTools,
+//                  the same prompt and resources), so clients reasonably treat them as interchangeable, yet the
+//                  same document produces success on one and a generic error on the other. The API host already
+//                  references the project that contains the filter, so the omission has no technical cause.
+// Why this is NOT a false positive: the difference is observable from a client - the integration suite drives
+//                  the API-hosted endpoint with the array argument and records IsError == true, while the
+//                  standalone MCP suite drives the same tool with the same argument and records a coerced,
+//                  accepted value. Both results were captured in the same test run, so this is not an assumption
+//                  about SDK behaviour.
+// Concrete consequence: an agent that works against one host and is repointed at the other starts failing calls
+//                  it used to pass, with an error message that names nothing; and the generic message hides the
+//                  real cause (an argument-shape mismatch) from the operator.
+// Confidence:      Confirmed.
+// Fix direction:   either add filters.AddCallToolFilter(McpArgumentNormalizationFilter.Create(...)) here so both
+//                  hosts behave alike, or decide that coercion is wrong and remove it from the standalone host -
+//                  then document which host is authoritative. Product-owner decision recorded as BUG-09.
+// Pinned by:       DevStack.Tests.Integration.MCP Features/ApiHostedMcp.feature (the array-argument scenario),
+//                  with the cause noted in Steps/ApiHostedMcpSteps.cs. That scenario expects IsError today.
 mcpBuilder
     .WithPrompts<DeliverableWorkflowPrompt>(null)
     .WithResources<ResourceType>()

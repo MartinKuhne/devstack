@@ -122,6 +122,24 @@ public class AgentTask
         if (agent is not null) Agent = agent;
     }
 
+    // DRIFT-01 — the status machine is not applied in the write path: this assigns unconditionally.
+    // Category:        invariant-violation (documented rules are not enforced)
+    // Trigger path:    updateAgentTaskStatus / update_task_status
+    //                  -> UpdateAgentTaskStatusHandler calls agentTask.TransitionStatus(command.Status)
+    //                  -> this method assigns Status with no guard, and SaveChangesAsync commits it
+    // Why this is a real bug: the same pattern as Deliverable.TransitionStatus - StatusTransitionService holds
+    //                  the transition rules and is never consulted by the write path, so any status can be
+    //                  assigned to any task (e.g. Done -> Ready).
+    // Why this is NOT a false positive: the integration suite performs an illegal task transition against a
+    //                  running server and observes it succeed, and the tool description advertises the guard
+    //                  ("The state machine enforces valid transitions", Descriptions.TaskTools.UpdateTaskStatus).
+    // Concrete consequence: task history is not trustworthy - completed tasks can be silently reopened and
+    //                  deliverables whose auto-completion depends on task status can flip back.
+    // Confidence:      Confirmed.
+    // Fix direction:   validate before assigning (or drop the unused service and the advertised guarantee).
+    //                  Product-owner decision recorded as DRIFT-01.
+    // Pinned by:       DevStack.Tests.Integration.GraphQL (task status-transition scenarios assert the
+    //                  permissive behaviour); they turn red when a guard is added.
     public void TransitionStatus(AgentTaskStatus newStatus)
     {
         Status = newStatus;
