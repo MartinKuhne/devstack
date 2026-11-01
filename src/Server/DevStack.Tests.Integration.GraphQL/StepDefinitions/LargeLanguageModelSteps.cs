@@ -2,11 +2,11 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 
+using AwesomeAssertions;
+
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
 
-using FluentAssertions;
-
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.StepDefinitions;
 
@@ -367,6 +367,6 @@ public sealed class LargeLanguageModelSteps
         var llms = connection.GetProperty("nodes");
         llms.ValueKind.Should().Be(JsonValueKind.Array);
         var llmCount = llms.GetArrayLength();
-        llmCount.Should().BeGreaterOrEqualTo(2, "At least 2 models should exist after creating multiple");
+        llmCount.Should().BeGreaterThanOrEqualTo(2, "At least 2 models should exist after creating multiple");
     }
 }

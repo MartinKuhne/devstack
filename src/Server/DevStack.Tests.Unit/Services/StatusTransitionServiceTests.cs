@@ -1,7 +1,7 @@
 using DevStack.Domain.Enums;
 using DevStack.Domain.Services;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Xunit;
 

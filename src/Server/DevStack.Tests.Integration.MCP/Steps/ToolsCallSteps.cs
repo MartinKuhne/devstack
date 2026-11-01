@@ -1,10 +1,10 @@
-using DevStack.Tests.Integration.MCP.Hooks;
+using AwesomeAssertions;
 
-using FluentAssertions;
+using DevStack.Tests.Integration.MCP.Hooks;
 
 using ModelContextProtocol.Client;
 
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
 
@@ -27,13 +27,13 @@ public sealed class ToolsCallSteps
         _scenarioContext["ToolName"] = toolName;
     }
 
-    [Given(@"a tools/call request with missing required parameters")]
+    [Given(@"^a tools/call request with missing required parameters$")]
     public void GivenAToolsCallRequestWithMissingRequiredParameters()
     {
         _scenarioContext["InvalidToolCall"] = true;
     }
 
-    [When(@"I send the tools/call request")]
+    [When(@"^I send the tools/call request$")]
     public async Task WhenISendTheToolsCallRequest()
     {
         if (_scenarioContext.TryGetValue<bool>("InvalidToolCall", out var invalid) && invalid)

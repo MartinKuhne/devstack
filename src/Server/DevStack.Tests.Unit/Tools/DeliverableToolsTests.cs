@@ -4,6 +4,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
+using AwesomeAssertions;
+
 using DevStack.Application;
 using DevStack.Application.Deliverables.Commands;
 using DevStack.Application.Deliverables.Queries;
@@ -11,8 +13,6 @@ using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Mcp.Tools;
 using DevStack.Persistence;
-
-using FluentAssertions;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -76,7 +76,7 @@ public class DeliverableToolsTests
             .Returns(Task.FromResult<Deliverable?>(deliverable));
 
         // Act
-        var result = await _tools.GetDeliverable(id);
+        var result = await _tools.GetDeliverable(id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Test Deliverable");
@@ -102,7 +102,7 @@ public class DeliverableToolsTests
             .Returns(Task.FromResult<Deliverable?>(null));
 
         // Act
-        var result = await _tools.GetDeliverable(id);
+        var result = await _tools.GetDeliverable(id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Deliverable not found");
@@ -125,7 +125,8 @@ public class DeliverableToolsTests
             projectId,
             title,
             description,
-            null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Deliverable Created");
@@ -151,7 +152,11 @@ public class DeliverableToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateDeliverable(Guid.Empty, title, null, null, null, null, null, null, null, null));
+            () => _tools.CreateDeliverable(
+                Guid.Empty,
+                title,
+                null, null, null, null, null, null, null, null,
+                TestContext.Current.CancellationToken));
 
         exception.Message.Should().Be("Project ID is required");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
@@ -184,7 +189,8 @@ public class DeliverableToolsTests
             securityImpact,
             performanceImpact,
             testPlan,
-            deploymentPlan);
+            deploymentPlan,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Deliverable Created");
@@ -213,7 +219,8 @@ public class DeliverableToolsTests
         var result = await _tools.CreateDeliverable(
             projectId,
             null!,
-            null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Deliverable Created");
@@ -229,7 +236,7 @@ public class DeliverableToolsTests
             .Returns(Task.FromResult<Deliverable?>(null));
 
         // Act
-        var result = await _tools.GetDeliverable(id);
+        var result = await _tools.GetDeliverable(id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Deliverable not found");
@@ -249,7 +256,8 @@ public class DeliverableToolsTests
         var result = await _tools.UpdateDeliverable(
             id,
             newDescription,
-            null, null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null, null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Deliverable Updated");
@@ -274,7 +282,8 @@ public class DeliverableToolsTests
             id,
             "desc", "design", "acceptance", "plan",
             "security", "performance", "test", "deployment",
-            "feedback", "blocking");
+            "feedback", "blocking",
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Deliverable Updated");
@@ -306,7 +315,7 @@ public class DeliverableToolsTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _tools.TransitionDeliverableStatus(id, targetStatus, actor);
+        var result = await _tools.TransitionDeliverableStatus(id, targetStatus, actor, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Deliverable State Transitioned");
@@ -335,7 +344,7 @@ public class DeliverableToolsTests
         // Act & Assert - test each status value
         foreach (var status in Enum.GetValues<DeliverableStatus>())
         {
-            var result = await _tools.TransitionDeliverableStatus(id, status, actor);
+            var result = await _tools.TransitionDeliverableStatus(id, status, actor, TestContext.Current.CancellationToken);
             result.Should().Contain(status.ToString());
         }
     }
@@ -351,7 +360,8 @@ public class DeliverableToolsTests
         // Act
         var result = await _tools.UpdateDeliverable(
             id,
-            null, null, null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null, null, null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Deliverable Updated");
@@ -375,7 +385,7 @@ public class DeliverableToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<Exception>(
-            () => _tools.TransitionDeliverableStatus(id, targetStatus, actor));
+            () => _tools.TransitionDeliverableStatus(id, targetStatus, actor, TestContext.Current.CancellationToken));
 
         exception.Message.Should().Be(errorMessage);
     }

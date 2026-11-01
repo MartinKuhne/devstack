@@ -11,7 +11,7 @@ using ModelContextProtocol.Client;
 
 using Npgsql;
 
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.MCP.Hooks;
 

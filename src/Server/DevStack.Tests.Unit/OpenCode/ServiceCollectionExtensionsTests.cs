@@ -3,7 +3,7 @@ using DevStack.OpenCode.DependencyInjection;
 using DevStack.OpenCode.Options;
 using DevStack.OpenCode.Store;
 
-using FluentAssertions;
+using AwesomeAssertions;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

@@ -4,6 +4,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
+using AwesomeAssertions;
+
 using DevStack.Application;
 using DevStack.Application.AgentTasks;
 using DevStack.Application.AgentTasks.Commands;
@@ -12,8 +14,6 @@ using DevStack.Domain.Entities;
 using DevStack.Domain.Enums;
 using DevStack.Mcp.Tools;
 using DevStack.Persistence;
-
-using FluentAssertions;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -74,7 +74,7 @@ public class TaskToolsTests
             .Returns(Task.FromResult<AgentTask>(agentTask));
 
         // Act
-        var result = await _tools.GetTask(id);
+        var result = await _tools.GetTask(id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Test Task");
@@ -102,7 +102,7 @@ public class TaskToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => _tools.GetTask(id));
+            () => _tools.GetTask(id, TestContext.Current.CancellationToken));
 
         exception.Message.Should().BeEquivalentTo($"AgentTask with ID {id} not found");
     }
@@ -117,7 +117,7 @@ public class TaskToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.GetTask(id));
+            () => _tools.GetTask(id, TestContext.Current.CancellationToken));
 
         exception.Message.Should().BeEquivalentTo($"AgentTask with ID {id} not found");
         exception.ErrorCode.Should().Be(McpErrorCode.InvalidParams);
@@ -133,7 +133,7 @@ public class TaskToolsTests
         var title = "New Task";
 
         _dbContext.Deliverables.Add(new Deliverable(projectId, DeliverableType.Feature, "Test", id: deliverableId));
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _createAgentTaskHandler.Handle(Arg.Any<CreateAgentTaskCommand>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(newId));
@@ -142,7 +142,8 @@ public class TaskToolsTests
         var result = await _tools.CreateAgentTask(
             deliverableId,
             title,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Task Created");
@@ -167,7 +168,7 @@ public class TaskToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(
-            () => _tools.CreateAgentTask(deliverableId, title, null));
+            () => _tools.CreateAgentTask(deliverableId, title, null, TestContext.Current.CancellationToken));
 
         exception.Message.Should().Contain("Deliverable");
         exception.Message.Should().Contain("not found");
@@ -185,7 +186,7 @@ public class TaskToolsTests
         var description = "Task description";
 
         _dbContext.Deliverables.Add(new Deliverable(projectId, DeliverableType.Feature, "Test", id: deliverableId));
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _createAgentTaskHandler.Handle(Arg.Any<CreateAgentTaskCommand>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(newId));
@@ -194,7 +195,8 @@ public class TaskToolsTests
         var result = await _tools.CreateAgentTask(
             deliverableId,
             title,
-            description);
+            description,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Task Created");
@@ -218,7 +220,8 @@ public class TaskToolsTests
             id,
             null,
             newDescription,
-            null, null, null, null);
+            null, null, null, null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Task Updated");
@@ -246,7 +249,8 @@ public class TaskToolsTests
             "result",
             "errors",
             "commit123",
-            "agent-name");
+            "agent-name",
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Task Updated");
@@ -273,7 +277,7 @@ public class TaskToolsTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _tools.TransitionAgentTaskStatus(id, targetStatus, actor);
+        var result = await _tools.TransitionAgentTaskStatus(id, targetStatus, actor, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Task State Transitioned");
@@ -302,7 +306,7 @@ public class TaskToolsTests
         // Act & Assert - test each status value
         foreach (var status in Enum.GetValues<AgentTaskStatus>())
         {
-            var result = await _tools.TransitionAgentTaskStatus(id, status, actor);
+            var result = await _tools.TransitionAgentTaskStatus(id, status, actor, TestContext.Current.CancellationToken);
             result.Should().Contain(status.ToString());
         }
     }
@@ -318,7 +322,8 @@ public class TaskToolsTests
         // Act
         var result = await _tools.UpdateAgentTask(
             id,
-            null, null, null, null, null, null);
+            null, null, null, null, null, null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Contain("Task Updated");
@@ -342,7 +347,7 @@ public class TaskToolsTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<Exception>(
-            () => _tools.TransitionAgentTaskStatus(id, targetStatus, actor));
+            () => _tools.TransitionAgentTaskStatus(id, targetStatus, actor, TestContext.Current.CancellationToken));
 
         exception.Message.Should().Be(errorMessage);
     }

@@ -2,11 +2,11 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 
+using AwesomeAssertions;
+
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
 
-using FluentAssertions;
-
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.GraphQL.Client.StepDefinitions;
 
@@ -426,10 +426,12 @@ public sealed class AgentTaskSteps
     [When(@"I query agent tasks by deliverable id")]
     public void WhenIQueryAgentTasksByDeliverableId()
     {
+        var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
         var query = new
         {
-            query = @"query GetAllAgentTasks { agentTasks { nodes { id title status deliverableId } } }",
-            operationName = "GetAllAgentTasks"
+            query = @"query GetAgentTasksByDeliverableId($deliverableId: UUID!) { agentTasks(where: { deliverableId: { eq: $deliverableId } }, first: 100) { nodes { id title status deliverableId } } }",
+            variables = new { deliverableId },
+            operationName = "GetAgentTasksByDeliverableId"
         };
 
         var response = _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json")).Result;

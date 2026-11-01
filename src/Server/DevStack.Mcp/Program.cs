@@ -75,9 +75,8 @@ try
         .WithResources<ResourceType>()
         .WithRequestFilters(filters =>
         {
-            var loggerFactory = builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-            filters.AddCallToolFilter(McpArgumentNormalizationFilter.Create(loggerFactory));
-            filters.AddCallToolFilter(McpToolLoggingFilter.Create(loggerFactory));
+            filters.AddCallToolFilter(McpArgumentNormalizationFilter.Create());
+            filters.AddCallToolFilter(McpToolLoggingFilter.Create());
         });
 
     builder.Services.AddDbContext<DevStackDbContext>(options =>

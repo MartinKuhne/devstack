@@ -1,10 +1,10 @@
-using DevStack.Tests.Integration.MCP.Hooks;
+using AwesomeAssertions;
 
-using FluentAssertions;
+using DevStack.Tests.Integration.MCP.Hooks;
 
 using ModelContextProtocol.Client;
 
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
 
@@ -26,7 +26,7 @@ public sealed class NotificationSteps
         Client.Should().NotBeNull();
     }
 
-    [When(@"I send the notifications/initialized notification")]
+    [When(@"^I send the notifications/initialized notification$")]
     public async Task WhenISendTheInitializedNotification()
     {
         await Client.SendNotificationAsync("notifications/initialized");

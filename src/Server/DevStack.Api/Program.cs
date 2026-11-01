@@ -14,7 +14,9 @@ using DevStack.Infrastructure.Projects;
 using DevStack.Mcp;
 using DevStack.Mcp.Logging;
 using DevStack.Mcp.Tools;
+
 using ModelContextProtocol.Server;
+
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -117,7 +119,7 @@ mcpBuilder
     .WithResources<ResourceType>()
     .WithRequestFilters(filters =>
     {
-        filters.AddCallToolFilter(McpToolLoggingFilter.Create(builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>()));
+        filters.AddCallToolFilter(McpToolLoggingFilter.Create());
     });
 
 var app = builder.Build();
