@@ -7,12 +7,6 @@ using Testcontainers.PostgreSql;
 
 namespace DevStack.Tests.Integration.Shared;
 
-public enum DevStackTestEnvMode
-{
-    Api,
-    Mcp
-}
-
 public sealed class DevStackTestEnv : IDisposable
 {
     private readonly INetwork _network;
@@ -50,7 +44,7 @@ public sealed class DevStackTestEnv : IDisposable
 
         _appImage.CreateAsync().GetAwaiter().GetResult();
 
-        _appContainer = new ContainerBuilder(_appImage)
+        var containerBuilder = new ContainerBuilder(_appImage)
             .WithNetwork(_network)
             .WithPortBinding((ushort)builder.AppPort, true)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.EnvironmentName)
@@ -59,16 +53,20 @@ public sealed class DevStackTestEnv : IDisposable
             .WithWaitStrategy(Wait.ForUnixContainer()
                 .UntilHttpRequestIsSucceeded(
                     f => f.ForPort((ushort)builder.AppPort).ForPath(builder.HealthCheckPath)))
-            .WithOutputConsumer(Consume.DoNotConsumeStdoutAndStderr())
-            .Build();
+            .WithOutputConsumer(Consume.DoNotConsumeStdoutAndStderr());
+
+        foreach (var variable in builder.ExtraEnvironmentVariables)
+        {
+            containerBuilder = containerBuilder.WithEnvironment(variable.Key, variable.Value);
+        }
+
+        _appContainer = containerBuilder.Build();
 
         _appContainer.StartAsync().GetAwaiter().GetResult();
 
         PostgresConnectionString = _postgresContainer.GetConnectionString();
         PostgresConnectionStringForHost = _postgresContainer.GetConnectionString();
         SecretKey = builder.SecretKey;
-        Mode = builder.Mode;
-
         int mappedPort = _appContainer.GetMappedPublicPort((ushort)builder.AppPort);
         AppPort = mappedPort;
         AppUrl = builder.GetAppUrl(mappedPort);
@@ -79,8 +77,6 @@ public sealed class DevStackTestEnv : IDisposable
     public string PostgresConnectionStringForHost { get; }
     public string AppUrl { get; }
     public string SecretKey { get; }
-    public DevStackTestEnvMode Mode { get; }
-
     public void Dispose()
     {
         if (_disposed) return;

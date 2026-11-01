@@ -15,6 +15,7 @@ on:
 env:
   DOTNET_VERSION: '10.0.x'
   NODE_VERSION: '24.x'
+  DEVSTACK_TEST_API_IMAGE: devstack-api:${{ github.sha }}
 
 jobs:
   build:
@@ -36,9 +37,9 @@ jobs:
     - name: Build
       run: dotnet build src/Server/DevStack.slnx --configuration Release --no-restore
 
+    - name: Build API test image
+      run: docker build --tag "$DEVSTACK_TEST_API_IMAGE" -f src/Server/DevStack.Api/Dockerfile src/Server
+
     - name: Test (unit and integration)
       run: dotnet test --solution src/Server/DevStack.slnx --configuration Release --no-build --verbosity normal
-
-    - name: Docker Build
-      run: docker build -t devstack-api:${{ github.sha }} -f src/Server/DevStack.Api/Dockerfile src/Server
  

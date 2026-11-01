@@ -122,6 +122,34 @@ public class AgentTask
         if (agent is not null) Agent = agent;
     }
 
+    // DRIFT-01 — this assigns unconditionally, and the tool description promises a guard that does not exist.
+    // Category:        invariant-violation (advertised rule is not enforced)
+    // Trigger path:    updateAgentTaskStatus / update_task_status
+    //                  -> UpdateAgentTaskStatusHandler calls agentTask.TransitionStatus(command.Status)
+    //                  -> this method assigns Status with no guard, and SaveChangesAsync commits it
+    // Why this is a real bug: Descriptions.TaskTools.UpdateTaskStatus tells the caller "The state machine
+    //                  enforces valid transitions", but nothing enforces anything on this path. Worse, there is
+    //                  no task rule set to enforce: StatusTransitionService.CanTransition is overloaded only for
+    //                  DeliverableStatus (StatusTransitionService.cs:9) and has no AgentTaskStatus equivalent, so
+    //                  for tasks the advertised state machine does not exist in any form.
+    // Why this is NOT a false positive: the guarantee is in the shipped tool description and the assignment is
+    //                  unconditional, so the claim is false as written regardless of intent. The task
+    //                  transitions pinned by TaskMutations.feature (Ready -> InProgress, InProgress ->
+    //                  NeedsReview, NeedsReview -> Done, NeedsReview -> Rejected, ...) are therefore the only
+    //                  de-facto contract, and they are pinned as free choices: the same mutations accept any
+    //                  other target status too. Note this is drift rather than corruption for tasks precisely
+    //                  because no rule set was ever written - the decision is whether to define one or to drop
+    //                  the claim.
+    // Concrete consequence: task history is not trustworthy - a completed task can be moved back to Ready or
+    //                  forward to Done without any check, and deliverable auto-completion that keys off task
+    //                  status reacts to a state the caller invented.
+    // Confidence:      Confirmed.
+    // Fix direction:   either define AgentTaskStatus transition rules and validate here, or remove the
+    //                  "state machine enforces valid transitions" sentence from the tool description.
+    //                  Product-owner decision recorded as DRIFT-01.
+    // Pinned by:       DevStack.Tests.Integration.GraphQL Features/TaskMutations.feature (the transition
+    //                  scenarios assert each requested status is accepted). If a guard is added, re-run them and
+    //                  add the rejected-transition cases at the same time.
     public void TransitionStatus(AgentTaskStatus newStatus)
     {
         Status = newStatus;

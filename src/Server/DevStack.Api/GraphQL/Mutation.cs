@@ -152,6 +152,32 @@ public class Mutation
         CreateDeliverableInput input,
         CancellationToken cancellationToken)
     {
+        // DRIFT-10 — Enum.Parse accepts numeric strings, so an invalid type is not rejected here.
+        // Category:        validation-bypass (late failure instead of input validation)
+        // Trigger path:    createDeliverable(input: { type: "999", ... })
+        //                  -> this line calls Enum.Parse(typeof(DeliverableType), "999", ignoreCase: true)
+        //                  -> Enum.Parse parses any numeric string into the underlying int and does NOT check
+        //                     that the value is a declared member, so the cast succeeds with (DeliverableType)999
+        //                  -> the handler persists the row and SaveChangesAsync commits it
+        //                  -> the failure only appears later, when HotChocolate serialises the enum member and
+        //                     cannot map it: the response is an EXEC_INVALID_LEAF_VALUE execution error
+        // Why this is a real bug: the mutation reports a serialization fault rather than an input-validation
+        //                  fault for a bad argument, and the deliverable row has already been written with an
+        //                  undefined type value that no client can render.
+        // Why this is NOT a false positive: the behaviour is observed end to end - the integration scenario
+        //                  sends a numeric type string and receives the serialization error rather than a
+        //                  validation error naming the field. Declaring the GraphQL argument as the enum type
+        //                  (DeliverableType instead of String) would make HotChocolate reject it up front, which
+        //                  is the fix below.
+        // Concrete consequence: an orphan deliverable with an unrenderable type in the database plus an error
+        //                  message that points the caller at the wrong layer.
+        // Confidence:      Confirmed.
+        // Fix direction:   declare CreateDeliverableInput.Type as DeliverableType and let HotChocolate bind it,
+        //                  or use Enum.TryParse<T>(value, ignoreCase: true, out var t) && Enum.IsDefined(t).
+        // Pinned by:       DevStack.Tests.Integration.GraphQL Features/GraphQLErrorPaths.feature
+        //                  "A numeric deliverable type string slips past Enum.Parse and fails serialization".
+        //                  That scenario expects the serialization error today and must be rewritten when the
+        //                  input is validated properly.
         var deliverableType = (DeliverableType)Enum.Parse(typeof(DeliverableType), input.Type, ignoreCase: true);
 
         var id = await handler.Handle(new CreateDeliverableCommand(
@@ -177,6 +203,36 @@ public class Mutation
         UpdateDeliverableInput input,
         CancellationToken cancellationToken)
     {
+        // BUG-07 — updateDeliverable swaps agentFeedback and executionPlan on the way to the entity.
+        // Category:        data-corruption
+        // Trigger path:    client sends updateDeliverable(input:{agentFeedback:"A", executionPlan:"B"})
+        //                  -> UpdateDeliverableInput declares AgentFeedback at position 5, ExecutionPlan at 6
+        //                     (Mutation.cs:43-44)
+        //                  -> this call passes the arguments POSITIONALLY, so "A" lands in slot 5 and "B" in 6
+        //                  -> UpdateDeliverableCommand declares ExecutionPlan at position 5, AgentFeedback at 6
+        //                     (UpdateDeliverableCommand.cs:8-9), so "A" becomes command.ExecutionPlan
+        //                  -> UpdateDeliverableHandler writes command.ExecutionPlan into Deliverable.AgentFeedback
+        //                     and vice versa; SaveChangesAsync commits the crossed values.
+        // Why this is a real bug: both parameters are string?, so the compiler cannot detect the crossing, and
+        //                  the mutation reports success. Every caller that sets both fields has its data swapped
+        //                  in the database, and re-querying returns the crossed values consistently, so the write
+        //                  looks correct to the client.
+        // Why this is NOT a false positive: the two records were read side by side (Mutation.cs:38-50 vs
+        //                  UpdateDeliverableCommand.cs:3-15) and the call is positional, not named. The sibling
+        //                  command constructions in this file (CreateDeliverableCommand, UpdateAgentTaskCommand,
+        //                  both LargeLanguageModel commands, both Project commands) were audited and DO match
+        //                  their record order, so this is a single crossed pair rather than a convention.
+        // Concrete consequence: agent feedback and execution plans are persisted in each other's columns and
+        //                  are unrecoverable without direct SQL; the AdminUi renders each under the wrong label.
+        // Confidence:      Confirmed (traced end-to-end; pinned by an integration scenario that observes the
+        //                  crossed columns in the persisted row).
+        // Fix direction:   pass the arguments by name:
+        //                  new UpdateDeliverableCommand(input.Id, Title: input.Title, ...,
+        //                      AgentFeedback: input.AgentFeedback, ExecutionPlan: input.ExecutionPlan, ...).
+        //                  Prefer named arguments for every command construction in this file as defence.
+        // Pinned by:       DevStack.Tests.Integration.GraphQL Features/GraphQLFieldCoverage.feature
+        //                  scenario "GQL-13 DEFECT updateDeliverable crosses agentFeedback and executionPlan".
+        //                  That scenario turns red as soon as this is fixed - update or delete it then.
         await handler.Handle(new UpdateDeliverableCommand(
             input.Id,
             input.Title,

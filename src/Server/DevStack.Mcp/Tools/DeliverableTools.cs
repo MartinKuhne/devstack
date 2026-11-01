@@ -121,6 +121,41 @@ public class DeliverableTools
             ct);
 
         _logger.LogInformation("Created deliverable with ID: {Id}", id);
+        // BUG-03 — the response below reports a status that was never persisted and that does not exist.
+        // Category:        wrong-data (client-visible)
+        // Trigger path:    client calls create_deliverable(projectId, title)
+        //                  -> :107-121 CreateDeliverableCommand is built with InitialStatus
+        //                     = Domain.Enums.DeliverableStatus.Draft (the literal at :119)
+        //                  -> CreateDeliverableHandler passes that status to the Deliverable constructor, so the
+        //                     persisted row has Status = Draft
+        //                  -> :125 the response is built from two string LITERALS, "Feature" and "Ready"; neither
+        //                     value is read back from the created entity
+        //                  -> ToolResponse.Success serialises them verbatim into the tool result
+        // Why this is a real bug: "Ready" is not a member of DeliverableStatus at all
+        //                  (DeliverableStatus.cs:4-16 declares Draft, Design, Plan, Implement, Merge, Deploy,
+        //                  Test, Done, Failed, Rejected, NeedsReview). The tool therefore advertises a state the
+        //                  domain cannot represent, and the real state (Draft) is different from the reported one.
+        //                  An agent that trusts the payload and moves on to the next step of the workflow acts on a
+        //                  deliverable it believes is ready but that is still a draft.
+        // Why this is NOT a false positive: the mismatch is between two lines of the same method (:119 vs :125),
+        //                  so no later code path can reconcile them - the handler is awaited and SaveChanges has
+        //                  already committed Draft before the response is constructed. The sibling get_deliverable
+        //                  path (:44-56) DOES read deliverable.Status, which shows the literal here is an
+        //                  oversight rather than a deliberate contract.
+        // Concrete consequence: a client that filters with get_next_deliverable(status: Ready) finds nothing, and
+        //                  one that branches on the reported status takes the "ready" branch for a Draft row.
+        //                  Descriptions.DeliverableTools.CreateDeliverable compounds it by documenting "The tool
+        //                  sets new deliverables to Ready state", so the model is told the same falsehood.
+        // Confidence:      Confirmed (both the persisted value and the enum membership were read in source).
+        // Fix direction:   read the persisted entity (or the enum) instead of literals:
+        //                  new CreateDeliverableResponse(id.ToString(), projectId.ToString(),
+        //                      DeliverableType.Feature.ToString(), DeliverableStatus.Draft.ToString())
+        //                  - or re-fetch the deliverable and project its real Type/Status - and correct
+        //                  Descriptions.DeliverableTools.CreateDeliverable accordingly.
+        // Pinned by:       NO test today. No scenario asserts the Type/Status fields of the create_deliverable
+        //                  payload, so this defect is currently unobserved by the suite; it is recorded in
+        //                  doc/planning/integration-test-coverage-ledger.md §6 as BUG-03. Add the assertion when
+        //                  the fix lands so the corrected values are locked in.
         return ToolResponse.Success("Deliverable Created",
             new CreateDeliverableResponse(id.ToString(), projectId.ToString(), "Feature", "Ready"),
             Descriptions.DeliverableTools.CreateUsageHint);

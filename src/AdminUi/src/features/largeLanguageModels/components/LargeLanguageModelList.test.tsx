@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { LargeLanguageModelList } from './LargeLanguageModelList';
 import { vi, beforeEach } from 'vitest';
 
@@ -55,7 +55,11 @@ describe('LargeLanguageModelList', () => {
     it('should call onAddModel when Add Model button is clicked', () => {
         render(<LargeLanguageModelList onAddModel={mockOnAddModel} />);
 
-        screen.getAllByRole('button', { name: /add model/i })[0].click();
+        const [addButton] = screen.getAllByRole('button', { name: /add model/i });
+        if (!addButton) {
+            throw new Error('Add Model button was not rendered');
+        }
+        fireEvent.click(addButton);
         expect(mockOnAddModel).toHaveBeenCalledTimes(1);
     });
 });

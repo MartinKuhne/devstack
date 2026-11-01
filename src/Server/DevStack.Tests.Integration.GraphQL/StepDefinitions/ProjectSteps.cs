@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -5,6 +6,7 @@ using System.Text.Json;
 using AwesomeAssertions;
 
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
+using DevStack.Tests.Integration.Shared;
 
 using Reqnroll;
 
@@ -13,6 +15,12 @@ namespace DevStack.Tests.Integration.GraphQL.Client.StepDefinitions;
 [Binding]
 public sealed class ProjectSteps
 {
+    /// <summary>
+    /// Marker that <c>deleteTestData</c> reclaims rows by (GQL-18). It is appended to every project
+    /// name this class writes - including renames - so the AfterScenario cleanup can reclaim them.
+    /// </summary>
+    private const string TestMarker = "[DeleteAfterTest]";
+
     private readonly ScenarioContext _scenarioContext;
     private readonly HttpClient _httpClient;
 
@@ -21,6 +29,9 @@ public sealed class ProjectSteps
         _scenarioContext = scenarioContext;
         _httpClient = SpecFlowHooks.GetHttpClient(scenarioContext);
     }
+
+    /// <summary>Appends the cleanup marker to a name so <c>deleteTestData</c> can reclaim the row.</summary>
+    private static string Marked(string name) => $"{name} {TestMarker}";
 
     private static JsonElement GetData(JsonElement response)
     {
@@ -31,9 +42,15 @@ public sealed class ProjectSteps
         return data;
     }
 
+    /// <summary>
+    /// Reports whether the GraphQL payload carries a non-empty top-level errors array.
+    /// </summary>
+    /// <param name="response">Raw GraphQL response payload.</param>
+    /// <param name="mutationName">Mutation under test; retained for call-site readability.</param>
     private static bool HasErrors(JsonElement response, string mutationName)
     {
-        return false;
+        _ = mutationName;
+        return GraphQLResult.Parse(HttpStatusCode.OK, response.GetRawText()).HasErrors;
     }
 
     [Given("the API is available")]
@@ -47,7 +64,7 @@ public sealed class ProjectSteps
         var mutation = new
         {
             query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { id } }",
-            variables = new { input = new { name, description = (string?)null, repository = "https://example.com" } },
+            variables = new { input = new { name = Marked(name), description = (string?)null, repository = "https://example.com" } },
             operationName = "CreateProject"
         };
 
@@ -65,7 +82,7 @@ public sealed class ProjectSteps
         var mutation = new
         {
             query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { id } }",
-            variables = new { input = new { name, description, repository = "https://example.com" } },
+            variables = new { input = new { name = Marked(name), description, repository = "https://example.com" } },
             operationName = "CreateProject"
         };
 
@@ -84,7 +101,7 @@ public sealed class ProjectSteps
         var mutation = new
         {
             query = @"mutation CreateProject($input: CreateProjectInput!) { createProject(input: $input) { id } }",
-            variables = new { input = new { name, description = (string?)null, repository = "https://example.com" } },
+            variables = new { input = new { name = Marked(name), description = (string?)null, repository = "https://example.com" } },
             operationName = "CreateProject"
         };
 
@@ -104,7 +121,7 @@ public sealed class ProjectSteps
         var mutation = new
         {
             query = @"mutation UpdateProject($input: UpdateProjectInput!) { updateProject(input: $input) { id } }",
-            variables = new { input = new { id = projectId, name, description = (string?)null, repository = (string?)null } },
+            variables = new { input = new { id = projectId, name = Marked(name), description = (string?)null, repository = (string?)null } },
             operationName = "UpdateProject"
         };
 

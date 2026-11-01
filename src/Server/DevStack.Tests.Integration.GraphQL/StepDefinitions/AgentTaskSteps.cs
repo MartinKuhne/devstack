@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -5,6 +6,7 @@ using System.Text.Json;
 using AwesomeAssertions;
 
 using DevStack.Tests.Integration.GraphQL.Client.Hooks;
+using DevStack.Tests.Integration.Shared;
 
 using Reqnroll;
 
@@ -13,6 +15,16 @@ namespace DevStack.Tests.Integration.GraphQL.Client.StepDefinitions;
 [Binding]
 public sealed class AgentTaskSteps
 {
+    /// <summary>
+    /// Marker that <c>deleteTestData</c> reclaims rows by (GQL-18). It is appended to every agent task
+    /// title and deliverable title this class writes - including renames - so the AfterScenario cleanup
+    /// can reclaim them.
+    /// </summary>
+    private const string TestMarker = "[DeleteAfterTest]";
+
+    /// <summary>Fields the "all optional fields" step promises to send, for the round-trip assertion.</summary>
+    private const string SentTaskFieldsKey = "SentAgentTaskFields";
+
     private readonly ScenarioContext _scenarioContext;
     private readonly HttpClient _httpClient;
 
@@ -21,6 +33,13 @@ public sealed class AgentTaskSteps
         _scenarioContext = scenarioContext;
         _httpClient = SpecFlowHooks.GetHttpClient(scenarioContext);
     }
+
+    /// <summary>Appends the cleanup marker to a title so <c>deleteTestData</c> can reclaim the row.</summary>
+    private static string Marked(string title) => $"{title} {TestMarker}";
+
+    /// <summary>Maps the literal <c>null</c> of a feature file onto an absent value.</summary>
+    private static string? NullIfLiteral(string? value)
+        => string.Equals(value, "null", StringComparison.OrdinalIgnoreCase) ? null : value;
 
     private static JsonElement GetData(JsonElement response)
     {
@@ -52,9 +71,15 @@ public sealed class AgentTaskSteps
         return value;
     }
 
+    /// <summary>
+    /// Reports whether the GraphQL payload carries a non-empty top-level errors array.
+    /// </summary>
+    /// <param name="response">Raw GraphQL response payload.</param>
+    /// <param name="mutationName">Mutation under test; retained for call-site readability.</param>
     private static bool HasErrors(JsonElement response, string mutationName)
     {
-        return false;
+        _ = mutationName;
+        return GraphQLResult.Parse(HttpStatusCode.OK, response.GetRawText()).HasErrors;
     }
 
     [Given(@"an agent task ""(.*)"" exists")]
@@ -202,7 +227,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { id } }",
-            variables = new { input = new { deliverableId, projectId, title, description = "Integration test task", complexityRating, dependsOnAgentTaskId = (Guid?)null } },
+            variables = new { input = new { deliverableId, projectId, title = Marked(title), description = "Integration test task", complexityRating, dependsOnAgentTaskId = (Guid?)null } },
             operationName = "CreateAgentTask"
         };
 
@@ -240,7 +265,19 @@ public sealed class AgentTaskSteps
     public void WhenICreateAnAgentTaskWithAllFields(string title, int complexityRating, string? result, string? errors, string? commitHash, string? model)
     {
         var deliverableId = _scenarioContext["DeliverableId"]?.ToString()!;
-        CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, result, errors, commitHash, null, null, model, null, null, null);
+        CreateAgentTaskWithFullFields(
+            deliverableId,
+            title,
+            complexityRating,
+            NullIfLiteral(result),
+            NullIfLiteral(errors),
+            NullIfLiteral(commitHash),
+            null,
+            null,
+            NullIfLiteral(model),
+            null,
+            null,
+            null);
     }
 
     [When(@"I create an agent task with title ""(.*)"" complexity (.*) and depends on ""(.*)""")]
@@ -252,6 +289,12 @@ public sealed class AgentTaskSteps
         CreateAgentTaskWithFullFields(deliverableId, title, complexityRating, null, null, null, depId, null, null, null, null, null);
     }
 
+    /// <summary>
+    /// Creates an agent task and then writes the optional fields the step text promises
+    /// (<c>result</c>, <c>errors</c>, <c>commitHash</c> and the executing <c>agent</c>, GQL-16).
+    /// <c>CreateAgentTaskInput</c> has no such fields, so they are applied with <c>updateAgentTask</c>
+    /// and the sent values are recorded for a round-trip assertion.
+    /// </summary>
     private void CreateAgentTaskWithFullFields(string deliverableId, string title, int complexityRating, string? result, string? errors, string? commitHash, Guid? dependsOnAgentTaskId, string? description, string? agent, int? promptTokens, int? completionTokens, int? executionDurationInSeconds)
     {
         description ??= "Integration test task";
@@ -260,7 +303,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation CreateAgentTask($input: CreateAgentTaskInput!) { createAgentTask(input: $input) { id } }",
-            variables = new { input = new { deliverableId, projectId, title, description, complexityRating, dependsOnAgentTaskId } },
+            variables = new { input = new { deliverableId, projectId, title = Marked(title), description, complexityRating, dependsOnAgentTaskId } },
             operationName = "CreateAgentTask"
         };
 
@@ -279,6 +322,90 @@ public sealed class AgentTaskSteps
         var taskId = agentTask.GetProperty("id").ToString();
         _scenarioContext["AgentTaskId"] = taskId;
         _scenarioContext["Response"] = resultJson;
+
+        var sent = new Dictionary<string, object?>(StringComparer.Ordinal);
+
+        if (result is not null)
+        {
+            sent["result"] = result;
+        }
+
+        if (errors is not null)
+        {
+            sent["errors"] = errors;
+        }
+
+        if (commitHash is not null)
+        {
+            sent["commitHash"] = commitHash;
+        }
+
+        if (agent is not null)
+        {
+            sent["agent"] = agent;
+        }
+
+        if (promptTokens is not null)
+        {
+            sent["promptTokens"] = promptTokens;
+        }
+
+        if (completionTokens is not null)
+        {
+            sent["completionTokens"] = completionTokens;
+        }
+
+        if (executionDurationInSeconds is not null)
+        {
+            sent["executionDurationInSeconds"] = executionDurationInSeconds;
+        }
+
+        if (sent.Count == 0)
+        {
+            return;
+        }
+
+        sent["id"] = taskId;
+
+        var update = GraphQLRequest.Execute(
+            _httpClient,
+            @"mutation UpdateAgentTaskFields($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { id } }",
+            new { input = sent },
+            "UpdateAgentTaskFields");
+
+        update.HasErrors.Should().BeFalse("the optional fields promised by the step text must actually be written: {0}", update.RawBody);
+
+        _scenarioContext[SentTaskFieldsKey] = sent
+            .Where(pair => pair.Key != "id")
+            .ToDictionary(pair => pair.Key, pair => pair.Value?.ToString() ?? string.Empty, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// Re-queries the agent task and asserts that every field the "all optional fields" step claims to
+    /// send is persisted with exactly the sent value (GQL-16).
+    /// </summary>
+    [Then(@"the agent task should persist the result, errors, commit hash and agent that were sent")]
+    public void ThenTheAgentTaskShouldPersistTheSentFields()
+    {
+        var sent = _scenarioContext.TryGetValue<Dictionary<string, string>>(SentTaskFieldsKey, out var values) && values is not null
+            ? values
+            : throw new InvalidOperationException("No optional agent task fields have been sent by this scenario.");
+
+        var taskId = _scenarioContext["AgentTaskId"]?.ToString()!;
+        var result = GraphQLRequest.Execute(
+            _httpClient,
+            @"query GetAgentTaskFields($id: UUID!) { agentTask(id: $id) { id result errors commitHash agent } }",
+            new { id = taskId },
+            "GetAgentTaskFields");
+
+        result.HasErrors.Should().BeFalse(result.RawBody);
+        var agentTask = result.Field("agentTask");
+        agentTask.ValueKind.Should().NotBe(JsonValueKind.Null, $"the agent task {taskId} should exist");
+
+        foreach (var (field, value) in sent)
+        {
+            agentTask.GetProperty(field).GetString().Should().Be(value, $"round-trip of agentTask.{field}");
+        }
     }
 
     [When(@"I update the agent task title to ""(.*)""")]
@@ -288,7 +415,7 @@ public sealed class AgentTaskSteps
         var mutation = new
         {
             query = @"mutation UpdateAgentTask($input: UpdateAgentTaskInput!) { updateAgentTask(input: $input) { id } }",
-            variables = new { input = new { id = taskId, title } },
+            variables = new { input = new { id = taskId, title = Marked(title) } },
             operationName = "UpdateAgentTask"
         };
 
@@ -575,7 +702,7 @@ public sealed class AgentTaskSteps
     public void GivenADeliverableWithTypeAndInitialStatusExists(string title, string type, string initialStatus)
     {
         var projectId = _scenarioContext["ProjectId"]?.ToString()!;
-        _scenarioContext["DeliverableTitle"] = title;
+        _scenarioContext["DeliverableTitle"] = Marked(title);
         var mappedStatus = MapStatus(initialStatus);
         var mutation = new
         {
@@ -585,7 +712,7 @@ public sealed class AgentTaskSteps
                 input = new
                 {
                     projectId,
-                    title,
+                    title = Marked(title),
                     type,
                     description = "",
                     acceptanceCriteria = (string?)null,

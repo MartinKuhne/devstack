@@ -37,6 +37,36 @@ public class TaskTools
     [McpServerTool(Name = "get_task"), Description(Descriptions.TaskTools.GetTask)]
     public async Task<string> GetTask([Description(Descriptions.TaskTools.Id)] Guid id, CancellationToken ct = default)
     {
+        // BUG-02 — the not-found guard below is unreachable, so get_task reports errors differently from its
+        // sibling get_deliverable for the identical condition.
+        // Category:        error-contract (inconsistent client-visible contract)
+        // Trigger path:    client calls get_task with an unknown id
+        //                  -> the GetAgentTaskByIdHandler.Handle(...) call below is awaited
+        //                  -> AgentTaskHandlers.cs GetAgentTaskByIdHandler.Handle FindAsync returns null and the
+        //                     handler throws InvalidOperationException("AgentTask with ID ... not found.")
+        //                  -> the exception unwinds past the null check below, so the McpProtocolException is
+        //                     never constructed and the null check is dead code
+        //                  -> the MCP SDK catches the generic exception and returns a CallToolResult with
+        //                     IsError = true and the text "An error occurred invoking 'get_task'."
+        // Why this is a real bug: the declared return type is Task<AgentTask> (non-nullable), so the compiler
+        //                  already proves the null branch cannot be taken; the guard expresses an intent
+        //                  (InvalidParams for a bad id) that the implementation never delivers.
+        // Why this is NOT a false positive: the two outcomes are observably different client paths - a tool that
+        //                  throws McpProtocolException makes the client re-throw with the original message, while
+        //                  any other exception yields an IsError result with a generic message. get_deliverable
+        //                  returns a clean {"error":"Deliverable not found"} and get_project raises a protocol
+        //                  error naming the id, so three sibling lookups disagree. The integration suite codifies
+        //                  the current split (get_task under "tool execution errors", get_project under "protocol
+        //                  errors"), which documents the inconsistency rather than resolving it.
+        // Concrete consequence: an agent cannot distinguish "I passed a bad id" from "the server is broken", so
+        //                  it retries a request that can never succeed; the raw .NET exception text also reaches
+        //                  the client.
+        // Confidence:      Confirmed.
+        // Fix direction:   make GetAgentTaskByIdHandler return AgentTask? (mirroring GetDeliverableByIdHandler)
+        //                  so the null guard below executes, or delete the dead guard and document the tool-error
+        //                  contract as intentional.
+        // Pinned by:       DevStack.Tests.Integration.MCP Features/ToolErrorPaths.feature (get_task unknown id
+        //                  is listed under "Failed entity lookups ... surfaced as tool execution errors").
         var agentTask = await _getAgentTaskByIdHandler.Handle(new GetAgentTaskByIdQuery(id), ct);
         if (agentTask == null)
             throw new McpProtocolException($"AgentTask with ID {id} not found", McpErrorCode.InvalidParams);
@@ -96,6 +126,40 @@ public class TaskTools
 
         var (bestDeliverable, nextTask) = selectionResult.Value;
 
+        // BUG-06 — this "all done" payload puts a DELIVERABLE id under the key "Id", in the shape of a task.
+        // Category:        wrong-data (client-confusing payload shape)
+        // Trigger path:    client calls get_next_task(projectId | repositoryUrl) for a project whose deliverables
+        //                  are all in Implement and whose tasks are all terminal
+        //                  -> :123 TaskSelectionService.SelectNextTask returns (bestDeliverable, nextTask: null)
+        //                  -> :129-131 the success payload is an anonymous object with keys Message, Id, Title,
+        //                     where Id/Title come from bestDeliverable
+        //                  -> the task-found path (:133-144) returns GetAgentTaskResponse, whose keys are
+        //                     Id, ProjectId, Title, Status, Description, Result, Errors, CommitHash, Agent
+        //                  -> both are wrapped by ToolResponse.Success under the same "data" shape, so a client
+        //                     that reads .Id cannot tell which entity it received
+        // Why this is a real bug: the tool is documented as "Find the next task to work on"
+        //                  (Descriptions.TaskTools.GetNextTask) and its usage hint tells the caller to use the
+        //                  returned ID for get_task / update_task (Descriptions.TaskTools.CreateUsageHint). On
+        //                  this branch the returned ID is not a
+        //                  task id, so following the documented hint is guaranteed to fail.
+        // Why this is NOT a false positive: the two payloads share the key names "Id" and "Title" but name
+        //                  different entities, and the discriminator is only the human-readable title string
+        //                  ("No Pending Tasks" vs "Next Task") plus the absence of Status - neither of which the
+        //                  usage hint tells the client to check. The sibling get_next_deliverable
+        //                  (DeliverableTools.GetNextDeliverable) uses GetNextDeliverableResponse, which also
+        //                  exposes a bare
+        //                  "Id", so "Id" is not a stable entity marker anywhere in this surface.
+        // Concrete consequence: an agent that takes the Id and calls get_task(id) gets "AgentTask with ID ...
+        //                  not found" (or, worse, an unrelated task if the ids ever collide), and cannot report
+        //                  "nothing left to do" reliably.
+        // Confidence:      Confirmed.
+        // Fix direction:   give the payload unambiguous keys, e.g.
+        //                  new { Message = "...", DeliverableId = bestDeliverable.Id, DeliverableTitle =
+        //                  bestDeliverable.Title, TaskId = (string?)null } and say so in the usage hint.
+        // Pinned by:       DevStack.Tests.Integration.MCP Features/ToolCoverageHappy.feature
+        //                  "get_next_task reports all tasks are completed" and
+        //                  Steps/ToolCoverageSteps.cs (the assertion that reads payload.Id on this branch).
+        //                  That assertion fails once the key is renamed - update it with the fix.
         if (nextTask == null)
             return ToolResponse.Success("No Pending Tasks",
                 new { Message = "All tasks are completed for the selected deliverable", bestDeliverable.Id, bestDeliverable.Title });

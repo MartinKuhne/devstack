@@ -52,6 +52,15 @@ describe('createModuleLogger', () => {
 });
 
 describe('formatGraphQLError', () => {
+    /**
+     * `formatGraphQLError` declares `details?: unknown`, so indexing it directly would be an
+     * unchecked `any`. These tests narrow through this helper to keep element access typed.
+     */
+    function asErrorList(details: unknown): Array<Record<string, unknown>> {
+        expect(Array.isArray(details)).toBe(true);
+        return details as Array<Record<string, unknown>>;
+    }
+
     it('returns default message for undefined error', () => {
         const result = formatGraphQLError(undefined);
         expect(result.message).toBe('An unexpected error occurred');
@@ -86,12 +95,13 @@ describe('formatGraphQLError', () => {
         const result = formatGraphQLError(error);
         expect(result.message).toBe('Batch query failed');
         expect(result.details).toHaveLength(2);
-        expect(result.details![0]).toEqual({
+        const details = asErrorList(result.details);
+        expect(details[0]).toEqual({
             message: 'Field not found',
             path: ['user', 'email'],
             extensions: { code: 'USER_NOT_FOUND' },
         });
-        expect(result.details![1]).toEqual({
+        expect(details[1]).toEqual({
             message: 'Unauthorized',
             path: ['admin'],
             extensions: undefined,
@@ -128,7 +138,7 @@ describe('formatGraphQLError', () => {
         };
         const result = formatGraphQLError(error);
         expect(result.details).toHaveLength(1);
-        expect(result.details![0].message).toBe('Bad query');
+        expect(asErrorList(result.details)[0]?.message).toBe('Bad query');
     });
 
     it('handles empty graphQLErrors array', () => {
