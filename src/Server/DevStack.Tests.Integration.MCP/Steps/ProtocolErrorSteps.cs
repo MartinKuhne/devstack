@@ -1,11 +1,11 @@
-using DevStack.Tests.Integration.MCP.Hooks;
+using AwesomeAssertions;
 
-using FluentAssertions;
+using DevStack.Tests.Integration.MCP.Hooks;
 
 using ModelContextProtocol;
 using ModelContextProtocol.Client;
 
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
 

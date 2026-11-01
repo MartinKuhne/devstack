@@ -2,6 +2,7 @@ using DevStack.Persistence;
 
 using HotChocolate.Data;
 using HotChocolate.Types;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace DevStack.Api.GraphQL.Types;

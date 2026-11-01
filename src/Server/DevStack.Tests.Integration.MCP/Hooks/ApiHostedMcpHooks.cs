@@ -1,6 +1,6 @@
 using DevStack.Tests.Integration.Shared;
 
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.MCP.Hooks;
 

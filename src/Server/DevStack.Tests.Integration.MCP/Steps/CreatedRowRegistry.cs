@@ -2,7 +2,7 @@ using System.Text.Json;
 
 using DevStack.Tests.Integration.MCP.Hooks;
 
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.MCP.Steps;
 

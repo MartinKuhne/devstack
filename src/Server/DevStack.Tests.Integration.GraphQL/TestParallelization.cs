@@ -1,4 +1,6 @@
 using Xunit;
+using Xunit.Sdk;
+using Xunit.v3;
 
 // The GraphQL integration suite boots a single Postgres container for the whole test run and every
 // scenario ends with `mutation { deleteTestData { ... } }`, which removes every row carrying the
@@ -8,4 +10,4 @@ using Xunit;
 // parallel, so a scenario from one feature can delete the marker-prefixed fixture rows that a
 // scenario in another feature is still using (observed as spurious "Unexpected Execution Error"
 // not-found failures). Scenarios are therefore executed one at a time against the shared database.
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+[assembly: Parallelization(Mode = ParallelMode.None)]

@@ -3,7 +3,7 @@ using DevStack.Tests.Integration.Shared;
 
 using Microsoft.EntityFrameworkCore;
 
-using TechTalk.SpecFlow;
+using Reqnroll;
 
 namespace DevStack.Tests.Integration.MCP.Hooks;
 
