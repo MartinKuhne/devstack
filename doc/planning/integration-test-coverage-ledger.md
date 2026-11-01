@@ -185,6 +185,13 @@ Both hosts register the same tools: `DevStack.Mcp/Program.cs:65-71` and `DevStac
 
 ## 6. Defects and drift found *by* building the coverage
 
+Every finding in this section is also annotated **where it is produced** in the
+source, in the exhaustive-bug-hunt finding format (Category, Trigger path, Why
+this is a real bug, Why this is NOT a false positive, Concrete consequence,
+Confidence, Fix direction) and each block names this register's ID plus the test
+that pins it. Search the repository for the ID to find the block. (`1b67c92`,
+`177948b`, `6012a55`)
+
 Product defects (fix in product code; tests currently pin the broken behaviour and will fail loudly when fixed):
 
 | ID | Defect | Evidence |
